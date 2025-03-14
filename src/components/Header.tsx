@@ -1,7 +1,7 @@
 
 import { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Menu, X, User, FileText, MapPin, Home } from 'lucide-react';
+import { Menu, X, User, FileText, MapPin, Home, Car } from 'lucide-react';
 import Button from './Button';
 
 const Header = () => {
@@ -43,6 +43,7 @@ const Header = () => {
       <div className="container mx-auto px-4 flex items-center justify-between">
         {/* Logo */}
         <Link to="/" className="flex items-center">
+          <Car className="w-6 h-6 text-constalib-blue mr-2" />
           <span className="text-constalib-blue font-bold text-2xl tracking-tight">Constalib</span>
         </Link>
 
