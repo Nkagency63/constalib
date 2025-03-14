@@ -1,7 +1,6 @@
-
 import { useState, useRef, useEffect } from 'react';
 import Button from './Button';
-import { Car, Undo, Redo, Save, Plus, Minus } from 'lucide-react';
+import { Car, Undo, Redo, Save, Plus, Minus, X } from 'lucide-react';
 
 interface Vehicle {
   id: string;
