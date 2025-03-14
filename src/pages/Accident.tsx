@@ -1,6 +1,7 @@
 
 import Header from '@/components/Header';
 import AccidentForm from '@/components/AccidentForm';
+import { Toaster } from "@/components/ui/toaster";
 
 const Accident = () => {
   return (
@@ -17,6 +18,8 @@ const Accident = () => {
           <AccidentForm />
         </div>
       </main>
+
+      <Toaster />
     </div>
   );
 };

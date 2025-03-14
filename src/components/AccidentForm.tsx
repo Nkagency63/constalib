@@ -4,6 +4,8 @@ import { ChevronRight, ChevronLeft, Calendar, MapPin, AlertCircle, Check } from 
 import Button from './Button';
 import PhotoCapture from './PhotoCapture';
 import VehicleScheme from './VehicleScheme';
+import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/hooks/use-toast';
 
 // Step interface
 interface Step {
@@ -33,6 +35,8 @@ const AccidentForm = () => {
     damagePhotos: [],
   });
   const [submitted, setSubmitted] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const { toast } = useToast();
   
   // Define steps
   const steps: Step[] = [
@@ -89,10 +93,85 @@ const AccidentForm = () => {
     }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  // Upload photos to Supabase storage
+  const uploadPhotos = async (files: File[], prefix: string) => {
+    const uploadedFileUrls: string[] = [];
+    
+    for (const file of files) {
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${prefix}_${Date.now()}.${fileExt}`;
+      const filePath = `${fileName}`;
+      
+      const { data, error } = await supabase.storage
+        .from('accident_photos')
+        .upload(filePath, file);
+      
+      if (error) {
+        console.error('Error uploading file:', error);
+        toast({
+          title: "Erreur lors de l'upload",
+          description: `Impossible de télécharger l'image: ${error.message}`,
+          variant: "destructive"
+        });
+        continue; // Skip this file but continue with others
+      }
+      
+      uploadedFileUrls.push(filePath);
+    }
+    
+    return uploadedFileUrls;
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log('Form submitted with data:', formData);
-    setSubmitted(true);
+    setIsSubmitting(true);
+    
+    try {
+      // Upload photos first
+      const vehiclePhotoUrls = await uploadPhotos(formData.vehiclePhotos, 'vehicle');
+      const damagePhotoUrls = await uploadPhotos(formData.damagePhotos, 'damage');
+      
+      // Then save the report data
+      const { data, error } = await supabase
+        .from('accident_reports')
+        .insert({
+          date: formData.date,
+          time: formData.time,
+          location: formData.location,
+          description: formData.description,
+          vehicle_photos: vehiclePhotoUrls,
+          damage_photos: damagePhotoUrls
+        })
+        .select();
+      
+      if (error) {
+        console.error('Error saving accident report:', error);
+        toast({
+          title: "Erreur",
+          description: `Impossible d'enregistrer la déclaration: ${error.message}`,
+          variant: "destructive"
+        });
+        setIsSubmitting(false);
+        return;
+      }
+      
+      console.log('Accident report saved:', data);
+      toast({
+        title: "Succès",
+        description: "Votre déclaration a été envoyée avec succès.",
+        variant: "default"
+      });
+      setSubmitted(true);
+    } catch (err) {
+      console.error('Error in submission process:', err);
+      toast({
+        title: "Erreur",
+        description: "Une erreur est survenue lors de la soumission de votre déclaration.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   // Render form based on current step
@@ -401,19 +480,24 @@ const AccidentForm = () => {
           type="button"
           variant="outline"
           onClick={prevStep}
-          disabled={currentStepIndex === 0}
+          disabled={currentStepIndex === 0 || isSubmitting}
         >
           <ChevronLeft className="w-5 h-5 mr-2" />
           Précédent
         </Button>
         
         {currentStepIndex < steps.length - 1 ? (
-          <Button type="button" onClick={nextStep}>
+          <Button type="button" onClick={nextStep} disabled={isSubmitting}>
             Suivant
             <ChevronRight className="w-5 h-5 ml-2" />
           </Button>
         ) : (
-          <Button type="button" onClick={handleSubmit}>
+          <Button 
+            type="button" 
+            onClick={handleSubmit} 
+            isLoading={isSubmitting}
+            disabled={isSubmitting}
+          >
             Soumettre
           </Button>
         )}
