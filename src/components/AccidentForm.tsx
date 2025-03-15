@@ -4,7 +4,6 @@ import { useToast } from '@/hooks/use-toast';
 import { toast } from 'sonner';
 import { Step, FormData } from './accident/types';
 
-// Import step components
 import BasicInfoStep from './accident/BasicInfoStep';
 import DetailsStep from './accident/DetailsStep';
 import PhotosStep from './accident/PhotosStep';
@@ -53,12 +52,11 @@ const AccidentForm = ({ onEmergencyRequest }: AccidentFormProps) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast: uiToast } = useToast();
   
-  // Define steps
   const steps: Step[] = [
     {
       id: 'basics',
       title: 'Informations de base',
-      description: 'Date, heure et lieu de l\'accident'
+      description: 'Date et heure de l\'accident'
     },
     {
       id: 'location',
@@ -241,7 +239,6 @@ const AccidentForm = ({ onEmergencyRequest }: AccidentFormProps) => {
     setIsSubmitting(true);
     
     try {
-      // Save primary vehicle data
       const vehicleId = await saveVehicleData({
         license_plate: formData.licensePlate,
         brand: formData.vehicleBrand,
@@ -250,7 +247,6 @@ const AccidentForm = ({ onEmergencyRequest }: AccidentFormProps) => {
         first_registration: formData.firstRegistration
       });
       
-      // Save other vehicle data
       const otherVehicleId = await saveVehicleData({
         license_plate: formData.otherVehicle.licensePlate,
         brand: formData.otherVehicle.brand,
@@ -259,11 +255,9 @@ const AccidentForm = ({ onEmergencyRequest }: AccidentFormProps) => {
         first_registration: formData.otherVehicle.firstRegistration
       });
       
-      // Upload photos
       const vehiclePhotoUrls = await uploadPhotos(formData.vehiclePhotos, 'vehicle');
       const damagePhotoUrls = await uploadPhotos(formData.damagePhotos, 'damage');
       
-      // Then save the report data
       const { data, error } = await supabase
         .from('accident_reports')
         .insert({
@@ -324,7 +318,6 @@ const AccidentForm = ({ onEmergencyRequest }: AccidentFormProps) => {
           <BasicInfoStep 
             date={formData.date}
             time={formData.time}
-            location={formData.location}
             handleInputChange={handleInputChange}
           />
         );
@@ -393,7 +386,6 @@ const AccidentForm = ({ onEmergencyRequest }: AccidentFormProps) => {
         currentStepIndex={currentStepIndex}
       />
       
-      {/* Current step header */}
       <div className="mb-8 text-center md:text-left">
         <h2 className="text-2xl font-bold text-constalib-dark mb-2">
           {steps[currentStepIndex].title}
@@ -405,12 +397,10 @@ const AccidentForm = ({ onEmergencyRequest }: AccidentFormProps) => {
         )}
       </div>
       
-      {/* Form */}
       <form onSubmit={(e) => e.preventDefault()} className="mb-8">
         {renderStepContent()}
       </form>
       
-      {/* Navigation */}
       <StepNavigation 
         prevStep={prevStep}
         nextStep={nextStep}

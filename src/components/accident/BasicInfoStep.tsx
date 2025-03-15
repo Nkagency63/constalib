@@ -1,14 +1,13 @@
 
-import { Calendar, MapPin } from 'lucide-react';
+import { Calendar } from 'lucide-react';
 
 interface BasicInfoStepProps {
   date: string;
   time: string;
-  location: string;
   handleInputChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
 }
 
-const BasicInfoStep = ({ date, time, location, handleInputChange }: BasicInfoStepProps) => {
+const BasicInfoStep = ({ date, time, handleInputChange }: BasicInfoStepProps) => {
   return (
     <div className="space-y-6">
       <div className="space-y-2">
@@ -42,28 +41,6 @@ const BasicInfoStep = ({ date, time, location, handleInputChange }: BasicInfoSte
           className="w-full px-4 py-2 border border-constalib-gray rounded-lg focus:ring-2 focus:ring-constalib-blue focus:border-constalib-blue"
           required
         />
-      </div>
-      
-      <div className="space-y-2">
-        <label htmlFor="location" className="block text-sm font-medium text-constalib-dark">
-          Lieu de l'accident
-        </label>
-        <div className="relative">
-          <input
-            type="text"
-            id="location"
-            name="location"
-            value={location}
-            onChange={handleInputChange}
-            placeholder="Adresse ou description du lieu"
-            className="w-full px-4 py-2 border border-constalib-gray rounded-lg focus:ring-2 focus:ring-constalib-blue focus:border-constalib-blue pl-10"
-            required
-          />
-          <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 text-constalib-dark-gray" size={18} />
-        </div>
-        <p className="text-sm text-constalib-dark-gray mt-1">
-          Saisissez l'adresse précise ou décrivez le lieu de l'accident
-        </p>
       </div>
     </div>
   );
