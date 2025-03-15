@@ -12,7 +12,7 @@ const Accident = () => {
         <div className="max-w-3xl mx-auto">
           <h1 className="text-2xl md:text-3xl font-bold text-constalib-dark mb-2">Déclarer un accident</h1>
           <p className="text-sm md:text-base text-constalib-dark-gray mb-6 md:mb-8">
-            Complétez le formulaire ci-dessous pour déclarer votre accident. Les informations seront envoyées à votre assureur.
+            Complétez le formulaire ci-dessous pour déclarer votre accident sur Constalib.fr. Les informations seront envoyées directement à votre assureur.
           </p>
           
           <AccidentForm />

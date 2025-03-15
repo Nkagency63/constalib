@@ -11,7 +11,7 @@ const Hero = () => {
             Simplifiez vos déclarations d'accidents
           </h1>
           <p className="text-base md:text-lg lg:text-xl text-constalib-dark-gray mb-6 md:mb-8 px-2">
-            Constalib vous permet de déclarer facilement un accident et de transmettre
+            Constalib.fr vous permet de déclarer facilement un accident et de transmettre
             les informations à votre assureur en quelques minutes seulement.
           </p>
           <div className="flex flex-col sm:flex-row gap-3 md:gap-4 justify-center">
