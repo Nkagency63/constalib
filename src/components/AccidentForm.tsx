@@ -96,12 +96,13 @@ const AccidentForm = ({ onEmergencyRequest }: AccidentFormProps) => {
     }));
   };
 
-  const setVehicleInfo = (data: {brand: string, model: string, year: string}) => {
+  const setVehicleInfo = (data: {brand: string, model: string, year: string, firstRegistration?: string}) => {
     setFormData(prev => ({
       ...prev,
       vehicleBrand: data.brand,
       vehicleModel: data.model,
-      vehicleYear: data.year
+      vehicleYear: data.year,
+      firstRegistration: data.firstRegistration
     }));
   };
 
@@ -170,7 +171,8 @@ const AccidentForm = ({ onEmergencyRequest }: AccidentFormProps) => {
           license_plate: formData.licensePlate,
           brand: formData.vehicleBrand,
           model: formData.vehicleModel,
-          year: formData.vehicleYear
+          year: formData.vehicleYear,
+          first_registration: formData.firstRegistration
         })
         .select('id')
         .single();
