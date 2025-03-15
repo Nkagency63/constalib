@@ -15,6 +15,7 @@ import ProgressBar from './accident/ProgressBar';
 import StepNavigation from './accident/StepNavigation';
 import VehicleIdentificationStep from './accident/VehicleIdentificationStep';
 import LocationStep from './accident/LocationStep';
+import MultiVehicleStep from './accident/MultiVehicleStep';
 
 interface AccidentFormProps {
   onEmergencyRequest?: () => void;
@@ -34,6 +35,13 @@ const AccidentForm = ({ onEmergencyRequest }: AccidentFormProps) => {
     vehicleModel: '',
     vehicleYear: '',
     vehicleDescription: '',
+    otherVehicle: {
+      licensePlate: '',
+      brand: '',
+      model: '',
+      year: '',
+      description: ''
+    },
     geolocation: {
       lat: null,
       lng: null,
@@ -58,9 +66,9 @@ const AccidentForm = ({ onEmergencyRequest }: AccidentFormProps) => {
       description: 'Adresse précise de l\'accident'
     },
     {
-      id: 'vehicle',
-      title: 'Véhicule',
-      description: 'Identification de votre véhicule'
+      id: 'vehicles',
+      title: 'Véhicules',
+      description: 'Identification des véhicules impliqués'
     },
     {
       id: 'details',
@@ -89,6 +97,19 @@ const AccidentForm = ({ onEmergencyRequest }: AccidentFormProps) => {
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
+  const handleOtherVehicleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target;
+    const fieldName = name.replace('otherVehicle', '');
+    
+    setFormData(prev => ({
+      ...prev,
+      otherVehicle: {
+        ...prev.otherVehicle,
+        [fieldName]: value
+      }
+    }));
+  };
+
   const handlePhotoUpload = (type: 'vehiclePhotos' | 'damagePhotos', file: File) => {
     setFormData(prev => ({
       ...prev,
@@ -103,6 +124,19 @@ const AccidentForm = ({ onEmergencyRequest }: AccidentFormProps) => {
       vehicleModel: data.model,
       vehicleYear: data.year,
       firstRegistration: data.firstRegistration
+    }));
+  };
+
+  const setOtherVehicleInfo = (data: {brand: string, model: string, year: string, firstRegistration?: string}) => {
+    setFormData(prev => ({
+      ...prev,
+      otherVehicle: {
+        ...prev.otherVehicle,
+        brand: data.brand,
+        model: data.model,
+        year: data.year,
+        firstRegistration: data.firstRegistration
+      }
     }));
   };
 
@@ -159,30 +193,36 @@ const AccidentForm = ({ onEmergencyRequest }: AccidentFormProps) => {
     return uploadedFileUrls;
   };
 
-  const saveVehicleData = async () => {
-    if (!formData.licensePlate) {
+  const saveVehicleData = async (vehicleData: {
+    license_plate: string,
+    brand: string,
+    model: string,
+    year: string,
+    first_registration?: string
+  }) => {
+    if (!vehicleData.license_plate) {
       return null; // No vehicle data to save
     }
 
     try {
-      const { data: vehicleData, error: vehicleError } = await supabase
+      const { data, error } = await supabase
         .from('vehicles')
         .upsert({
-          license_plate: formData.licensePlate,
-          brand: formData.vehicleBrand,
-          model: formData.vehicleModel,
-          year: formData.vehicleYear,
-          first_registration: formData.firstRegistration
+          license_plate: vehicleData.license_plate,
+          brand: vehicleData.brand,
+          model: vehicleData.model,
+          year: vehicleData.year,
+          first_registration: vehicleData.first_registration
         })
         .select('id')
         .single();
       
-      if (vehicleError) {
-        console.error('Error saving vehicle data:', vehicleError);
+      if (error) {
+        console.error('Error saving vehicle data:', error);
         return null;
       }
       
-      return vehicleData.id;
+      return data.id;
     } catch (err) {
       console.error('Error in saving vehicle:', err);
       return null;
@@ -201,8 +241,23 @@ const AccidentForm = ({ onEmergencyRequest }: AccidentFormProps) => {
     setIsSubmitting(true);
     
     try {
-      // Save vehicle data first
-      const vehicleId = await saveVehicleData();
+      // Save primary vehicle data
+      const vehicleId = await saveVehicleData({
+        license_plate: formData.licensePlate,
+        brand: formData.vehicleBrand,
+        model: formData.vehicleModel,
+        year: formData.vehicleYear,
+        first_registration: formData.firstRegistration
+      });
+      
+      // Save other vehicle data
+      const otherVehicleId = await saveVehicleData({
+        license_plate: formData.otherVehicle.licensePlate,
+        brand: formData.otherVehicle.brand,
+        model: formData.otherVehicle.model,
+        year: formData.otherVehicle.year,
+        first_registration: formData.otherVehicle.firstRegistration
+      });
       
       // Upload photos
       const vehiclePhotoUrls = await uploadPhotos(formData.vehiclePhotos, 'vehicle');
@@ -219,6 +274,7 @@ const AccidentForm = ({ onEmergencyRequest }: AccidentFormProps) => {
           vehicle_photos: vehiclePhotoUrls,
           damage_photos: damagePhotoUrls,
           vehicle_id: vehicleId,
+          other_vehicle_id: otherVehicleId,
           geolocation_lat: formData.geolocation.lat,
           geolocation_lng: formData.geolocation.lng,
           geolocation_address: formData.geolocation.address,
@@ -282,16 +338,19 @@ const AccidentForm = ({ onEmergencyRequest }: AccidentFormProps) => {
           />
         );
         
-      case 'vehicle':
+      case 'vehicles':
         return (
-          <VehicleIdentificationStep
+          <MultiVehicleStep
             licensePlate={formData.licensePlate}
             vehicleBrand={formData.vehicleBrand}
             vehicleModel={formData.vehicleModel}
             vehicleYear={formData.vehicleYear}
             vehicleDescription={formData.vehicleDescription}
+            otherVehicle={formData.otherVehicle}
             handleInputChange={handleInputChange}
+            handleOtherVehicleChange={handleOtherVehicleChange}
             setVehicleInfo={setVehicleInfo}
+            setOtherVehicleInfo={setOtherVehicleInfo}
           />
         );
         

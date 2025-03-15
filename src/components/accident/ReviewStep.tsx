@@ -1,6 +1,6 @@
 
-import { AlertCircle, MapPin, Car } from 'lucide-react';
 import { FormData } from './types';
+import { Check, Car, MapPin, Calendar, Clock, FileText, Image, CarTaxiFront } from 'lucide-react';
 
 interface ReviewStepProps {
   formData: FormData;
@@ -8,83 +8,118 @@ interface ReviewStepProps {
 
 const ReviewStep = ({ formData }: ReviewStepProps) => {
   return (
-    <div className="space-y-8">
-      <div className="space-y-4">
-        <h3 className="text-lg font-medium text-constalib-dark">Récapitulatif</h3>
+    <div className="space-y-6">
+      <div className="space-y-2">
+        <h3 className="text-lg font-medium text-constalib-dark">Vérifiez votre déclaration</h3>
         <p className="text-sm text-constalib-dark-gray">
-          Vérifiez les informations saisies avant de soumettre votre déclaration.
+          Voici un récapitulatif des informations que vous avez saisies. Vérifiez-les avant de soumettre votre déclaration.
         </p>
-        
-        <div className="bg-constalib-light-blue rounded-lg p-4 space-y-4">
-          <div>
-            <h4 className="text-sm font-medium text-constalib-dark">Date et heure</h4>
-            <p className="text-constalib-dark-gray">{formData.date} à {formData.time || 'Non spécifié'}</p>
+      </div>
+      
+      <div className="space-y-4">
+        <div className="border rounded-lg p-4 bg-white">
+          <div className="flex items-start gap-2">
+            <Calendar className="h-5 w-5 text-constalib-blue mt-0.5" />
+            <div>
+              <h4 className="font-medium text-constalib-dark">Date et heure</h4>
+              <p className="text-sm text-constalib-dark-gray">{formData.date} à {formData.time}</p>
+            </div>
           </div>
-          
-          <div>
-            <h4 className="text-sm font-medium text-constalib-dark">Lieu</h4>
-            <p className="text-constalib-dark-gray">{formData.location || 'Non spécifié'}</p>
-            {formData.geolocation && formData.geolocation.lat && formData.geolocation.lng && (
-              <div className="flex items-center mt-1 text-xs text-constalib-dark-gray">
-                <MapPin className="h-3 w-3 mr-1" />
-                <span>
-                  Coordonnées: {formData.geolocation.lat.toFixed(6)}, {formData.geolocation.lng.toFixed(6)}
-                </span>
+        </div>
+        
+        <div className="border rounded-lg p-4 bg-white">
+          <div className="flex items-start gap-2">
+            <MapPin className="h-5 w-5 text-constalib-blue mt-0.5" />
+            <div>
+              <h4 className="font-medium text-constalib-dark">Lieu de l'accident</h4>
+              <p className="text-sm text-constalib-dark-gray">{formData.location}</p>
+              {formData.geolocation.address && (
+                <p className="text-xs text-constalib-dark-gray mt-1">
+                  Adresse géolocalisée: {formData.geolocation.address}
+                </p>
+              )}
+            </div>
+          </div>
+        </div>
+        
+        <div className="border rounded-lg p-4 bg-white">
+          <div className="flex items-start gap-2">
+            <Car className="h-5 w-5 text-constalib-blue mt-0.5" />
+            <div>
+              <h4 className="font-medium text-constalib-dark">Votre véhicule</h4>
+              <p className="text-sm text-constalib-dark-gray">
+                <span className="font-medium">Immatriculation:</span> {formData.licensePlate}
+              </p>
+              <p className="text-sm text-constalib-dark-gray">
+                <span className="font-medium">Marque/Modèle:</span> {formData.vehicleBrand} {formData.vehicleModel} ({formData.vehicleYear})
+              </p>
+              {formData.vehicleDescription && (
+                <p className="text-sm text-constalib-dark-gray">
+                  <span className="font-medium">Description:</span> {formData.vehicleDescription}
+                </p>
+              )}
+            </div>
+          </div>
+        </div>
+        
+        <div className="border rounded-lg p-4 bg-white">
+          <div className="flex items-start gap-2">
+            <CarTaxiFront className="h-5 w-5 text-constalib-blue mt-0.5" />
+            <div>
+              <h4 className="font-medium text-constalib-dark">Véhicule adverse</h4>
+              <p className="text-sm text-constalib-dark-gray">
+                <span className="font-medium">Immatriculation:</span> {formData.otherVehicle.licensePlate || "Non renseigné"}
+              </p>
+              {formData.otherVehicle.brand && (
+                <p className="text-sm text-constalib-dark-gray">
+                  <span className="font-medium">Marque/Modèle:</span> {formData.otherVehicle.brand} {formData.otherVehicle.model} ({formData.otherVehicle.year})
+                </p>
+              )}
+              {formData.otherVehicle.description && (
+                <p className="text-sm text-constalib-dark-gray">
+                  <span className="font-medium">Description:</span> {formData.otherVehicle.description}
+                </p>
+              )}
+            </div>
+          </div>
+        </div>
+        
+        <div className="border rounded-lg p-4 bg-white">
+          <div className="flex items-start gap-2">
+            <FileText className="h-5 w-5 text-constalib-blue mt-0.5" />
+            <div>
+              <h4 className="font-medium text-constalib-dark">Description de l'accident</h4>
+              <p className="text-sm text-constalib-dark-gray">{formData.description || "Aucune description fournie"}</p>
+            </div>
+          </div>
+        </div>
+        
+        <div className="border rounded-lg p-4 bg-white">
+          <div className="flex items-start gap-2">
+            <Image className="h-5 w-5 text-constalib-blue mt-0.5" />
+            <div>
+              <h4 className="font-medium text-constalib-dark">Photos</h4>
+              <p className="text-sm text-constalib-dark-gray">
+                <span className="font-medium">Photos du véhicule:</span> {formData.vehiclePhotos.length} photo(s)
+              </p>
+              <p className="text-sm text-constalib-dark-gray">
+                <span className="font-medium">Photos des dégâts:</span> {formData.damagePhotos.length} photo(s)
+              </p>
+            </div>
+          </div>
+        </div>
+        
+        {formData.emergencyContacted && (
+          <div className="border rounded-lg p-4 bg-white">
+            <div className="flex items-start gap-2">
+              <Check className="h-5 w-5 text-green-500 mt-0.5" />
+              <div>
+                <h4 className="font-medium text-constalib-dark">Secours contactés</h4>
+                <p className="text-sm text-constalib-dark-gray">Vous avez indiqué avoir contacté les services d'urgence.</p>
               </div>
-            )}
-          </div>
-
-          <div>
-            <h4 className="text-sm font-medium text-constalib-dark">Véhicule</h4>
-            <div className="flex items-center mt-1">
-              <Car className="h-4 w-4 mr-2 text-constalib-dark-gray" />
-              <p className="text-constalib-dark-gray">
-                {formData.licensePlate ? (
-                  <>
-                    <span className="font-medium">{formData.licensePlate}</span>
-                    {formData.vehicleBrand && formData.vehicleModel ? (
-                      <> - {formData.vehicleBrand} {formData.vehicleModel} {formData.vehicleYear}</>
-                    ) : (
-                      ' (Informations du véhicule non disponibles)'
-                    )}
-                  </>
-                ) : (
-                  'Aucune information de véhicule fournie'
-                )}
-              </p>
-            </div>
-            {formData.vehicleDescription && (
-              <p className="text-sm text-constalib-dark-gray mt-1 ml-6">
-                {formData.vehicleDescription}
-              </p>
-            )}
-          </div>
-          
-          <div>
-            <h4 className="text-sm font-medium text-constalib-dark">Description</h4>
-            <p className="text-constalib-dark-gray">{formData.description || 'Aucune description fournie'}</p>
-          </div>
-          
-          <div>
-            <h4 className="text-sm font-medium text-constalib-dark">Photos</h4>
-            <p className="text-constalib-dark-gray">
-              {formData.vehiclePhotos.length} photo(s) de véhicule(s), {formData.damagePhotos.length} photo(s) de dégât(s)
-            </p>
-          </div>
-        </div>
-        
-        <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4">
-          <div className="flex">
-            <div className="flex-shrink-0">
-              <AlertCircle className="h-5 w-5 text-yellow-400" />
-            </div>
-            <div className="ml-3">
-              <p className="text-sm text-yellow-700">
-                Une fois soumise, votre déclaration sera envoyée à votre assureur et ne pourra plus être modifiée.
-              </p>
             </div>
           </div>
-        </div>
+        )}
       </div>
     </div>
   );
