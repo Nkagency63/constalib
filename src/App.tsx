@@ -5,6 +5,8 @@ import Index from './pages/Index';
 import Accident from './pages/Accident';
 import NotFound from './pages/NotFound';
 import Profile from './pages/Profile';
+import Documents from './pages/Documents';
+import Appointments from './pages/Appointments';
 import './App.css';
 
 function App() {
@@ -14,6 +16,8 @@ function App() {
         <Route path="/" element={<Index />} />
         <Route path="/accident" element={<Accident />} />
         <Route path="/profile" element={<Profile />} />
+        <Route path="/documents" element={<Documents />} />
+        <Route path="/appointments" element={<Appointments />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
       <SonnerToaster />

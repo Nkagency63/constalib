@@ -1,5 +1,5 @@
 
-import { Camera, FileText, MapPin, Shield } from 'lucide-react';
+import { Camera, FileText, MapPin, Shield, Calendar } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import Header from '@/components/Header';
 import Hero from '@/components/Hero';
@@ -50,7 +50,7 @@ const Index = () => {
                 Tout ce dont vous avez besoin
               </h2>
               <p className="text-constalib-dark-gray text-lg max-w-2xl mx-auto">
-                Constalib propose une suite complète d'outils pour simplifier la gestion de vos accidents de la route.
+                Constalib.fr propose une suite complète d'outils pour simplifier la gestion de vos accidents de la route.
               </p>
             </div>
             
@@ -131,6 +131,45 @@ const Index = () => {
           </div>
         </section>
         
+        {/* Services section (replacing pricing) */}
+        <section className="py-16 md:py-24 bg-constalib-light-gray/30">
+          <div className="container mx-auto px-4">
+            <div className="text-center mb-12">
+              <span className="inline-block px-4 py-1.5 rounded-full bg-constalib-light-blue text-constalib-blue text-sm font-medium mb-4">
+                Services
+              </span>
+              <h2 className="text-3xl md:text-4xl font-bold mb-4 text-constalib-dark">
+                Gérez tous vos besoins
+              </h2>
+              <p className="text-constalib-dark-gray text-lg max-w-2xl mx-auto">
+                Constalib.fr vous permet de gérer tous les aspects liés à votre déclaration d'accident.
+              </p>
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
+              <Link to="/documents" className="bg-white rounded-xl p-8 flex flex-col items-center text-center border border-constalib-gray/20 hover:shadow-md transition-shadow">
+                <div className="w-16 h-16 bg-constalib-light-blue/30 rounded-full flex items-center justify-center mb-4">
+                  <FileText className="h-8 w-8 text-constalib-blue" />
+                </div>
+                <h3 className="text-xl font-semibold mb-3 text-constalib-dark">Mes Documents</h3>
+                <p className="text-constalib-dark-gray">
+                  Accédez à tous vos documents de déclaration et suivez leur traitement par votre assureur.
+                </p>
+              </Link>
+              
+              <Link to="/appointments" className="bg-white rounded-xl p-8 flex flex-col items-center text-center border border-constalib-gray/20 hover:shadow-md transition-shadow">
+                <div className="w-16 h-16 bg-constalib-light-blue/30 rounded-full flex items-center justify-center mb-4">
+                  <Calendar className="h-8 w-8 text-constalib-blue" />
+                </div>
+                <h3 className="text-xl font-semibold mb-3 text-constalib-dark">Mes Rendez-vous</h3>
+                <p className="text-constalib-dark-gray">
+                  Planifiez et gérez vos rendez-vous avec les experts et les carrossiers partenaires.
+                </p>
+              </Link>
+            </div>
+          </div>
+        </section>
+        
         {/* CTA section */}
         <section className="py-16 md:py-24 bg-gradient-to-br from-constalib-blue/5 to-constalib-light-blue/50">
           <div className="container mx-auto px-4">
@@ -163,7 +202,7 @@ const Index = () => {
         <div className="container mx-auto px-4">
           <div className="flex flex-col md:flex-row justify-between">
             <div className="mb-8 md:mb-0">
-              <span className="text-constalib-blue font-bold text-2xl tracking-tight">Constalib</span>
+              <span className="text-constalib-blue font-bold text-2xl tracking-tight">Constalib.fr</span>
               <p className="text-constalib-dark-gray mt-4 max-w-xs">
                 Simplifiez vos déclarations d'accident avec notre application intuitive et efficace.
               </p>
@@ -180,10 +219,10 @@ const Index = () => {
               </div>
               
               <div>
-                <h3 className="text-constalib-dark font-semibold mb-4">Aide</h3>
+                <h3 className="text-constalib-dark font-semibold mb-4">Services</h3>
                 <ul className="space-y-2 text-constalib-dark-gray">
-                  <li><a href="#" className="hover:text-constalib-blue">FAQ</a></li>
-                  <li><a href="#" className="hover:text-constalib-blue">Contact</a></li>
+                  <li><Link to="/documents" className="hover:text-constalib-blue">Mes Documents</Link></li>
+                  <li><Link to="/appointments" className="hover:text-constalib-blue">Mes Rendez-vous</Link></li>
                   <li><a href="#" className="hover:text-constalib-blue">Support</a></li>
                 </ul>
               </div>
@@ -200,7 +239,7 @@ const Index = () => {
           </div>
           
           <div className="mt-12 pt-8 border-t border-constalib-light-gray text-center text-constalib-dark-gray text-sm">
-            &copy; {new Date().getFullYear()} Constalib. Tous droits réservés.
+            &copy; {new Date().getFullYear()} Constalib.fr. Tous droits réservés.
           </div>
         </div>
       </footer>

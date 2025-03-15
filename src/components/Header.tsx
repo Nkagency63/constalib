@@ -1,7 +1,7 @@
 
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { CircleUser, Menu, Bell, X } from 'lucide-react';
+import { CircleUser, Menu, Bell, X, FileText, Calendar } from 'lucide-react';
 import { Button } from './ui/button';
 import { useIsMobile } from '@/hooks/use-mobile';
 
@@ -29,7 +29,7 @@ const Header = () => {
         {/* Logo and brand */}
         <Link to="/" className="flex items-center gap-2">
           <div className="font-bold text-lg md:text-xl text-constalib-blue">
-            Consta<span className="text-constalib-dark">lib</span>
+            Consta<span className="text-constalib-dark">lib</span>.fr
           </div>
         </Link>
 
@@ -41,12 +41,15 @@ const Header = () => {
           <Link to="/accident" className="text-constalib-dark hover:text-constalib-blue transition-colors">
             Déclarer un accident
           </Link>
-          <a href="#pricing" className="text-constalib-dark hover:text-constalib-blue transition-colors">
-            Tarifs
-          </a>
-          <a href="#contact" className="text-constalib-dark hover:text-constalib-blue transition-colors">
+          <Link to="/documents" className="text-constalib-dark hover:text-constalib-blue transition-colors">
+            Mes Documents
+          </Link>
+          <Link to="/appointments" className="text-constalib-dark hover:text-constalib-blue transition-colors">
+            Mes Rendez-vous
+          </Link>
+          <Link to="#contact" className="text-constalib-dark hover:text-constalib-blue transition-colors">
             Contact
-          </a>
+          </Link>
         </nav>
 
         {/* User actions */}
@@ -68,6 +71,16 @@ const Header = () => {
                 </Link>
               </DropdownMenuItem>
               <DropdownMenuItem>
+                <Link to="/documents" className="flex items-center w-full">
+                  Mes Documents
+                </Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem>
+                <Link to="/appointments" className="flex items-center w-full">
+                  Mes Rendez-vous
+                </Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem>
                 <Link to="/accident" className="flex items-center w-full">
                   Déclarer un accident
                 </Link>
@@ -86,7 +99,7 @@ const Header = () => {
             <SheetContent side="right" className="w-[85vw] sm:w-[385px] p-0">
               <SheetHeader className="p-6 border-b">
                 <SheetTitle className="text-xl font-bold text-constalib-blue">
-                  Consta<span className="text-constalib-dark">lib</span>
+                  Consta<span className="text-constalib-dark">lib</span>.fr
                 </SheetTitle>
               </SheetHeader>
               <div className="flex flex-col p-6">
@@ -102,14 +115,21 @@ const Header = () => {
                     </Link>
                   </SheetClose>
                   <SheetClose asChild>
-                    <Link to="/profile" className="text-constalib-dark hover:text-constalib-blue transition-colors py-2 border-b border-constalib-light-gray">
-                      Mon profil
+                    <Link to="/documents" className="text-constalib-dark hover:text-constalib-blue transition-colors py-2 border-b border-constalib-light-gray">
+                      Mes Documents
+                      <FileText className="h-4 w-4 inline ml-2" />
                     </Link>
                   </SheetClose>
                   <SheetClose asChild>
-                    <a href="#pricing" className="text-constalib-dark hover:text-constalib-blue transition-colors py-2 border-b border-constalib-light-gray">
-                      Tarifs
-                    </a>
+                    <Link to="/appointments" className="text-constalib-dark hover:text-constalib-blue transition-colors py-2 border-b border-constalib-light-gray">
+                      Mes Rendez-vous
+                      <Calendar className="h-4 w-4 inline ml-2" />
+                    </Link>
+                  </SheetClose>
+                  <SheetClose asChild>
+                    <Link to="/profile" className="text-constalib-dark hover:text-constalib-blue transition-colors py-2 border-b border-constalib-light-gray">
+                      Mon profil
+                    </Link>
                   </SheetClose>
                   <SheetClose asChild>
                     <a href="#contact" className="text-constalib-dark hover:text-constalib-blue transition-colors py-2 border-b border-constalib-light-gray">
