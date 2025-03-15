@@ -22,4 +22,5 @@ export interface FormData {
     lng: number | null;
     address: string;
   };
+  emergencyContacted: boolean;
 }

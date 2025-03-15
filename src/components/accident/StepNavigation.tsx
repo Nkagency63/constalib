@@ -1,6 +1,6 @@
 
-import { ChevronLeft, ChevronRight } from 'lucide-react';
-import Button from '../Button';
+import { ChevronLeft, ChevronRight, AlertCircle } from 'lucide-react';
+import { Button } from "../ui/button";
 
 interface StepNavigationProps {
   prevStep: () => void;
@@ -9,6 +9,7 @@ interface StepNavigationProps {
   currentStepIndex: number;
   totalSteps: number;
   isSubmitting: boolean;
+  onEmergencyRequest?: () => void;
 }
 
 const StepNavigation = ({ 
@@ -17,19 +18,35 @@ const StepNavigation = ({
   handleSubmit,
   currentStepIndex,
   totalSteps,
-  isSubmitting
+  isSubmitting,
+  onEmergencyRequest
 }: StepNavigationProps) => {
   return (
     <div className="flex justify-between pt-6 border-t border-constalib-light-gray">
-      <Button
-        type="button"
-        variant="outline"
-        onClick={prevStep}
-        disabled={currentStepIndex === 0 || isSubmitting}
-      >
-        <ChevronLeft className="w-5 h-5 mr-2" />
-        Précédent
-      </Button>
+      <div className="flex gap-2">
+        <Button
+          type="button"
+          variant="outline"
+          onClick={prevStep}
+          disabled={currentStepIndex === 0 || isSubmitting}
+        >
+          <ChevronLeft className="w-5 h-5 mr-2" />
+          Précédent
+        </Button>
+        
+        {onEmergencyRequest && (
+          <Button
+            type="button"
+            variant="destructive"
+            size="icon"
+            className="hidden md:flex"
+            onClick={onEmergencyRequest}
+            title="Appeler les secours"
+          >
+            <AlertCircle className="w-5 h-5" />
+          </Button>
+        )}
+      </div>
       
       {currentStepIndex < totalSteps - 1 ? (
         <Button type="button" onClick={nextStep} disabled={isSubmitting}>
@@ -40,10 +57,9 @@ const StepNavigation = ({
         <Button 
           type="button" 
           onClick={handleSubmit} 
-          isLoading={isSubmitting}
           disabled={isSubmitting}
         >
-          Soumettre
+          {isSubmitting ? "Traitement en cours..." : "Soumettre"}
         </Button>
       )}
     </div>
