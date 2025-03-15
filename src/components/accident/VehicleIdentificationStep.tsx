@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Search, AlertCircle, Loader2, Check, Info, Car, Shield } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
@@ -70,23 +69,26 @@ const VehicleIdentificationStep = ({
     setLookupSuccess(false);
     
     try {
+      console.log(`Tentative de recherche du véhicule: ${licensePlate}`);
       const { data, error } = await supabase.functions.invoke('lookup-vehicle', {
         body: { licensePlate }
       });
 
       if (error) {
+        console.error('Error looking up vehicle:', error);
         toast.error("Erreur lors de la consultation du SIV");
         setSearchError("Une erreur technique est survenue lors de la consultation du SIV");
-        console.error('Error looking up vehicle:', error);
         return;
       }
 
       if (data.success && data.data) {
+        console.log('Véhicule trouvé:', data.data);
         setVehicleInfo(data.data);
         setVehicleDetails(data.data);
         setLookupSuccess(true);
         toast.success(data.message || "Informations du véhicule récupérées avec succès du SIV");
       } else {
+        console.log('Véhicule non trouvé:', data);
         setSearchError(data.message || "Aucun véhicule trouvé avec cette immatriculation dans le SIV");
         toast.error(data.message || "Aucun véhicule trouvé avec cette immatriculation dans le SIV");
       }
@@ -127,7 +129,6 @@ const VehicleIdentificationStep = ({
           setInsuranceInfo({ company: data.data.company });
         }
         
-        // Create a synthetic event to update the insuranceCompany field
         const syntheticEvent = {
           target: {
             name: 'insuranceCompany',
@@ -154,7 +155,6 @@ const VehicleIdentificationStep = ({
   };
 
   const formatLicensePlate = (value: string) => {
-    // Format as AA-123-BB (new format) or 123 ABC (old format)
     let formatted = value.toUpperCase().replace(/[^A-Z0-9]/g, '');
     
     if (formatted.length <= 7) { // New format
@@ -173,7 +173,6 @@ const VehicleIdentificationStep = ({
   const handleLicensePlateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const formattedValue = formatLicensePlate(e.target.value);
     
-    // Create a synthetic event to pass to the parent's handleInputChange
     const syntheticEvent = {
       ...e,
       target: {
@@ -185,7 +184,6 @@ const VehicleIdentificationStep = ({
     
     handleInputChange(syntheticEvent);
     
-    // Reset lookup state when input changes
     if (lookupSuccess) {
       setLookupSuccess(false);
     }
