@@ -1,15 +1,21 @@
 
 import { useState } from 'react';
-import { Search, AlertCircle, Loader2 } from 'lucide-react';
+import { Search, AlertCircle, Loader2, Check, Info } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { 
+  Alert,
+  AlertDescription
+} from "@/components/ui/alert";
 
 interface VehicleData {
   brand: string;
   model: string;
   year: string;
+  firstRegistration?: string;
 }
 
 interface VehicleIdentificationStepProps {
@@ -32,14 +38,21 @@ const VehicleIdentificationStep = ({
   setVehicleInfo
 }: VehicleIdentificationStepProps) => {
   const [isLoading, setIsLoading] = useState(false);
+  const [lookupSuccess, setLookupSuccess] = useState(false);
+  const [vehicleDetails, setVehicleDetails] = useState<VehicleData | null>(null);
+  const [searchError, setSearchError] = useState<string | null>(null);
 
   const lookupVehicle = async () => {
     if (!licensePlate || licensePlate.length < 5) {
       toast.error("Veuillez saisir une immatriculation valide");
+      setSearchError("L'immatriculation doit contenir au moins 5 caractères");
       return;
     }
 
     setIsLoading(true);
+    setSearchError(null);
+    setLookupSuccess(false);
+    
     try {
       const { data, error } = await supabase.functions.invoke('lookup-vehicle', {
         body: { licensePlate }
@@ -47,21 +60,60 @@ const VehicleIdentificationStep = ({
 
       if (error) {
         toast.error("Erreur lors de la recherche du véhicule");
+        setSearchError("Une erreur technique est survenue lors de la consultation du fichier central");
         console.error('Error looking up vehicle:', error);
         return;
       }
 
       if (data.success && data.data) {
         setVehicleInfo(data.data);
-        toast.success("Informations du véhicule récupérées avec succès");
+        setVehicleDetails(data.data);
+        setLookupSuccess(true);
+        toast.success(data.message || "Informations du véhicule récupérées avec succès");
       } else {
+        setSearchError(data.message || "Aucun véhicule trouvé avec cette immatriculation");
         toast.error(data.message || "Aucun véhicule trouvé avec cette immatriculation");
       }
     } catch (err) {
       console.error('Error in vehicle lookup:', err);
+      setSearchError("Une erreur est survenue lors de la consultation du fichier central");
       toast.error("Une erreur est survenue");
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const formatLicensePlate = (value: string) => {
+    // Format as AA-123-BB
+    let formatted = value.toUpperCase().replace(/[^A-Z0-9]/g, '');
+    
+    if (formatted.length > 2 && formatted.length <= 5) {
+      formatted = formatted.substring(0, 2) + '-' + formatted.substring(2);
+    } else if (formatted.length > 5) {
+      formatted = formatted.substring(0, 2) + '-' + formatted.substring(2, 5) + '-' + formatted.substring(5, 7);
+    }
+    
+    return formatted;
+  };
+
+  const handleLicensePlateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const formattedValue = formatLicensePlate(e.target.value);
+    
+    // Create a synthetic event to pass to the parent's handleInputChange
+    const syntheticEvent = {
+      ...e,
+      target: {
+        ...e.target,
+        value: formattedValue,
+        name: 'licensePlate'
+      }
+    } as React.ChangeEvent<HTMLInputElement>;
+    
+    handleInputChange(syntheticEvent);
+    
+    // Reset lookup state when input changes
+    if (lookupSuccess) {
+      setLookupSuccess(false);
     }
   };
 
@@ -72,14 +124,15 @@ const VehicleIdentificationStep = ({
           Immatriculation du véhicule
         </label>
         <div className="relative">
-          <input
+          <Input
             type="text"
             id="licensePlate"
             name="licensePlate"
             value={licensePlate}
-            onChange={handleInputChange}
+            onChange={handleLicensePlateChange}
             placeholder="AB-123-CD"
-            className="w-full px-4 py-2 border border-constalib-gray rounded-lg focus:ring-2 focus:ring-constalib-blue focus:border-constalib-blue"
+            className="pr-12"
+            maxLength={9}
             required
           />
           <Button 
@@ -92,13 +145,34 @@ const VehicleIdentificationStep = ({
           >
             {isLoading ? 
               <Loader2 className="h-5 w-5 animate-spin text-constalib-blue" /> : 
-              <Search className="h-5 w-5 text-constalib-blue" />
+              lookupSuccess ? 
+                <Check className="h-5 w-5 text-green-600" /> :
+                <Search className="h-5 w-5 text-constalib-blue" />
             }
           </Button>
         </div>
         <p className="text-xs text-constalib-dark-gray">
-          Exemple: AB-123-CD. Cliquez sur la loupe pour rechercher les informations du véhicule.
+          Format: AB-123-CD. Cliquez sur la loupe pour consulter le fichier central des immatriculations.
         </p>
+        
+        {searchError && (
+          <Alert variant="destructive" className="mt-2">
+            <AlertCircle className="h-4 w-4" />
+            <AlertDescription>{searchError}</AlertDescription>
+          </Alert>
+        )}
+        
+        {lookupSuccess && vehicleDetails && (
+          <Alert className="mt-2 border-green-200 bg-green-50">
+            <Check className="h-4 w-4 text-green-600" />
+            <AlertDescription className="text-green-800">
+              Véhicule identifié : {vehicleDetails.brand} {vehicleDetails.model} ({vehicleDetails.year})
+              {vehicleDetails.firstRegistration && 
+                <div className="text-xs mt-1">Date de première immatriculation : {vehicleDetails.firstRegistration}</div>
+              }
+            </AlertDescription>
+          </Alert>
+        )}
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -106,13 +180,14 @@ const VehicleIdentificationStep = ({
           <label htmlFor="vehicleBrand" className="block text-sm font-medium text-constalib-dark">
             Marque
           </label>
-          <input
+          <Input
             type="text"
             id="vehicleBrand"
             name="vehicleBrand"
             value={vehicleBrand}
             onChange={handleInputChange}
-            className="w-full px-4 py-2 border border-constalib-gray rounded-lg focus:ring-2 focus:ring-constalib-blue focus:border-constalib-blue"
+            className="w-full"
+            readOnly={lookupSuccess}
           />
         </div>
         
@@ -120,13 +195,14 @@ const VehicleIdentificationStep = ({
           <label htmlFor="vehicleModel" className="block text-sm font-medium text-constalib-dark">
             Modèle
           </label>
-          <input
+          <Input
             type="text"
             id="vehicleModel"
             name="vehicleModel"
             value={vehicleModel}
             onChange={handleInputChange}
-            className="w-full px-4 py-2 border border-constalib-gray rounded-lg focus:ring-2 focus:ring-constalib-blue focus:border-constalib-blue"
+            className="w-full"
+            readOnly={lookupSuccess}
           />
         </div>
         
@@ -134,13 +210,14 @@ const VehicleIdentificationStep = ({
           <label htmlFor="vehicleYear" className="block text-sm font-medium text-constalib-dark">
             Année
           </label>
-          <input
+          <Input
             type="text"
             id="vehicleYear"
             name="vehicleYear"
             value={vehicleYear}
             onChange={handleInputChange}
-            className="w-full px-4 py-2 border border-constalib-gray rounded-lg focus:ring-2 focus:ring-constalib-blue focus:border-constalib-blue"
+            className="w-full"
+            readOnly={lookupSuccess}
           />
         </div>
       </div>
@@ -155,10 +232,16 @@ const VehicleIdentificationStep = ({
           value={vehicleDescription}
           onChange={handleInputChange}
           placeholder="Décrivez votre véhicule (couleur, caractéristiques particulières, etc.)"
-          className="w-full px-4 py-2 border border-constalib-gray rounded-lg focus:ring-2 focus:ring-constalib-blue focus:border-constalib-blue"
           rows={3}
         />
       </div>
+
+      <Alert variant="default" className="bg-blue-50 border-blue-200">
+        <Info className="h-4 w-4 text-blue-500" />
+        <AlertDescription className="text-blue-700 text-sm">
+          Les informations récupérées par le fichier central des immatriculations sont automatiquement renseignées dans le formulaire. Vous pouvez compléter avec la description et les spécificités de votre véhicule.
+        </AlertDescription>
+      </Alert>
     </div>
   );
 };

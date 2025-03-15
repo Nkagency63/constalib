@@ -23,4 +23,5 @@ export interface FormData {
     address: string;
   };
   emergencyContacted: boolean;
+  firstRegistration?: string;
 }
