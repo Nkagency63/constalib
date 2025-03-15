@@ -1,6 +1,6 @@
 
 import { useState } from 'react';
-import { Search, AlertCircle, Loader2, Check, Info, Car } from 'lucide-react';
+import { Search, AlertCircle, Loader2, Check, Info, Car, Shield } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { Textarea } from "@/components/ui/textarea";
@@ -18,14 +18,23 @@ interface VehicleData {
   firstRegistration?: string;
 }
 
+interface InsuranceData {
+  company: string;
+  name?: string;
+  logo?: string;
+}
+
 interface VehicleIdentificationStepProps {
   licensePlate: string;
   vehicleBrand: string;
   vehicleModel: string;
   vehicleYear: string;
   vehicleDescription: string;
+  insurancePolicy?: string;
+  insuranceCompany?: string;
   handleInputChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
   setVehicleInfo: (data: {brand: string, model: string, year: string, firstRegistration?: string}) => void;
+  setInsuranceInfo?: (data: {company: string}) => void;
 }
 
 const VehicleIdentificationStep = ({
@@ -34,13 +43,20 @@ const VehicleIdentificationStep = ({
   vehicleModel,
   vehicleYear,
   vehicleDescription,
+  insurancePolicy = '',
+  insuranceCompany = '',
   handleInputChange,
-  setVehicleInfo
+  setVehicleInfo,
+  setInsuranceInfo
 }: VehicleIdentificationStepProps) => {
   const [isLoading, setIsLoading] = useState(false);
   const [lookupSuccess, setLookupSuccess] = useState(false);
   const [vehicleDetails, setVehicleDetails] = useState<VehicleData | null>(null);
   const [searchError, setSearchError] = useState<string | null>(null);
+  const [isInsuranceLoading, setIsInsuranceLoading] = useState(false);
+  const [insuranceDetails, setInsuranceDetails] = useState<InsuranceData | null>(null);
+  const [insuranceLookupSuccess, setInsuranceLookupSuccess] = useState(false);
+  const [insuranceError, setInsuranceError] = useState<string | null>(null);
 
   const lookupVehicle = async () => {
     if (!licensePlate || licensePlate.length < 5) {
@@ -80,6 +96,60 @@ const VehicleIdentificationStep = ({
       toast.error("Une erreur est survenue lors de la consultation du SIV");
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const lookupInsurance = async () => {
+    if (!insurancePolicy) {
+      toast.error("Veuillez saisir un numéro de police d'assurance");
+      setInsuranceError("Le numéro de police d'assurance est requis");
+      return;
+    }
+
+    setIsInsuranceLoading(true);
+    setInsuranceError(null);
+    setInsuranceLookupSuccess(false);
+    
+    try {
+      const { data, error } = await supabase.functions.invoke('lookup-insurance', {
+        body: { policyNumber: insurancePolicy }
+      });
+
+      if (error) {
+        toast.error("Erreur lors de la consultation du fichier des assurances");
+        setInsuranceError("Une erreur technique est survenue lors de la consultation");
+        console.error('Error looking up insurance:', error);
+        return;
+      }
+
+      if (data.success && data.data) {
+        if (setInsuranceInfo) {
+          setInsuranceInfo({ company: data.data.company });
+        }
+        
+        // Create a synthetic event to update the insuranceCompany field
+        const syntheticEvent = {
+          target: {
+            name: 'insuranceCompany',
+            value: data.data.company
+          }
+        } as React.ChangeEvent<HTMLInputElement>;
+        
+        handleInputChange(syntheticEvent);
+        
+        setInsuranceDetails(data.data);
+        setInsuranceLookupSuccess(true);
+        toast.success(data.message || "Informations d'assurance récupérées avec succès");
+      } else {
+        setInsuranceError(data.message || "Aucune assurance trouvée avec ce numéro de police");
+        toast.error(data.message || "Aucune assurance trouvée avec ce numéro de police");
+      }
+    } catch (err) {
+      console.error('Error in insurance lookup:', err);
+      setInsuranceError("Une erreur est survenue lors de la consultation");
+      toast.error("Une erreur est survenue lors de la consultation");
+    } finally {
+      setIsInsuranceLoading(false);
     }
   };
 
@@ -239,6 +309,86 @@ const VehicleIdentificationStep = ({
           placeholder="Décrivez votre véhicule (couleur, caractéristiques particulières, etc.)"
           rows={3}
         />
+      </div>
+
+      <div className="border-t pt-6 mt-6">
+        <h3 className="text-lg font-medium text-constalib-dark mb-4 flex items-center">
+          <Shield className="h-5 w-5 mr-2 text-constalib-blue" />
+          Informations d'assurance
+        </h3>
+        
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="space-y-2">
+            <label htmlFor="insurancePolicy" className="block text-sm font-medium text-constalib-dark">
+              Numéro de police d'assurance
+            </label>
+            <div className="relative">
+              <Input
+                type="text"
+                id="insurancePolicy"
+                name="insurancePolicy"
+                value={insurancePolicy}
+                onChange={handleInputChange}
+                placeholder="Ex: A12345678"
+                className="pr-12"
+              />
+              <Button 
+                type="button" 
+                size="icon"
+                variant="ghost"
+                className="absolute right-2 top-1/2 transform -translate-y-1/2"
+                onClick={lookupInsurance}
+                disabled={isInsuranceLoading}
+                title="Rechercher la compagnie d'assurance"
+              >
+                {isInsuranceLoading ? 
+                  <Loader2 className="h-5 w-5 animate-spin text-constalib-blue" /> : 
+                  insuranceLookupSuccess ? 
+                    <Check className="h-5 w-5 text-green-600" /> :
+                    <Search className="h-5 w-5 text-constalib-blue" />
+                }
+              </Button>
+            </div>
+            <p className="text-xs text-constalib-dark-gray">
+              Saisissez le numéro de police d'assurance tel qu'il apparaît sur votre carte verte
+            </p>
+
+            {insuranceError && (
+              <Alert variant="destructive" className="mt-2">
+                <AlertCircle className="h-4 w-4" />
+                <AlertDescription>{insuranceError}</AlertDescription>
+              </Alert>
+            )}
+          </div>
+          
+          <div className="space-y-2">
+            <label htmlFor="insuranceCompany" className="block text-sm font-medium text-constalib-dark">
+              Compagnie d'assurance
+            </label>
+            <Input
+              type="text"
+              id="insuranceCompany"
+              name="insuranceCompany"
+              value={insuranceCompany}
+              onChange={handleInputChange}
+              placeholder="Ex: AXA, MAIF, etc."
+              className="w-full"
+              readOnly={insuranceLookupSuccess}
+            />
+            
+            {insuranceLookupSuccess && insuranceDetails && (
+              <Alert className="mt-2 border-green-200 bg-green-50">
+                <Shield className="h-4 w-4 text-green-600" />
+                <AlertDescription className="text-green-800">
+                  Assurance identifiée : {insuranceDetails.company}
+                  {insuranceDetails.name && 
+                    <div className="text-xs mt-1">Contrat : {insuranceDetails.name}</div>
+                  }
+                </AlertDescription>
+              </Alert>
+            )}
+          </div>
+        </div>
       </div>
 
       <Alert variant="default" className="bg-blue-50 border-blue-200">

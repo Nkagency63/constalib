@@ -34,12 +34,16 @@ const AccidentForm = ({ onEmergencyRequest }: AccidentFormProps) => {
     vehicleModel: '',
     vehicleYear: '',
     vehicleDescription: '',
+    insurancePolicy: '',
+    insuranceCompany: '',
     otherVehicle: {
       licensePlate: '',
       brand: '',
       model: '',
       year: '',
-      description: ''
+      description: '',
+      insurancePolicy: '',
+      insuranceCompany: ''
     },
     geolocation: {
       lat: null,
@@ -97,6 +101,29 @@ const AccidentForm = ({ onEmergencyRequest }: AccidentFormProps) => {
 
   const handleOtherVehicleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
+    
+    if (name === 'otherVehicleInsurancePolicy') {
+      setFormData(prev => ({
+        ...prev,
+        otherVehicle: {
+          ...prev.otherVehicle,
+          insurancePolicy: value
+        }
+      }));
+      return;
+    }
+    
+    if (name === 'otherVehicleInsuranceCompany') {
+      setFormData(prev => ({
+        ...prev,
+        otherVehicle: {
+          ...prev.otherVehicle,
+          insuranceCompany: value
+        }
+      }));
+      return;
+    }
+    
     const fieldName = name.replace('otherVehicle', '');
     
     setFormData(prev => ({
@@ -196,7 +223,9 @@ const AccidentForm = ({ onEmergencyRequest }: AccidentFormProps) => {
     brand: string,
     model: string,
     year: string,
-    first_registration?: string
+    first_registration?: string,
+    insurance_policy?: string,
+    insurance_company?: string
   }) => {
     if (!vehicleData.license_plate) {
       return null; // No vehicle data to save
@@ -210,7 +239,9 @@ const AccidentForm = ({ onEmergencyRequest }: AccidentFormProps) => {
           brand: vehicleData.brand,
           model: vehicleData.model,
           year: vehicleData.year,
-          first_registration: vehicleData.first_registration
+          first_registration: vehicleData.first_registration,
+          insurance_policy: vehicleData.insurance_policy,
+          insurance_company: vehicleData.insurance_company
         })
         .select('id')
         .single();
@@ -244,7 +275,9 @@ const AccidentForm = ({ onEmergencyRequest }: AccidentFormProps) => {
         brand: formData.vehicleBrand,
         model: formData.vehicleModel,
         year: formData.vehicleYear,
-        first_registration: formData.firstRegistration
+        first_registration: formData.firstRegistration,
+        insurance_policy: formData.insurancePolicy,
+        insurance_company: formData.insuranceCompany
       });
       
       const otherVehicleId = await saveVehicleData({
@@ -252,7 +285,9 @@ const AccidentForm = ({ onEmergencyRequest }: AccidentFormProps) => {
         brand: formData.otherVehicle.brand,
         model: formData.otherVehicle.model,
         year: formData.otherVehicle.year,
-        first_registration: formData.otherVehicle.firstRegistration
+        first_registration: formData.otherVehicle.firstRegistration,
+        insurance_policy: formData.otherVehicle.insurancePolicy,
+        insurance_company: formData.otherVehicle.insuranceCompany
       });
       
       const vehiclePhotoUrls = await uploadPhotos(formData.vehiclePhotos, 'vehicle');
@@ -272,7 +307,11 @@ const AccidentForm = ({ onEmergencyRequest }: AccidentFormProps) => {
           geolocation_lat: formData.geolocation.lat,
           geolocation_lng: formData.geolocation.lng,
           geolocation_address: formData.geolocation.address,
-          emergency_contacted: formData.emergencyContacted
+          emergency_contacted: formData.emergencyContacted,
+          vehicle_insurance_policy: formData.insurancePolicy,
+          vehicle_insurance_company: formData.insuranceCompany,
+          other_vehicle_insurance_policy: formData.otherVehicle.insurancePolicy,
+          other_vehicle_insurance_company: formData.otherVehicle.insuranceCompany
         })
         .select();
       

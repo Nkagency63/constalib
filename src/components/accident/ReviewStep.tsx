@@ -1,6 +1,6 @@
 
 import { FormData } from './types';
-import { Check, Car, MapPin, Calendar, Clock, FileText, Image, CarTaxiFront } from 'lucide-react';
+import { Check, Car, MapPin, Calendar, Clock, FileText, Image, CarTaxiFront, Shield } from 'lucide-react';
 
 interface ReviewStepProps {
   formData: FormData;
@@ -58,6 +58,24 @@ const ReviewStep = ({ formData }: ReviewStepProps) => {
                   <span className="font-medium">Description:</span> {formData.vehicleDescription}
                 </p>
               )}
+              {(formData.insurancePolicy || formData.insuranceCompany) && (
+                <div className="mt-2 pt-2 border-t border-gray-100">
+                  <div className="flex items-center gap-1 text-sm text-constalib-dark-gray">
+                    <Shield className="h-4 w-4 text-constalib-blue" />
+                    <span className="font-medium">Assurance:</span>
+                  </div>
+                  {formData.insurancePolicy && (
+                    <p className="text-sm text-constalib-dark-gray ml-5">
+                      <span className="font-medium">N° de police:</span> {formData.insurancePolicy}
+                    </p>
+                  )}
+                  {formData.insuranceCompany && (
+                    <p className="text-sm text-constalib-dark-gray ml-5">
+                      <span className="font-medium">Compagnie:</span> {formData.insuranceCompany}
+                    </p>
+                  )}
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -79,6 +97,24 @@ const ReviewStep = ({ formData }: ReviewStepProps) => {
                 <p className="text-sm text-constalib-dark-gray">
                   <span className="font-medium">Description:</span> {formData.otherVehicle.description}
                 </p>
+              )}
+              {(formData.otherVehicle.insurancePolicy || formData.otherVehicle.insuranceCompany) && (
+                <div className="mt-2 pt-2 border-t border-gray-100">
+                  <div className="flex items-center gap-1 text-sm text-constalib-dark-gray">
+                    <Shield className="h-4 w-4 text-constalib-blue" />
+                    <span className="font-medium">Assurance:</span>
+                  </div>
+                  {formData.otherVehicle.insurancePolicy && (
+                    <p className="text-sm text-constalib-dark-gray ml-5">
+                      <span className="font-medium">N° de police:</span> {formData.otherVehicle.insurancePolicy}
+                    </p>
+                  )}
+                  {formData.otherVehicle.insuranceCompany && (
+                    <p className="text-sm text-constalib-dark-gray ml-5">
+                      <span className="font-medium">Compagnie:</span> {formData.otherVehicle.insuranceCompany}
+                    </p>
+                  )}
+                </div>
               )}
             </div>
           </div>

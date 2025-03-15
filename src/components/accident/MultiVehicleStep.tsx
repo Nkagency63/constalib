@@ -13,6 +13,8 @@ interface MultiVehicleStepProps {
   vehicleModel: string;
   vehicleYear: string;
   vehicleDescription: string;
+  insurancePolicy?: string;
+  insuranceCompany?: string;
   // Second véhicule
   otherVehicle: {
     licensePlate: string;
@@ -20,6 +22,8 @@ interface MultiVehicleStepProps {
     model: string;
     year: string;
     description: string;
+    insurancePolicy?: string;
+    insuranceCompany?: string;
   };
   handleInputChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
   handleOtherVehicleChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
@@ -33,6 +37,8 @@ const MultiVehicleStep = ({
   vehicleModel,
   vehicleYear,
   vehicleDescription,
+  insurancePolicy,
+  insuranceCompany,
   otherVehicle,
   handleInputChange,
   handleOtherVehicleChange,
@@ -40,6 +46,28 @@ const MultiVehicleStep = ({
   setOtherVehicleInfo
 }: MultiVehicleStepProps) => {
   const [activeTab, setActiveTab] = useState("your-vehicle");
+
+  const setVehicleInsuranceInfo = (data: {company: string}) => {
+    const syntheticEvent = {
+      target: {
+        name: 'insuranceCompany',
+        value: data.company
+      }
+    } as React.ChangeEvent<HTMLInputElement>;
+    
+    handleInputChange(syntheticEvent);
+  };
+
+  const setOtherVehicleInsuranceInfo = (data: {company: string}) => {
+    const syntheticEvent = {
+      target: {
+        name: 'otherVehicleInsuranceCompany',
+        value: data.company
+      }
+    } as React.ChangeEvent<HTMLInputElement>;
+    
+    handleOtherVehicleChange(syntheticEvent);
+  };
 
   return (
     <div className="space-y-6">
@@ -70,8 +98,11 @@ const MultiVehicleStep = ({
             vehicleModel={vehicleModel}
             vehicleYear={vehicleYear}
             vehicleDescription={vehicleDescription}
+            insurancePolicy={insurancePolicy}
+            insuranceCompany={insuranceCompany}
             handleInputChange={handleInputChange}
             setVehicleInfo={setVehicleInfo}
+            setInsuranceInfo={setVehicleInsuranceInfo}
           />
         </TabsContent>
         
@@ -82,8 +113,11 @@ const MultiVehicleStep = ({
             vehicleModel={otherVehicle.model}
             vehicleYear={otherVehicle.year}
             vehicleDescription={otherVehicle.description}
+            insurancePolicy={otherVehicle.insurancePolicy}
+            insuranceCompany={otherVehicle.insuranceCompany}
             handleInputChange={handleOtherVehicleChange}
             setVehicleInfo={setOtherVehicleInfo}
+            setInsuranceInfo={setOtherVehicleInsuranceInfo}
           />
         </TabsContent>
       </Tabs>

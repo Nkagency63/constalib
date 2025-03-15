@@ -12,6 +12,8 @@ export interface VehicleData {
   year: string;
   description: string;
   firstRegistration?: string;
+  insurancePolicy?: string;
+  insuranceCompany?: string;
 }
 
 export interface FormData {
@@ -28,6 +30,8 @@ export interface FormData {
   vehicleYear: string;
   vehicleDescription: string;
   firstRegistration?: string;
+  insurancePolicy?: string;
+  insuranceCompany?: string;
   // Second véhicule (l'autre impliqué)
   otherVehicle: {
     licensePlate: string;
@@ -36,6 +40,8 @@ export interface FormData {
     year: string;
     description: string;
     firstRegistration?: string;
+    insurancePolicy?: string;
+    insuranceCompany?: string;
   };
   geolocation: {
     lat: number | null;
