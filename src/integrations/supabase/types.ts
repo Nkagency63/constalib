@@ -15,10 +15,14 @@ export type Database = {
           damage_photos: string[] | null
           date: string
           description: string | null
+          geolocation_address: string | null
+          geolocation_lat: number | null
+          geolocation_lng: number | null
           id: string
           location: string
           time: string
           user_id: string | null
+          vehicle_id: string | null
           vehicle_photos: string[] | null
         }
         Insert: {
@@ -26,10 +30,14 @@ export type Database = {
           damage_photos?: string[] | null
           date: string
           description?: string | null
+          geolocation_address?: string | null
+          geolocation_lat?: number | null
+          geolocation_lng?: number | null
           id?: string
           location: string
           time: string
           user_id?: string | null
+          vehicle_id?: string | null
           vehicle_photos?: string[] | null
         }
         Update: {
@@ -37,11 +45,56 @@ export type Database = {
           damage_photos?: string[] | null
           date?: string
           description?: string | null
+          geolocation_address?: string | null
+          geolocation_lat?: number | null
+          geolocation_lng?: number | null
           id?: string
           location?: string
           time?: string
           user_id?: string | null
+          vehicle_id?: string | null
           vehicle_photos?: string[] | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "accident_reports_vehicle_id_fkey"
+            columns: ["vehicle_id"]
+            isOneToOne: false
+            referencedRelation: "vehicles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      vehicles: {
+        Row: {
+          brand: string | null
+          created_at: string
+          id: string
+          license_plate: string
+          model: string | null
+          updated_at: string
+          user_id: string | null
+          year: string | null
+        }
+        Insert: {
+          brand?: string | null
+          created_at?: string
+          id?: string
+          license_plate: string
+          model?: string | null
+          updated_at?: string
+          user_id?: string | null
+          year?: string | null
+        }
+        Update: {
+          brand?: string | null
+          created_at?: string
+          id?: string
+          license_plate?: string
+          model?: string | null
+          updated_at?: string
+          user_id?: string | null
+          year?: string | null
         }
         Relationships: []
       }

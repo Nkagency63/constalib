@@ -2,6 +2,7 @@
 import { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 import { Step, FormData } from './accident/types';
 
 // Import step components
@@ -13,6 +14,8 @@ import ReviewStep from './accident/ReviewStep';
 import SuccessMessage from './accident/SuccessMessage';
 import ProgressBar from './accident/ProgressBar';
 import StepNavigation from './accident/StepNavigation';
+import VehicleIdentificationStep from './accident/VehicleIdentificationStep';
+import LocationStep from './accident/LocationStep';
 
 const AccidentForm = () => {
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
@@ -23,10 +26,20 @@ const AccidentForm = () => {
     description: '',
     vehiclePhotos: [],
     damagePhotos: [],
+    licensePlate: '',
+    vehicleBrand: '',
+    vehicleModel: '',
+    vehicleYear: '',
+    vehicleDescription: '',
+    geolocation: {
+      lat: null,
+      lng: null,
+      address: ''
+    }
   });
   const [submitted, setSubmitted] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const { toast } = useToast();
+  const { toast: uiToast } = useToast();
   
   // Define steps
   const steps: Step[] = [
@@ -34,6 +47,16 @@ const AccidentForm = () => {
       id: 'basics',
       title: 'Informations de base',
       description: 'Date, heure et lieu de l\'accident'
+    },
+    {
+      id: 'location',
+      title: 'Localisation',
+      description: 'Adresse précise de l\'accident'
+    },
+    {
+      id: 'vehicle',
+      title: 'Véhicule',
+      description: 'Identification de votre véhicule'
     },
     {
       id: 'details',
@@ -69,6 +92,26 @@ const AccidentForm = () => {
     }));
   };
 
+  const setVehicleInfo = (data: {brand: string, model: string, year: string}) => {
+    setFormData(prev => ({
+      ...prev,
+      vehicleBrand: data.brand,
+      vehicleModel: data.model,
+      vehicleYear: data.year
+    }));
+  };
+
+  const setGeolocation = (data: {lat: number, lng: number, address: string}) => {
+    setFormData(prev => ({
+      ...prev,
+      geolocation: {
+        lat: data.lat,
+        lng: data.lng,
+        address: data.address
+      }
+    }));
+  };
+
   const nextStep = () => {
     if (currentStepIndex < steps.length - 1) {
       setCurrentStepIndex(prev => prev + 1);
@@ -98,7 +141,7 @@ const AccidentForm = () => {
       
       if (error) {
         console.error('Error uploading file:', error);
-        toast({
+        uiToast({
           title: "Erreur lors de l'upload",
           description: `Impossible de télécharger l'image: ${error.message}`,
           variant: "destructive"
@@ -112,12 +155,45 @@ const AccidentForm = () => {
     return uploadedFileUrls;
   };
 
+  // Store vehicle data
+  const saveVehicleData = async () => {
+    if (!formData.licensePlate) {
+      return null; // No vehicle data to save
+    }
+
+    try {
+      const { data: vehicleData, error: vehicleError } = await supabase
+        .from('vehicles')
+        .upsert({
+          license_plate: formData.licensePlate,
+          brand: formData.vehicleBrand,
+          model: formData.vehicleModel,
+          year: formData.vehicleYear
+        })
+        .select('id')
+        .single();
+      
+      if (vehicleError) {
+        console.error('Error saving vehicle data:', vehicleError);
+        return null;
+      }
+      
+      return vehicleData.id;
+    } catch (err) {
+      console.error('Error in saving vehicle:', err);
+      return null;
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
     
     try {
-      // Upload photos first
+      // Save vehicle data first
+      const vehicleId = await saveVehicleData();
+      
+      // Upload photos
       const vehiclePhotoUrls = await uploadPhotos(formData.vehiclePhotos, 'vehicle');
       const damagePhotoUrls = await uploadPhotos(formData.damagePhotos, 'damage');
       
@@ -130,35 +206,42 @@ const AccidentForm = () => {
           location: formData.location,
           description: formData.description,
           vehicle_photos: vehiclePhotoUrls,
-          damage_photos: damagePhotoUrls
+          damage_photos: damagePhotoUrls,
+          vehicle_id: vehicleId,
+          geolocation_lat: formData.geolocation.lat,
+          geolocation_lng: formData.geolocation.lng,
+          geolocation_address: formData.geolocation.address
         })
         .select();
       
       if (error) {
         console.error('Error saving accident report:', error);
-        toast({
+        uiToast({
           title: "Erreur",
           description: `Impossible d'enregistrer la déclaration: ${error.message}`,
           variant: "destructive"
         });
+        toast.error(`Impossible d'enregistrer la déclaration: ${error.message}`);
         setIsSubmitting(false);
         return;
       }
       
       console.log('Accident report saved:', data);
-      toast({
+      uiToast({
         title: "Succès",
         description: "Votre déclaration a été envoyée avec succès.",
         variant: "default"
       });
+      toast.success("Votre déclaration a été envoyée avec succès.");
       setSubmitted(true);
     } catch (err) {
       console.error('Error in submission process:', err);
-      toast({
+      uiToast({
         title: "Erreur",
         description: "Une erreur est survenue lors de la soumission de votre déclaration.",
         variant: "destructive"
       });
+      toast.error("Une erreur est survenue lors de la soumission de votre déclaration.");
     } finally {
       setIsSubmitting(false);
     }
@@ -176,6 +259,28 @@ const AccidentForm = () => {
             time={formData.time}
             location={formData.location}
             handleInputChange={handleInputChange}
+          />
+        );
+      
+      case 'location':
+        return (
+          <LocationStep
+            location={formData.location}
+            handleInputChange={handleInputChange}
+            setGeolocation={setGeolocation}
+          />
+        );
+        
+      case 'vehicle':
+        return (
+          <VehicleIdentificationStep
+            licensePlate={formData.licensePlate}
+            vehicleBrand={formData.vehicleBrand}
+            vehicleModel={formData.vehicleModel}
+            vehicleYear={formData.vehicleYear}
+            vehicleDescription={formData.vehicleDescription}
+            handleInputChange={handleInputChange}
+            setVehicleInfo={setVehicleInfo}
           />
         );
         

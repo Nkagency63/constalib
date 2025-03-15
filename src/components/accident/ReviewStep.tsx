@@ -1,14 +1,6 @@
 
-import { AlertCircle } from 'lucide-react';
-
-interface FormData {
-  date: string;
-  time: string;
-  location: string;
-  description: string;
-  vehiclePhotos: File[];
-  damagePhotos: File[];
-}
+import { AlertCircle, MapPin, Car } from 'lucide-react';
+import { FormData } from './types';
 
 interface ReviewStepProps {
   formData: FormData;
@@ -32,6 +24,40 @@ const ReviewStep = ({ formData }: ReviewStepProps) => {
           <div>
             <h4 className="text-sm font-medium text-constalib-dark">Lieu</h4>
             <p className="text-constalib-dark-gray">{formData.location || 'Non spécifié'}</p>
+            {formData.geolocation && formData.geolocation.lat && formData.geolocation.lng && (
+              <div className="flex items-center mt-1 text-xs text-constalib-dark-gray">
+                <MapPin className="h-3 w-3 mr-1" />
+                <span>
+                  Coordonnées: {formData.geolocation.lat.toFixed(6)}, {formData.geolocation.lng.toFixed(6)}
+                </span>
+              </div>
+            )}
+          </div>
+
+          <div>
+            <h4 className="text-sm font-medium text-constalib-dark">Véhicule</h4>
+            <div className="flex items-center mt-1">
+              <Car className="h-4 w-4 mr-2 text-constalib-dark-gray" />
+              <p className="text-constalib-dark-gray">
+                {formData.licensePlate ? (
+                  <>
+                    <span className="font-medium">{formData.licensePlate}</span>
+                    {formData.vehicleBrand && formData.vehicleModel ? (
+                      <> - {formData.vehicleBrand} {formData.vehicleModel} {formData.vehicleYear}</>
+                    ) : (
+                      ' (Informations du véhicule non disponibles)'
+                    )}
+                  </>
+                ) : (
+                  'Aucune information de véhicule fournie'
+                )}
+              </p>
+            </div>
+            {formData.vehicleDescription && (
+              <p className="text-sm text-constalib-dark-gray mt-1 ml-6">
+                {formData.vehicleDescription}
+              </p>
+            )}
           </div>
           
           <div>

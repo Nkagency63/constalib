@@ -12,4 +12,14 @@ export interface FormData {
   description: string;
   vehiclePhotos: File[];
   damagePhotos: File[];
+  licensePlate: string;
+  vehicleBrand: string;
+  vehicleModel: string;
+  vehicleYear: string;
+  vehicleDescription: string;
+  geolocation: {
+    lat: number | null;
+    lng: number | null;
+    address: string;
+  };
 }
