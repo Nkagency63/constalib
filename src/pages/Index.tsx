@@ -1,10 +1,10 @@
-
-import { Camera, FileText, MapPin, Shield, Calendar } from 'lucide-react';
+import { Camera, FileText, MapPin, Shield, Calendar, Download } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import Header from '@/components/Header';
 import Hero from '@/components/Hero';
 import FeatureCard from '@/components/FeatureCard';
 import Button from '@/components/Button';
+import { downloadPDF } from '@/utils/downloadUtils';
 
 const Index = () => {
   // Features data
@@ -30,6 +30,10 @@ const Index = () => {
       description: 'Vos informations personnelles et vos déclarations sont entièrement protégées.'
     }
   ];
+
+  const handleDownloadConstat = () => {
+    downloadPDF('/pdf/constat_amiable_vierge.pdf', 'constat_amiable_vierge.pdf');
+  };
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -192,6 +196,29 @@ const Index = () => {
                   </Button>
                 </Link>
               </div>
+            </div>
+          </div>
+        </section>
+        
+        {/* Download blank form section */}
+        <section className="py-16 bg-white">
+          <div className="container mx-auto px-4">
+            <div className="max-w-3xl mx-auto text-center">
+              <h2 className="text-2xl md:text-3xl font-bold mb-6 text-constalib-dark">
+                Besoin d'un constat amiable papier ?
+              </h2>
+              <p className="text-constalib-dark-gray text-lg mb-8">
+                Téléchargez un constat amiable vierge au format PDF à imprimer pour l'avoir toujours avec vous.
+              </p>
+              <Button 
+                variant="secondary" 
+                size="lg" 
+                className="inline-flex items-center gap-2"
+                onClick={handleDownloadConstat}
+              >
+                <Download className="w-5 h-5" />
+                Télécharger le constat vierge (PDF)
+              </Button>
             </div>
           </div>
         </section>
