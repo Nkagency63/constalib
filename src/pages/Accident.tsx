@@ -9,6 +9,11 @@ import EmergencyServicesDrawer from '@/components/accident/EmergencyServicesDraw
 
 const Accident = () => {
   const [emergencyDrawerOpen, setEmergencyDrawerOpen] = useState(false);
+  const [emergencyContacted, setEmergencyContacted] = useState(false);
+
+  const handleEmergencyContacted = () => {
+    setEmergencyContacted(true);
+  };
 
   return (
     <div className="min-h-screen bg-constalib-light-gray/30">
@@ -41,7 +46,7 @@ const Accident = () => {
       <EmergencyServicesDrawer 
         open={emergencyDrawerOpen} 
         onOpenChange={setEmergencyDrawerOpen} 
-        onEmergencyContacted={() => {}}
+        onEmergencyContacted={handleEmergencyContacted}
       />
 
       <Toaster />

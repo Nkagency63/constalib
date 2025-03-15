@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -17,7 +16,11 @@ import StepNavigation from './accident/StepNavigation';
 import VehicleIdentificationStep from './accident/VehicleIdentificationStep';
 import LocationStep from './accident/LocationStep';
 
-const AccidentForm = () => {
+interface AccidentFormProps {
+  onEmergencyRequest?: () => void;
+}
+
+const AccidentForm = ({ onEmergencyRequest }: AccidentFormProps) => {
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
   const [formData, setFormData] = useState<FormData>({
     date: '',
@@ -35,7 +38,8 @@ const AccidentForm = () => {
       lat: null,
       lng: null,
       address: ''
-    }
+    },
+    emergencyContacted: false
   });
   const [submitted, setSubmitted] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -126,7 +130,6 @@ const AccidentForm = () => {
     }
   };
 
-  // Upload photos to Supabase storage
   const uploadPhotos = async (files: File[], prefix: string) => {
     const uploadedFileUrls: string[] = [];
     
@@ -155,7 +158,6 @@ const AccidentForm = () => {
     return uploadedFileUrls;
   };
 
-  // Store vehicle data
   const saveVehicleData = async () => {
     if (!formData.licensePlate) {
       return null; // No vehicle data to save
@@ -185,6 +187,13 @@ const AccidentForm = () => {
     }
   };
 
+  const onEmergencyContacted = () => {
+    setFormData(prev => ({
+      ...prev,
+      emergencyContacted: true
+    }));
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
@@ -210,7 +219,8 @@ const AccidentForm = () => {
           vehicle_id: vehicleId,
           geolocation_lat: formData.geolocation.lat,
           geolocation_lng: formData.geolocation.lng,
-          geolocation_address: formData.geolocation.address
+          geolocation_address: formData.geolocation.address,
+          emergency_contacted: formData.emergencyContacted
         })
         .select();
       
@@ -247,7 +257,6 @@ const AccidentForm = () => {
     }
   };
 
-  // Render form based on current step
   const renderStepContent = () => {
     const step = steps[currentStepIndex];
     
@@ -348,6 +357,7 @@ const AccidentForm = () => {
         currentStepIndex={currentStepIndex}
         totalSteps={steps.length}
         isSubmitting={isSubmitting}
+        onEmergencyRequest={onEmergencyRequest}
       />
     </div>
   );
