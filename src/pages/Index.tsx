@@ -1,3 +1,4 @@
+
 import { Camera, FileText, MapPin, Shield, Calendar, Download } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import Header from '@/components/Header';
@@ -5,6 +6,7 @@ import Hero from '@/components/Hero';
 import FeatureCard from '@/components/FeatureCard';
 import Button from '@/components/Button';
 import { downloadPDF } from '@/utils/downloadUtils';
+import { toast } from "sonner";
 
 const Index = () => {
   // Features data
@@ -32,7 +34,10 @@ const Index = () => {
   ];
 
   const handleDownloadConstat = () => {
-    downloadPDF('/pdf/constat_amiable_vierge.pdf', 'constat_amiable_vierge.pdf');
+    // Use an external link to a standard French accident report form
+    const pdfUrl = "https://www.securite-routiere.gouv.fr/sites/default/files/2020-08/2020-08-10_constal-amiable_web_1.pdf";
+    toast.info("Téléchargement du constat amiable en cours...");
+    downloadPDF(pdfUrl, 'constat_amiable_vierge.pdf');
   };
 
   return (
