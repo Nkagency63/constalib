@@ -1,4 +1,5 @@
 
-// This file is a placeholder. 
-// The application now fetches the PDF from an external source:
-// https://www.securite-routiere.gouv.fr/sites/default/files/2020-08/2020-08-10_constal-amiable_web_1.pdf
+// Ce fichier est un placeholder pour le PDF du constat amiable
+// Pour que cela fonctionne correctement, vous devez télécharger un vrai fichier PDF 
+// de constat amiable dans ce dossier "public/pdf/"
+// Le fichier doit être nommé "constat_amiable_vierge.pdf"

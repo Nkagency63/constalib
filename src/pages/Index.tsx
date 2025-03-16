@@ -34,8 +34,8 @@ const Index = () => {
   ];
 
   const handleDownloadConstat = () => {
-    // Use an external link to a standard French accident report form
-    const pdfUrl = "https://www.securite-routiere.gouv.fr/sites/default/files/2020-08/2020-08-10_constal-amiable_web_1.pdf";
+    // Utiliser un PDF local pour éviter les problèmes CORS
+    const pdfUrl = "/pdf/constat_amiable_vierge.pdf";
     toast.info("Téléchargement du constat amiable en cours...");
     downloadPDF(pdfUrl, 'constat_amiable_vierge.pdf');
   };
