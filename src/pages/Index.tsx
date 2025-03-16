@@ -34,10 +34,10 @@ const Index = () => {
   ];
 
   const handleDownloadConstat = () => {
-    // Utiliser un PDF local pour éviter les problèmes CORS
-    const pdfUrl = "/pdf/constat_amiable_vierge.pdf";
+    // Utiliser le PDF stocké dans Supabase
+    const storagePath = "storage:documents/constat_amiable_vierge.pdf";
     toast.info("Téléchargement du constat amiable en cours...");
-    downloadPDF(pdfUrl, 'constat_amiable_vierge.pdf');
+    downloadPDF(storagePath, 'constat_amiable_vierge.pdf');
   };
 
   return (

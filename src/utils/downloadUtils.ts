@@ -2,14 +2,57 @@
 /**
  * Utility functions for downloading files
  */
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 /**
- * Initiates download of a PDF file from the given URL
- * @param url URL of the PDF file to download
+ * Initiates download of a PDF file from the given URL or from Supabase storage
+ * @param url URL of the PDF file to download (or storage path if starts with 'storage:')
  * @param filename Name to give the downloaded file
  */
-export const downloadPDF = (url: string, filename: string) => {
-  // Create a direct link to download the file
+export const downloadPDF = async (url: string, filename: string) => {
+  try {
+    // If URL is a storage path, get the file from Supabase
+    if (url.startsWith('storage:')) {
+      // Parse the storage path (format: storage:bucketName/path/to/file)
+      const storagePath = url.substring(8); // Remove 'storage:' prefix
+      const slashIndex = storagePath.indexOf('/');
+      const bucketName = storagePath.substring(0, slashIndex);
+      const filePath = storagePath.substring(slashIndex + 1);
+      
+      // Get file from storage and download it
+      const { data, error } = await supabase.storage
+        .from(bucketName)
+        .download(filePath);
+      
+      if (error) {
+        throw error;
+      }
+      
+      if (data) {
+        // Create URL from the blob and trigger download
+        const blobUrl = window.URL.createObjectURL(data);
+        triggerDownload(blobUrl, filename);
+        
+        // Clean up the blob URL after download
+        setTimeout(() => window.URL.revokeObjectURL(blobUrl), 100);
+        
+        return;
+      }
+    } else {
+      // For regular URLs, download directly
+      triggerDownload(url, filename);
+    }
+  } catch (error) {
+    console.error('Error downloading PDF:', error);
+    toast.error("Erreur lors du téléchargement du PDF. Veuillez réessayer.");
+  }
+};
+
+/**
+ * Helper function to trigger the actual download
+ */
+const triggerDownload = (url: string, filename: string) => {
   const link = document.createElement('a');
   link.href = url;
   link.setAttribute('download', filename);
