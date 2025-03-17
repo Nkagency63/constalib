@@ -21,28 +21,35 @@ export const downloadPDF = async (url: string, filename: string) => {
       const filePath = storagePath.substring(slashIndex + 1);
       
       try {
+        // Show loading toast
+        toast.info("Récupération du PDF depuis Supabase...");
+        
         // Get file from storage and download it
         const { data, error } = await supabase.storage
           .from(bucketName)
           .download(filePath);
         
         if (error) {
+          console.error('Supabase storage error:', error);
           throw error;
         }
         
-        if (data) {
-          // Create URL from the blob and trigger download
-          const blobUrl = window.URL.createObjectURL(data);
-          triggerDownload(blobUrl, filename);
-          
-          // Clean up the blob URL after download
-          setTimeout(() => window.URL.revokeObjectURL(blobUrl), 100);
-          
-          return;
+        if (!data) {
+          throw new Error('Le fichier n\'a pas pu être récupéré');
         }
+        
+        // Create URL from the blob and trigger download
+        const blobUrl = window.URL.createObjectURL(data);
+        triggerDownload(blobUrl, filename);
+        
+        // Clean up the blob URL after download
+        setTimeout(() => window.URL.revokeObjectURL(blobUrl), 100);
+        
+        toast.success("Téléchargement réussi");
+        return;
       } catch (storageError) {
         console.error('Error downloading from Supabase:', storageError);
-        toast.info("Utilisation du fichier local comme solution de secours...");
+        toast.warning("Impossible de récupérer le fichier depuis Supabase. Tentative depuis le serveur local...");
         
         // Fallback to local file if Supabase storage fails
         const localUrl = `/pdf/${filename}`;
