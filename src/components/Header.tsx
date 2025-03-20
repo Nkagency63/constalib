@@ -4,7 +4,6 @@ import { Link } from 'react-router-dom';
 import { CircleUser, Menu, Bell, X, FileText, Calendar } from 'lucide-react';
 import { Button } from './ui/button';
 import { useIsMobile } from '@/hooks/use-mobile';
-import Logo from './Logo';
 
 import {
   DropdownMenu,
@@ -28,14 +27,11 @@ const Header = () => {
     <header className="bg-white border-b border-constalib-light-gray py-3 md:py-4 fixed w-full top-0 z-50">
       <div className="container mx-auto px-4 flex justify-between items-center">
         {/* Logo and brand */}
-        <div className="flex flex-col items-start">
-          <Link to="/" className="flex items-center gap-2">
-            <div className="font-bold text-lg md:text-xl text-constalib-blue">
-              Consta<span className="text-constalib-dark">lib</span>.fr
-            </div>
-          </Link>
-          <Logo size={24} showText={false} className="mt-1" />
-        </div>
+        <Link to="/" className="flex items-center gap-2">
+          <div className="font-bold text-lg md:text-xl text-constalib-blue">
+            Consta<span className="text-constalib-dark">lib</span>.fr
+          </div>
+        </Link>
 
         {/* Desktop navigation */}
         <nav className="hidden md:flex items-center gap-6 lg:gap-8">
