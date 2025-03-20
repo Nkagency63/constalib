@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Car } from 'lucide-react';
+import { Car, Zap } from 'lucide-react';
 
 interface LogoProps {
   size?: number;
@@ -18,28 +18,14 @@ const Logo: React.FC<LogoProps> = ({ size = 40, className = "", showText = true 
           className="text-constalib-blue fill-white" 
         />
         
-        {/* Damage front overlay */}
-        <div className="absolute -top-1 -right-1 w-3 h-3">
-          <svg 
-            viewBox="0 0 24 24" 
-            width={size/4} 
-            height={size/4} 
-            fill="none" 
-            xmlns="http://www.w3.org/2000/svg"
-          >
-            <path 
-              d="M4,4 L20,20" 
-              stroke="#FF3333" 
-              strokeWidth="2.5" 
-              strokeLinecap="round"
+        {/* Lightning damage indicator at front */}
+        <div className="absolute -top-1 -right-1">
+          <div className="bg-white rounded-full p-0.5">
+            <Zap 
+              size={size/4} 
+              className="text-[#1EAEDB] fill-[#1EAEDB]" 
             />
-            <path 
-              d="M20,4 L4,20" 
-              stroke="#FF3333" 
-              strokeWidth="2.5" 
-              strokeLinecap="round"
-            />
-          </svg>
+          </div>
         </div>
       </div>
       
