@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { CircleUser, Menu, Bell, X, FileText, Calendar } from 'lucide-react';
@@ -25,7 +24,7 @@ const Header = () => {
   const isMobile = useIsMobile();
 
   return (
-    <header className="bg-constalib-blue border-b border-constalib-light-gray py-3 md:py-4 fixed w-full top-0 z-50">
+    <header className="bg-white border-b border-constalib-light-gray py-3 md:py-4 fixed w-full top-0 z-50">
       <div className="container mx-auto px-4 flex justify-between items-center">
         {/* Logo and brand */}
         <Link to="/" className="flex items-center gap-2">
@@ -34,32 +33,32 @@ const Header = () => {
 
         {/* Desktop navigation */}
         <nav className="hidden md:flex items-center gap-6 lg:gap-8">
-          <Link to="/" className="text-white hover:text-constalib-light-blue transition-colors">
+          <Link to="/" className="text-constalib-dark hover:text-constalib-blue transition-colors">
             Accueil
           </Link>
-          <Link to="/accident" className="text-white hover:text-constalib-light-blue transition-colors">
+          <Link to="/accident" className="text-constalib-dark hover:text-constalib-blue transition-colors">
             Déclarer un accident
           </Link>
-          <Link to="/documents" className="text-white hover:text-constalib-light-blue transition-colors">
+          <Link to="/documents" className="text-constalib-dark hover:text-constalib-blue transition-colors">
             Mes Documents
           </Link>
-          <Link to="/appointments" className="text-white hover:text-constalib-light-blue transition-colors">
+          <Link to="/appointments" className="text-constalib-dark hover:text-constalib-blue transition-colors">
             Mes Rendez-vous
           </Link>
-          <Link to="#contact" className="text-white hover:text-constalib-light-blue transition-colors">
+          <Link to="#contact" className="text-constalib-dark hover:text-constalib-blue transition-colors">
             Contact
           </Link>
         </nav>
 
         {/* User actions */}
         <div className="flex items-center gap-2">
-          <Button variant="ghost" size="icon" className="text-white hidden md:flex hover:text-constalib-light-blue hover:bg-constalib-blue">
+          <Button variant="ghost" size="icon" className="text-constalib-dark-gray hidden md:flex">
             <Bell className="h-5 w-5" />
           </Button>
           
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon" className="text-white hidden md:flex hover:text-constalib-light-blue hover:bg-constalib-blue">
+              <Button variant="ghost" size="icon" className="text-constalib-dark-gray hidden md:flex">
                 <CircleUser className="h-5 w-5" />
               </Button>
             </DropdownMenuTrigger>
@@ -91,14 +90,14 @@ const Header = () => {
           {/* Mobile menu button */}
           <Sheet>
             <SheetTrigger asChild>
-              <Button variant="ghost" size="icon" className="md:hidden text-white hover:text-constalib-light-blue hover:bg-constalib-blue">
+              <Button variant="ghost" size="icon" className="md:hidden text-constalib-dark-gray">
                 <Menu className="h-5 w-5" />
               </Button>
             </SheetTrigger>
             <SheetContent side="right" className="w-[85vw] sm:w-[385px] p-0">
               <SheetHeader className="p-6 border-b">
                 <SheetTitle className="text-xl font-bold text-constalib-blue">
-                  <Logo size="sm" />
+                  Consta<span className="text-constalib-dark">lib</span>.fr
                 </SheetTitle>
               </SheetHeader>
               <div className="flex flex-col p-6">
