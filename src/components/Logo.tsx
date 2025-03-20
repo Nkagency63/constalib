@@ -3,14 +3,15 @@ import React from 'react';
 
 interface LogoProps {
   className?: string;
-  size?: 'sm' | 'md' | 'lg';
+  size?: 'sm' | 'md' | 'lg' | 'xl';
 }
 
 const Logo = ({ className = "", size = "md" }: LogoProps) => {
   const sizeClasses = {
-    sm: "h-8",
-    md: "h-10",
-    lg: "h-16"
+    sm: "h-10",
+    md: "h-14",
+    lg: "h-20",
+    xl: "h-28"
   };
 
   return (
