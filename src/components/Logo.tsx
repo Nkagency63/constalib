@@ -16,7 +16,7 @@ const Logo = ({ className = "", size = "md" }: LogoProps) => {
   return (
     <div className={`flex items-center ${className}`}>
       <img 
-        src="/lovable-uploads/ce3632de-8cea-4095-9745-72435eab8739.png" 
+        src="/lovable-uploads/62a758fe-22b6-4af1-a3a2-85a652f8dc36.png" 
         alt="Constalib Logo" 
         className={`${sizeClasses[size]}`}
       />
