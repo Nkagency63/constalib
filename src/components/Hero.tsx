@@ -1,5 +1,8 @@
+
 import { Link } from 'react-router-dom';
 import { Button } from './ui/button';
+import Logo from './Logo';
+
 const Hero = () => {
   return <div className="bg-gradient-to-b from-constalib-light-blue/30 to-white py-16 md:py-24 lg:py-32 mb-8 md:mb-16 mt-16 md:mt-20">
       <div className="container px-4 mx-auto">
