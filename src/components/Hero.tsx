@@ -1,15 +1,9 @@
-
 import { Link } from 'react-router-dom';
 import { Button } from './ui/button';
-import Logo from './Logo';
-
 const Hero = () => {
   return <div className="bg-gradient-to-b from-constalib-light-blue/30 to-white py-16 md:py-24 lg:py-32 mb-8 md:mb-16 mt-16 md:mt-20">
       <div className="container px-4 mx-auto">
         <div className="max-w-3xl mx-auto text-center">
-          <div className="flex justify-center mb-6">
-            <Logo size={60} />
-          </div>
           <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold text-constalib-dark mb-4 md:mb-6">
             Simplifiez vos déclarations d'accidents
           </h1>
