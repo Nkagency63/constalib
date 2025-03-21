@@ -2,27 +2,46 @@
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts'
 import { corsHeaders } from '../_shared/cors.ts'
 
-// Mock geocoding for demo purposes (replace with real API)
-const geocodeAddress = (address: string) => {
-  // Simulate Paris coordinates with small random offsets for different addresses
-  const baseLat = 48.864716;
-  const baseLng = 2.349014;
+// Real geocoding using Mapbox API
+const geocodeAddress = async (address: string) => {
+  // Use Mapbox API for geocoding
+  const mapboxToken = Deno.env.get('MAPBOX_API_KEY');
   
-  // Generate a deterministic but varying offset based on the address string
-  let hash = 0;
-  for (let i = 0; i < address.length; i++) {
-    hash = address.charCodeAt(i) + ((hash << 5) - hash);
+  if (!mapboxToken) {
+    console.error('Missing MAPBOX_API_KEY environment variable');
+    throw new Error('Geocoding service configuration error');
   }
   
-  // Small offset (±0.01) to simulate different locations
-  const latOffset = (hash % 100) / 10000;
-  const lngOffset = ((hash >> 4) % 100) / 10000;
-  
-  return {
-    lat: baseLat + latOffset,
-    lng: baseLng + lngOffset,
-    formatted_address: address
-  };
+  try {
+    // Encode the address for URL
+    const encodedAddress = encodeURIComponent(address);
+    const geocodingUrl = `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodedAddress}.json?access_token=${mapboxToken}`;
+    
+    const response = await fetch(geocodingUrl);
+    const data = await response.json();
+    
+    if (!response.ok) {
+      console.error('Mapbox API error:', data);
+      throw new Error('Geocoding service error');
+    }
+    
+    if (data.features && data.features.length > 0) {
+      const feature = data.features[0];
+      // Mapbox returns coordinates as [longitude, latitude]
+      const [lng, lat] = feature.center;
+      
+      return {
+        lat,
+        lng,
+        formatted_address: feature.place_name
+      };
+    }
+    
+    throw new Error('No results found for this address');
+  } catch (error) {
+    console.error('Error in geocoding with Mapbox:', error);
+    throw error;
+  }
 };
 
 serve(async (req) => {
@@ -47,22 +66,39 @@ serve(async (req) => {
       )
     }
     
-    // In a real implementation, you would call an external geocoding API here
-    // For demo purposes, we'll use our mock function
-    const locationData = geocodeAddress(address);
-    
+    // Use real geocoding service
+    try {
+      const locationData = await geocodeAddress(address);
+      
+      return new Response(
+        JSON.stringify({ 
+          success: true,
+          data: locationData
+        }),
+        { 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+        }
+      )
+    } catch (error) {
+      console.error('Geocoding error:', error);
+      return new Response(
+        JSON.stringify({ 
+          error: 'Geocoding failed',
+          message: 'La géolocalisation a échoué'
+        }),
+        { 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          status: 500 
+        }
+      )
+    }
+  } catch (error) {
+    console.error('Request error:', error);
     return new Response(
       JSON.stringify({ 
-        success: true,
-        data: locationData
+        error: error.message,
+        message: 'Une erreur est survenue'
       }),
-      { 
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
-      }
-    )
-  } catch (error) {
-    return new Response(
-      JSON.stringify({ error: error.message }),
       { 
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         status: 400 

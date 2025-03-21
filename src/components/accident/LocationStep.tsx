@@ -4,6 +4,7 @@ import { MapPin, Loader2 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 
 interface LocationStepProps {
   location: string;
@@ -19,6 +20,7 @@ const LocationStep = ({
   const [isLoading, setIsLoading] = useState(false);
   const [currentLocation, setCurrentLocation] = useState<{lat: number, lng: number} | null>(null);
   const [isGettingCurrentLocation, setIsGettingCurrentLocation] = useState(false);
+  const [reverseGeocodingAddress, setReverseGeocodingAddress] = useState('');
 
   const geocodeAddress = async () => {
     if (!location) {
@@ -44,6 +46,10 @@ const LocationStep = ({
           lng: data.data.lng,
           address: data.data.formatted_address
         });
+        setCurrentLocation({
+          lat: data.data.lat,
+          lng: data.data.lng
+        });
         toast.success("Adresse géolocalisée avec succès");
       } else {
         toast.error(data.message || "Impossible de géolocaliser cette adresse");
@@ -56,6 +62,28 @@ const LocationStep = ({
     }
   };
 
+  const reverseGeocode = async (latitude: number, longitude: number) => {
+    try {
+      setReverseGeocodingAddress('Recherche de l\'adresse...');
+      const { data, error } = await supabase.functions.invoke('geocode-location', {
+        body: { address: `${latitude},${longitude}` }
+      });
+      
+      if (error || !data.success) {
+        console.error('Error in reverse geocoding:', error || data.error);
+        setReverseGeocodingAddress(`Position: ${latitude.toFixed(6)}, ${longitude.toFixed(6)}`);
+        return `Position: ${latitude.toFixed(6)}, ${longitude.toFixed(6)}`;
+      }
+      
+      setReverseGeocodingAddress(data.data.formatted_address);
+      return data.data.formatted_address;
+    } catch (err) {
+      console.error('Error in reverse geocoding:', err);
+      setReverseGeocodingAddress(`Position: ${latitude.toFixed(6)}, ${longitude.toFixed(6)}`);
+      return `Position: ${latitude.toFixed(6)}, ${longitude.toFixed(6)}`;
+    }
+  };
+
   const getCurrentLocation = () => {
     if (!navigator.geolocation) {
       toast.error("La géolocalisation n'est pas supportée par votre navigateur");
@@ -64,17 +92,17 @@ const LocationStep = ({
 
     setIsGettingCurrentLocation(true);
     navigator.geolocation.getCurrentPosition(
-      position => {
+      async position => {
         const { latitude, longitude } = position.coords;
         setCurrentLocation({ lat: latitude, lng: longitude });
         
-        // Reverse geocoding could be done here with a real API
-        // For now, we'll just update the location field with coordinates
-        const locationString = `Latitude: ${latitude.toFixed(6)}, Longitude: ${longitude.toFixed(6)}`;
+        // Perform reverse geocoding to get address from coordinates
+        const address = await reverseGeocode(latitude, longitude);
+        
         const event = {
           target: {
             name: 'location',
-            value: locationString
+            value: address
           }
         } as React.ChangeEvent<HTMLInputElement>;
         
@@ -82,7 +110,7 @@ const LocationStep = ({
         setGeolocation({
           lat: latitude,
           lng: longitude,
-          address: locationString
+          address: address
         });
         
         toast.success("Position actuelle récupérée");
@@ -105,7 +133,7 @@ const LocationStep = ({
       },
       {
         enableHighAccuracy: true,
-        timeout: 5000,
+        timeout: 10000,
         maximumAge: 0
       }
     );
@@ -118,14 +146,14 @@ const LocationStep = ({
           Lieu de l'accident
         </label>
         <div className="relative">
-          <input
+          <Input
             type="text"
             id="location"
             name="location"
             value={location}
             onChange={handleInputChange}
             placeholder="Adresse ou description du lieu"
-            className="w-full px-4 py-2 pl-10 border border-constalib-gray rounded-lg focus:ring-2 focus:ring-constalib-blue focus:border-constalib-blue"
+            className="pl-10"
             required
           />
           <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 text-constalib-dark-gray" size={18} />
@@ -169,7 +197,7 @@ const LocationStep = ({
       {currentLocation && (
         <div className="bg-constalib-light-blue/30 p-4 rounded-lg">
           <p className="text-sm text-constalib-dark">
-            <span className="font-medium">Position actuelle:</span> Lat: {currentLocation.lat.toFixed(6)}, Lng: {currentLocation.lng.toFixed(6)}
+            <span className="font-medium">Position:</span> {reverseGeocodingAddress || `Lat: ${currentLocation.lat.toFixed(6)}, Lng: ${currentLocation.lng.toFixed(6)}`}
           </p>
         </div>
       )}
