@@ -378,6 +378,8 @@ const AccidentForm = ({ onEmergencyRequest }: AccidentFormProps) => {
             vehicleModel={formData.vehicleModel}
             vehicleYear={formData.vehicleYear}
             vehicleDescription={formData.vehicleDescription}
+            insurancePolicy={formData.insurancePolicy}
+            insuranceCompany={formData.insuranceCompany}
             otherVehicle={formData.otherVehicle}
             handleInputChange={handleInputChange}
             handleOtherVehicleChange={handleOtherVehicleChange}

@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { Search, AlertCircle, Loader2, Check, Info, Car, Shield } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
@@ -15,6 +16,11 @@ interface VehicleData {
   model: string;
   year: string;
   firstRegistration?: string;
+  insurance?: {
+    company: string;
+    policy: string;
+    name: string;
+  };
 }
 
 interface InsuranceData {
@@ -56,6 +62,7 @@ const VehicleIdentificationStep = ({
   const [insuranceDetails, setInsuranceDetails] = useState<InsuranceData | null>(null);
   const [insuranceLookupSuccess, setInsuranceLookupSuccess] = useState(false);
   const [insuranceError, setInsuranceError] = useState<string | null>(null);
+  const [autoInsuranceFound, setAutoInsuranceFound] = useState(false);
 
   const lookupVehicle = async () => {
     if (!licensePlate || licensePlate.length < 5) {
@@ -67,6 +74,7 @@ const VehicleIdentificationStep = ({
     setIsLoading(true);
     setSearchError(null);
     setLookupSuccess(false);
+    setAutoInsuranceFound(false);
     
     try {
       console.log(`Tentative de recherche du véhicule: ${licensePlate}`);
@@ -87,6 +95,40 @@ const VehicleIdentificationStep = ({
         setVehicleDetails(data.data);
         setLookupSuccess(true);
         toast.success(data.message || "Informations du véhicule récupérées avec succès du SIV");
+        
+        // Si des informations d'assurance sont disponibles, les remplir automatiquement
+        if (data.data.insurance) {
+          setAutoInsuranceFound(true);
+          setInsuranceDetails({
+            company: data.data.insurance.company,
+            name: data.data.insurance.name
+          });
+          
+          // Remplissage du numéro de police
+          const policyEvent = {
+            target: {
+              name: 'insurancePolicy',
+              value: data.data.insurance.policy
+            }
+          } as React.ChangeEvent<HTMLInputElement>;
+          handleInputChange(policyEvent);
+          
+          // Remplissage de la compagnie d'assurance
+          const companyEvent = {
+            target: {
+              name: 'insuranceCompany',
+              value: data.data.insurance.company
+            }
+          } as React.ChangeEvent<HTMLInputElement>;
+          handleInputChange(companyEvent);
+          
+          if (setInsuranceInfo) {
+            setInsuranceInfo({ company: data.data.insurance.company });
+          }
+          
+          setInsuranceLookupSuccess(true);
+          toast.success("Informations d'assurance récupérées automatiquement");
+        }
       } else {
         console.log('Véhicule non trouvé:', data);
         setSearchError(data.message || "Aucun véhicule trouvé avec cette immatriculation dans le SIV");
@@ -186,6 +228,11 @@ const VehicleIdentificationStep = ({
     
     if (lookupSuccess) {
       setLookupSuccess(false);
+    }
+    
+    if (autoInsuranceFound) {
+      setAutoInsuranceFound(false);
+      setInsuranceLookupSuccess(false);
     }
   };
 
@@ -313,6 +360,11 @@ const VehicleIdentificationStep = ({
         <h3 className="text-lg font-medium text-constalib-dark mb-4 flex items-center">
           <Shield className="h-5 w-5 mr-2 text-constalib-blue" />
           Informations d'assurance
+          {autoInsuranceFound && (
+            <span className="ml-2 text-sm text-green-600 bg-green-50 px-2 py-1 rounded-full">
+              Auto-détectée
+            </span>
+          )}
         </h3>
         
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -336,7 +388,7 @@ const VehicleIdentificationStep = ({
                 variant="ghost"
                 className="absolute right-2 top-1/2 transform -translate-y-1/2"
                 onClick={lookupInsurance}
-                disabled={isInsuranceLoading}
+                disabled={isInsuranceLoading || autoInsuranceFound}
                 title="Rechercher la compagnie d'assurance"
               >
                 {isInsuranceLoading ? 
@@ -348,10 +400,12 @@ const VehicleIdentificationStep = ({
               </Button>
             </div>
             <p className="text-xs text-constalib-dark-gray">
-              Saisissez le numéro de police d'assurance tel qu'il apparaît sur votre carte verte
+              {autoInsuranceFound 
+                ? "Numéro de police récupéré automatiquement du SIV" 
+                : "Saisissez le numéro de police d'assurance tel qu'il apparaît sur votre carte verte"}
             </p>
 
-            {insuranceError && (
+            {insuranceError && !autoInsuranceFound && (
               <Alert variant="destructive" className="mt-2">
                 <AlertCircle className="h-4 w-4" />
                 <AlertDescription>{insuranceError}</AlertDescription>
@@ -371,10 +425,10 @@ const VehicleIdentificationStep = ({
               onChange={handleInputChange}
               placeholder="Ex: AXA, MAIF, etc."
               className="w-full"
-              readOnly={insuranceLookupSuccess}
+              readOnly={insuranceLookupSuccess || autoInsuranceFound}
             />
             
-            {insuranceLookupSuccess && insuranceDetails && (
+            {(insuranceLookupSuccess || autoInsuranceFound) && insuranceDetails && (
               <Alert className="mt-2 border-green-200 bg-green-50">
                 <Shield className="h-4 w-4 text-green-600" />
                 <AlertDescription className="text-green-800">
@@ -392,7 +446,7 @@ const VehicleIdentificationStep = ({
       <Alert variant="default" className="bg-blue-50 border-blue-200">
         <Info className="h-4 w-4 text-blue-500" />
         <AlertDescription className="text-blue-700 text-sm">
-          Les informations récupérées par le SIV (Système d'Immatriculation des Véhicules) sont automatiquement renseignées dans le formulaire. Vous pouvez compléter avec la description et les spécificités de votre véhicule.
+          Les informations récupérées par le SIV (Système d'Immatriculation des Véhicules) sont automatiquement renseignées dans le formulaire. Les informations d'assurance associées au véhicule sont également récupérées si disponibles, sinon vous pouvez les renseigner manuellement.
         </AlertDescription>
       </Alert>
     </div>
