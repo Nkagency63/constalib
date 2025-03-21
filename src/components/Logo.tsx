@@ -3,7 +3,7 @@ import React from 'react';
 
 interface LogoProps {
   className?: string;
-  size?: 'sm' | 'md' | 'lg' | 'xl';
+  size?: 'sm' | 'md' | 'lg' | 'xl' | '2xl';
   variant?: 'full' | 'flag-only';
 }
 
@@ -12,7 +12,8 @@ const Logo = ({ className = "", size = "md", variant = "full" }: LogoProps) => {
     sm: "h-8",
     md: "h-10",
     lg: "h-16",
-    xl: "h-20"
+    xl: "h-20",
+    '2xl': "h-32"
   };
 
   return (
