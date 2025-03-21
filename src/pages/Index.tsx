@@ -6,6 +6,7 @@ import FeaturesSection from '@/components/home/FeaturesSection';
 import HowItWorksSection from '@/components/home/HowItWorksSection';
 import ServicesSection from '@/components/home/ServicesSection';
 import CtaSection from '@/components/home/CtaSection';
+import DownloadPdfSection from '@/components/home/DownloadPdfSection';
 
 const Index = () => {
   return (
@@ -24,6 +25,9 @@ const Index = () => {
         
         {/* Services section */}
         <ServicesSection />
+        
+        {/* Download PDF section */}
+        <DownloadPdfSection />
         
         {/* CTA section */}
         <CtaSection />
