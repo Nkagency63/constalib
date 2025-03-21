@@ -7,6 +7,7 @@ import NotFound from './pages/NotFound';
 import Profile from './pages/Profile';
 import Documents from './pages/Documents';
 import Appointments from './pages/Appointments';
+import About from './pages/About';
 import './App.css';
 
 function App() {
@@ -18,6 +19,7 @@ function App() {
         <Route path="/profile" element={<Profile />} />
         <Route path="/documents" element={<Documents />} />
         <Route path="/appointments" element={<Appointments />} />
+        <Route path="/about" element={<About />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
       <SonnerToaster />

@@ -20,9 +20,11 @@ const Hero = () => {
                 Déclarer un accident
               </Button>
             </Link>
-            <Button variant="outline" size="lg" className="w-full sm:w-auto mt-3 sm:mt-0">
-              En savoir plus
-            </Button>
+            <Link to="/about" className="w-full sm:w-auto">
+              <Button variant="outline" size="lg" className="w-full sm:w-auto mt-3 sm:mt-0">
+                En savoir plus
+              </Button>
+            </Link>
           </div>
         </div>
       </div>
