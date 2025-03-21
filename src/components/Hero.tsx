@@ -2,8 +2,18 @@
 import { Link } from 'react-router-dom';
 import { Button } from './ui/button';
 import Logo from './Logo';
+import { Download } from 'lucide-react';
+import { downloadPDF } from '@/utils/downloadUtils';
+import { toast } from "sonner";
 
 const Hero = () => {
+  const handleDownloadConstat = () => {
+    // Utiliser le PDF stocké dans Supabase
+    const storagePath = "storage:documents/constat_amiable_vierge.pdf";
+    toast.info("Téléchargement du constat amiable en cours...");
+    downloadPDF(storagePath, 'constat_amiable_vierge.pdf');
+  };
+
   return <div className="bg-gradient-to-b from-constalib-light-blue/30 to-white py-16 md:py-24 lg:py-32 mb-8 md:mb-16 mt-16 md:mt-20">
       <div className="container px-4 mx-auto">
         <div className="max-w-3xl mx-auto text-center">
@@ -14,14 +24,29 @@ const Hero = () => {
             Simplifiez vos déclarations d'accidents
           </h1>
           <p className="text-base md:text-lg lg:text-xl text-constalib-dark-gray mb-6 md:mb-8 px-2">Constalib vous permet de déclarer facilement un accident et de transmettre les informations à votre assureur en quelques minutes seulement.</p>
-          <div className="flex flex-col sm:flex-row gap-3 md:gap-4 justify-center">
+          
+          {/* Groupe de boutons principal (horizontaux sur desktop) */}
+          <div className="flex flex-col sm:flex-row gap-3 md:gap-4 justify-center mb-4">
             <Link to="/accident" className="w-full sm:w-auto">
               <Button size="lg" className="w-full">
                 Déclarer un accident
               </Button>
             </Link>
-            <Link to="/about" className="w-full sm:w-auto">
-              <Button variant="outline" size="lg" className="w-full sm:w-auto mt-3 sm:mt-0">
+            <Button 
+              variant="secondary" 
+              size="lg" 
+              className="w-full sm:w-auto inline-flex items-center gap-2"
+              onClick={handleDownloadConstat}
+            >
+              <Download className="w-5 h-5" />
+              Télécharger le constat vierge
+            </Button>
+          </div>
+          
+          {/* Bouton "En savoir plus" en dessous */}
+          <div className="mt-3">
+            <Link to="/about" className="w-full sm:w-auto inline-block">
+              <Button variant="outline" size="lg" className="w-full">
                 En savoir plus
               </Button>
             </Link>
