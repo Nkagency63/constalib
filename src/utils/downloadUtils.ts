@@ -17,13 +17,17 @@ export const downloadPDF = async (url: string, filename: string) => {
       // Parse the storage path (format: storage:bucketName/path/to/file)
       const storagePath = url.substring(8); // Remove 'storage:' prefix
       const slashIndex = storagePath.indexOf('/');
+      
+      if (slashIndex === -1) {
+        throw new Error('Invalid storage path format. Expected format: storage:bucketName/path/to/file');
+      }
+      
       const bucketName = storagePath.substring(0, slashIndex);
       const filePath = storagePath.substring(slashIndex + 1);
       
+      console.log(`Attempting to download from Supabase: bucket=${bucketName}, path=${filePath}`);
+      
       try {
-        // Show loading toast
-        toast.info("Récupération du PDF depuis Supabase...");
-        
         // Get file from storage and download it
         const { data, error } = await supabase.storage
           .from(bucketName)
@@ -53,6 +57,7 @@ export const downloadPDF = async (url: string, filename: string) => {
         
         // Fallback to local file if Supabase storage fails
         const localUrl = `/pdf/${filename}`;
+        console.log(`Falling back to local file: ${localUrl}`);
         triggerDownload(localUrl, filename);
         return;
       }

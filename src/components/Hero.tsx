@@ -8,7 +8,7 @@ import { toast } from "sonner";
 
 const Hero = () => {
   const handleDownloadConstat = () => {
-    // Utiliser le PDF stocké dans Supabase
+    // Essayer d'abord le PDF stocké dans Supabase
     const storagePath = "storage:documents/constat_amiable_vierge.pdf";
     toast.info("Téléchargement du constat amiable en cours...");
     downloadPDF(storagePath, 'constat_amiable_vierge.pdf');
@@ -30,7 +30,12 @@ const Hero = () => {
             <Link to="/accident" className="w-full sm:w-auto">
               <Button size="lg" className="w-full">Déclarer un accident en ligne</Button>
             </Link>
-            <Button variant="secondary" size="lg" className="w-full sm:w-auto inline-flex items-center gap-2" onClick={handleDownloadConstat}>
+            <Button 
+              variant="secondary" 
+              size="lg" 
+              className="w-full sm:w-auto inline-flex items-center gap-2" 
+              onClick={handleDownloadConstat}
+            >
               <Download className="w-5 h-5" />
               Télécharger un constat vierge (PDF)
             </Button>
@@ -48,4 +53,5 @@ const Hero = () => {
       </div>
     </div>;
 };
+
 export default Hero;
