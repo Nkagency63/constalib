@@ -19,7 +19,10 @@ export const downloadPDF = async (url: string, filename: string) => {
       const slashIndex = storagePath.indexOf('/');
       
       if (slashIndex === -1) {
-        throw new Error('Invalid storage path format. Expected format: storage:bucketName/path/to/file');
+        console.error('Invalid storage path format, falling back to local file');
+        // Fallback to local file immediately
+        triggerLocalDownload(filename);
+        return;
       }
       
       const bucketName = storagePath.substring(0, slashIndex);
@@ -53,12 +56,10 @@ export const downloadPDF = async (url: string, filename: string) => {
         return;
       } catch (storageError) {
         console.error('Error downloading from Supabase:', storageError);
-        toast.warning("Impossible de récupérer le fichier depuis Supabase. Tentative depuis le serveur local...");
+        toast.warning("Impossible de récupérer le fichier depuis Supabase. Utilisation du fichier local...");
         
         // Fallback to local file if Supabase storage fails
-        const localUrl = `/pdf/${filename}`;
-        console.log(`Falling back to local file: ${localUrl}`);
-        triggerDownload(localUrl, filename);
+        triggerLocalDownload(filename);
         return;
       }
     } else {
@@ -67,8 +68,20 @@ export const downloadPDF = async (url: string, filename: string) => {
     }
   } catch (error) {
     console.error('Error downloading PDF:', error);
-    toast.error("Erreur lors du téléchargement du PDF. Veuillez réessayer.");
+    toast.error("Erreur lors du téléchargement du PDF. Tentative avec la version locale...");
+    
+    // Final fallback to local file
+    triggerLocalDownload(filename);
   }
+};
+
+/**
+ * Helper function to trigger download from local public folder
+ */
+const triggerLocalDownload = (filename: string) => {
+  const localUrl = `/pdf/${filename}`;
+  console.log(`Using local file for download: ${localUrl}`);
+  triggerDownload(localUrl, filename);
 };
 
 /**

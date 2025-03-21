@@ -8,7 +8,7 @@ import { toast } from "sonner";
 
 const Hero = () => {
   const handleDownloadConstat = () => {
-    // Essayer d'abord le PDF stocké dans Supabase
+    // Essayer d'abord le PDF stocké dans Supabase, sinon utiliser la version locale
     const storagePath = "storage:documents/constat_amiable_vierge.pdf";
     toast.info("Téléchargement du constat amiable en cours...");
     downloadPDF(storagePath, 'constat_amiable_vierge.pdf');
