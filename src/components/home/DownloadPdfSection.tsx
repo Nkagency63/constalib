@@ -29,7 +29,7 @@ const DownloadPdfSection = () => {
             onClick={handleDownloadConstat}
           >
             <Download className="w-5 h-5" />
-            Télécharger le constat vierge (PDF)
+            Télécharger un constat vierge (PDF)
           </Button>
         </div>
       </div>

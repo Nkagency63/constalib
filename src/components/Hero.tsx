@@ -1,9 +1,11 @@
+
 import { Link } from 'react-router-dom';
 import { Button } from './ui/button';
 import Logo from './Logo';
 import { Download } from 'lucide-react';
 import { downloadPDF } from '@/utils/downloadUtils';
 import { toast } from "sonner";
+
 const Hero = () => {
   const handleDownloadConstat = () => {
     // Utiliser le PDF stocké dans Supabase
@@ -11,6 +13,7 @@ const Hero = () => {
     toast.info("Téléchargement du constat amiable en cours...");
     downloadPDF(storagePath, 'constat_amiable_vierge.pdf');
   };
+
   return <div className="bg-gradient-to-b from-constalib-light-blue/30 to-white py-16 md:py-24 lg:py-32 mb-8 md:mb-16 mt-16 md:mt-20">
       <div className="container px-4 mx-auto">
         <div className="max-w-3xl mx-auto text-center">
@@ -29,7 +32,7 @@ const Hero = () => {
             </Link>
             <Button variant="secondary" size="lg" className="w-full sm:w-auto inline-flex items-center gap-2" onClick={handleDownloadConstat}>
               <Download className="w-5 h-5" />
-              Télécharger le constat vierge
+              Télécharger un constat vierge (PDF)
             </Button>
           </div>
           
