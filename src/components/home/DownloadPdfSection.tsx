@@ -3,8 +3,12 @@ import { Download } from 'lucide-react';
 import Button from '@/components/Button';
 import { downloadPDF } from '@/utils/downloadUtils';
 import { toast } from "sonner";
+import { useState } from 'react';
+import UploadPdfSection from './UploadPdfSection';
 
 const DownloadPdfSection = () => {
+  const [showUploadSection, setShowUploadSection] = useState(false);
+
   const handleDownloadConstat = () => {
     // Essayer d'abord le PDF stocké dans Supabase, sinon utiliser la version locale
     const storagePath = "storage:documents/constat_amiable_vierge.pdf";
@@ -31,6 +35,17 @@ const DownloadPdfSection = () => {
             <Download className="w-5 h-5" />
             Télécharger un constat vierge (PDF)
           </Button>
+          
+          <div className="mt-8 pt-8 border-t border-gray-100">
+            <button 
+              className="text-sm text-gray-500 hover:text-constalib-blue transition-colors"
+              onClick={() => setShowUploadSection(!showUploadSection)}
+            >
+              {showUploadSection ? "Masquer" : "Administration: Uploader un PDF"} 
+            </button>
+            
+            {showUploadSection && <UploadPdfSection />}
+          </div>
         </div>
       </div>
     </section>
