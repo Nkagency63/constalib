@@ -31,6 +31,26 @@ export const downloadPDF = async (url: string, filename: string) => {
       console.log(`Attempting to download from Supabase: bucket=${bucketName}, path=${filePath}`);
       
       try {
+        // Check if the file exists in the bucket
+        const { data: fileExists, error: checkError } = await supabase.storage
+          .from(bucketName)
+          .list(filePath.split('/').slice(0, -1).join('/') || '');
+        
+        if (checkError) {
+          console.error('Error checking file existence:', checkError);
+          throw checkError;
+        }
+          
+        const fileName = filePath.split('/').pop();
+        const fileExistsInBucket = fileExists.some(item => item.name === fileName);
+        
+        if (!fileExistsInBucket) {
+          console.error('File does not exist in bucket');
+          toast.warning("Le fichier n'existe pas dans le stockage. Utilisation du fichier local...");
+          triggerLocalDownload(filename);
+          return;
+        }
+        
         // Get file from storage and download it
         const { data, error } = await supabase.storage
           .from(bucketName)
@@ -72,6 +92,37 @@ export const downloadPDF = async (url: string, filename: string) => {
     
     // Final fallback to local file
     triggerLocalDownload(filename);
+  }
+};
+
+/**
+ * Helper function to upload file to Supabase storage
+ * @param file File to upload
+ * @param bucketName Name of the bucket to upload to
+ * @param filePath Path within the bucket to save the file
+ * @returns Promise that resolves to the URL of the uploaded file
+ */
+export const uploadFileToStorage = async (file: File, bucketName: string, filePath: string) => {
+  try {
+    const { data, error } = await supabase.storage
+      .from(bucketName)
+      .upload(filePath, file, {
+        upsert: true, // Replace if exists
+        contentType: file.type
+      });
+    
+    if (error) {
+      console.error('Error uploading file to Supabase:', error);
+      toast.error("Erreur lors de l'upload du fichier");
+      throw error;
+    }
+    
+    toast.success("Fichier uploadé avec succès");
+    return data.path;
+  } catch (error) {
+    console.error('Error in upload process:', error);
+    toast.error("Erreur lors de l'upload du fichier");
+    throw error;
   }
 };
 
