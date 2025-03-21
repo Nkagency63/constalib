@@ -1,11 +1,9 @@
-
 import { Link } from 'react-router-dom';
 import { Button } from './ui/button';
 import Logo from './Logo';
 import { Download } from 'lucide-react';
 import { downloadPDF } from '@/utils/downloadUtils';
 import { toast } from "sonner";
-
 const Hero = () => {
   const handleDownloadConstat = () => {
     // Utiliser le PDF stocké dans Supabase
@@ -13,7 +11,6 @@ const Hero = () => {
     toast.info("Téléchargement du constat amiable en cours...");
     downloadPDF(storagePath, 'constat_amiable_vierge.pdf');
   };
-
   return <div className="bg-gradient-to-b from-constalib-light-blue/30 to-white py-16 md:py-24 lg:py-32 mb-8 md:mb-16 mt-16 md:mt-20">
       <div className="container px-4 mx-auto">
         <div className="max-w-3xl mx-auto text-center">
@@ -28,16 +25,9 @@ const Hero = () => {
           {/* Groupe de boutons principal (horizontaux sur desktop) */}
           <div className="flex flex-col sm:flex-row gap-3 md:gap-4 justify-center mb-4">
             <Link to="/accident" className="w-full sm:w-auto">
-              <Button size="lg" className="w-full">
-                Déclarer un accident
-              </Button>
+              <Button size="lg" className="w-full">Déclarer un accident en ligne</Button>
             </Link>
-            <Button 
-              variant="secondary" 
-              size="lg" 
-              className="w-full sm:w-auto inline-flex items-center gap-2"
-              onClick={handleDownloadConstat}
-            >
+            <Button variant="secondary" size="lg" className="w-full sm:w-auto inline-flex items-center gap-2" onClick={handleDownloadConstat}>
               <Download className="w-5 h-5" />
               Télécharger le constat vierge
             </Button>
@@ -55,5 +45,4 @@ const Hero = () => {
       </div>
     </div>;
 };
-
 export default Hero;
