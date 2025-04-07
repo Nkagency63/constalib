@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { Search, AlertCircle, Loader2, Check, Info, Car, Shield, UserCheck, FileText } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
@@ -112,7 +113,7 @@ const formatFniLicensePlate = (value: string): string => {
     }
     
     if (cleaned.length > 6) {
-      formatted = formatted.substring(0, 7) + ' ' + cleaned.substring(7);
+      formatted = formatted.substring(0, 7) + ' ' + formatted.substring(7);
     }
     
     // Limit to 10 characters (including spaces)
@@ -711,7 +712,7 @@ const VehicleIdentificationStep = ({
           </Alert>
         )}
         
-        {showFvaDetails && (
+        {showFvaDetails && fvaData && (
           <Card className="mb-6 border-blue-200">
             <CardHeader className="pb-2">
               <CardTitle className="text-lg">Informations du FVA</CardTitle>
@@ -864,4 +865,80 @@ const VehicleIdentificationStep = ({
 
       <div className="border-t pt-6 mt-6">
         <h3 className="text-lg font-medium text-constalib-dark mb-4 flex items-center">
-          <Shield className="h-
+          <Shield className="h-5 w-5 mr-2 text-constalib-blue" />
+          Assurance du véhicule
+        </h3>
+        
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="space-y-2">
+            <label htmlFor="insurancePolicy" className="block text-sm font-medium text-constalib-dark">
+              Numéro de police d'assurance
+            </label>
+            <div className="relative">
+              <Input
+                type="text"
+                id="insurancePolicy"
+                name="insurancePolicy"
+                value={insurancePolicy}
+                onChange={handleInputChange}
+                className="pr-12"
+                readOnly={autoInsuranceFound}
+              />
+              {!autoInsuranceFound && (
+                <Button 
+                  type="button" 
+                  size="icon"
+                  variant="ghost"
+                  className="absolute right-2 top-1/2 transform -translate-y-1/2"
+                  onClick={lookupInsurance}
+                  disabled={isInsuranceLoading}
+                >
+                  {isInsuranceLoading ? 
+                    <Loader2 className="h-5 w-5 animate-spin text-constalib-blue" /> : 
+                    insuranceLookupSuccess ? 
+                      <Check className="h-5 w-5 text-green-600" /> : 
+                      <Search className="h-5 w-5 text-constalib-blue" />
+                  }
+                </Button>
+              )}
+            </div>
+            {insuranceError && (
+              <Alert variant="destructive" className="mt-2">
+                <AlertCircle className="h-4 w-4" />
+                <AlertDescription>{insuranceError}</AlertDescription>
+              </Alert>
+            )}
+          </div>
+          
+          <div className="space-y-2">
+            <label htmlFor="insuranceCompany" className="block text-sm font-medium text-constalib-dark">
+              Compagnie d'assurance
+            </label>
+            <Input
+              type="text"
+              id="insuranceCompany"
+              name="insuranceCompany"
+              value={insuranceCompany}
+              onChange={handleInputChange}
+              readOnly={insuranceLookupSuccess}
+            />
+          </div>
+        </div>
+        
+        {insuranceLookupSuccess && insuranceDetails && (
+          <Alert className="mt-4 border-green-200 bg-green-50">
+            <Shield className="h-4 w-4 text-green-600" />
+            <AlertDescription className="text-green-800">
+              Assurance vérifiée : {insuranceDetails.company}
+              {insuranceDetails.name && 
+                <div className="text-xs mt-1">{insuranceDetails.name}</div>
+              }
+            </AlertDescription>
+          </Alert>
+        )}
+      </div>
+    </div>
+  );
+};
+
+export default VehicleIdentificationStep;
