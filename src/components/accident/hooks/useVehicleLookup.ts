@@ -1,43 +1,14 @@
 
 import { useState } from 'react';
-import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { VehicleData, InsuranceData, FvaData } from '../types/vehicleTypes';
-
-export interface VehicleLookupState {
-  isLoading: boolean;
-  lookupSuccess: boolean;
-  vehicleDetails: VehicleData | null;
-  searchError: string | null;
-  isInsuranceLoading: boolean;
-  insuranceDetails: InsuranceData | null;
-  insuranceLookupSuccess: boolean;
-  insuranceError: string | null;
-  autoInsuranceFound: boolean;
-  isFvaLoading: boolean;
-  fvaData: FvaData | null;
-  fvaLookupSuccess: boolean;
-  fvaError: string | null;
-  showFvaDetails: boolean;
-  isFniLoading: boolean;
-  fniLookupSuccess: boolean;
-  fniError: string | null;
-  hasAttemptedLookup: boolean;
-}
-
-export interface VehicleLookupActions {
-  lookupVehicle: () => Promise<void>;
-  lookupFni: () => Promise<void>;
-  lookupFva: () => Promise<void>;
-  resetLookups: () => void;
-}
-
-interface UseVehicleLookupProps {
-  licensePlate: string;
-  handleInputChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
-  setVehicleInfo: (data: {brand: string, model: string, year: string, firstRegistration?: string}) => void;
-  setInsuranceInfo?: (data: {company: string}) => void;
-}
+import { VehicleLookupState, VehicleLookupActions, UseVehicleLookupProps, initialLookupState } from './lookupState';
+import { isValidLicensePlate } from './vehicleLookupValidation';
+import { 
+  lookupVehicleFromSiv, 
+  lookupVehicleFromFni, 
+  lookupVehicleFromFva 
+} from './vehicleLookupService';
 
 export const useVehicleLookup = ({
   licensePlate,
@@ -45,307 +16,157 @@ export const useVehicleLookup = ({
   setVehicleInfo,
   setInsuranceInfo
 }: UseVehicleLookupProps): [VehicleLookupState, VehicleLookupActions] => {
-  const [isLoading, setIsLoading] = useState(false);
-  const [lookupSuccess, setLookupSuccess] = useState(false);
-  const [vehicleDetails, setVehicleDetails] = useState<VehicleData | null>(null);
-  const [searchError, setSearchError] = useState<string | null>(null);
-  const [isInsuranceLoading, setIsInsuranceLoading] = useState(false);
-  const [insuranceDetails, setInsuranceDetails] = useState<InsuranceData | null>(null);
-  const [insuranceLookupSuccess, setInsuranceLookupSuccess] = useState(false);
-  const [insuranceError, setInsuranceError] = useState<string | null>(null);
-  const [autoInsuranceFound, setAutoInsuranceFound] = useState(false);
-  
-  const [isFvaLoading, setIsFvaLoading] = useState(false);
-  const [fvaData, setFvaData] = useState<FvaData | null>(null);
-  const [fvaLookupSuccess, setFvaLookupSuccess] = useState(false);
-  const [fvaError, setFvaError] = useState<string | null>(null);
-  const [showFvaDetails, setShowFvaDetails] = useState(false);
-  
-  const [isFniLoading, setIsFniLoading] = useState(false);
-  const [fniLookupSuccess, setFniLookupSuccess] = useState(false);
-  const [fniError, setFniError] = useState<string | null>(null);
-  
-  const [hasAttemptedLookup, setHasAttemptedLookup] = useState(false);
+  // Initialize state using the initialLookupState object
+  const [
+    { 
+      isLoading, 
+      lookupSuccess, 
+      vehicleDetails, 
+      searchError,
+      isInsuranceLoading,
+      insuranceDetails,
+      insuranceLookupSuccess,
+      insuranceError,
+      autoInsuranceFound,
+      isFvaLoading,
+      fvaData,
+      fvaLookupSuccess,
+      fvaError,
+      showFvaDetails,
+      isFniLoading,
+      fniLookupSuccess,
+      fniError,
+      hasAttemptedLookup
+    }, 
+    setState
+  ] = useState<VehicleLookupState>(initialLookupState);
 
-  const isValidLicensePlate = (plate: string, format: 'siv' | 'fni'): boolean => {
-    if (!plate || plate.length < 5) return false;
-    return true;
+  // Helper to update state partially
+  const updateState = (newState: Partial<VehicleLookupState>) => {
+    setState(prevState => ({ ...prevState, ...newState }));
   };
 
   const resetLookups = () => {
-    setLookupSuccess(false);
-    setSearchError(null);
-    setFniLookupSuccess(false);
-    setFniError(null);
+    updateState({
+      lookupSuccess: false,
+      searchError: null,
+      fniLookupSuccess: false,
+      fniError: null
+    });
   };
 
   const lookupVehicle = async () => {
     if (!isValidLicensePlate(licensePlate, 'siv')) {
       toast.error("Veuillez saisir une immatriculation valide");
-      setSearchError("L'immatriculation doit contenir au moins 5 caractères");
+      updateState({
+        searchError: "L'immatriculation doit contenir au moins 5 caractères"
+      });
       return;
     }
 
-    setIsLoading(true);
-    setSearchError(null);
-    setLookupSuccess(false);
-    setAutoInsuranceFound(false);
-    setHasAttemptedLookup(true);
+    updateState({
+      isLoading: true,
+      searchError: null,
+      lookupSuccess: false,
+      autoInsuranceFound: false,
+      hasAttemptedLookup: true
+    });
     
-    try {
-      console.log(`Tentative de recherche du véhicule: ${licensePlate}`);
-      const { data, error } = await supabase.functions.invoke('lookup-vehicle', {
-        body: { licensePlate }
+    const result = await lookupVehicleFromSiv(licensePlate, setVehicleInfo, handleInputChange, setInsuranceInfo);
+    
+    if (result.success) {
+      updateState({
+        vehicleDetails: result.vehicleDetails,
+        lookupSuccess: true,
+        insuranceDetails: result.insuranceDetails,
+        autoInsuranceFound: result.autoInsuranceFound,
+        insuranceLookupSuccess: result.autoInsuranceFound
       });
-
-      if (error) {
-        console.error('Error looking up vehicle:', error);
-        toast.error("Erreur lors de la consultation du SIV");
-        setSearchError("Une erreur technique est survenue lors de la consultation du SIV. Veuillez réessayer plus tard.");
-        return;
-      }
-
-      if (data.success && data.data) {
-        console.log('Véhicule trouvé:', data.data);
-        setVehicleInfo(data.data);
-        setVehicleDetails({...data.data, source: "SIV"});
-        setLookupSuccess(true);
-        toast.success(data.message || "Informations du véhicule récupérées avec succès du SIV");
-        
-        if (data.data.insurance) {
-          setAutoInsuranceFound(true);
-          setInsuranceDetails({
-            company: data.data.insurance.company,
-            name: data.data.insurance.name
-          });
-          
-          const policyEvent = {
-            target: {
-              name: 'insurancePolicy',
-              value: data.data.insurance.policy
-            }
-          } as React.ChangeEvent<HTMLInputElement>;
-          handleInputChange(policyEvent);
-          
-          const companyEvent = {
-            target: {
-              name: 'insuranceCompany',
-              value: data.data.insurance.company
-            }
-          } as React.ChangeEvent<HTMLInputElement>;
-          handleInputChange(companyEvent);
-          
-          if (setInsuranceInfo) {
-            setInsuranceInfo({ company: data.data.insurance.company });
-          }
-          
-          setInsuranceLookupSuccess(true);
-          toast.success("Informations d'assurance récupérées automatiquement");
-        }
-      } else {
-        console.log('Véhicule non trouvé:', data);
-        setSearchError(data.message || "Aucun véhicule trouvé avec cette immatriculation dans le SIV. Vérifiez votre saisie.");
-        toast.error(data.message || "Aucun véhicule trouvé avec cette immatriculation dans le SIV");
-      }
-    } catch (err) {
-      console.error('Error in vehicle lookup:', err);
-      setSearchError("Une erreur est survenue lors de la consultation du SIV. Veuillez réessayer plus tard.");
-      toast.error("Une erreur est survenue lors de la consultation du SIV");
-    } finally {
-      setIsLoading(false);
+    } else {
+      updateState({
+        searchError: result.error
+      });
+      toast.error(result.error || "Aucun véhicule trouvé avec cette immatriculation dans le SIV");
     }
+    
+    updateState({ isLoading: false });
   };
 
   const lookupFni = async () => {
     if (!isValidLicensePlate(licensePlate, 'fni')) {
       toast.error("Veuillez saisir une immatriculation valide");
-      setFniError("L'immatriculation doit contenir au moins 5 caractères");
+      updateState({
+        fniError: "L'immatriculation doit contenir au moins 5 caractères"
+      });
       return;
     }
 
-    setIsFniLoading(true);
-    setFniError(null);
-    setFniLookupSuccess(false);
-    setLookupSuccess(false);
-    setSearchError(null);
-    setAutoInsuranceFound(false);
-    setHasAttemptedLookup(true);
+    updateState({
+      isFniLoading: true,
+      fniError: null,
+      fniLookupSuccess: false,
+      lookupSuccess: false,
+      searchError: null,
+      autoInsuranceFound: false,
+      hasAttemptedLookup: true
+    });
     
-    try {
-      console.log(`Tentative de recherche du véhicule dans le FNI: ${licensePlate}`);
-      const { data, error } = await supabase.functions.invoke('lookup-fni', {
-        body: { licensePlate }
+    const result = await lookupVehicleFromFni(licensePlate, setVehicleInfo, handleInputChange, setInsuranceInfo);
+    
+    if (result.success) {
+      updateState({
+        vehicleDetails: result.vehicleDetails,
+        lookupSuccess: true,
+        fniLookupSuccess: true,
+        insuranceDetails: result.insuranceDetails,
+        autoInsuranceFound: result.autoInsuranceFound,
+        insuranceLookupSuccess: result.autoInsuranceFound
       });
-
-      if (error) {
-        console.error('Error looking up vehicle in FNI:', error);
-        toast.error("Erreur lors de la consultation du FNI");
-        setFniError("Une erreur technique est survenue lors de la consultation du FNI. Veuillez réessayer plus tard.");
-        return;
-      }
-
-      if (data.success && data.data) {
-        console.log('Véhicule trouvé dans le FNI:', data.data);
-        setVehicleInfo(data.data);
-        setVehicleDetails({...data.data, source: "FNI"});
-        setLookupSuccess(true);
-        setFniLookupSuccess(true);
-        toast.success(data.message || "Informations du véhicule récupérées avec succès du FNI");
-        
-        if (data.data.insurance) {
-          setAutoInsuranceFound(true);
-          setInsuranceDetails({
-            company: data.data.insurance.company,
-            name: data.data.insurance.name
-          });
-          
-          const policyEvent = {
-            target: {
-              name: 'insurancePolicy',
-              value: data.data.insurance.policy
-            }
-          } as React.ChangeEvent<HTMLInputElement>;
-          handleInputChange(policyEvent);
-          
-          const companyEvent = {
-            target: {
-              name: 'insuranceCompany',
-              value: data.data.insurance.company
-            }
-          } as React.ChangeEvent<HTMLInputElement>;
-          handleInputChange(companyEvent);
-          
-          if (setInsuranceInfo) {
-            setInsuranceInfo({ company: data.data.insurance.company });
-          }
-          
-          setInsuranceLookupSuccess(true);
-          toast.success("Informations d'assurance récupérées automatiquement du FNI");
-        }
-      } else {
-        console.log('Véhicule non trouvé dans le FNI:', data);
-        setFniError(data.message || "Aucun véhicule trouvé avec cette immatriculation dans le FNI. Vérifiez votre saisie.");
-        toast.error(data.message || "Aucun véhicule trouvé avec cette immatriculation dans le FNI");
-      }
-    } catch (err) {
-      console.error('Error in FNI lookup:', err);
-      setFniError("Une erreur est survenue lors de la consultation du FNI. Veuillez réessayer plus tard.");
-      toast.error("Une erreur est survenue lors de la consultation du FNI");
-    } finally {
-      setIsFniLoading(false);
+    } else {
+      updateState({
+        fniError: result.error
+      });
+      toast.error(result.error || "Aucun véhicule trouvé avec cette immatriculation dans le FNI");
     }
+    
+    updateState({ isFniLoading: false });
   };
 
   const lookupFva = async () => {
     if (!isValidLicensePlate(licensePlate, 'siv')) {
       toast.error("Veuillez saisir une immatriculation valide");
-      setFvaError("L'immatriculation doit contenir au moins 5 caractères");
+      updateState({
+        fvaError: "L'immatriculation doit contenir au moins 5 caractères"
+      });
       return;
     }
     
-    setIsFvaLoading(true);
-    setFvaError(null);
-    setFvaLookupSuccess(false);
-    setHasAttemptedLookup(true);
+    updateState({
+      isFvaLoading: true,
+      fvaError: null,
+      fvaLookupSuccess: false,
+      hasAttemptedLookup: true
+    });
     
-    try {
-      console.log(`Tentative de recherche du véhicule dans le FVA: ${licensePlate}`);
-      
-      const normalizedPlate = licensePlate.replace(/[\s-]+/g, '').toUpperCase();
-      console.log(`Plaque normalisée: ${normalizedPlate}`);
-      
-      const { data, error } = await supabase.functions.invoke('lookup-fva', {
-        body: { licensePlate: normalizedPlate }
+    const result = await lookupVehicleFromFva(licensePlate, setVehicleInfo, handleInputChange, setInsuranceInfo);
+    
+    if (result.success) {
+      updateState({
+        vehicleDetails: result.vehicleDetails,
+        fvaData: result.fvaData,
+        fvaLookupSuccess: true,
+        showFvaDetails: true,
+        insuranceLookupSuccess: true,
+        autoInsuranceFound: true
       });
-
-      if (error) {
-        console.error('Error looking up vehicle in FVA:', error);
-        toast.error("Erreur lors de la consultation du FVA");
-        setFvaError("Une erreur technique est survenue lors de la consultation du FVA. Veuillez réessayer plus tard.");
-        return;
-      }
-
-      if (data.success && data.data) {
-        console.log('Véhicule trouvé dans le FVA:', data.data);
-        
-        setVehicleInfo({
-          brand: data.data.vehicleInfo.brand,
-          model: data.data.vehicleInfo.model,
-          year: data.data.vehicleInfo.firstRegistration.substring(0, 4),
-          firstRegistration: data.data.vehicleInfo.firstRegistration,
-        });
-        
-        setVehicleDetails({
-          brand: data.data.vehicleInfo.brand,
-          model: data.data.vehicleInfo.model,
-          year: data.data.vehicleInfo.firstRegistration.substring(0, 4),
-          firstRegistration: data.data.vehicleInfo.firstRegistration,
-          source: "FVA"
-        });
-        
-        const brandEvent = {
-          target: {
-            name: 'vehicleBrand',
-            value: data.data.vehicleInfo.brand
-          }
-        } as React.ChangeEvent<HTMLInputElement>;
-        handleInputChange(brandEvent);
-        
-        const modelEvent = {
-          target: {
-            name: 'vehicleModel',
-            value: data.data.vehicleInfo.model
-          }
-        } as React.ChangeEvent<HTMLInputElement>;
-        handleInputChange(modelEvent);
-        
-        const yearEvent = {
-          target: {
-            name: 'vehicleYear',
-            value: data.data.vehicleInfo.firstRegistration.substring(0, 4)
-          }
-        } as React.ChangeEvent<HTMLInputElement>;
-        handleInputChange(yearEvent);
-        
-        if (setInsuranceInfo) {
-          setInsuranceInfo({ company: data.data.insuranceInfo.company });
-        }
-        
-        const policyEvent = {
-          target: {
-            name: 'insurancePolicy',
-            value: data.data.insuranceInfo.policyNumber
-          }
-        } as React.ChangeEvent<HTMLInputElement>;
-        handleInputChange(policyEvent);
-        
-        const companyEvent = {
-          target: {
-            name: 'insuranceCompany',
-            value: data.data.insuranceInfo.company
-          }
-        } as React.ChangeEvent<HTMLInputElement>;
-        handleInputChange(companyEvent);
-        
-        setFvaData(data.data);
-        setFvaLookupSuccess(true);
-        setShowFvaDetails(true);
-        setInsuranceLookupSuccess(true);
-        setAutoInsuranceFound(true);
-        
-        toast.success(data.message || "Informations complètes récupérées du FVA avec succès");
-      } else {
-        console.log('Véhicule non trouvé dans le FVA:', data);
-        setFvaError(data.message || "Aucun véhicule trouvé avec cette immatriculation dans le FVA. Vérifiez votre saisie.");
-        toast.error(data.message || "Aucun véhicule trouvé avec cette immatriculation dans le FVA");
-      }
-    } catch (err) {
-      console.error('Error in FVA lookup:', err);
-      setFvaError("Une erreur est survenue lors de la consultation du FVA. Veuillez réessayer plus tard.");
-      toast.error("Une erreur est survenue lors de la consultation du FVA");
-    } finally {
-      setIsFvaLoading(false);
+    } else {
+      updateState({
+        fvaError: result.error
+      });
+      toast.error(result.error || "Aucun véhicule trouvé avec cette immatriculation dans le FVA");
     }
+    
+    updateState({ isFvaLoading: false });
   };
 
   const state: VehicleLookupState = {
@@ -378,3 +199,5 @@ export const useVehicleLookup = ({
 
   return [state, actions];
 };
+
+export type { VehicleLookupState, VehicleLookupActions, UseVehicleLookupProps };
