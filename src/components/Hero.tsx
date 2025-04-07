@@ -21,7 +21,7 @@ const Hero = () => {
       <div className="container px-4 mx-auto">
         <div className="max-w-3xl mx-auto text-center">
           <div className="flex justify-center mb-6">
-            <Logo size="2xl" />
+            <Logo size="2xl" variant="full" />
           </div>
           <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold text-constalib-dark mb-4 md:mb-6">
             Simplifiez vos déclarations d'accidents
