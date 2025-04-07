@@ -69,6 +69,7 @@ const AccidentForm = ({ onEmergencyRequest }: AccidentFormProps) => {
           setInsuranceEmails={setInsuranceEmails}
           setInvolvedPartyEmails={setInvolvedPartyEmails}
           setPersonalEmail={setPersonalEmail}
+          onEmergencyContacted={onEmergencyContacted}
         />
       </form>
       

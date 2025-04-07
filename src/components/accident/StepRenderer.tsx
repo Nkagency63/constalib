@@ -22,6 +22,7 @@ interface StepRendererProps {
   setInsuranceEmails: (emails: string[]) => void;
   setInvolvedPartyEmails: (emails: string[]) => void;
   setPersonalEmail: (email: string) => void;
+  onEmergencyContacted?: () => void;
 }
 
 const StepRenderer = ({
@@ -35,7 +36,8 @@ const StepRenderer = ({
   setGeolocation,
   setInsuranceEmails,
   setInvolvedPartyEmails,
-  setPersonalEmail
+  setPersonalEmail,
+  onEmergencyContacted
 }: StepRendererProps) => {
   switch (currentStepId) {
     case 'basics':
