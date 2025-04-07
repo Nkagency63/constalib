@@ -8,10 +8,10 @@ import { toast } from "sonner";
 
 const Hero = () => {
   const handleDownloadConstat = () => {
-    // Use the direct file path to the PDF file in public folder as fallback
-    const localPath = "/pdf/constat_amiable_vierge.pdf";
+    // Use Supabase storage path for the PDF file
+    const storagePath = "storage:constat-amiable-vierge.pdf/constat_amiable_vierge.pdf";
     toast.info("Téléchargement du constat amiable en cours...");
-    downloadPDF(localPath, 'constat_amiable_vierge.pdf');
+    downloadPDF(storagePath, 'constat_amiable_vierge.pdf');
   };
 
   return <div className="bg-gradient-to-b from-constalib-light-blue/30 to-white py-16 md:py-24 lg:py-32 mb-8 md:mb-16 mt-16 md:mt-20">

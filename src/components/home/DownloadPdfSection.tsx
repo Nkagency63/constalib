@@ -10,10 +10,10 @@ const DownloadPdfSection = () => {
   const [showUploadSection, setShowUploadSection] = useState(false);
 
   const handleDownloadConstat = () => {
-    // Use the direct file path to the PDF file in public folder
-    const localPath = "/pdf/constat_amiable_vierge.pdf";
+    // Use Supabase storage path for the PDF file
+    const storagePath = "storage:constat-amiable-vierge.pdf/constat_amiable_vierge.pdf";
     toast.info("Téléchargement du constat amiable en cours...");
-    downloadPDF(localPath, 'constat_amiable_vierge.pdf');
+    downloadPDF(storagePath, 'constat_amiable_vierge.pdf');
   };
 
   return (
