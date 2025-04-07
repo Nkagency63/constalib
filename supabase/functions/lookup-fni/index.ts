@@ -1,11 +1,13 @@
 
-import { serve } from 'https://deno.land/std@0.168.0/http/server.ts'
-
-// Import CORS headers from shared file
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-}
+import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
+import { corsHeaders } from '../_shared/cors.ts';
+import { 
+  createResponse, 
+  handleError, 
+  normalizeLicensePlate, 
+  simulateApiDelay, 
+  filterSensitiveVehicleData 
+} from '../_shared/vehicle-utils.ts';
 
 // Simulated FNI database (French National Vehicle Registration database)
 // This simulates the old registration format (before 2009)
@@ -158,23 +160,23 @@ const fniFrenchVehicleDatabase = {
 };
 
 serve(async (req) => {
-  // Gestion des CORS pour les requêtes OPTIONS
+  // Handle CORS for OPTIONS requests
   if (req.method === 'OPTIONS') {
-    return new Response('ok', { headers: corsHeaders })
+    return new Response('ok', { headers: corsHeaders });
   }
 
   try {
     const { licensePlate } = await req.json();
     
-    // Normalisation de la plaque d'immatriculation (suppression des espaces, conversion en majuscules)
-    const normalizedPlate = licensePlate.replace(/\s+/g, '').toUpperCase();
+    // Normalize the license plate for FNI format
+    const normalizedPlate = normalizeLicensePlate(licensePlate, 'fni');
     
     console.log(`Recherche de véhicule dans le FNI avec plaque: ${normalizedPlate}`);
     
-    // Première recherche avec le département si présent
+    // First search with department if present
     let vehicleData = fniFrenchVehicleDatabase[normalizedPlate];
     
-    // Si non trouvé et semble être au format 123ABC75, essayer sans le département
+    // If not found and appears to be in 123ABC75 format, try without department
     if (!vehicleData && /^[0-9]{3}[A-Z]{3}[0-9]{1,2}$/.test(normalizedPlate)) {
       const withoutDepartment = normalizedPlate.substring(0, 6);
       vehicleData = fniFrenchVehicleDatabase[withoutDepartment];
@@ -183,59 +185,31 @@ serve(async (req) => {
     
     if (!vehicleData) {
       console.log(`Véhicule non trouvé dans le FNI: ${normalizedPlate}`);
-      return new Response(
-        JSON.stringify({ 
-          error: 'Vehicle not found in FNI',
-          message: 'Aucun véhicule trouvé avec cette immatriculation dans le FNI',
-          status: 'not_found'
-        }),
-        { 
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-          status: 404 
-        }
-      )
+      return createResponse({ 
+        success: false,
+        error: 'Vehicle not found in FNI',
+        message: 'Aucun véhicule trouvé avec cette immatriculation dans le FNI',
+        status: 'not_found'
+      }, 404);
     }
     
-    // Simulation d'un léger délai comme une vraie API aurait (200-600ms)
-    await new Promise(resolve => setTimeout(resolve, Math.floor(Math.random() * 400) + 200));
+    // Simulate API delay
+    await simulateApiDelay(200, 600);
     
     console.log(`Véhicule trouvé dans FNI: ${JSON.stringify(vehicleData)}`);
     
-    // Retourne uniquement les données publiques (pas les informations du propriétaire)
-    const publicData = {
-      brand: vehicleData.brand,
-      model: vehicleData.model,
-      year: vehicleData.year,
-      firstRegistration: vehicleData.firstRegistration,
-      source: "FNI",
-      insurance: vehicleData.insurance ? {
-        company: vehicleData.insurance.company,
-        policy: vehicleData.insurance.policy,
-        name: vehicleData.insurance.name
-      } : null
-    };
+    // Filter sensitive data before returning
+    const publicData = filterSensitiveVehicleData(vehicleData);
     
-    return new Response(
-      JSON.stringify({ 
-        success: true,
-        data: publicData,
-        message: 'Véhicule identifié avec succès dans le FNI'
-      }),
-      { 
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
-      }
-    )
+    // Add source information
+    publicData.source = "FNI";
+    
+    return createResponse({ 
+      success: true,
+      data: publicData,
+      message: 'Véhicule identifié avec succès dans le FNI'
+    });
   } catch (error) {
-    console.error(`Erreur dans FNI lookup: ${error.message}`);
-    return new Response(
-      JSON.stringify({ 
-        error: error.message,
-        message: 'Erreur lors de la consultation du FNI'
-      }),
-      { 
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        status: 400 
-      }
-    )
+    return handleError(error, 'Erreur lors de la consultation du FNI');
   }
-})
+});
