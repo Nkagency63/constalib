@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -8,6 +7,8 @@ import VehicleDetailsAlerts from './vehicle/VehicleDetailsAlerts';
 import VehicleInfoFields from './vehicle/VehicleInfoFields';
 import InsuranceInfoFields from './vehicle/InsuranceInfoFields';
 import FvaDetailsCard from './vehicle/FvaDetailsCard';
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Info } from 'lucide-react';
 
 interface VehicleIdentificationStepProps {
   licensePlate: string;
@@ -355,6 +356,7 @@ const VehicleIdentificationStep = ({
     if (hasAttemptedLookup && !lookupSuccess && !fniLookupSuccess && !fvaLookupSuccess) {
       return (
         <Alert className="mt-4 border-blue-200 bg-blue-50">
+          <Info className="h-4 w-4 text-blue-500" />
           <AlertDescription className="text-blue-800 text-sm">
             <p><strong>Suggestions:</strong></p>
             <ul className="list-disc pl-5 mt-1">
