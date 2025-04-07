@@ -1,13 +1,15 @@
 
-import { Download } from 'lucide-react';
+import { Download, Eye } from 'lucide-react';
 import Button from '@/components/Button';
 import { downloadPDF } from '@/utils/downloadUtils';
 import { toast } from "sonner";
 import { useState } from 'react';
 import UploadPdfSection from './UploadPdfSection';
+import PdfPreviewModal from './PdfPreviewModal';
 
 const DownloadPdfSection = () => {
   const [showUploadSection, setShowUploadSection] = useState(false);
+  const [showPreview, setShowPreview] = useState(false);
 
   const handleDownloadConstat = () => {
     // Use Supabase storage path for the PDF file
@@ -26,15 +28,28 @@ const DownloadPdfSection = () => {
           <p className="text-constalib-dark-gray text-lg mb-8">
             Téléchargez un constat amiable vierge au format PDF à imprimer pour l'avoir toujours avec vous.
           </p>
-          <Button 
-            variant="secondary" 
-            size="lg" 
-            className="inline-flex items-center gap-2"
-            onClick={handleDownloadConstat}
-          >
-            <Download className="w-5 h-5" />
-            Télécharger un constat vierge (PDF)
-          </Button>
+          
+          <div className="flex flex-col sm:flex-row gap-3 justify-center">
+            <Button 
+              variant="secondary" 
+              size="lg" 
+              className="inline-flex items-center gap-2"
+              onClick={handleDownloadConstat}
+            >
+              <Download className="w-5 h-5" />
+              Télécharger un constat vierge (PDF)
+            </Button>
+            
+            <Button 
+              variant="outline" 
+              size="lg" 
+              className="inline-flex items-center gap-2"
+              onClick={() => setShowPreview(true)}
+            >
+              <Eye className="w-5 h-5" />
+              Visualiser le constat
+            </Button>
+          </div>
           
           <div className="mt-8 pt-8 border-t border-gray-100">
             <button 
@@ -48,6 +63,14 @@ const DownloadPdfSection = () => {
           </div>
         </div>
       </div>
+      
+      {showPreview && (
+        <PdfPreviewModal 
+          onClose={() => setShowPreview(false)}
+          pdfUrl="/pdf/constat_amiable_vierge.pdf"
+          fallbackUrl="storage:constat-amiable-vierge.pdf/constat_amiable_vierge.pdf"
+        />
+      )}
     </section>
   );
 };
