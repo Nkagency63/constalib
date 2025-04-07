@@ -11,7 +11,7 @@ const corsHeaders = {
 const fvaDatabase = {
   'AA123BB': { 
     vehicleInfo: {
-      licensePlate: 'AA123BB',
+      licensePlate: 'AA-123-BB',
       brand: 'Renault',
       model: 'Clio',
       vin: 'VF1LJN00662696253',
@@ -32,7 +32,7 @@ const fvaDatabase = {
   },
   'BB456CC': { 
     vehicleInfo: {
-      licensePlate: 'BB456CC',
+      licensePlate: 'BB-456-CC',
       brand: 'Peugeot',
       model: '308',
       vin: 'VF3LBZMRPJS112233',
@@ -53,7 +53,7 @@ const fvaDatabase = {
   },
   'CC789DD': { 
     vehicleInfo: {
-      licensePlate: 'CC789DD',
+      licensePlate: 'CC-789-DD',
       brand: 'Citroen',
       model: 'C3',
       vin: 'VF7FCKFVC9A123456',
@@ -74,7 +74,7 @@ const fvaDatabase = {
   },
   'DD321EE': { 
     vehicleInfo: {
-      licensePlate: 'DD321EE',
+      licensePlate: 'DD-321-EE',
       brand: 'Volkswagen',
       model: 'Golf',
       vin: 'WVWZZZ1KZAW987654',
@@ -95,7 +95,7 @@ const fvaDatabase = {
   },
   'EE654FF': { 
     vehicleInfo: {
-      licensePlate: 'EE654FF',
+      licensePlate: 'EE-654-FF',
       brand: 'Toyota',
       model: 'Yaris',
       vin: 'JTDKW113500789012',

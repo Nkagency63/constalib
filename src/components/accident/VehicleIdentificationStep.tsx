@@ -94,22 +94,18 @@ const VehicleIdentificationStep = ({
   const [insuranceError, setInsuranceError] = useState<string | null>(null);
   const [autoInsuranceFound, setAutoInsuranceFound] = useState(false);
   
-  // États pour la consultation du FVA
   const [isFvaLoading, setIsFvaLoading] = useState(false);
   const [fvaData, setFvaData] = useState<FvaData | null>(null);
   const [fvaLookupSuccess, setFvaLookupSuccess] = useState(false);
   const [fvaError, setFvaError] = useState<string | null>(null);
   const [showFvaDetails, setShowFvaDetails] = useState(false);
   
-  // Nouvel état pour la consultation du FNI
   const [isFniLoading, setIsFniLoading] = useState(false);
   const [fniLookupSuccess, setFniLookupSuccess] = useState(false);
   const [fniError, setFniError] = useState<string | null>(null);
   
-  // État pour gérer la source de recherche active
   const [searchTab, setSearchTab] = useState<'siv' | 'fni'>('siv');
 
-  // Méthode de recherche FNI
   const lookupFni = async () => {
     if (!licensePlate || licensePlate.length < 5) {
       toast.error("Veuillez saisir une immatriculation valide");
@@ -145,7 +141,6 @@ const VehicleIdentificationStep = ({
         setFniLookupSuccess(true);
         toast.success(data.message || "Informations du véhicule récupérées avec succès du FNI");
         
-        // Si des informations d'assurance sont disponibles, les remplir automatiquement
         if (data.data.insurance) {
           setAutoInsuranceFound(true);
           setInsuranceDetails({
@@ -153,7 +148,6 @@ const VehicleIdentificationStep = ({
             name: data.data.insurance.name
           });
           
-          // Remplissage du numéro de police
           const policyEvent = {
             target: {
               name: 'insurancePolicy',
@@ -162,7 +156,6 @@ const VehicleIdentificationStep = ({
           } as React.ChangeEvent<HTMLInputElement>;
           handleInputChange(policyEvent);
           
-          // Remplissage de la compagnie d'assurance
           const companyEvent = {
             target: {
               name: 'insuranceCompany',
@@ -224,7 +217,6 @@ const VehicleIdentificationStep = ({
         setLookupSuccess(true);
         toast.success(data.message || "Informations du véhicule récupérées avec succès du SIV");
         
-        // Si des informations d'assurance sont disponibles, les remplir automatiquement
         if (data.data.insurance) {
           setAutoInsuranceFound(true);
           setInsuranceDetails({
@@ -232,7 +224,6 @@ const VehicleIdentificationStep = ({
             name: data.data.insurance.name
           });
           
-          // Remplissage du numéro de police
           const policyEvent = {
             target: {
               name: 'insurancePolicy',
@@ -241,7 +232,6 @@ const VehicleIdentificationStep = ({
           } as React.ChangeEvent<HTMLInputElement>;
           handleInputChange(policyEvent);
           
-          // Remplissage de la compagnie d'assurance
           const companyEvent = {
             target: {
               name: 'insuranceCompany',
@@ -324,44 +314,108 @@ const VehicleIdentificationStep = ({
     }
   };
 
-  // Formats SIV plate (new format AA-123-BB)
-  const formatSivLicensePlate = (value: string) => {
-    let formatted = value.toUpperCase().replace(/[^A-Z0-9]/g, '');
-    
-    if (formatted.length <= 7) { // New format
-      if (formatted.length > 2 && formatted.length <= 5) {
-        formatted = formatted.substring(0, 2) + '-' + formatted.substring(2);
-      } else if (formatted.length > 5) {
-        formatted = formatted.substring(0, 2) + '-' + formatted.substring(2, 5) + '-' + formatted.substring(5);
-      }
+  const lookupFva = async () => {
+    if (!licensePlate || licensePlate.length < 5) {
+      toast.error("Veuillez saisir une immatriculation valide");
+      setFvaError("L'immatriculation doit contenir au moins 5 caractères");
+      return;
     }
     
-    return formatted;
-  };
+    setIsFvaLoading(true);
+    setFvaError(null);
+    setFvaLookupSuccess(false);
+    
+    try {
+      console.log(`Tentative de recherche du véhicule dans le FVA: ${licensePlate}`);
+      const { data, error } = await supabase.functions.invoke('lookup-fva', {
+        body: { licensePlate }
+      });
 
-  // Formats FNI plate (old format 123 ABC 75)
-  const formatFniLicensePlate = (value: string) => {
-    let formatted = value.toUpperCase().replace(/[^A-Z0-9]/g, '');
-    
-    // Old format with potential department
-    if (formatted.length >= 6) {
-      // First 3 digits
-      const digits = formatted.substring(0, 3);
-      // Next 3 letters
-      const letters = formatted.substring(3, 6);
-      // Department number (if present)
-      const dept = formatted.length > 6 ? formatted.substring(6) : '';
-      
-      formatted = digits + ' ' + letters + (dept ? ' ' + dept : '');
+      if (error) {
+        console.error('Error looking up vehicle in FVA:', error);
+        toast.error("Erreur lors de la consultation du FVA");
+        setFvaError("Une erreur technique est survenue lors de la consultation du FVA");
+        return;
+      }
+
+      if (data.success && data.data) {
+        console.log('Véhicule trouvé dans le FVA:', data.data);
+        
+        setVehicleInfo({
+          brand: data.data.vehicleInfo.brand,
+          model: data.data.vehicleInfo.model,
+          year: data.data.vehicleInfo.firstRegistration.substring(0, 4),
+          firstRegistration: data.data.vehicleInfo.firstRegistration
+        });
+        
+        const brandEvent = {
+          target: {
+            name: 'vehicleBrand',
+            value: data.data.vehicleInfo.brand
+          }
+        } as React.ChangeEvent<HTMLInputElement>;
+        handleInputChange(brandEvent);
+        
+        const modelEvent = {
+          target: {
+            name: 'vehicleModel',
+            value: data.data.vehicleInfo.model
+          }
+        } as React.ChangeEvent<HTMLInputElement>;
+        handleInputChange(modelEvent);
+        
+        const yearEvent = {
+          target: {
+            name: 'vehicleYear',
+            value: data.data.vehicleInfo.firstRegistration.substring(0, 4)
+          }
+        } as React.ChangeEvent<HTMLInputElement>;
+        handleInputChange(yearEvent);
+        
+        if (setInsuranceInfo) {
+          setInsuranceInfo({ company: data.data.insuranceInfo.company });
+        }
+        
+        const policyEvent = {
+          target: {
+            name: 'insurancePolicy',
+            value: data.data.insuranceInfo.policyNumber
+          }
+        } as React.ChangeEvent<HTMLInputElement>;
+        handleInputChange(policyEvent);
+        
+        const companyEvent = {
+          target: {
+            name: 'insuranceCompany',
+            value: data.data.insuranceInfo.company
+          }
+        } as React.ChangeEvent<HTMLInputElement>;
+        handleInputChange(companyEvent);
+        
+        setFvaData(data.data);
+        setFvaLookupSuccess(true);
+        setShowFvaDetails(true);
+        setInsuranceLookupSuccess(true);
+        setAutoInsuranceFound(true);
+        
+        toast.success(data.message || "Informations complètes récupérées du FVA avec succès");
+      } else {
+        console.log('Véhicule non trouvé dans le FVA:', data);
+        setFvaError(data.message || "Aucun véhicule trouvé avec cette immatriculation dans le FVA");
+        toast.error(data.message || "Aucun véhicule trouvé avec cette immatriculation dans le FVA");
+      }
+    } catch (err) {
+      console.error('Error in FVA lookup:', err);
+      setFvaError("Une erreur est survenue lors de la consultation du FVA");
+      toast.error("Une erreur est survenue lors de la consultation du FVA");
+    } finally {
+      setIsFvaLoading(false);
     }
-    
-    return formatted;
   };
 
   const handleLicensePlateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     let formattedValue = e.target.value;
     
-    // Format based on active tab
     if (searchTab === 'siv') {
       formattedValue = formatSivLicensePlate(e.target.value);
     } else if (searchTab === 'fni') {
@@ -379,7 +433,6 @@ const VehicleIdentificationStep = ({
     
     handleInputChange(syntheticEvent);
     
-    // Reset all lookups when plate changes
     if (lookupSuccess) {
       setLookupSuccess(false);
     }
@@ -399,7 +452,6 @@ const VehicleIdentificationStep = ({
     }
   };
 
-  // Fonction pour formater une date au format français
   const formatDateFr = (dateStr: string) => {
     const date = new Date(dateStr);
     return date.toLocaleDateString('fr-FR', {
@@ -409,17 +461,14 @@ const VehicleIdentificationStep = ({
     });
   };
 
-  // Fonction pour relancer la recherche lors du changement d'onglet
   const handleTabChange = (value: string) => {
     setSearchTab(value as 'siv' | 'fni');
     
-    // Reset tous les états de recherche
     setLookupSuccess(false);
     setSearchError(null);
     setFniLookupSuccess(false);
     setFniError(null);
     
-    // Reformater la plaque d'immatriculation selon le mode sélectionné
     if (licensePlate) {
       const formattedValue = value === 'siv' 
         ? formatSivLicensePlate(licensePlate)
@@ -436,7 +485,6 @@ const VehicleIdentificationStep = ({
     }
   };
 
-  // Fonction pour effectuer la recherche selon la source active
   const performActiveLookup = () => {
     if (searchTab === 'siv') {
       lookupVehicle();
