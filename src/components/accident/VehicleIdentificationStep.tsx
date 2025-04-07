@@ -58,15 +58,12 @@ const VehicleIdentificationStep = ({
   const [searchTab, setSearchTab] = useState<'siv' | 'fni'>('siv');
   const [hasAttemptedLookup, setHasAttemptedLookup] = useState(false);
 
-  // Function to validate the license plate format
   const isValidLicensePlate = (plate: string, format: 'siv' | 'fni'): boolean => {
     if (!plate || plate.length < 5) return false;
     
     if (format === 'siv') {
-      // SIV format validation (more flexible to account for user variations)
       return true;
     } else {
-      // FNI format validation (more flexible to account for user variations)
       return true;
     }
   };
@@ -243,7 +240,6 @@ const VehicleIdentificationStep = ({
     try {
       console.log(`Tentative de recherche du véhicule dans le FVA: ${licensePlate}`);
       
-      // First try to get the normalized license plate
       const normalizedPlate = licensePlate.replace(/[\s-]+/g, '').toUpperCase();
       console.log(`Plaque normalisée: ${normalizedPlate}`);
       
@@ -351,7 +347,6 @@ const VehicleIdentificationStep = ({
     setFniError(null);
   };
 
-  // Help text for license plate formats
   const getHelpText = () => {
     if (hasAttemptedLookup && !lookupSuccess && !fniLookupSuccess && !fvaLookupSuccess) {
       return (
@@ -374,7 +369,6 @@ const VehicleIdentificationStep = ({
 
   return (
     <div className="space-y-6">
-      {/* License Plate Input */}
       <LicensePlateInput
         licensePlate={licensePlate}
         handleInputChange={handleInputChange}
@@ -393,10 +387,8 @@ const VehicleIdentificationStep = ({
         fvaError={fvaError}
       />
       
-      {/* Helper text for users */}
       {getHelpText()}
       
-      {/* Vehicle Details Alerts */}
       <VehicleDetailsAlerts
         lookupSuccess={lookupSuccess}
         fniLookupSuccess={fniLookupSuccess}
@@ -404,10 +396,8 @@ const VehicleIdentificationStep = ({
         vehicleDetails={vehicleDetails}
       />
       
-      {/* FVA Details Card */}
       {showFvaDetails && fvaData && <FvaDetailsCard fvaData={fvaData} />}
       
-      {/* Vehicle Info Fields */}
       <VehicleInfoFields
         vehicleBrand={vehicleBrand}
         vehicleModel={vehicleModel}
@@ -417,7 +407,6 @@ const VehicleIdentificationStep = ({
         readOnly={lookupSuccess || fvaLookupSuccess}
       />
       
-      {/* Insurance Info Fields */}
       <InsuranceInfoFields
         insurancePolicy={insurancePolicy}
         insuranceCompany={insuranceCompany}
