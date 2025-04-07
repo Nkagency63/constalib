@@ -31,49 +31,65 @@ export const downloadPDF = async (url: string, filename: string) => {
       console.log(`Attempting to download from Supabase: bucket=${bucketName}, path=${filePath}`);
       
       try {
-        // Check if the file exists in the bucket
-        const { data: fileExists, error: checkError } = await supabase.storage
+        // First check if the file exists in the bucket
+        const { data: fileList, error: listError } = await supabase.storage
           .from(bucketName)
           .list(filePath.split('/').slice(0, -1).join('/') || '');
         
-        if (checkError) {
-          console.error('Error checking file existence:', checkError);
-          throw checkError;
+        if (listError) {
+          console.error('Error checking file existence:', listError);
+          throw listError;
         }
-          
-        const fileName = filePath.split('/').pop();
-        const fileExistsInBucket = fileExists.some(item => item.name === fileName);
         
-        if (!fileExistsInBucket) {
-          console.error('File does not exist in bucket');
-          toast.warning("Le fichier n'existe pas dans le stockage. Utilisation du fichier local...");
-          triggerLocalDownload(filename);
+        const fileName = filePath.split('/').pop();
+        const fileExists = fileList.some(item => item.name === fileName);
+        
+        if (!fileExists) {
+          console.log('File not found in path, trying direct download');
+          
+          // Try to download the file directly (might be at the root of the bucket)
+          const { data, error } = await supabase.storage
+            .from(bucketName)
+            .download(filePath);
+          
+          if (error || !data) {
+            throw new Error(`File not found: ${error?.message || 'Unknown error'}`);
+          }
+          
+          // Create URL from the blob and trigger download
+          const blobUrl = window.URL.createObjectURL(data);
+          triggerDownload(blobUrl, filename);
+          
+          // Clean up the blob URL after download
+          setTimeout(() => window.URL.revokeObjectURL(blobUrl), 100);
+          
+          toast.success("Téléchargement réussi");
+          return;
+        } else {
+          // File exists, download it
+          const { data, error } = await supabase.storage
+            .from(bucketName)
+            .download(filePath);
+          
+          if (error) {
+            console.error('Supabase storage error:', error);
+            throw error;
+          }
+          
+          if (!data) {
+            throw new Error('Le fichier n\'a pas pu être récupéré');
+          }
+          
+          // Create URL from the blob and trigger download
+          const blobUrl = window.URL.createObjectURL(data);
+          triggerDownload(blobUrl, filename);
+          
+          // Clean up the blob URL after download
+          setTimeout(() => window.URL.revokeObjectURL(blobUrl), 100);
+          
+          toast.success("Téléchargement réussi");
           return;
         }
-        
-        // Get file from storage and download it
-        const { data, error } = await supabase.storage
-          .from(bucketName)
-          .download(filePath);
-        
-        if (error) {
-          console.error('Supabase storage error:', error);
-          throw error;
-        }
-        
-        if (!data) {
-          throw new Error('Le fichier n\'a pas pu être récupéré');
-        }
-        
-        // Create URL from the blob and trigger download
-        const blobUrl = window.URL.createObjectURL(data);
-        triggerDownload(blobUrl, filename);
-        
-        // Clean up the blob URL after download
-        setTimeout(() => window.URL.revokeObjectURL(blobUrl), 100);
-        
-        toast.success("Téléchargement réussi");
-        return;
       } catch (storageError) {
         console.error('Error downloading from Supabase:', storageError);
         toast.warning("Impossible de récupérer le fichier depuis Supabase. Utilisation du fichier local...");
