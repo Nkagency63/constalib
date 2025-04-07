@@ -30,25 +30,39 @@ export const downloadPDF = async (url: string, filename: string) => {
       
       console.log(`Attempting to download from Supabase: bucket=${bucketName}, path=${filePath}`);
       
-      // First, try to get the public URL
-      try {
-        const { data: publicUrlData } = supabase.storage
-          .from(bucketName)
-          .getPublicUrl(filePath);
+      // Try to get the public URL and download from there
+      const { data: publicUrlData } = supabase.storage
+        .from(bucketName)
+        .getPublicUrl(filePath);
+      
+      if (publicUrlData && publicUrlData.publicUrl) {
+        console.log('Found public URL:', publicUrlData.publicUrl);
         
-        if (publicUrlData && publicUrlData.publicUrl) {
-          console.log('Found public URL:', publicUrlData.publicUrl);
-          triggerDownload(publicUrlData.publicUrl, filename);
-          toast.success("Téléchargement réussi");
-          return;
+        // Create a temporary link element to test if the file exists
+        const testLink = document.createElement('a');
+        testLink.href = publicUrlData.publicUrl;
+        
+        // Fetch the file first to check if it exists
+        try {
+          const response = await fetch(publicUrlData.publicUrl, { method: 'HEAD' });
+          if (response.ok) {
+            triggerDownload(publicUrlData.publicUrl, filename);
+            toast.success("Téléchargement réussi");
+            return;
+          } else {
+            console.error('File not found at URL:', publicUrlData.publicUrl);
+            throw new Error("Le fichier n'a pas été trouvé dans le stockage");
+          }
+        } catch (fetchError) {
+          console.error('Error fetching file from public URL:', fetchError);
+          throw new Error("Erreur lors de l'accès au fichier");
         }
-      } catch (publicUrlError) {
-        console.error('Error getting public URL:', publicUrlError);
-        // Continue to try direct download
+      } else {
+        console.error('No public URL found, attempting direct download');
       }
       
+      // If public URL doesn't work or is not available, try direct download
       try {
-        // Try to download the file directly
         const { data, error } = await supabase.storage
           .from(bucketName)
           .download(filePath);

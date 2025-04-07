@@ -24,8 +24,8 @@ const UploadPdfSection = () => {
     setUploadSuccess(false);
     
     try {
-      // Upload the file to the documents bucket
-      await uploadFileToStorage(file, 'documents', 'constat_amiable_vierge.pdf');
+      // Upload the file to the constat-amiable-vierge.pdf bucket
+      await uploadFileToStorage(file, 'constat-amiable-vierge.pdf', 'constat_amiable_vierge.pdf');
       setUploadSuccess(true);
       toast.success("Le constat amiable a été uploadé avec succès!");
     } catch (error) {
