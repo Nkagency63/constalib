@@ -1,6 +1,6 @@
 
 import { useState } from 'react';
-import { Search, AlertCircle, Loader2, Check, Info, Car, Shield } from 'lucide-react';
+import { Search, AlertCircle, Loader2, Check, Info, Car, Shield, UserCheck } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { Textarea } from "@/components/ui/textarea";
@@ -10,6 +10,13 @@ import {
   Alert,
   AlertDescription
 } from "@/components/ui/alert";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 
 interface VehicleData {
   brand: string;
@@ -27,6 +34,28 @@ interface InsuranceData {
   company: string;
   name?: string;
   logo?: string;
+}
+
+interface FvaData {
+  vehicleInfo: {
+    licensePlate: string;
+    brand: string;
+    model: string;
+    vin: string;
+    firstRegistration: string;
+  };
+  insuranceInfo: {
+    company: string;
+    policyNumber: string;
+    contractName: string;
+    validFrom: string;
+    validUntil: string;
+    guarantees: string[];
+    insuredName: string;
+    insuredAddress: string;
+    insuredPhone: string;
+    insuredEmail: string;
+  };
 }
 
 interface VehicleIdentificationStepProps {
@@ -63,6 +92,13 @@ const VehicleIdentificationStep = ({
   const [insuranceLookupSuccess, setInsuranceLookupSuccess] = useState(false);
   const [insuranceError, setInsuranceError] = useState<string | null>(null);
   const [autoInsuranceFound, setAutoInsuranceFound] = useState(false);
+  
+  // États pour la consultation du FVA
+  const [isFvaLoading, setIsFvaLoading] = useState(false);
+  const [fvaData, setFvaData] = useState<FvaData | null>(null);
+  const [fvaLookupSuccess, setFvaLookupSuccess] = useState(false);
+  const [fvaError, setFvaError] = useState<string | null>(null);
+  const [showFvaDetails, setShowFvaDetails] = useState(false);
 
   const lookupVehicle = async () => {
     if (!licensePlate || licensePlate.length < 5) {
@@ -140,6 +176,98 @@ const VehicleIdentificationStep = ({
       toast.error("Une erreur est survenue lors de la consultation du SIV");
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  // Nouvelle fonction pour consulter le FVA
+  const lookupFva = async () => {
+    if (!licensePlate || licensePlate.length < 5) {
+      toast.error("Veuillez saisir une immatriculation valide");
+      setFvaError("L'immatriculation doit contenir au moins 5 caractères");
+      return;
+    }
+
+    setIsFvaLoading(true);
+    setFvaError(null);
+    setFvaLookupSuccess(false);
+    setFvaData(null);
+    
+    try {
+      console.log(`Tentative de consultation du FVA pour: ${licensePlate}`);
+      const { data, error } = await supabase.functions.invoke('lookup-fva', {
+        body: { licensePlate }
+      });
+
+      if (error) {
+        console.error('Error looking up FVA:', error);
+        toast.error("Erreur lors de la consultation du FVA");
+        setFvaError("Une erreur technique est survenue lors de la consultation du FVA");
+        return;
+      }
+
+      if (data.success && data.data) {
+        console.log('Données FVA trouvées:', data.data);
+        setFvaData(data.data);
+        setFvaLookupSuccess(true);
+        toast.success(data.message || "Informations du FVA récupérées avec succès");
+        
+        // Mise à jour automatique des informations du véhicule
+        const vehicleInfo = {
+          brand: data.data.vehicleInfo.brand,
+          model: data.data.vehicleInfo.model,
+          year: data.data.vehicleInfo.firstRegistration.substring(0, 4),
+          firstRegistration: data.data.vehicleInfo.firstRegistration
+        };
+        
+        setVehicleInfo(vehicleInfo);
+        setVehicleDetails(vehicleInfo);
+        setLookupSuccess(true);
+        
+        // Mise à jour automatique des informations d'assurance
+        const insuranceInfo = {
+          company: data.data.insuranceInfo.company
+        };
+        
+        if (setInsuranceInfo) {
+          setInsuranceInfo(insuranceInfo);
+        }
+        
+        // Remplissage du numéro de police
+        const policyEvent = {
+          target: {
+            name: 'insurancePolicy',
+            value: data.data.insuranceInfo.policyNumber
+          }
+        } as React.ChangeEvent<HTMLInputElement>;
+        handleInputChange(policyEvent);
+        
+        // Remplissage de la compagnie d'assurance
+        const companyEvent = {
+          target: {
+            name: 'insuranceCompany',
+            value: data.data.insuranceInfo.company
+          }
+        } as React.ChangeEvent<HTMLInputElement>;
+        handleInputChange(companyEvent);
+        
+        setInsuranceDetails({
+          company: data.data.insuranceInfo.company,
+          name: data.data.insuranceInfo.contractName
+        });
+        
+        setAutoInsuranceFound(true);
+        setInsuranceLookupSuccess(true);
+      } else {
+        console.log('Véhicule non trouvé dans le FVA:', data);
+        setFvaError(data.message || "Aucune information trouvée dans le FVA pour cette immatriculation");
+        toast.error(data.message || "Aucune information trouvée dans le FVA pour cette immatriculation");
+      }
+    } catch (err) {
+      console.error('Error in FVA lookup:', err);
+      setFvaError("Une erreur est survenue lors de la consultation du FVA");
+      toast.error("Une erreur est survenue lors de la consultation du FVA");
+    } finally {
+      setIsFvaLoading(false);
     }
   };
 
@@ -234,6 +362,21 @@ const VehicleIdentificationStep = ({
       setAutoInsuranceFound(false);
       setInsuranceLookupSuccess(false);
     }
+    
+    if (fvaLookupSuccess) {
+      setFvaLookupSuccess(false);
+      setFvaData(null);
+    }
+  };
+
+  // Fonction pour formater une date au format français
+  const formatDateFr = (dateStr: string) => {
+    const date = new Date(dateStr);
+    return date.toLocaleDateString('fr-FR', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric'
+    });
   };
 
   return (
@@ -242,43 +385,67 @@ const VehicleIdentificationStep = ({
         <label htmlFor="licensePlate" className="block text-sm font-medium text-constalib-dark">
           Immatriculation du véhicule
         </label>
-        <div className="relative">
-          <Input
-            type="text"
-            id="licensePlate"
-            name="licensePlate"
-            value={licensePlate}
-            onChange={handleLicensePlateChange}
-            placeholder="AB-123-CD ou 123 ABC"
-            className="pr-12"
-            maxLength={9}
-            required
-          />
-          <Button 
-            type="button" 
-            size="icon"
-            variant="ghost"
-            className="absolute right-2 top-1/2 transform -translate-y-1/2"
-            onClick={lookupVehicle}
-            disabled={isLoading}
-            title="Consulter le SIV (Système d'Immatriculation des Véhicules)"
+        <div className="flex items-center gap-2">
+          <div className="relative flex-grow">
+            <Input
+              type="text"
+              id="licensePlate"
+              name="licensePlate"
+              value={licensePlate}
+              onChange={handleLicensePlateChange}
+              placeholder="AB-123-CD ou 123 ABC"
+              className="pr-12"
+              maxLength={9}
+              required
+            />
+            <Button 
+              type="button" 
+              size="icon"
+              variant="ghost"
+              className="absolute right-2 top-1/2 transform -translate-y-1/2"
+              onClick={lookupVehicle}
+              disabled={isLoading}
+              title="Consulter le SIV (Système d'Immatriculation des Véhicules)"
+            >
+              {isLoading ? 
+                <Loader2 className="h-5 w-5 animate-spin text-constalib-blue" /> : 
+                lookupSuccess ? 
+                  <Check className="h-5 w-5 text-green-600" /> :
+                  <Search className="h-5 w-5 text-constalib-blue" />
+              }
+            </Button>
+          </div>
+          <Button
+            type="button"
+            variant="outline"
+            onClick={lookupFva}
+            disabled={isFvaLoading || !licensePlate}
+            className="shrink-0"
+            title="Consulter le FVA (Fichier des Véhicules Assurés)"
           >
-            {isLoading ? 
-              <Loader2 className="h-5 w-5 animate-spin text-constalib-blue" /> : 
-              lookupSuccess ? 
-                <Check className="h-5 w-5 text-green-600" /> :
-                <Search className="h-5 w-5 text-constalib-blue" />
-            }
+            {isFvaLoading ? (
+              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+            ) : (
+              <UserCheck className="h-4 w-4 mr-2" />
+            )}
+            Vérifier FVA
           </Button>
         </div>
         <p className="text-xs text-constalib-dark-gray">
-          Format: AB-123-CD (nouveau) ou 123 ABC (ancien). Cliquez sur la loupe pour consulter le SIV (Système d'Immatriculation des Véhicules).
+          Format: AB-123-CD (nouveau) ou 123 ABC (ancien). Utilisez le bouton "Vérifier FVA" pour consulter le Fichier des Véhicules Assurés.
         </p>
         
         {searchError && (
           <Alert variant="destructive" className="mt-2">
             <AlertCircle className="h-4 w-4" />
             <AlertDescription>{searchError}</AlertDescription>
+          </Alert>
+        )}
+        
+        {fvaError && (
+          <Alert variant="destructive" className="mt-2">
+            <AlertCircle className="h-4 w-4" />
+            <AlertDescription>{fvaError}</AlertDescription>
           </Alert>
         )}
         
@@ -292,6 +459,114 @@ const VehicleIdentificationStep = ({
               }
             </AlertDescription>
           </Alert>
+        )}
+        
+        {fvaLookupSuccess && fvaData && (
+          <div className="mt-4">
+            <Alert className="mb-2 border-blue-200 bg-blue-50">
+              <UserCheck className="h-4 w-4 text-blue-600" />
+              <AlertDescription className="text-blue-800">
+                <div className="flex items-center justify-between">
+                  <span>Informations complètes trouvées dans le FVA</span>
+                  <button 
+                    onClick={() => setShowFvaDetails(!showFvaDetails)}
+                    className="text-xs text-blue-700 hover:text-blue-900 underline"
+                  >
+                    {showFvaDetails ? "Masquer les détails" : "Voir les détails"}
+                  </button>
+                </div>
+              </AlertDescription>
+            </Alert>
+            
+            {showFvaDetails && (
+              <Card className="mb-6 border-blue-200">
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-lg">Informations du FVA</CardTitle>
+                  <CardDescription>
+                    Fichier des Véhicules Assurés - Données complètes
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4 pt-0">
+                  <div>
+                    <h4 className="font-semibold text-sm mb-2 text-gray-700">Informations du véhicule</h4>
+                    <dl className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
+                      <div className="col-span-2 sm:col-span-1">
+                        <dt className="text-gray-500">Immatriculation</dt>
+                        <dd>{fvaData.vehicleInfo.licensePlate}</dd>
+                      </div>
+                      <div className="col-span-2 sm:col-span-1">
+                        <dt className="text-gray-500">VIN</dt>
+                        <dd>{fvaData.vehicleInfo.vin}</dd>
+                      </div>
+                      <div className="col-span-2 sm:col-span-1">
+                        <dt className="text-gray-500">Marque / Modèle</dt>
+                        <dd>{fvaData.vehicleInfo.brand} {fvaData.vehicleInfo.model}</dd>
+                      </div>
+                      <div className="col-span-2 sm:col-span-1">
+                        <dt className="text-gray-500">Première immatriculation</dt>
+                        <dd>{formatDateFr(fvaData.vehicleInfo.firstRegistration)}</dd>
+                      </div>
+                    </dl>
+                  </div>
+                  
+                  <div>
+                    <h4 className="font-semibold text-sm mb-2 text-gray-700">Informations d'assurance</h4>
+                    <dl className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
+                      <div className="col-span-2 sm:col-span-1">
+                        <dt className="text-gray-500">Compagnie</dt>
+                        <dd>{fvaData.insuranceInfo.company}</dd>
+                      </div>
+                      <div className="col-span-2 sm:col-span-1">
+                        <dt className="text-gray-500">Numéro de police</dt>
+                        <dd>{fvaData.insuranceInfo.policyNumber}</dd>
+                      </div>
+                      <div className="col-span-2 sm:col-span-1">
+                        <dt className="text-gray-500">Contrat</dt>
+                        <dd>{fvaData.insuranceInfo.contractName}</dd>
+                      </div>
+                      <div className="col-span-2 sm:col-span-1">
+                        <dt className="text-gray-500">Validité</dt>
+                        <dd>Du {formatDateFr(fvaData.insuranceInfo.validFrom)} au {formatDateFr(fvaData.insuranceInfo.validUntil)}</dd>
+                      </div>
+                    </dl>
+                  </div>
+                  
+                  <div>
+                    <h4 className="font-semibold text-sm mb-2 text-gray-700">Informations de l'assuré</h4>
+                    <dl className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
+                      <div className="col-span-2">
+                        <dt className="text-gray-500">Nom</dt>
+                        <dd>{fvaData.insuranceInfo.insuredName}</dd>
+                      </div>
+                      <div className="col-span-2">
+                        <dt className="text-gray-500">Adresse</dt>
+                        <dd>{fvaData.insuranceInfo.insuredAddress}</dd>
+                      </div>
+                      <div className="col-span-2 sm:col-span-1">
+                        <dt className="text-gray-500">Téléphone</dt>
+                        <dd>{fvaData.insuranceInfo.insuredPhone}</dd>
+                      </div>
+                      <div className="col-span-2 sm:col-span-1">
+                        <dt className="text-gray-500">Email</dt>
+                        <dd>{fvaData.insuranceInfo.insuredEmail}</dd>
+                      </div>
+                    </dl>
+                  </div>
+                  
+                  <div>
+                    <h4 className="font-semibold text-sm mb-2 text-gray-700">Garanties</h4>
+                    <div className="flex flex-wrap gap-2">
+                      {fvaData.insuranceInfo.guarantees.map((guarantee, index) => (
+                        <span key={index} className="bg-blue-50 text-blue-700 px-2 py-1 rounded-full text-xs">
+                          {guarantee}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+          </div>
         )}
       </div>
 
@@ -307,7 +582,7 @@ const VehicleIdentificationStep = ({
             value={vehicleBrand}
             onChange={handleInputChange}
             className="w-full"
-            readOnly={lookupSuccess}
+            readOnly={lookupSuccess || fvaLookupSuccess}
           />
         </div>
         
@@ -322,7 +597,7 @@ const VehicleIdentificationStep = ({
             value={vehicleModel}
             onChange={handleInputChange}
             className="w-full"
-            readOnly={lookupSuccess}
+            readOnly={lookupSuccess || fvaLookupSuccess}
           />
         </div>
         
@@ -337,7 +612,7 @@ const VehicleIdentificationStep = ({
             value={vehicleYear}
             onChange={handleInputChange}
             className="w-full"
-            readOnly={lookupSuccess}
+            readOnly={lookupSuccess || fvaLookupSuccess}
           />
         </div>
       </div>
@@ -360,7 +635,7 @@ const VehicleIdentificationStep = ({
         <h3 className="text-lg font-medium text-constalib-dark mb-4 flex items-center">
           <Shield className="h-5 w-5 mr-2 text-constalib-blue" />
           Informations d'assurance
-          {autoInsuranceFound && (
+          {(autoInsuranceFound || fvaLookupSuccess) && (
             <span className="ml-2 text-sm text-green-600 bg-green-50 px-2 py-1 rounded-full">
               Auto-détectée
             </span>
@@ -381,6 +656,7 @@ const VehicleIdentificationStep = ({
                 onChange={handleInputChange}
                 placeholder="Ex: A12345678"
                 className="pr-12"
+                readOnly={fvaLookupSuccess}
               />
               <Button 
                 type="button" 
@@ -388,7 +664,7 @@ const VehicleIdentificationStep = ({
                 variant="ghost"
                 className="absolute right-2 top-1/2 transform -translate-y-1/2"
                 onClick={lookupInsurance}
-                disabled={isInsuranceLoading || autoInsuranceFound}
+                disabled={isInsuranceLoading || autoInsuranceFound || fvaLookupSuccess}
                 title="Rechercher la compagnie d'assurance"
               >
                 {isInsuranceLoading ? 
@@ -400,12 +676,12 @@ const VehicleIdentificationStep = ({
               </Button>
             </div>
             <p className="text-xs text-constalib-dark-gray">
-              {autoInsuranceFound 
-                ? "Numéro de police récupéré automatiquement du SIV" 
+              {(autoInsuranceFound || fvaLookupSuccess) 
+                ? "Numéro de police récupéré automatiquement" 
                 : "Saisissez le numéro de police d'assurance tel qu'il apparaît sur votre carte verte"}
             </p>
 
-            {insuranceError && !autoInsuranceFound && (
+            {insuranceError && !autoInsuranceFound && !fvaLookupSuccess && (
               <Alert variant="destructive" className="mt-2">
                 <AlertCircle className="h-4 w-4" />
                 <AlertDescription>{insuranceError}</AlertDescription>
@@ -425,10 +701,10 @@ const VehicleIdentificationStep = ({
               onChange={handleInputChange}
               placeholder="Ex: AXA, MAIF, etc."
               className="w-full"
-              readOnly={insuranceLookupSuccess || autoInsuranceFound}
+              readOnly={insuranceLookupSuccess || autoInsuranceFound || fvaLookupSuccess}
             />
             
-            {(insuranceLookupSuccess || autoInsuranceFound) && insuranceDetails && (
+            {(insuranceLookupSuccess || autoInsuranceFound || fvaLookupSuccess) && insuranceDetails && (
               <Alert className="mt-2 border-green-200 bg-green-50">
                 <Shield className="h-4 w-4 text-green-600" />
                 <AlertDescription className="text-green-800">
@@ -446,7 +722,7 @@ const VehicleIdentificationStep = ({
       <Alert variant="default" className="bg-blue-50 border-blue-200">
         <Info className="h-4 w-4 text-blue-500" />
         <AlertDescription className="text-blue-700 text-sm">
-          Les informations récupérées par le SIV (Système d'Immatriculation des Véhicules) sont automatiquement renseignées dans le formulaire. Les informations d'assurance associées au véhicule sont également récupérées si disponibles, sinon vous pouvez les renseigner manuellement.
+          Consultez le Fichier des Véhicules Assurés (FVA) pour récupérer automatiquement les informations complètes du véhicule, de l'assurance et de l'assuré. Les données du SIV (Système d'Immatriculation des Véhicules) peuvent également être utilisées pour compléter le formulaire.
         </AlertDescription>
       </Alert>
     </div>
