@@ -13,31 +13,64 @@ const geocodeAddress = async (address: string) => {
   }
   
   try {
-    // Encode the address for URL
-    const encodedAddress = encodeURIComponent(address);
-    const geocodingUrl = `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodedAddress}.json?access_token=${mapboxToken}`;
+    // Check if address is a coordinate pair (for reverse geocoding)
+    const isCoordinates = /^-?\d+(\.\d+)?,\s*-?\d+(\.\d+)?$/.test(address);
     
-    const response = await fetch(geocodingUrl);
-    const data = await response.json();
-    
-    if (!response.ok) {
-      console.error('Mapbox API error:', data);
-      throw new Error('Geocoding service error');
-    }
-    
-    if (data.features && data.features.length > 0) {
-      const feature = data.features[0];
-      // Mapbox returns coordinates as [longitude, latitude]
-      const [lng, lat] = feature.center;
+    if (isCoordinates) {
+      // Reverse geocoding (coordinates to address)
+      const [lat, lng] = address.split(',').map(coord => parseFloat(coord.trim()));
+      const reverseGeocodingUrl = `https://api.mapbox.com/geocoding/v5/mapbox.places/${lng},${lat}.json?access_token=${mapboxToken}&types=address,neighborhood,locality,place,region,country&limit=1`;
+      
+      const response = await fetch(reverseGeocodingUrl);
+      const data = await response.json();
+      
+      if (!response.ok) {
+        console.error('Mapbox Reverse API error:', data);
+        throw new Error('Reverse geocoding service error');
+      }
+      
+      if (data.features && data.features.length > 0) {
+        const feature = data.features[0];
+        return {
+          lat,
+          lng, 
+          formatted_address: feature.place_name
+        };
+      }
       
       return {
         lat,
         lng,
-        formatted_address: feature.place_name
+        formatted_address: `${lat.toFixed(6)}, ${lng.toFixed(6)}`
       };
+    } else {
+      // Forward geocoding (address to coordinates)
+      // Encode the address for URL
+      const encodedAddress = encodeURIComponent(address);
+      const geocodingUrl = `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodedAddress}.json?access_token=${mapboxToken}&limit=1`;
+      
+      const response = await fetch(geocodingUrl);
+      const data = await response.json();
+      
+      if (!response.ok) {
+        console.error('Mapbox API error:', data);
+        throw new Error('Geocoding service error');
+      }
+      
+      if (data.features && data.features.length > 0) {
+        const feature = data.features[0];
+        // Mapbox returns coordinates as [longitude, latitude]
+        const [lng, lat] = feature.center;
+        
+        return {
+          lat,
+          lng,
+          formatted_address: feature.place_name
+        };
+      }
+      
+      throw new Error('No results found for this address');
     }
-    
-    throw new Error('No results found for this address');
   } catch (error) {
     console.error('Error in geocoding with Mapbox:', error);
     throw error;

@@ -1,10 +1,11 @@
 
 import { useState, useEffect } from 'react';
-import { MapPin, Loader2 } from 'lucide-react';
+import { MapPin, Loader2, RefreshCw } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
 
 interface LocationStepProps {
   location: string;
@@ -20,7 +21,8 @@ const LocationStep = ({
   const [isLoading, setIsLoading] = useState(false);
   const [currentLocation, setCurrentLocation] = useState<{lat: number, lng: number} | null>(null);
   const [isGettingCurrentLocation, setIsGettingCurrentLocation] = useState(false);
-  const [reverseGeocodingAddress, setReverseGeocodingAddress] = useState('');
+  const [formattedAddress, setFormattedAddress] = useState('');
+  const [geocodingStatus, setGeocodingStatus] = useState<'none' | 'success' | 'error'>('none');
 
   const geocodeAddress = async () => {
     if (!location) {
@@ -29,6 +31,7 @@ const LocationStep = ({
     }
 
     setIsLoading(true);
+    setGeocodingStatus('none');
     try {
       const { data, error } = await supabase.functions.invoke('geocode-location', {
         body: { address: location }
@@ -37,6 +40,7 @@ const LocationStep = ({
       if (error) {
         toast.error("Erreur lors de la géolocalisation");
         console.error('Error geocoding address:', error);
+        setGeocodingStatus('error');
         return;
       }
 
@@ -50,13 +54,17 @@ const LocationStep = ({
           lat: data.data.lat,
           lng: data.data.lng
         });
+        setFormattedAddress(data.data.formatted_address);
+        setGeocodingStatus('success');
         toast.success("Adresse géolocalisée avec succès");
       } else {
         toast.error(data.message || "Impossible de géolocaliser cette adresse");
+        setGeocodingStatus('error');
       }
     } catch (err) {
       console.error('Error in geocoding:', err);
       toast.error("Une erreur est survenue");
+      setGeocodingStatus('error');
     } finally {
       setIsLoading(false);
     }
@@ -64,22 +72,22 @@ const LocationStep = ({
 
   const reverseGeocode = async (latitude: number, longitude: number) => {
     try {
-      setReverseGeocodingAddress('Recherche de l\'adresse...');
+      setFormattedAddress('Recherche de l\'adresse...');
       const { data, error } = await supabase.functions.invoke('geocode-location', {
         body: { address: `${latitude},${longitude}` }
       });
       
       if (error || !data.success) {
         console.error('Error in reverse geocoding:', error || data.error);
-        setReverseGeocodingAddress(`Position: ${latitude.toFixed(6)}, ${longitude.toFixed(6)}`);
+        setFormattedAddress(`Position: ${latitude.toFixed(6)}, ${longitude.toFixed(6)}`);
         return `Position: ${latitude.toFixed(6)}, ${longitude.toFixed(6)}`;
       }
       
-      setReverseGeocodingAddress(data.data.formatted_address);
+      setFormattedAddress(data.data.formatted_address);
       return data.data.formatted_address;
     } catch (err) {
       console.error('Error in reverse geocoding:', err);
-      setReverseGeocodingAddress(`Position: ${latitude.toFixed(6)}, ${longitude.toFixed(6)}`);
+      setFormattedAddress(`Position: ${latitude.toFixed(6)}, ${longitude.toFixed(6)}`);
       return `Position: ${latitude.toFixed(6)}, ${longitude.toFixed(6)}`;
     }
   };
@@ -91,6 +99,7 @@ const LocationStep = ({
     }
 
     setIsGettingCurrentLocation(true);
+    setGeocodingStatus('none');
     navigator.geolocation.getCurrentPosition(
       async position => {
         const { latitude, longitude } = position.coords;
@@ -113,6 +122,7 @@ const LocationStep = ({
           address: address
         });
         
+        setGeocodingStatus('success');
         toast.success("Position actuelle récupérée");
         setIsGettingCurrentLocation(false);
       },
@@ -129,6 +139,7 @@ const LocationStep = ({
         }
         
         toast.error(message);
+        setGeocodingStatus('error');
         setIsGettingCurrentLocation(false);
       },
       {
@@ -138,6 +149,11 @@ const LocationStep = ({
       }
     );
   };
+
+  useEffect(() => {
+    // If location changes externally, reset the geocoding status
+    setGeocodingStatus('none');
+  }, [location]);
 
   return (
     <div className="space-y-6">
@@ -151,7 +167,13 @@ const LocationStep = ({
             id="location"
             name="location"
             value={location}
-            onChange={handleInputChange}
+            onChange={(e) => {
+              handleInputChange(e);
+              // Reset geocoding status when user types
+              if (geocodingStatus !== 'none') {
+                setGeocodingStatus('none');
+              }
+            }}
             placeholder="Adresse ou description du lieu"
             className="pl-10"
             required
@@ -164,7 +186,7 @@ const LocationStep = ({
               size="sm"
               variant="ghost"
               onClick={geocodeAddress}
-              disabled={isLoading}
+              disabled={isLoading || !location}
               className="h-8 px-2 text-xs"
             >
               {isLoading ? 
@@ -195,10 +217,38 @@ const LocationStep = ({
       </Button>
       
       {currentLocation && (
-        <div className="bg-constalib-light-blue/30 p-4 rounded-lg">
-          <p className="text-sm text-constalib-dark">
-            <span className="font-medium">Position:</span> {reverseGeocodingAddress || `Lat: ${currentLocation.lat.toFixed(6)}, Lng: ${currentLocation.lng.toFixed(6)}`}
-          </p>
+        <div className={`p-4 rounded-lg ${
+          geocodingStatus === 'success' ? 'bg-green-50 border border-green-200' : 
+          geocodingStatus === 'error' ? 'bg-red-50 border border-red-200' : 
+          'bg-constalib-light-blue/30'
+        }`}>
+          <div className="flex items-start justify-between">
+            <div className="space-y-1">
+              <h4 className="font-medium text-constalib-dark flex items-center">
+                <MapPin className="h-4 w-4 mr-1 inline" /> Localisation
+                {geocodingStatus === 'success' && (
+                  <Badge variant="outline" className="ml-2 bg-green-100 text-green-800 hover:bg-green-100">
+                    Validée
+                  </Badge>
+                )}
+              </h4>
+              <p className="text-sm text-constalib-dark break-words">
+                {formattedAddress || `Lat: ${currentLocation.lat.toFixed(6)}, Lng: ${currentLocation.lng.toFixed(6)}`}
+              </p>
+            </div>
+            
+            {geocodingStatus !== 'none' && (
+              <Button
+                size="icon"
+                variant="ghost"
+                onClick={geocodeAddress}
+                className="h-8 w-8"
+                title="Actualiser la géolocalisation"
+              >
+                <RefreshCw className="h-4 w-4" />
+              </Button>
+            )}
+          </div>
         </div>
       )}
     </div>
