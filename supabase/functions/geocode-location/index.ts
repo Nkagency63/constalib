@@ -2,16 +2,8 @@
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts'
 import { corsHeaders } from '../_shared/cors.ts'
 
-// Real geocoding using Mapbox API
+// Real geocoding using OpenStreetMap Nominatim API (free, no API key required)
 const geocodeAddress = async (address: string) => {
-  // Use Mapbox API for geocoding
-  const mapboxToken = Deno.env.get('MAPBOX_API_KEY');
-  
-  if (!mapboxToken) {
-    console.error('Missing MAPBOX_API_KEY environment variable');
-    throw new Error('Geocoding service configuration error');
-  }
-  
   try {
     // Check if address is a coordinate pair (for reverse geocoding)
     const isCoordinates = /^-?\d+(\.\d+)?,\s*-?\d+(\.\d+)?$/.test(address);
@@ -19,22 +11,26 @@ const geocodeAddress = async (address: string) => {
     if (isCoordinates) {
       // Reverse geocoding (coordinates to address)
       const [lat, lng] = address.split(',').map(coord => parseFloat(coord.trim()));
-      const reverseGeocodingUrl = `https://api.mapbox.com/geocoding/v5/mapbox.places/${lng},${lat}.json?access_token=${mapboxToken}&types=address,neighborhood,locality,place,region,country&limit=1`;
+      const reverseGeocodingUrl = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=18&addressdetails=1`;
       
-      const response = await fetch(reverseGeocodingUrl);
+      const response = await fetch(reverseGeocodingUrl, {
+        headers: {
+          'User-Agent': 'Constalib/1.0'
+        }
+      });
+      
       const data = await response.json();
       
       if (!response.ok) {
-        console.error('Mapbox Reverse API error:', data);
+        console.error('Nominatim Reverse API error:', data);
         throw new Error('Reverse geocoding service error');
       }
       
-      if (data.features && data.features.length > 0) {
-        const feature = data.features[0];
+      if (data && data.display_name) {
         return {
           lat,
           lng, 
-          formatted_address: feature.place_name
+          formatted_address: data.display_name
         };
       }
       
@@ -47,32 +43,35 @@ const geocodeAddress = async (address: string) => {
       // Forward geocoding (address to coordinates)
       // Encode the address for URL
       const encodedAddress = encodeURIComponent(address);
-      const geocodingUrl = `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodedAddress}.json?access_token=${mapboxToken}&limit=1`;
+      const geocodingUrl = `https://nominatim.openstreetmap.org/search?format=json&q=${encodedAddress}&limit=1`;
       
-      const response = await fetch(geocodingUrl);
+      const response = await fetch(geocodingUrl, {
+        headers: {
+          'User-Agent': 'Constalib/1.0'
+        }
+      });
+      
       const data = await response.json();
       
       if (!response.ok) {
-        console.error('Mapbox API error:', data);
+        console.error('Nominatim API error:', data);
         throw new Error('Geocoding service error');
       }
       
-      if (data.features && data.features.length > 0) {
-        const feature = data.features[0];
-        // Mapbox returns coordinates as [longitude, latitude]
-        const [lng, lat] = feature.center;
+      if (data && data.length > 0) {
+        const result = data[0];
         
         return {
-          lat,
-          lng,
-          formatted_address: feature.place_name
+          lat: parseFloat(result.lat),
+          lng: parseFloat(result.lon),
+          formatted_address: result.display_name
         };
       }
       
       throw new Error('No results found for this address');
     }
   } catch (error) {
-    console.error('Error in geocoding with Mapbox:', error);
+    console.error('Error in geocoding with Nominatim:', error);
     throw error;
   }
 };
