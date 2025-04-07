@@ -75,6 +75,7 @@ const Accident = () => {
                   <li><strong>FVA</strong> (Fichier des Véhicules Assurés) - Contient des informations sur l'assurance de votre véhicule</li>
                 </ul>
                 <p className="mt-2">Si votre véhicule n'est pas trouvé dans ces bases de données, vous pouvez saisir manuellement les informations.</p>
+                <p className="mt-2">Conseil: Vérifiez que vous saisissez correctement votre plaque d'immatriculation, en respectant le format approprié.</p>
               </AlertDescription>
             </Alert>
           )}
