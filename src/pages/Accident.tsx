@@ -3,15 +3,16 @@ import Header from '@/components/Header';
 import AccidentForm from '@/components/AccidentForm';
 import { Toaster } from "@/components/ui/toaster";
 import { Button } from '@/components/ui/button';
-import { AlertCircle, Info } from 'lucide-react';
+import { AlertCircle, Info, HelpCircle } from 'lucide-react';
 import { useState } from 'react';
 import EmergencyServicesDrawer from '@/components/accident/EmergencyServicesDrawer';
-import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
 const Accident = () => {
   const [emergencyDrawerOpen, setEmergencyDrawerOpen] = useState(false);
   const [emergencyContacted, setEmergencyContacted] = useState(false);
   const [currentStep, setCurrentStep] = useState("basics");
+  const [showHelp, setShowHelp] = useState(false);
 
   const handleEmergencyContacted = () => {
     setEmergencyContacted(true);
@@ -19,6 +20,11 @@ const Accident = () => {
 
   const handleStepChange = (stepId: string) => {
     setCurrentStep(stepId);
+    setShowHelp(false); // Reset help visibility on step change
+  };
+
+  const toggleHelp = () => {
+    setShowHelp(!showHelp);
   };
 
   return (
@@ -35,15 +41,43 @@ const Accident = () => {
               </p>
             </div>
             
-            <Button 
-              variant="destructive" 
-              className="mt-4 md:mt-0 flex items-center" 
-              onClick={() => setEmergencyDrawerOpen(true)}
-            >
-              <AlertCircle className="w-5 h-5 mr-2" />
-              Appeler les secours
-            </Button>
+            <div className="flex mt-4 md:mt-0 gap-2">
+              <Button 
+                variant="outline" 
+                size="icon"
+                onClick={toggleHelp}
+                className="flex items-center" 
+                title="Aide"
+              >
+                <HelpCircle className="w-5 h-5" />
+              </Button>
+              
+              <Button 
+                variant="destructive" 
+                className="flex items-center" 
+                onClick={() => setEmergencyDrawerOpen(true)}
+              >
+                <AlertCircle className="w-5 h-5 mr-2" />
+                Appeler les secours
+              </Button>
+            </div>
           </div>
+          
+          {showHelp && currentStep === "vehicles" && (
+            <Alert className="mb-6 bg-blue-50 border-blue-200">
+              <Info className="h-5 w-5 text-blue-600" />
+              <AlertTitle className="text-blue-800">Aide pour l'identification des véhicules</AlertTitle>
+              <AlertDescription className="text-blue-700 text-sm">
+                <p className="mb-2">Pour identifier votre véhicule, vous pouvez utiliser les différentes bases de données disponibles :</p>
+                <ul className="list-disc pl-5 space-y-1">
+                  <li><strong>SIV</strong> (Système d'Immatriculation des Véhicules) - Pour les véhicules immatriculés depuis 2009 au format AA-123-BB</li>
+                  <li><strong>FNI</strong> (Fichier National des Immatriculations) - Pour les véhicules immatriculés avant 2009 au format 123 ABC 75</li>
+                  <li><strong>FVA</strong> (Fichier des Véhicules Assurés) - Contient des informations sur l'assurance de votre véhicule</li>
+                </ul>
+                <p className="mt-2">Si votre véhicule n'est pas trouvé dans ces bases de données, vous pouvez saisir manuellement les informations.</p>
+              </AlertDescription>
+            </Alert>
+          )}
           
           {currentStep === "vehicles" && (
             <Alert variant="default" className="bg-amber-50 border-amber-200 mb-6">

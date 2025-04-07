@@ -39,3 +39,9 @@ export interface FvaData {
     insuredEmail: string;
   };
 }
+
+// Interface for error responses to better handle errors
+export interface LookupError {
+  status: number;
+  message: string;
+}
