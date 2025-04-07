@@ -26,6 +26,7 @@ const AccidentForm = ({ onEmergencyRequest }: AccidentFormProps) => {
     setInsuranceEmails,
     setInvolvedPartyEmails,
     setPersonalEmail,
+    onEmergencyContacted,
     nextStep,
     prevStep,
     setSubmitted

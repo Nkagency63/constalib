@@ -34,7 +34,7 @@ const Accident = () => {
               className="mt-4 md:mt-0 flex items-center" 
               onClick={() => setEmergencyDrawerOpen(true)}
             >
-              <AlertCircle className="mr-2 h-5 w-5" />
+              <AlertCircle className="w-5 h-5 mr-2" />
               Appeler les secours
             </Button>
           </div>
