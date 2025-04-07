@@ -4,13 +4,22 @@ import { toast } from 'sonner';
 import { VehicleData, InsuranceData, FvaData } from '../types/vehicleTypes';
 
 /**
+ * Generic interface for lookup responses
+ */
+interface LookupResponse<T> {
+  success: boolean;
+  data: T | null;
+  error: string | null;
+}
+
+/**
  * Base function for vehicle lookups with common error handling and response formatting
  */
-const performLookup = async (
+const performLookup = async <T>(
   functionName: string,
   data: object,
   errorMessage: string
-) => {
+): Promise<LookupResponse<T>> => {
   try {
     const { data: responseData, error } = await supabase.functions.invoke(functionName, {
       body: data
@@ -19,10 +28,18 @@ const performLookup = async (
     if (error) {
       console.error(`Error in ${functionName}:`, error);
       toast.error(errorMessage);
-      return { success: false, data: null, error: `Une erreur technique est survenue lors de la consultation. Veuillez réessayer plus tard.` };
+      return { 
+        success: false, 
+        data: null, 
+        error: `Une erreur technique est survenue lors de la consultation. Veuillez réessayer plus tard.` 
+      };
     }
 
-    return { success: responseData.success, data: responseData, error: responseData.message };
+    return { 
+      success: responseData.success, 
+      data: responseData.data as T, 
+      error: responseData.success ? null : (responseData.message || null)
+    };
   } catch (err) {
     console.error(`Error in ${functionName}:`, err);
     return { 
@@ -40,7 +57,7 @@ const processInsuranceData = (
   insuranceData: any,
   handleInputChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void,
   setInsuranceInfo?: (data: {company: string}) => void
-) => {
+): boolean => {
   if (!insuranceData) return false;
   
   const policyEvent = {
@@ -84,13 +101,13 @@ export const lookupVehicleFromSiv = async (
 }> => {
   console.log(`Tentative de recherche du véhicule: ${licensePlate}`);
   
-  const result = await performLookup(
+  const result = await performLookup<VehicleData>(
     'lookup-vehicle', 
     { licensePlate }, 
     "Erreur lors de la consultation du SIV"
   );
   
-  if (!result.success || !result.data.data) {
+  if (!result.success || !result.data) {
     return { 
       success: false, 
       vehicleDetails: null, 
@@ -100,8 +117,10 @@ export const lookupVehicleFromSiv = async (
     };
   }
 
-  const vehicleData = result.data.data;
+  const vehicleData = result.data;
   console.log('Véhicule trouvé:', vehicleData);
+  
+  // Update form with vehicle information
   setVehicleInfo(vehicleData);
   
   let insuranceDetails = null;
@@ -117,7 +136,7 @@ export const lookupVehicleFromSiv = async (
     processInsuranceData(vehicleData.insurance, handleInputChange, setInsuranceInfo);
   }
   
-  toast.success(result.data.message || "Informations du véhicule récupérées avec succès du SIV");
+  toast.success("Informations du véhicule récupérées avec succès du SIV");
   
   return { 
     success: true, 
@@ -145,13 +164,13 @@ export const lookupVehicleFromFni = async (
 }> => {
   console.log(`Tentative de recherche du véhicule dans le FNI: ${licensePlate}`);
   
-  const result = await performLookup(
+  const result = await performLookup<VehicleData>(
     'lookup-fni', 
     { licensePlate }, 
     "Erreur lors de la consultation du FNI"
   );
   
-  if (!result.success || !result.data.data) {
+  if (!result.success || !result.data) {
     return { 
       success: false, 
       vehicleDetails: null, 
@@ -161,8 +180,10 @@ export const lookupVehicleFromFni = async (
     };
   }
 
-  const vehicleData = result.data.data;
+  const vehicleData = result.data;
   console.log('Véhicule trouvé dans le FNI:', vehicleData);
+  
+  // Update form with vehicle information
   setVehicleInfo(vehicleData);
   
   let insuranceDetails = null;
@@ -176,10 +197,9 @@ export const lookupVehicleFromFni = async (
     };
     
     processInsuranceData(vehicleData.insurance, handleInputChange, setInsuranceInfo);
-    toast.success("Informations d'assurance récupérées automatiquement du FNI");
   }
   
-  toast.success(result.data.message || "Informations du véhicule récupérées avec succès du FNI");
+  toast.success("Informations du véhicule récupérées avec succès du FNI");
   
   return { 
     success: true, 
@@ -206,16 +226,13 @@ export const lookupVehicleFromFva = async (
 }> => {
   console.log(`Tentative de recherche du véhicule dans le FVA: ${licensePlate}`);
   
-  const normalizedPlate = licensePlate.replace(/[\s-]+/g, '').toUpperCase();
-  console.log(`Plaque normalisée: ${normalizedPlate}`);
-  
-  const result = await performLookup(
+  const result = await performLookup<FvaData>(
     'lookup-fva', 
-    { licensePlate: normalizedPlate }, 
+    { licensePlate }, 
     "Erreur lors de la consultation du FVA"
   );
   
-  if (!result.success || !result.data.data) {
+  if (!result.success || !result.data) {
     return { 
       success: false, 
       vehicleDetails: null, 
@@ -224,7 +241,7 @@ export const lookupVehicleFromFva = async (
     };
   }
 
-  const fvaData = result.data.data;
+  const fvaData = result.data;
   console.log('Véhicule trouvé dans le FVA:', fvaData);
   
   const vehicleInfo = {
@@ -234,6 +251,7 @@ export const lookupVehicleFromFva = async (
     firstRegistration: fvaData.vehicleInfo.firstRegistration,
   };
   
+  // Update form with vehicle information
   setVehicleInfo(vehicleInfo);
   
   const vehicleDetails: VehicleData = {
@@ -278,7 +296,7 @@ export const lookupVehicleFromFva = async (
   
   processInsuranceData(insuranceInfo, handleInputChange, setInsuranceInfo);
   
-  toast.success(result.data.message || "Informations complètes récupérées du FVA avec succès");
+  toast.success("Informations complètes récupérées du FVA avec succès");
   
   return { 
     success: true, 
