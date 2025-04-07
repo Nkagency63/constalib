@@ -57,9 +57,7 @@ const DownloadPdfSection = () => {
           </div>
           
           <div className="mt-8 pt-8 border-t border-gray-100">
-            <button className="text-sm text-gray-500 hover:text-constalib-blue transition-colors" onClick={() => setShowUploadSection(!showUploadSection)}>
-              {showUploadSection ? "Masquer" : "Administration: Uploader un PDF"} 
-            </button>
+            
             
             {showUploadSection && <UploadPdfSection />}
           </div>
