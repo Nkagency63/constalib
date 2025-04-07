@@ -37,7 +37,7 @@ const UploadPdfSection = () => {
   };
   
   return (
-    <section className="py-8 bg-gray-50">
+    <section className="py-8 bg-gray-50 rounded-lg mt-4">
       <div className="container mx-auto px-4">
         <div className="max-w-3xl mx-auto text-center">
           <h2 className="text-xl md:text-2xl font-bold mb-4 text-constalib-dark">
@@ -87,7 +87,7 @@ const UploadPdfSection = () => {
                 <span className="font-medium">Note importante:</span>
               </div>
               <p>
-                Le fichier sera uploadé avec le nom "constat_amiable_vierge.pdf" dans le bucket "documents".
+                Le fichier sera uploadé avec le nom "constat_amiable_vierge.pdf" dans le bucket "constat-amiable-vierge.pdf".
                 Cela permettra à l'application de le récupérer automatiquement.
               </p>
             </div>

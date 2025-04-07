@@ -1,6 +1,6 @@
 
 import { Download, Upload } from 'lucide-react';
-import Button from '@/components/Button';
+import { Button } from '@/components/ui/button';
 import { downloadPDF, uploadFileToStorage } from '@/utils/downloadUtils';
 import { toast } from "sonner";
 import { useState } from 'react';

@@ -120,7 +120,6 @@ export const uploadFileToStorage = async (file: File, bucketName: string, filePa
     
     if (error) {
       console.error('Error uploading file to Supabase:', error);
-      toast.error("Erreur lors de l'upload du fichier");
       throw error;
     }
     
@@ -128,7 +127,6 @@ export const uploadFileToStorage = async (file: File, bucketName: string, filePa
     return data.path;
   } catch (error) {
     console.error('Error in upload process:', error);
-    toast.error("Erreur lors de l'upload du fichier");
     throw error;
   }
 };
