@@ -3,16 +3,22 @@ import Header from '@/components/Header';
 import AccidentForm from '@/components/AccidentForm';
 import { Toaster } from "@/components/ui/toaster";
 import { Button } from '@/components/ui/button';
-import { AlertCircle } from 'lucide-react';
+import { AlertCircle, Info } from 'lucide-react';
 import { useState } from 'react';
 import EmergencyServicesDrawer from '@/components/accident/EmergencyServicesDrawer';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 
 const Accident = () => {
   const [emergencyDrawerOpen, setEmergencyDrawerOpen] = useState(false);
   const [emergencyContacted, setEmergencyContacted] = useState(false);
+  const [currentStep, setCurrentStep] = useState("basics");
 
   const handleEmergencyContacted = () => {
     setEmergencyContacted(true);
+  };
+
+  const handleStepChange = (stepId: string) => {
+    setCurrentStep(stepId);
   };
 
   return (
@@ -39,7 +45,21 @@ const Accident = () => {
             </Button>
           </div>
           
-          <AccidentForm onEmergencyRequest={() => setEmergencyDrawerOpen(true)} />
+          {currentStep === "vehicles" && (
+            <Alert variant="default" className="bg-amber-50 border-amber-200 mb-6">
+              <Info className="h-4 w-4 text-amber-600" />
+              <AlertDescription className="text-amber-800 text-sm">
+                <strong>Nouveau:</strong> Vous pouvez désormais consulter le FNI (Fichier National des Immatriculations) 
+                pour les véhicules immatriculés avant 2009, en plus du SIV (Système d'Immatriculation des Véhicules) 
+                pour les véhicules récents.
+              </AlertDescription>
+            </Alert>
+          )}
+          
+          <AccidentForm 
+            onEmergencyRequest={() => setEmergencyDrawerOpen(true)} 
+            onStepChange={handleStepChange}
+          />
         </div>
       </main>
 
