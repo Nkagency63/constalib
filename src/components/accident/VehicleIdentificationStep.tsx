@@ -72,6 +72,56 @@ interface VehicleIdentificationStepProps {
   setInsuranceInfo?: (data: {company: string}) => void;
 }
 
+// Format SIV license plate (post-2009 format: AB-123-CD)
+const formatSivLicensePlate = (value: string): string => {
+  // Remove any existing spaces or dashes
+  const cleaned = value.replace(/[\s-]/g, '').toUpperCase();
+  
+  // Apply the AB-123-CD format for SIV (if the input has the right length)
+  if (cleaned.length > 0) {
+    let formatted = cleaned;
+    
+    // Add dashes if we have enough characters
+    if (cleaned.length > 2) {
+      formatted = cleaned.substring(0, 2) + '-' + cleaned.substring(2);
+    }
+    
+    if (cleaned.length > 5) {
+      formatted = formatted.substring(0, 6) + '-' + formatted.substring(6);
+    }
+    
+    // Limit to 9 characters (including dashes)
+    return formatted.substring(0, 9);
+  }
+  
+  return cleaned;
+};
+
+// Format FNI license plate (pre-2009 format: 123 ABC 75)
+const formatFniLicensePlate = (value: string): string => {
+  // Remove any existing spaces
+  const cleaned = value.replace(/\s/g, '').toUpperCase();
+  
+  // Apply the 123 ABC 75 format for FNI
+  if (cleaned.length > 0) {
+    let formatted = cleaned;
+    
+    // Add spaces if we have enough characters (123 ABC 75)
+    if (cleaned.length > 3) {
+      formatted = cleaned.substring(0, 3) + ' ' + cleaned.substring(3);
+    }
+    
+    if (cleaned.length > 6) {
+      formatted = formatted.substring(0, 7) + ' ' + cleaned.substring(7);
+    }
+    
+    // Limit to 10 characters (including spaces)
+    return formatted.substring(0, 10);
+  }
+  
+  return cleaned;
+};
+
 const VehicleIdentificationStep = ({
   licensePlate,
   vehicleBrand,
@@ -814,101 +864,4 @@ const VehicleIdentificationStep = ({
 
       <div className="border-t pt-6 mt-6">
         <h3 className="text-lg font-medium text-constalib-dark mb-4 flex items-center">
-          <Shield className="h-5 w-5 mr-2 text-constalib-blue" />
-          Informations d'assurance
-          {(autoInsuranceFound || fvaLookupSuccess) && (
-            <span className="ml-2 text-sm text-green-600 bg-green-50 px-2 py-1 rounded-full">
-              Auto-détectée
-            </span>
-          )}
-        </h3>
-        
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div className="space-y-2">
-            <label htmlFor="insurancePolicy" className="block text-sm font-medium text-constalib-dark">
-              Numéro de police d'assurance
-            </label>
-            <div className="relative">
-              <Input
-                type="text"
-                id="insurancePolicy"
-                name="insurancePolicy"
-                value={insurancePolicy}
-                onChange={handleInputChange}
-                placeholder="Ex: A12345678"
-                className="pr-12"
-                readOnly={fvaLookupSuccess}
-              />
-              <Button 
-                type="button" 
-                size="icon"
-                variant="ghost"
-                className="absolute right-2 top-1/2 transform -translate-y-1/2"
-                onClick={lookupInsurance}
-                disabled={isInsuranceLoading || autoInsuranceFound || fvaLookupSuccess}
-                title="Rechercher la compagnie d'assurance"
-              >
-                {isInsuranceLoading ? 
-                  <Loader2 className="h-5 w-5 animate-spin text-constalib-blue" /> : 
-                  insuranceLookupSuccess ? 
-                    <Check className="h-5 w-5 text-green-600" /> :
-                    <Search className="h-5 w-5 text-constalib-blue" />
-                }
-              </Button>
-            </div>
-            <p className="text-xs text-constalib-dark-gray">
-              {(autoInsuranceFound || fvaLookupSuccess) 
-                ? "Numéro de police récupéré automatiquement" 
-                : "Saisissez le numéro de police d'assurance tel qu'il apparaît sur votre carte verte"}
-            </p>
-
-            {insuranceError && !autoInsuranceFound && !fvaLookupSuccess && (
-              <Alert variant="destructive" className="mt-2">
-                <AlertCircle className="h-4 w-4" />
-                <AlertDescription>{insuranceError}</AlertDescription>
-              </Alert>
-            )}
-          </div>
-          
-          <div className="space-y-2">
-            <label htmlFor="insuranceCompany" className="block text-sm font-medium text-constalib-dark">
-              Compagnie d'assurance
-            </label>
-            <Input
-              type="text"
-              id="insuranceCompany"
-              name="insuranceCompany"
-              value={insuranceCompany}
-              onChange={handleInputChange}
-              placeholder="Ex: AXA, MAIF, etc."
-              className="w-full"
-              readOnly={insuranceLookupSuccess || autoInsuranceFound || fvaLookupSuccess}
-            />
-            
-            {(insuranceLookupSuccess || autoInsuranceFound || fvaLookupSuccess) && insuranceDetails && (
-              <Alert className="mt-2 border-green-200 bg-green-50">
-                <Shield className="h-4 w-4 text-green-600" />
-                <AlertDescription className="text-green-800">
-                  Assurance identifiée : {insuranceDetails.company}
-                  {insuranceDetails.name && 
-                    <div className="text-xs mt-1">Contrat : {insuranceDetails.name}</div>
-                  }
-                </AlertDescription>
-              </Alert>
-            )}
-          </div>
-        </div>
-      </div>
-
-      <Alert variant="default" className="bg-blue-50 border-blue-200">
-        <Info className="h-4 w-4 text-blue-500" />
-        <AlertDescription className="text-blue-700 text-sm">
-          Vous pouvez consulter le SIV (depuis 2009) ou le FNI (avant 2009) pour récupérer les informations du véhicule. 
-          Utilisez le FVA (Fichier des Véhicules Assurés) pour obtenir les informations complètes d'assurance.
-        </AlertDescription>
-      </Alert>
-    </div>
-  );
-};
-
-export default VehicleIdentificationStep;
+          <Shield className="h-
