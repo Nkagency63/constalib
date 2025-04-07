@@ -27,6 +27,18 @@ const performLookup = async <T>(
 
     if (error) {
       console.error(`Error in ${functionName}:`, error);
+      
+      // Check if it's a 404 error (Not Found)
+      if (error.message && error.message.includes('non-2xx status code')) {
+        // For 404 responses, we return a formatted error about the vehicle not being found
+        // The actual message will come from the edge function
+        return { 
+          success: false, 
+          data: null, 
+          error: `Aucun véhicule trouvé avec cette immatriculation. Vérifiez votre saisie.` 
+        };
+      }
+      
       toast.error(errorMessage);
       return { 
         success: false, 
