@@ -1,12 +1,14 @@
 
 import { FormData } from './types';
-import { Check, Car, MapPin, Calendar, Clock, FileText, Image, CarTaxiFront, Shield } from 'lucide-react';
+import { Check, Car, MapPin, Calendar, Clock, FileText, Image, CarTaxiFront, Shield, Mail } from 'lucide-react';
 
 interface ReviewStepProps {
   formData: FormData;
 }
 
 const ReviewStep = ({ formData }: ReviewStepProps) => {
+  const hasEmailRecipients = formData.personalEmail || formData.insuranceEmails.length > 0 || formData.involvedPartyEmails.length > 0;
+  
   return (
     <div className="space-y-6">
       <div className="space-y-2">
@@ -144,6 +146,48 @@ const ReviewStep = ({ formData }: ReviewStepProps) => {
             </div>
           </div>
         </div>
+        
+        {hasEmailRecipients && (
+          <div className="border rounded-lg p-4 bg-white">
+            <div className="flex items-start gap-2">
+              <Mail className="h-5 w-5 text-constalib-blue mt-0.5" />
+              <div>
+                <h4 className="font-medium text-constalib-dark">Envoi du constat</h4>
+                {formData.personalEmail && (
+                  <p className="text-sm text-constalib-dark-gray">
+                    <span className="font-medium">Votre email:</span> {formData.personalEmail}
+                  </p>
+                )}
+                
+                {formData.insuranceEmails.length > 0 && (
+                  <div className="mt-1">
+                    <p className="text-sm text-constalib-dark-gray">
+                      <span className="font-medium">Compagnies d'assurance:</span> 
+                    </p>
+                    <ul className="list-disc pl-5 text-sm text-constalib-dark-gray">
+                      {formData.insuranceEmails.map((email, index) => (
+                        <li key={index}>{email}</li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+                
+                {formData.involvedPartyEmails.length > 0 && (
+                  <div className="mt-1">
+                    <p className="text-sm text-constalib-dark-gray">
+                      <span className="font-medium">Personnes impliquées:</span> 
+                    </p>
+                    <ul className="list-disc pl-5 text-sm text-constalib-dark-gray">
+                      {formData.involvedPartyEmails.map((email, index) => (
+                        <li key={index}>{email}</li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
         
         {formData.emergencyContacted && (
           <div className="border rounded-lg p-4 bg-white">

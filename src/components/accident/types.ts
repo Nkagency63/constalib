@@ -49,4 +49,8 @@ export interface FormData {
     address: string;
   };
   emergencyContacted: boolean;
+  // Informations d'email
+  personalEmail: string;
+  insuranceEmails: string[];
+  involvedPartyEmails: string[];
 }

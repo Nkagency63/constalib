@@ -15,6 +15,7 @@ import StepNavigation from './accident/StepNavigation';
 import VehicleIdentificationStep from './accident/VehicleIdentificationStep';
 import LocationStep from './accident/LocationStep';
 import MultiVehicleStep from './accident/MultiVehicleStep';
+import EmailStep from './accident/EmailStep';
 
 interface AccidentFormProps {
   onEmergencyRequest?: () => void;
@@ -50,7 +51,10 @@ const AccidentForm = ({ onEmergencyRequest }: AccidentFormProps) => {
       lng: null,
       address: ''
     },
-    emergencyContacted: false
+    emergencyContacted: false,
+    personalEmail: '',
+    insuranceEmails: [],
+    involvedPartyEmails: []
   });
   const [submitted, setSubmitted] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -86,6 +90,11 @@ const AccidentForm = ({ onEmergencyRequest }: AccidentFormProps) => {
       id: 'scheme',
       title: 'Schéma',
       description: 'Positionnement des véhicules'
+    },
+    {
+      id: 'email',
+      title: 'Envoi',
+      description: 'Destinataires du constat'
     },
     {
       id: 'review',
@@ -173,6 +182,27 @@ const AccidentForm = ({ onEmergencyRequest }: AccidentFormProps) => {
         lng: data.lng,
         address: data.address
       }
+    }));
+  };
+
+  const setInsuranceEmails = (emails: string[]) => {
+    setFormData(prev => ({
+      ...prev,
+      insuranceEmails: emails
+    }));
+  };
+
+  const setInvolvedPartyEmails = (emails: string[]) => {
+    setFormData(prev => ({
+      ...prev,
+      involvedPartyEmails: emails
+    }));
+  };
+
+  const setPersonalEmail = (email: string) => {
+    setFormData(prev => ({
+      ...prev,
+      personalEmail: email
     }));
   };
 
@@ -265,6 +295,55 @@ const AccidentForm = ({ onEmergencyRequest }: AccidentFormProps) => {
     }));
   };
 
+  const sendEmails = async (reportId: string) => {
+    const allRecipients = [
+      ...formData.insuranceEmails,
+      ...formData.involvedPartyEmails
+    ];
+    
+    if (formData.personalEmail) {
+      allRecipients.push(formData.personalEmail);
+    }
+    
+    if (allRecipients.length === 0) {
+      console.log("No recipients specified, skipping email sending");
+      return;
+    }
+    
+    try {
+      const vehicleInfo = `${formData.vehicleBrand} ${formData.vehicleModel} (${formData.vehicleYear}), Immatriculation: ${formData.licensePlate}, Assurance: ${formData.insuranceCompany || 'Non spécifiée'}, N° de police: ${formData.insurancePolicy || 'Non spécifié'}`;
+      
+      const otherVehicleInfo = `${formData.otherVehicle.brand} ${formData.otherVehicle.model} (${formData.otherVehicle.year}), Immatriculation: ${formData.otherVehicle.licensePlate}, Assurance: ${formData.otherVehicle.insuranceCompany || 'Non spécifiée'}, N° de police: ${formData.otherVehicle.insurancePolicy || 'Non spécifié'}`;
+      
+      const { data, error } = await supabase.functions.invoke('send-accident-report', {
+        body: {
+          to: allRecipients,
+          subject: `Constat Amiable d'Accident - Ref: ${reportId}`,
+          reportId,
+          reportData: formData,
+          vehicleInfo,
+          otherVehicleInfo,
+          date: formData.date,
+          time: formData.time,
+          location: formData.location,
+          description: formData.description,
+          hasPhotos: formData.vehiclePhotos.length > 0 || formData.damagePhotos.length > 0
+        }
+      });
+      
+      if (error) {
+        console.error("Error sending emails:", error);
+        throw new Error(error.message);
+      }
+      
+      console.log("Emails sent successfully:", data);
+      return data;
+    } catch (error) {
+      console.error("Error in sendEmails function:", error);
+      throw error;
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
@@ -328,6 +407,25 @@ const AccidentForm = ({ onEmergencyRequest }: AccidentFormProps) => {
       }
       
       console.log('Accident report saved:', data);
+      
+      if (data && data[0] && (formData.personalEmail || formData.insuranceEmails.length > 0 || formData.involvedPartyEmails.length > 0)) {
+        try {
+          await sendEmails(data[0].id);
+          uiToast({
+            title: "Emails envoyés",
+            description: "Le constat a été envoyé par email aux destinataires spécifiés.",
+            variant: "default"
+          });
+        } catch (emailError: any) {
+          console.error("Error sending emails:", emailError);
+          uiToast({
+            title: "Alerte",
+            description: `La déclaration a été enregistrée mais l'envoi des emails a échoué: ${emailError.message}`,
+            variant: "destructive"
+          });
+        }
+      }
+      
       uiToast({
         title: "Succès",
         description: "Votre déclaration a été envoyée avec succès.",
@@ -404,6 +502,18 @@ const AccidentForm = ({ onEmergencyRequest }: AccidentFormProps) => {
       case 'scheme':
         return (
           <SchemeStep />
+        );
+        
+      case 'email':
+        return (
+          <EmailStep
+            insuranceEmails={formData.insuranceEmails}
+            setInsuranceEmails={setInsuranceEmails}
+            involvedPartyEmails={formData.involvedPartyEmails}
+            setInvolvedPartyEmails={setInvolvedPartyEmails}
+            personalEmail={formData.personalEmail}
+            setPersonalEmail={setPersonalEmail}
+          />
         );
         
       case 'review':
