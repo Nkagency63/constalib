@@ -12,9 +12,9 @@ const DownloadPdfSection = () => {
 
   const handleDownloadConstat = () => {
     // Use Supabase storage path for the PDF file
-    const storagePath = "storage:constat-amiable-vierge.pdf/constat_amiable_vierge.pdf";
+    const storagePath = "storage:constat-amiable-vierge.pdf/constat-amiable-vierge.pdf";
     toast.info("Téléchargement du constat amiable en cours...");
-    downloadPDF(storagePath, 'constat_amiable_vierge.pdf');
+    downloadPDF(storagePath, 'constat-amiable-vierge.pdf');
   };
 
   const handleUploadConstat = async (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -32,7 +32,7 @@ const DownloadPdfSection = () => {
     
     try {
       // Upload the file to the constat-amiable-vierge.pdf bucket
-      await uploadFileToStorage(file, 'constat-amiable-vierge.pdf', 'constat_amiable_vierge.pdf');
+      await uploadFileToStorage(file, 'constat-amiable-vierge.pdf', 'constat-amiable-vierge.pdf');
       toast.success("Le constat amiable a été uploadé avec succès!");
     } catch (error) {
       console.error('Upload error:', error);
