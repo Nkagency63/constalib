@@ -2,15 +2,11 @@
 import { Link } from 'react-router-dom';
 import { Button } from './ui/button';
 import Logo from './Logo';
-import { Download, Eye } from 'lucide-react';
+import { Download } from 'lucide-react';
 import { downloadPDF } from '@/utils/downloadUtils';
 import { toast } from "sonner";
-import { useState } from 'react';
-import PdfPreviewModal from './home/PdfPreviewModal';
 
 const Hero = () => {
-  const [showPreview, setShowPreview] = useState(false);
-  
   const handleDownloadConstat = () => {
     // Use Supabase storage path for the PDF file
     const storagePath = "storage:constat-amiable-vierge.pdf/constat_amiable_vierge.pdf";
@@ -18,8 +14,7 @@ const Hero = () => {
     downloadPDF(storagePath, 'constat_amiable_vierge.pdf');
   };
 
-  return (
-    <div className="bg-gradient-to-b from-constalib-light-blue/30 to-white py-16 md:py-24 lg:py-32 mb-8 md:mb-16 mt-16 md:mt-20">
+  return <div className="bg-gradient-to-b from-constalib-light-blue/30 to-white py-16 md:py-24 lg:py-32 mb-8 md:mb-16 mt-16 md:mt-20">
       <div className="container px-4 mx-auto">
         <div className="max-w-3xl mx-auto text-center">
           <div className="flex justify-center mb-6">
@@ -44,15 +39,6 @@ const Hero = () => {
               <Download className="w-5 h-5" />
               Télécharger un constat vierge (PDF)
             </Button>
-            <Button 
-              variant="outline" 
-              size="lg" 
-              className="w-full sm:w-auto inline-flex items-center gap-2" 
-              onClick={() => setShowPreview(true)}
-            >
-              <Eye className="w-5 h-5" />
-              Voir le constat
-            </Button>
           </div>
           
           {/* Bouton "En savoir plus" en dessous */}
@@ -65,16 +51,7 @@ const Hero = () => {
           </div>
         </div>
       </div>
-      
-      {showPreview && (
-        <PdfPreviewModal 
-          onClose={() => setShowPreview(false)}
-          pdfUrl="/pdf/constat_amiable_vierge.pdf"
-          fallbackUrl="storage:constat-amiable-vierge.pdf/constat_amiable_vierge.pdf"
-        />
-      )}
-    </div>
-  );
+    </div>;
 };
 
 export default Hero;
