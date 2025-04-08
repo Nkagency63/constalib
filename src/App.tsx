@@ -1,29 +1,30 @@
-
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import { Toaster as SonnerToaster } from './components/ui/sonner';
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import Index from './pages/Index';
+import About from './pages/About';
 import Accident from './pages/Accident';
-import NotFound from './pages/NotFound';
 import Profile from './pages/Profile';
 import Documents from './pages/Documents';
 import Appointments from './pages/Appointments';
-import About from './pages/About';
-import './App.css';
+import Carrossiers from './pages/Carrossiers';
+import NotFound from './pages/NotFound';
+import ToastHandler from './components/ToastHandler';
 
 function App() {
   return (
-    <Router>
+    <BrowserRouter>
       <Routes>
         <Route path="/" element={<Index />} />
+        <Route path="/about" element={<About />} />
         <Route path="/accident" element={<Accident />} />
         <Route path="/profile" element={<Profile />} />
         <Route path="/documents" element={<Documents />} />
         <Route path="/appointments" element={<Appointments />} />
-        <Route path="/about" element={<About />} />
+        <Route path="/carrossiers" element={<Carrossiers />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
-      <SonnerToaster />
-    </Router>
+      
+      <ToastHandler />
+    </BrowserRouter>
   );
 }
 
