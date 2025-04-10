@@ -36,8 +36,9 @@ const LocationMap = ({ lat, lng, address }: LocationMapProps) => {
         container: mapContainer.current,
         style: 'mapbox://styles/mapbox/streets-v12',
         center: [lng, lat],
-        zoom: 15,
-        attributionControl: false
+        zoom: 17.5, // Augmenter le zoom pour une vision plus précise
+        attributionControl: false,
+        pitch: 30 // Ajouter une légère inclinaison pour une meilleure perspective
       });
 
       // Ajouter les contrôles de navigation
@@ -62,7 +63,12 @@ const LocationMap = ({ lat, lng, address }: LocationMapProps) => {
   useEffect(() => {
     if (!map.current || !marker.current || !lat || !lng) return;
     marker.current.setLngLat([lng, lat]);
-    map.current.flyTo({ center: [lng, lat], zoom: 15 });
+    map.current.flyTo({ 
+      center: [lng, lat], 
+      zoom: 17.5, // Assurer le même zoom précis lors des mises à jour
+      pitch: 30, 
+      duration: 1000 // Animation plus douce
+    });
   }, [lat, lng]);
 
   // Si nous n'avons pas de coordonnées, afficher un message
@@ -80,6 +86,16 @@ const LocationMap = ({ lat, lng, address }: LocationMapProps) => {
     <div className="space-y-2">
       <div className="h-[250px] rounded-lg overflow-hidden shadow-sm border border-gray-200" ref={mapContainer} />
       <p className="text-xs text-constalib-dark-gray">{address}</p>
+      <div className="text-xs text-constalib-dark-gray flex justify-end">
+        <Button 
+          variant="ghost" 
+          size="sm" 
+          className="text-xs p-1 h-auto"
+          onClick={() => map.current?.flyTo({ center: [lng!, lat!], zoom: 19, pitch: 45, duration: 1500 })}
+        >
+          Zoom +
+        </Button>
+      </div>
     </div>
   );
 };
