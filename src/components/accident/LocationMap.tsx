@@ -1,5 +1,6 @@
 
 import { useEffect, useRef } from 'react';
+import mapboxgl from 'mapbox-gl';
 import { Map, NavigationControl, Marker } from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import { Car } from 'lucide-react';
@@ -29,7 +30,7 @@ const LocationMap = ({ lat, lng, address }: LocationMapProps) => {
     // Initialiser la carte
     if (typeof window !== 'undefined') {
       // Définir le token d'accès pour Mapbox
-      (mapboxgl as any).accessToken = MAPBOX_TOKEN;
+      mapboxgl.accessToken = MAPBOX_TOKEN;
       
       map.current = new Map({
         container: mapContainer.current,
