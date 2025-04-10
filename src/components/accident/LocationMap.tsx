@@ -27,22 +27,26 @@ const LocationMap = ({ lat, lng, address }: LocationMapProps) => {
     if (map.current) return;
 
     // Initialiser la carte
-    (window as any).mapboxgl = { accessToken: MAPBOX_TOKEN };
-    map.current = new Map({
-      container: mapContainer.current,
-      style: 'mapbox://styles/mapbox/streets-v12',
-      center: [lng, lat],
-      zoom: 15,
-      attributionControl: false
-    });
+    if (typeof window !== 'undefined') {
+      // Définir le token d'accès pour Mapbox
+      (mapboxgl as any).accessToken = MAPBOX_TOKEN;
+      
+      map.current = new Map({
+        container: mapContainer.current,
+        style: 'mapbox://styles/mapbox/streets-v12',
+        center: [lng, lat],
+        zoom: 15,
+        attributionControl: false
+      });
 
-    // Ajouter les contrôles de navigation
-    map.current.addControl(new NavigationControl(), 'top-right');
+      // Ajouter les contrôles de navigation
+      map.current.addControl(new NavigationControl(), 'top-right');
 
-    // Ajouter un marqueur pour l'emplacement de l'accident
-    marker.current = new Marker({ color: '#ff4757' })
-      .setLngLat([lng, lat])
-      .addTo(map.current);
+      // Ajouter un marqueur pour l'emplacement de l'accident
+      marker.current = new Marker({ color: '#ff4757' })
+        .setLngLat([lng, lat])
+        .addTo(map.current);
+    }
 
     // Nettoyer la carte lorsque le composant est démonté
     return () => {
