@@ -1,0 +1,15 @@
+
+# Netlify configuration for constalib.fr
+
+[build]
+  command = "npm run build"
+  publish = "dist"
+
+# Handle client-side routing with React Router
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+
+[build.environment]
+  NODE_VERSION = "18"
