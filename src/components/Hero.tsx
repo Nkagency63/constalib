@@ -26,7 +26,7 @@ const Hero = () => {
           <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold text-constalib-dark mb-4 md:mb-6">
             Simplifiez vos déclarations d'accidents
           </h1>
-          <p className="text-base md:text-lg lg:text-xl text-constalib-dark-gray mb-6 md:mb-8 px-2">Constalib vous permet de déclarer facilement un accident et de transmettre les informations à votre assureur en quelques minutes seulement.</p>
+          <p className="text-base md:text-lg lg:text-xl text-constalib-dark-gray mb-6 md:mb-8 px-2">constalib.fr vous permet de déclarer facilement un accident et de transmettre les informations à votre assureur en quelques minutes seulement.</p>
           
           {/* Groupe de boutons principal (horizontaux sur desktop) */}
           <div className="flex flex-col sm:flex-row gap-3 md:gap-4 justify-center mb-4">

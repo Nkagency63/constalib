@@ -93,17 +93,17 @@ const handler = async (req: Request): Promise<Response> => {
               <p>${otherVehicleInfo}</p>
             </div>
             
-            ${hasPhotos ? `<p>Des photos ont été prises et sont disponibles dans le système Constalib.</p>` : 
+            ${hasPhotos ? `<p>Des photos ont été prises et sont disponibles dans le système constalib.fr.</p>` : 
             `<p>Aucune photo n'a été jointe à ce constat.</p>`}
             
-            <p>Cette déclaration a été générée par le système Constalib.fr.</p>
+            <p>Cette déclaration a été générée par le système constalib.fr.</p>
           </div>
         </body>
       </html>
     `;
 
     const data = await resend.emails.send({
-      from: "Constalib <noreply@constalib.fr>",
+      from: "constalib.fr <noreply@constalib.fr>",
       to,
       subject,
       html,
