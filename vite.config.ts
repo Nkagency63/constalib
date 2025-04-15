@@ -23,5 +23,14 @@ export default defineConfig(({ mode }) => ({
   build: {
     sourcemap: true,
     outDir: 'dist',
+    // Ensure proper asset handling for mobile
+    assetsDir: 'assets',
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          vendor: ['react', 'react-dom', 'react-router-dom'],
+        },
+      },
+    },
   },
 }));
