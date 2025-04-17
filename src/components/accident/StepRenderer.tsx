@@ -91,7 +91,7 @@ const StepRenderer = ({
       
     case 'scheme':
       return (
-        <SchemeStep formData={formData} />
+        <SchemeStep />
       );
       
     case 'email':

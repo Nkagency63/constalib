@@ -7,7 +7,7 @@ const Footer = () => {
       <div className="container mx-auto px-4">
         <div className="flex flex-col md:flex-row justify-between">
           <div className="mb-8 md:mb-0">
-            <span className="text-constalib-blue font-bold text-2xl tracking-tight">constalib.fr</span>
+            <span className="text-constalib-blue font-bold text-2xl tracking-tight">Constalib.fr</span>
             <p className="text-constalib-dark-gray mt-4 max-w-xs">
               Simplifiez vos déclarations d'accident avec notre application intuitive et efficace.
             </p>
@@ -44,7 +44,7 @@ const Footer = () => {
         </div>
         
         <div className="mt-12 pt-8 border-t border-constalib-light-gray text-center text-constalib-dark-gray text-sm">
-          &copy; {new Date().getFullYear()} constalib.fr. Tous droits réservés.
+          &copy; {new Date().getFullYear()} Constalib.fr. Tous droits réservés.
         </div>
       </div>
     </footer>

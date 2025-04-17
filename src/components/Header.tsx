@@ -30,7 +30,7 @@ const Header = () => {
         {/* Logo and brand */}
         <Link to="/" className="flex items-center gap-2">
           <Logo variant="icon-only" size="sm" />
-          <span className="text-white font-semibold text-xl hidden sm:inline-block">constalib.fr</span>
+          <span className="text-white font-semibold text-xl hidden sm:inline-block">Constalib</span>
         </Link>
 
         {/* Desktop navigation */}
@@ -100,7 +100,7 @@ const Header = () => {
               <SheetHeader className="p-6 border-b">
                 <SheetTitle className="text-xl font-bold text-constalib-blue flex items-center gap-2">
                   <Logo variant="icon-only" size="sm" />
-                  <span>constalib.fr</span>
+                  <span>Constalib</span>
                 </SheetTitle>
               </SheetHeader>
               <div className="flex flex-col p-6">
