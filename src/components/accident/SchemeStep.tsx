@@ -1,9 +1,9 @@
 
 import VehicleScheme from '../VehicleScheme';
-import { useMediaQuery } from '../../hooks/use-mobile';
+import { useIsMobile } from '../../hooks/use-mobile';
 
 const SchemeStep = () => {
-  const isMobile = useMediaQuery('(max-width: 640px)');
+  const isMobile = useIsMobile();
   
   return (
     <div className="space-y-6">

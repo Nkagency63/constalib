@@ -1,6 +1,6 @@
 
 import { useEffect } from 'react';
-import { App as CapacitorApp } from '@capacitor/core';
+import { Capacitor, CapacitorException } from '@capacitor/core';
 
 interface MobileAppWrapperProps {
   children: React.ReactNode;
@@ -9,8 +9,10 @@ interface MobileAppWrapperProps {
 const MobileAppWrapper: React.FC<MobileAppWrapperProps> = ({ children }) => {
   useEffect(() => {
     // Listen for app URL open events (deep links)
-    if ('Capacitor' in window) {
-      CapacitorApp.addListener('appUrlOpen', (data: { url: string }) => {
+    if (Capacitor.isPluginAvailable('App')) {
+      const { App } = require('@capacitor/app');
+      
+      App.addListener('appUrlOpen', (data: { url: string }) => {
         // Example: handle deep links
         const slug = data.url.split('constalib.fr/').pop();
         if (slug) {
@@ -21,21 +23,19 @@ const MobileAppWrapper: React.FC<MobileAppWrapperProps> = ({ children }) => {
       });
       
       // Listen for back button on Android
-      CapacitorApp.addListener('backButton', ({ canGoBack }) => {
+      App.addListener('backButton', ({ canGoBack }: { canGoBack: boolean }) => {
         if (!canGoBack) {
-          CapacitorApp.exitApp();
+          App.exitApp();
         } else {
           window.history.back();
         }
       });
-    }
 
-    return () => {
-      if ('Capacitor' in window) {
+      return () => {
         // Clean up listeners when component unmounts
-        CapacitorApp.removeAllListeners();
-      }
-    };
+        App.removeAllListeners();
+      };
+    }
   }, []);
 
   return <>{children}</>;
