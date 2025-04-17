@@ -1,7 +1,10 @@
 
 import VehicleScheme from '../VehicleScheme';
+import { useMediaQuery } from '../../hooks/use-mobile';
 
 const SchemeStep = () => {
+  const isMobile = useMediaQuery('(max-width: 640px)');
+  
   return (
     <div className="space-y-6">
       <div className="space-y-2">
@@ -9,6 +12,11 @@ const SchemeStep = () => {
         <p className="text-sm text-constalib-dark-gray">
           Positionnez les véhicules pour représenter visuellement l'accident.
         </p>
+        {isMobile && (
+          <p className="text-xs text-amber-600 mt-1">
+            Tournez votre appareil en mode paysage pour une meilleure expérience.
+          </p>
+        )}
       </div>
       
       <VehicleScheme />
