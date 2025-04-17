@@ -8,7 +8,7 @@ import Documents from './pages/Documents';
 import Appointments from './pages/Appointments';
 import Carrossiers from './pages/Carrossiers';
 import NotFound from './pages/NotFound';
-import ToastHandler from './components/ToastHandler';
+import ToastHandler from '@/components/ToastHandler';
 
 function App() {
   return (
