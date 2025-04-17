@@ -1,6 +1,6 @@
 
 import { useEffect } from 'react';
-import { Capacitor, CapacitorException } from '@capacitor/core';
+import { Capacitor } from '@capacitor/core';
 
 interface MobileAppWrapperProps {
   children: React.ReactNode;
