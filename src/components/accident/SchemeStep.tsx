@@ -1,9 +1,13 @@
 
 import VehicleScheme from '../VehicleScheme';
 import { useIsMobile } from '../../hooks/use-mobile';
+import AccidentMap from './AccidentMap';
+import { useFormContext } from '@/hooks/useFormContext';
 
 const SchemeStep = () => {
   const isMobile = useIsMobile();
+  const { formData } = useFormContext();
+  const { lat, lng, address } = formData.geolocation;
   
   return (
     <div className="space-y-6">
@@ -18,6 +22,13 @@ const SchemeStep = () => {
           </p>
         )}
       </div>
+
+      {lat && lng && (
+        <div className="mb-6">
+          <h4 className="text-md font-medium text-constalib-dark mb-2">Localisation de l'accident</h4>
+          <AccidentMap lat={lat} lng={lng} address={address} />
+        </div>
+      )}
       
       <VehicleScheme />
     </div>
