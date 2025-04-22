@@ -1,10 +1,17 @@
 
-import React, { Suspense, lazy } from 'react';
+import React, { Suspense, lazy, useState, useEffect } from 'react';
 import { useIsMobile } from '../../hooks/use-mobile';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Button } from '@/components/ui/button';
+import { RefreshCcw } from 'lucide-react';
 
-// Utiliser le chargement différé pour le composant de carte
-const AccidentLocationMap = lazy(() => import('./scheme/AccidentLocationMap'));
+// Use lazy loading for the map component
+const AccidentLocationMap = lazy(() => 
+  import('./scheme/AccidentLocationMap').catch(error => {
+    console.error('Failed to load AccidentLocationMap:', error);
+    return { default: () => <MapLoadError onRetry={() => window.location.reload()} /> };
+  })
+);
 
 interface SchemeStepProps {
   geolocation?: {
@@ -14,9 +21,34 @@ interface SchemeStepProps {
   };
 }
 
+// Fallback component for map loading errors
+const MapLoadError = ({ onRetry }: { onRetry: () => void }) => (
+  <div className="flex flex-col items-center justify-center h-[500px] bg-red-50 border border-red-200 rounded-lg p-4">
+    <p className="text-red-600 mb-4">Impossible de charger la carte</p>
+    <Button onClick={onRetry} variant="outline" size="sm">
+      <RefreshCcw className="w-4 h-4 mr-2" />
+      Réessayer
+    </Button>
+  </div>
+);
+
 const SchemeStep = ({ geolocation = { lat: null, lng: null, address: '' } }: SchemeStepProps) => {
   const isMobile = useIsMobile();
   const { lat, lng, address } = geolocation;
+  const [isRetrying, setIsRetrying] = useState(false);
+  
+  useEffect(() => {
+    // Reset retry state when geolocation changes
+    if (isRetrying) {
+      setIsRetrying(false);
+    }
+  }, [lat, lng, isRetrying]);
+  
+  const handleRetry = () => {
+    setIsRetrying(true);
+    // Force re-render of the map component
+    setTimeout(() => setIsRetrying(false), 100);
+  };
   
   return (
     <div className="space-y-6">
@@ -33,15 +65,34 @@ const SchemeStep = ({ geolocation = { lat: null, lng: null, address: '' } }: Sch
       </div>
 
       <Suspense fallback={
-        <div className="w-full h-[500px] rounded-lg overflow-hidden">
-          <Skeleton className="w-full h-full bg-gray-100" />
-          <div className="absolute inset-0 flex items-center justify-center">
-            <div className="text-gray-400">Chargement de la carte...</div>
+        <div className="w-full h-[500px] border border-gray-200 rounded-lg overflow-hidden bg-gray-100 flex flex-col items-center justify-center">
+          <Skeleton className="w-full h-full absolute" />
+          <div className="z-10 flex flex-col items-center">
+            <div className="text-gray-500 mb-2">Chargement de la carte...</div>
+            <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-constalib-blue"></div>
           </div>
         </div>
       }>
-        <AccidentLocationMap lat={lat} lng={lng} address={address} />
+        {!isRetrying && (
+          <AccidentLocationMap lat={lat} lng={lng} address={address} />
+        )}
       </Suspense>
+      
+      {!lat && !lng && (
+        <div className="bg-amber-50 border border-amber-200 rounded p-3 text-amber-800 text-sm">
+          <p className="font-medium">Coordonnées GPS manquantes</p>
+          <p className="mt-1">Vous n'avez pas encore fourni de localisation précise. Revenez à l'étape "Lieu de l'accident" pour définir l'emplacement.</p>
+          <Button 
+            variant="outline" 
+            size="sm" 
+            className="mt-2 bg-white"
+            onClick={handleRetry}
+          >
+            <RefreshCcw className="w-4 h-4 mr-2" />
+            Réessayer avec les données actuelles
+          </Button>
+        </div>
+      )}
     </div>
   );
 };
