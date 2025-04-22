@@ -24,18 +24,25 @@ const AccidentMap = ({ lat, lng, address }: AccidentMapProps) => {
 
     const initializeMap = async () => {
       try {
+        setIsLoading(true);
+        
+        // Get Mapbox token from Supabase Edge Function
         const { data, error } = await supabase.functions.invoke('get-mapbox-token');
         
         if (error) {
-          throw new Error(error.message);
+          console.error('Error getting Mapbox token:', error);
+          throw new Error(error.message || 'Failed to get Mapbox token');
         }
 
         if (!data?.token) {
+          console.error('No Mapbox token returned from Edge Function');
           throw new Error('No Mapbox token available');
         }
 
+        // Initialize Mapbox with the token
         mapboxgl.accessToken = data.token;
         
+        // Create the map
         map.current = new mapboxgl.Map({
           container: mapContainer.current,
           style: 'mapbox://styles/mapbox/streets-v12',
@@ -44,26 +51,41 @@ const AccidentMap = ({ lat, lng, address }: AccidentMapProps) => {
           pitch: 45
         });
 
-        // Ajouter les contrôles de navigation
+        // Add navigation controls
         map.current.addControl(new mapboxgl.NavigationControl(), 'top-right');
 
-        // Créer un marqueur personnalisé pour l'accident
-        const el = document.createElement('div');
-        el.className = 'custom-marker';
-        el.innerHTML = `<div class="bg-red-500 p-2 rounded-full">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-            <path d="M19 17H5L3 15V13H21V15L19 17Z" stroke="white" stroke-width="2"/>
-            <path d="M6 13V7C6 5.89543 6.89543 5 8 5H16C17.1046 5 18 5.89543 18 7V13" stroke="white" stroke-width="2"/>
-          </svg>
-        </div>`;
+        // Wait for map to load
+        map.current.on('load', () => {
+          // Create custom marker for the accident
+          const el = document.createElement('div');
+          el.className = 'custom-marker';
+          el.innerHTML = `<div class="bg-red-500 p-2 rounded-full">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+              <path d="M19 17H5L3 15V13H21V15L19 17Z" stroke="white" stroke-width="2"/>
+              <path d="M6 13V7C6 5.89543 6.89543 5 8 5H16C17.1046 5 18 5.89543 18 7V13" stroke="white" stroke-width="2"/>
+            </svg>
+          </div>`;
 
-        // Ajouter le marqueur à la carte
-        marker.current = new mapboxgl.Marker(el)
-          .setLngLat([lng, lat])
-          .setPopup(new mapboxgl.Popup({ offset: 25 }).setHTML(`<p>${address}</p>`))
-          .addTo(map.current);
+          // Add marker to map
+          marker.current = new mapboxgl.Marker(el)
+            .setLngLat([lng, lat])
+            .setPopup(new mapboxgl.Popup({ offset: 25 }).setHTML(`<p>${address}</p>`))
+            .addTo(map.current);
 
-        setIsLoading(false);
+          setIsLoading(false);
+        });
+
+        // Handle errors during map load
+        map.current.on('error', (e) => {
+          console.error('Mapbox error:', e);
+          toast({
+            title: "Erreur de carte",
+            description: "Impossible de charger la carte correctement. Veuillez réessayer.",
+            variant: "destructive"
+          });
+          setIsLoading(false);
+        });
+
       } catch (err) {
         console.error('Error initializing map:', err);
         toast({
@@ -77,8 +99,12 @@ const AccidentMap = ({ lat, lng, address }: AccidentMapProps) => {
 
     initializeMap();
 
+    // Cleanup function
     return () => {
-      map.current?.remove();
+      if (map.current) {
+        map.current.remove();
+        map.current = null;
+      }
     };
   }, [lat, lng, address, toast]);
 
