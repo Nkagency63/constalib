@@ -1,7 +1,10 @@
 
-import React from 'react';
+import React, { Suspense, lazy } from 'react';
 import { useIsMobile } from '../../hooks/use-mobile';
-import AccidentLocationMap from './scheme/AccidentLocationMap';
+import { Skeleton } from '@/components/ui/skeleton';
+
+// Utiliser le chargement différé pour le composant de carte
+const AccidentLocationMap = lazy(() => import('./scheme/AccidentLocationMap'));
 
 interface SchemeStepProps {
   geolocation?: {
@@ -29,7 +32,16 @@ const SchemeStep = ({ geolocation = { lat: null, lng: null, address: '' } }: Sch
         )}
       </div>
 
-      <AccidentLocationMap lat={lat} lng={lng} address={address} />
+      <Suspense fallback={
+        <div className="w-full h-[500px] rounded-lg overflow-hidden">
+          <Skeleton className="w-full h-full bg-gray-100" />
+          <div className="absolute inset-0 flex items-center justify-center">
+            <div className="text-gray-400">Chargement de la carte...</div>
+          </div>
+        </div>
+      }>
+        <AccidentLocationMap lat={lat} lng={lng} address={address} />
+      </Suspense>
     </div>
   );
 };
