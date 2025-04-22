@@ -23,14 +23,14 @@ export const accidentFormSteps: Step[] = [
     description: 'Description de l\'accident'
   },
   {
-    id: 'photos',
-    title: 'Photos',
-    description: 'Photographies des véhicules et des dégâts'
-  },
-  {
     id: 'scheme',
     title: 'Schéma',
     description: 'Positionnement des véhicules'
+  },
+  {
+    id: 'photos',
+    title: 'Photos',
+    description: 'Photographies des véhicules et des dégâts'
   },
   {
     id: 'email',
