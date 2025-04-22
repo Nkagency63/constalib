@@ -41,6 +41,13 @@ const SchemeStep = ({ geolocation = { lat: null, lng: null, address: '' } }: Sch
   const { lat, lng, address } = geolocation;
   const [isRetrying, setIsRetrying] = useState(false);
   const [key, setKey] = useState(0); // Key to force re-render of the map component
+  const [mapMounted, setMapMounted] = useState(false);
+  
+  // Set map as mounted after initial render
+  useEffect(() => {
+    setMapMounted(true);
+    return () => setMapMounted(false);
+  }, []);
   
   // Reset retry state when geolocation changes
   useEffect(() => {
@@ -51,17 +58,24 @@ const SchemeStep = ({ geolocation = { lat: null, lng: null, address: '' } }: Sch
   
   // Force re-render of map when location changes with a slight delay
   useEffect(() => {
+    if (!mapMounted) return;
+    
     const timer = setTimeout(() => {
       setKey(prevKey => prevKey + 1);
+      console.log('SchemeStep: Updating map key to force re-render', key + 1);
     }, 300); // Small delay to allow DOM to settle
     
     return () => clearTimeout(timer);
-  }, [lat, lng]);
+  }, [lat, lng, mapMounted, key]);
   
   const handleRetry = () => {
     setIsRetrying(true);
     // Force re-render of the map component by changing its key
-    setKey(prevKey => prevKey + 1);
+    setKey(prevKey => {
+      console.log('SchemeStep: Manual retry, updating key', prevKey + 1);
+      return prevKey + 1;
+    });
+    
     toast('Tentative de rechargement de la carte', {
       description: 'Rechargement en cours...'
     });
@@ -93,13 +107,15 @@ const SchemeStep = ({ geolocation = { lat: null, lng: null, address: '' } }: Sch
           </div>
         </div>
       }>
-        {!isRetrying && (
-          <AccidentLocationMap 
-            key={key} 
-            lat={lat} 
-            lng={lng} 
-            address={address} 
-          />
+        {(!isRetrying && mapMounted) && (
+          <div id="map-container-wrapper" className="relative w-full h-auto">
+            <AccidentLocationMap 
+              key={key} 
+              lat={lat} 
+              lng={lng} 
+              address={address} 
+            />
+          </div>
         )}
       </Suspense>
       

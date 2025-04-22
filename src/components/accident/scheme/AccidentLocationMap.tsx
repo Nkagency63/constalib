@@ -15,7 +15,6 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
   DialogFooter
 } from '@/components/ui/dialog';
 
@@ -26,7 +25,8 @@ interface AccidentLocationMapProps {
 }
 
 const AccidentLocationMap = ({ lat, lng, address }: AccidentLocationMapProps) => {
-  const mapRef = useRef<HTMLDivElement>(null);
+  const mapContainerRef = useRef<HTMLDivElement>(null);
+  const [mapReady, setMapReady] = useState(false);
   const [mapLoaded, setMapLoaded] = useState(false);
   const [loadRetries, setLoadRetries] = useState(0);
   const [showDiagnosticDialog, setShowDiagnosticDialog] = useState(false);
@@ -66,6 +66,16 @@ const AccidentLocationMap = ({ lat, lng, address }: AccidentLocationMapProps) =>
     });
   }, []);
 
+  // Effect to set mapReady after mount
+  useEffect(() => {
+    // Use a short timeout to ensure DOM is fully rendered
+    const timer = setTimeout(() => {
+      setMapReady(true);
+    }, 100);
+    
+    return () => clearTimeout(timer);
+  }, []);
+
   const { 
     map, 
     isLoading, 
@@ -76,23 +86,29 @@ const AccidentLocationMap = ({ lat, lng, address }: AccidentLocationMapProps) =>
     setMapState,
     getDiagnosticInfo
   } = useMapInitialization({
-    mapRef,
+    mapRef: mapContainerRef,
     lat,
     lng,
     handleMapClick,
     onLoadComplete: handleMapLoaded
   });
 
-  // Initial map loading
+  // Initial map loading - only run once mapReady is true
   useEffect(() => {
-    console.log('Initial map loading effect triggered');
+    if (!mapReady) return;
+    
+    console.log('Initial map loading effect triggered, mapReady:', mapReady);
+    console.log('Map container ref exists:', !!mapContainerRef.current);
+    
     let timer: NodeJS.Timeout;
     
-    if (mapRef.current) {
+    if (mapContainerRef.current) {
       timer = setTimeout(() => {
         console.log('Attempting to initialize map for the first time');
         initializeMap();
       }, 500);
+    } else {
+      console.warn('Map container ref is not available yet');
     }
     
     return () => {
@@ -103,10 +119,12 @@ const AccidentLocationMap = ({ lat, lng, address }: AccidentLocationMapProps) =>
         map.remove();
       }
     };
-  }, []);
+  }, [mapReady, initializeMap, map]);
 
   // Handle coordinate changes
   useEffect(() => {
+    if (!mapReady) return;
+    
     console.log(`Map coordinates changed: lat=${lat}, lng=${lng}`);
     if (initAttempts > 0 && (lat !== undefined || lng !== undefined)) {
       const timer = setTimeout(() => {
@@ -118,7 +136,7 @@ const AccidentLocationMap = ({ lat, lng, address }: AccidentLocationMapProps) =>
       
       return () => clearTimeout(timer);
     }
-  }, [lat, lng]);
+  }, [lat, lng, mapReady, initAttempts, forceReload, setMapState]);
 
   const handleVehicleMouseDown = (vehicleId: string, e: React.MouseEvent) => {
     e.preventDefault();
@@ -135,17 +153,46 @@ const AccidentLocationMap = ({ lat, lng, address }: AccidentLocationMapProps) =>
     setLoadRetries(prev => prev + 1);
     setMapLoaded(false);
     
+    // Reset mapReady to true to ensure we have a fresh reference
+    setMapReady(true);
+    
     // Notify the user that we're trying to reload
     toast('Tentative de rechargement', {
       description: 'Rechargement de la carte en cours...',
     });
     
-    forceReload();
+    // Short delay before forcing reload
+    setTimeout(() => {
+      if (mapContainerRef.current) {
+        console.log('Map container exists on retry, proceeding with reload');
+        forceReload();
+      } else {
+        console.error('Map container still not found on retry');
+        setMapState(prev => ({
+          ...prev,
+          isLoading: false,
+          mapError: 'Conteneur de carte introuvable. Veuillez réessayer.'
+        }));
+      }
+    }, 100);
   };
 
   const openDiagnosticDialog = () => {
     setShowDiagnosticDialog(true);
   };
+
+  // Additional debugging info
+  useEffect(() => {
+    console.log('Map component state:', {
+      mapReady,
+      mapLoaded,
+      isLoading,
+      hasError: !!mapError,
+      containerExists: !!mapContainerRef.current,
+      mapExists: !!map,
+      initAttempts
+    });
+  }, [mapReady, mapLoaded, isLoading, mapError, map, initAttempts]);
 
   return (
     <div className="space-y-4">
@@ -198,8 +245,9 @@ const AccidentLocationMap = ({ lat, lng, address }: AccidentLocationMapProps) =>
           <MapError error={mapError} onRetry={handleRetry} />
         ) : (
           <>
+            {/* We always render the map container div, even when not loaded */}
             <div 
-              ref={mapRef}
+              ref={mapContainerRef}
               id="accident-location-map" 
               className="absolute inset-0 z-0"
               style={{ height: '100%', width: '100%' }}
@@ -276,8 +324,10 @@ const AccidentLocationMap = ({ lat, lng, address }: AccidentLocationMapProps) =>
               <h4 className="font-medium mb-1">État actuel:</h4>
               <ul className="ml-5 list-disc space-y-1">
                 <li>Carte chargée: {mapLoaded ? 'Oui' : 'Non'}</li>
+                <li>Composant prêt: {mapReady ? 'Oui' : 'Non'}</li>
                 <li>En chargement: {isLoading ? 'Oui' : 'Non'}</li>
                 <li>Erreur: {mapError || 'Aucune'}</li>
+                <li>Conteneur disponible: {mapContainerRef.current ? 'Oui' : 'Non'}</li>
                 <li>Tentatives d'initialisation: {initAttempts}</li>
                 <li>Coordonnées: {lat && lng ? `${lat.toFixed(5)}, ${lng.toFixed(5)}` : 'Non définies'}</li>
               </ul>
