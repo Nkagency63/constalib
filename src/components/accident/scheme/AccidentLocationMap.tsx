@@ -6,7 +6,8 @@ import VehicleIcon from './VehicleIcon';
 import MapControls from './components/MapControls';
 import MapError from './components/MapError';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Button } from '@/components/ui/button'; // Add the Button import
+import { Button } from '@/components/ui/button';
+import { RefreshCcw } from 'lucide-react';
 
 interface AccidentLocationMapProps {
   lat: number | null;
@@ -16,6 +17,7 @@ interface AccidentLocationMapProps {
 
 const AccidentLocationMap = ({ lat, lng, address }: AccidentLocationMapProps) => {
   const mapRef = useRef<HTMLDivElement>(null);
+  const [mapLoaded, setMapLoaded] = React.useState(false);
   const [initAttempts, setInitAttempts] = React.useState(0);
   
   const {
@@ -46,38 +48,49 @@ const AccidentLocationMap = ({ lat, lng, address }: AccidentLocationMapProps) =>
     mapRef,
     lat,
     lng,
-    handleMapClick
+    handleMapClick,
+    onLoadComplete: () => setMapLoaded(true)
   });
 
+  // Initial map loading
   useEffect(() => {
-    const timer = setTimeout(() => {
-      if (mapRef.current) {
+    console.log('Initial map loading effect triggered');
+    let timer: NodeJS.Timeout;
+    
+    if (mapRef.current) {
+      timer = setTimeout(() => {
+        console.log('Attempting to initialize map for the first time');
         initializeMap();
         setInitAttempts(prev => prev + 1);
-      }
-    }, 500);
+      }, 500);
+    }
     
     return () => {
       clearTimeout(timer);
       if (map) {
+        console.log('Cleaning up map instance');
         map.off();
         map.remove();
       }
     };
   }, []);
 
+  // Handle coordinate changes or retry attempts
   useEffect(() => {
+    console.log(`Map coordinates changed or retry attempted: lat=${lat}, lng=${lng}, attempts=${initAttempts}`);
     if (initAttempts > 0) {
       const timer = setTimeout(() => {
         if (mapRef.current) {
-          setMapState(prev => ({ ...prev, isLoading: true }));
+          console.log('Reinitializing map due to coordinate changes or retry');
+          setMapLoaded(false);
+          setMapState(prev => ({ ...prev, isLoading: true, mapError: null }));
           initializeMap();
         }
       }, 300);
       
       return () => clearTimeout(timer);
     }
-  }, [lat, lng, initAttempts, initializeMap, setMapState]);
+  }, [lat, lng, initAttempts]);
 
   const handleVehicleMouseDown = (vehicleId: string, e: React.MouseEvent) => {
     e.preventDefault();
@@ -90,10 +103,13 @@ const AccidentLocationMap = ({ lat, lng, address }: AccidentLocationMapProps) =>
   };
 
   const handleRetry = () => {
+    console.log('Manual retry requested by user');
     setMapState(prev => ({ ...prev, isLoading: true, mapError: null }));
+    setMapLoaded(false);
     
     setTimeout(() => {
       if (mapRef.current) {
+        setInitAttempts(prev => prev + 1);
         initializeMap();
       }
     }, 300);
@@ -118,6 +134,17 @@ const AccidentLocationMap = ({ lat, lng, address }: AccidentLocationMapProps) =>
             <div className="absolute inset-0 flex flex-col items-center justify-center">
               <div className="text-gray-500 mb-2">Chargement de la carte...</div>
               <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-constalib-blue"></div>
+              {initAttempts > 2 && (
+                <Button 
+                  onClick={handleRetry} 
+                  variant="outline" 
+                  size="sm" 
+                  className="mt-4"
+                >
+                  <RefreshCcw className="w-4 h-4 mr-2" />
+                  Forcer le rechargement
+                </Button>
+              )}
             </div>
           </div>
         ) : mapError ? (
@@ -150,6 +177,7 @@ const AccidentLocationMap = ({ lat, lng, address }: AccidentLocationMapProps) =>
             <div className="text-center p-4">
               <p className="text-constalib-dark-gray mb-2">Coordonnées GPS manquantes</p>
               <Button onClick={handleRetry}>
+                <RefreshCcw className="w-4 h-4 mr-2" />
                 Réessayer
               </Button>
             </div>
