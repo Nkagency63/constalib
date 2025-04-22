@@ -23,8 +23,8 @@ const accidentIcon = new L.Icon({
 });
 
 interface AccidentMapProps {
-  lat: number;
-  lng: number;
+  lat: number | null;
+  lng: number | null;
   address: string;
 }
 

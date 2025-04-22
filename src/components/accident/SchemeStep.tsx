@@ -1,13 +1,20 @@
 
+import React from 'react';
 import VehicleScheme from '../VehicleScheme';
 import { useIsMobile } from '../../hooks/use-mobile';
 import AccidentMap from './AccidentMap';
-import { useFormContext } from '@/hooks/useFormContext';
 
-const SchemeStep = () => {
+interface SchemeStepProps {
+  geolocation?: {
+    lat: number | null;
+    lng: number | null;
+    address: string;
+  };
+}
+
+const SchemeStep = ({ geolocation = { lat: null, lng: null, address: '' } }: SchemeStepProps) => {
   const isMobile = useIsMobile();
-  const { formData } = useFormContext();
-  const { lat, lng, address } = formData.geolocation;
+  const { lat, lng, address } = geolocation;
   
   return (
     <div className="space-y-6">
