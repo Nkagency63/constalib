@@ -4,9 +4,9 @@ import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { useVehicleScheme } from './useVehicleScheme';
 import VehicleIcon from './VehicleIcon';
-import { Car, Plus, Minus, Undo, Redo } from 'lucide-react';
+import { Car, Plus, Minus, Undo, Redo, AlertTriangle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 import { Skeleton } from '@/components/ui/skeleton';
 
 interface AccidentLocationMapProps {
@@ -24,8 +24,8 @@ const AccidentLocationMap = ({ lat, lng, address }: AccidentLocationMapProps) =>
   const mapRef = useRef<HTMLDivElement>(null);
   const [map, setMap] = useState<L.Map | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [mapInitAttempted, setMapInitAttempted] = useState(false);
-  const { toast } = useToast();
+  const [mapError, setMapError] = useState<string | null>(null);
+  const [initAttempts, setInitAttempts] = useState(0);
   
   const {
     vehicles,
@@ -45,19 +45,21 @@ const AccidentLocationMap = ({ lat, lng, address }: AccidentLocationMapProps) =>
     setZoom
   } = useVehicleScheme();
 
-  // Map initialization function
+  // Map initialization function with improved error handling
   const initializeMap = useCallback(() => {
     if (!mapRef.current) {
       console.error('Map container reference not found');
+      setMapError('Conteneur de carte introuvable');
+      setIsLoading(false);
       return;
     }
     
     try {
-      setMapInitAttempted(true);
+      setMapError(null);
       
       // Clean up any previous map instance
       if (map) {
-        map.off('click', handleMapClick);
+        map.off();
         map.remove();
       }
       
@@ -68,7 +70,8 @@ const AccidentLocationMap = ({ lat, lng, address }: AccidentLocationMapProps) =>
       };
       
       console.log('Initializing map at coordinates:', useLocation);
-      console.log('Map container element:', mapRef.current);
+      console.log('Map container element ID:', mapRef.current.id);
+      console.log('Map container dimensions:', mapRef.current.clientWidth, 'x', mapRef.current.clientHeight);
       
       // Create map with optimized settings
       const newMap = L.map(mapRef.current, {
@@ -77,9 +80,11 @@ const AccidentLocationMap = ({ lat, lng, address }: AccidentLocationMapProps) =>
         attributionControl: false,
         fadeAnimation: false,
         zoomAnimation: false,
+        inertia: false,
+        markerZoomAnimation: false
       }).setView([useLocation.lat, useLocation.lng], 18);
       
-      // Add tile layer
+      // Add tile layer with fast loading tiles
       L.tileLayer('https://{s}.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png', {
         attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
         maxZoom: 19,
@@ -99,14 +104,25 @@ const AccidentLocationMap = ({ lat, lng, address }: AccidentLocationMapProps) =>
       console.log('Map initialized successfully');
     } catch (error) {
       console.error('Error initializing map:', error);
-      toast({
-        title: "Erreur de carte",
-        description: "Impossible d'initialiser la carte. Veuillez réessayer.",
-        variant: "destructive"
-      });
+      setMapError('Erreur d\'initialisation de la carte');
       setIsLoading(false);
+      
+      // Log more details for debugging
+      if (mapRef.current) {
+        console.log('Map container state when error occurred:', {
+          id: mapRef.current.id,
+          width: mapRef.current.clientWidth,
+          height: mapRef.current.clientHeight,
+          innerHTML: mapRef.current.innerHTML.substring(0, 100) + '...',
+          isConnected: mapRef.current.isConnected
+        });
+      }
+      
+      toast('Erreur de carte', {
+        description: 'Impossible d\'initialiser la carte. Veuillez réessayer.',
+      });
     }
-  }, [lat, lng, toast, map]);
+  }, [lat, lng, map]);
 
   const handleMapClick = useCallback((e: L.LeafletMouseEvent) => {
     if (!map) return;
@@ -116,14 +132,17 @@ const AccidentLocationMap = ({ lat, lng, address }: AccidentLocationMapProps) =>
     }
   }, [map, isDragging, selectedVehicle, updateVehiclePosition]);
 
-  // Initialize map when component is fully mounted and ready
+  // Initialize map with delay when component mounts
   useEffect(() => {
     // Use a delay to ensure DOM is fully ready
     const timer = setTimeout(() => {
       if (mapRef.current) {
         initializeMap();
+        setInitAttempts(prev => prev + 1);
       } else {
         console.error('Map container element not available after timeout');
+        setMapError('Conteneur de carte non disponible');
+        setIsLoading(false);
       }
     }, 500);
     
@@ -134,21 +153,24 @@ const AccidentLocationMap = ({ lat, lng, address }: AccidentLocationMapProps) =>
         map.remove();
       }
     };
-  }, [initializeMap]);
+  }, []); // Empty dependency array for initial mount only
 
-  // Re-initialize map when coordinates change
+  // Reinitialize map when coordinates change
   useEffect(() => {
-    if (mapInitAttempted && (lat || lng)) {
+    if (initAttempts > 0) {  // Only react to coordinate changes after initial render
+      console.log('Coordinates changed, reinitializing map:', { lat, lng });
+      
       // Small delay to ensure DOM updates before re-initializing
       const timer = setTimeout(() => {
         if (mapRef.current) {
+          setIsLoading(true);
           initializeMap();
         }
       }, 300);
       
       return () => clearTimeout(timer);
     }
-  }, [lat, lng, mapInitAttempted, initializeMap]);
+  }, [lat, lng, initAttempts, initializeMap]);
 
   const handleVehicleMouseDown = (vehicleId: string, e: React.MouseEvent) => {
     e.preventDefault();
@@ -160,11 +182,20 @@ const AccidentLocationMap = ({ lat, lng, address }: AccidentLocationMapProps) =>
     setIsDragging(false);
   };
 
-  // If map failed to initialize, provide a retry button
+  // Retry map initialization
   const handleRetry = () => {
     setIsLoading(true);
-    setMapInitAttempted(false);
-    setTimeout(initializeMap, 500);
+    setMapError(null);
+    
+    // Delay slightly to ensure DOM is ready
+    setTimeout(() => {
+      if (mapRef.current) {
+        initializeMap();
+      } else {
+        setMapError('Conteneur de carte non disponible');
+        setIsLoading(false);
+      }
+    }, 300);
   };
 
   return (
@@ -213,30 +244,41 @@ const AccidentLocationMap = ({ lat, lng, address }: AccidentLocationMapProps) =>
               <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-constalib-blue"></div>
             </div>
           </div>
+        ) : mapError ? (
+          <div className="absolute inset-0 flex flex-col items-center justify-center bg-red-50 p-4">
+            <AlertTriangle className="w-8 h-8 text-red-500 mb-2" />
+            <p className="text-red-600 mb-4">{mapError}</p>
+            <Button onClick={handleRetry} variant="outline">
+              <RefreshCcw className="w-4 h-4 mr-2" />
+              Réessayer
+            </Button>
+          </div>
         ) : (
-          <div 
-            ref={mapRef}
-            id="accident-location-map" 
-            className="absolute inset-0 z-0"
-            style={{ height: '100%' }}
-            onMouseUp={handleMouseUp}
-          />
+          <>
+            <div 
+              ref={mapRef}
+              id="accident-location-map" 
+              className="absolute inset-0 z-0"
+              style={{ height: '100%' }}
+              onMouseUp={handleMouseUp}
+            />
+            
+            {/* Vehicle icons layer - absolute positioned above the map */}
+            {vehicles.map(vehicle => (
+              <VehicleIcon
+                key={vehicle.id}
+                vehicle={vehicle}
+                isSelected={selectedVehicle === vehicle.id}
+                onMouseDown={handleVehicleMouseDown}
+                onRotate={rotateVehicle}
+                onRemove={removeVehicle}
+              />
+            ))}
+          </>
         )}
         
-        {/* Vehicle icons layer - absolute positioned above the map */}
-        {!isLoading && vehicles.map(vehicle => (
-          <VehicleIcon
-            key={vehicle.id}
-            vehicle={vehicle}
-            isSelected={selectedVehicle === vehicle.id}
-            onMouseDown={handleVehicleMouseDown}
-            onRotate={rotateVehicle}
-            onRemove={removeVehicle}
-          />
-        ))}
-        
-        {/* Show retry button if coordinates are missing */}
-        {!isLoading && !lat && !lng && (
+        {/* Show message if coordinates are missing */}
+        {!isLoading && !mapError && !lat && !lng && (
           <div className="absolute inset-0 flex items-center justify-center bg-gray-100/80">
             <div className="text-center p-4">
               <p className="text-constalib-dark-gray mb-2">Coordonnées GPS manquantes</p>

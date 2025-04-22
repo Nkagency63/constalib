@@ -42,16 +42,20 @@ const SchemeStep = ({ geolocation = { lat: null, lng: null, address: '' } }: Sch
   const [isRetrying, setIsRetrying] = useState(false);
   const [key, setKey] = useState(0); // Key to force re-render of the map component
   
+  // Reset retry state when geolocation changes
   useEffect(() => {
-    // Reset retry state when geolocation changes
     if (isRetrying) {
       setIsRetrying(false);
     }
   }, [lat, lng, isRetrying]);
   
+  // Force re-render of map when location changes with a slight delay
   useEffect(() => {
-    // Force re-render of map when location changes
-    setKey(prevKey => prevKey + 1);
+    const timer = setTimeout(() => {
+      setKey(prevKey => prevKey + 1);
+    }, 300); // Small delay to allow DOM to settle
+    
+    return () => clearTimeout(timer);
   }, [lat, lng]);
   
   const handleRetry = () => {
