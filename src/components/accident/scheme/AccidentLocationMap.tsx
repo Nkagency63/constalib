@@ -6,6 +6,7 @@ import VehicleIcon from './VehicleIcon';
 import MapControls from './components/MapControls';
 import MapError from './components/MapError';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Button } from '@/components/ui/button'; // Add the Button import
 
 interface AccidentLocationMapProps {
   lat: number | null;
