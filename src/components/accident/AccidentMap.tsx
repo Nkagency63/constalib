@@ -1,10 +1,28 @@
 
-import React, { useEffect, useRef, useState } from 'react';
-import mapboxgl from 'mapbox-gl';
-import 'mapbox-gl/dist/mapbox-gl.css';
+import React, { useEffect, useState } from 'react';
+import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
+import L from 'leaflet';
+import 'leaflet/dist/leaflet.css';
 import { CarFront } from 'lucide-react';
-import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+
+// Fix for default icon issue in Leaflet with webpack/vite
+// We need to redefine the default icon paths
+delete L.Icon.Default.prototype._getIconUrl;
+L.Icon.Default.mergeOptions({
+  iconRetinaUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',
+  iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
+  shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
+});
+
+// Custom icon for accident marker
+const accidentIcon = new L.Icon({
+  iconUrl: 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9IndoaXRlIiBzdHJva2Utd2lkdGg9IjIiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIgY2xhc3M9Imx1Y2lkZSBsdWNpZGUtY2FyIj48cGF0aCBkPSJNMTkgMTdINUwzIDE1VjEzSDIxVjE1TDE5IDE3WiIvPjxwYXRoIGQ9Ik02IDEzVjdDNiA1Ljg5NTQzIDYuODk1NDMgNSA4IDVIMTZDMTcuMTA0NiA1IDE4IDUuODk1NDMgMTggN1YxMyIvPjwvc3ZnPg==',
+  iconSize: [30, 30],
+  iconAnchor: [15, 15],
+  popupAnchor: [0, -15],
+  className: 'bg-red-500 p-1 rounded-full'
+});
 
 interface AccidentMapProps {
   lat: number;
@@ -13,100 +31,22 @@ interface AccidentMapProps {
 }
 
 const AccidentMap = ({ lat, lng, address }: AccidentMapProps) => {
-  const mapContainer = useRef<HTMLDivElement>(null);
-  const map = useRef<mapboxgl.Map | null>(null);
-  const marker = useRef<mapboxgl.Marker | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
+  const position: [number, number] = [lat, lng];
 
   useEffect(() => {
-    if (!mapContainer.current || !lat || !lng) return;
-
-    const initializeMap = async () => {
-      try {
-        setIsLoading(true);
-        
-        // Get Mapbox token from Supabase Edge Function
-        const { data, error } = await supabase.functions.invoke('get-mapbox-token');
-        
-        if (error) {
-          console.error('Error getting Mapbox token:', error);
-          throw new Error(error.message || 'Failed to get Mapbox token');
-        }
-
-        if (!data?.token) {
-          console.error('No Mapbox token returned from Edge Function');
-          throw new Error('No Mapbox token available');
-        }
-
-        // Initialize Mapbox with the token
-        mapboxgl.accessToken = data.token;
-        
-        // Create the map
-        map.current = new mapboxgl.Map({
-          container: mapContainer.current,
-          style: 'mapbox://styles/mapbox/streets-v12',
-          center: [lng, lat],
-          zoom: 15,
-          pitch: 45
-        });
-
-        // Add navigation controls
-        map.current.addControl(new mapboxgl.NavigationControl(), 'top-right');
-
-        // Wait for map to load
-        map.current.on('load', () => {
-          // Create custom marker for the accident
-          const el = document.createElement('div');
-          el.className = 'custom-marker';
-          el.innerHTML = `<div class="bg-red-500 p-2 rounded-full">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-              <path d="M19 17H5L3 15V13H21V15L19 17Z" stroke="white" stroke-width="2"/>
-              <path d="M6 13V7C6 5.89543 6.89543 5 8 5H16C17.1046 5 18 5.89543 18 7V13" stroke="white" stroke-width="2"/>
-            </svg>
-          </div>`;
-
-          // Add marker to map
-          marker.current = new mapboxgl.Marker(el)
-            .setLngLat([lng, lat])
-            .setPopup(new mapboxgl.Popup({ offset: 25 }).setHTML(`<p>${address}</p>`))
-            .addTo(map.current);
-
-          setIsLoading(false);
-        });
-
-        // Handle errors during map load
-        map.current.on('error', (e) => {
-          console.error('Mapbox error:', e);
-          toast({
-            title: "Erreur de carte",
-            description: "Impossible de charger la carte correctement. Veuillez réessayer.",
-            variant: "destructive"
-          });
-          setIsLoading(false);
-        });
-
-      } catch (err) {
-        console.error('Error initializing map:', err);
-        toast({
-          title: "Erreur",
-          description: "Impossible de charger la carte. Veuillez réessayer plus tard.",
-          variant: "destructive"
-        });
-        setIsLoading(false);
-      }
-    };
-
-    initializeMap();
-
-    // Cleanup function
+    if (!lat || !lng) return;
+    
+    // Set loading to false after a small delay to ensure the map has time to initialize
+    const timer = setTimeout(() => {
+      setIsLoading(false);
+    }, 500);
+    
     return () => {
-      if (map.current) {
-        map.current.remove();
-        map.current = null;
-      }
+      clearTimeout(timer);
     };
-  }, [lat, lng, address, toast]);
+  }, [lat, lng]);
 
   if (isLoading) {
     return (
@@ -120,14 +60,22 @@ const AccidentMap = ({ lat, lng, address }: AccidentMapProps) => {
 
   return (
     <div className="rounded-lg overflow-hidden shadow-lg">
-      <div ref={mapContainer} style={{ height: '300px' }} />
-      <style>
-        {`
-          .custom-marker {
-            cursor: pointer;
-          }
-        `}
-      </style>
+      <MapContainer 
+        center={position} 
+        zoom={15} 
+        style={{ height: '300px', width: '100%' }}
+        scrollWheelZoom={false}
+      >
+        <TileLayer
+          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+        />
+        <Marker position={position} icon={accidentIcon}>
+          <Popup>
+            {address}
+          </Popup>
+        </Marker>
+      </MapContainer>
     </div>
   );
 };
