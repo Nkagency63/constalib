@@ -4,11 +4,15 @@ import { useIsMobile } from '../../hooks/use-mobile';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
 import { RefreshCcw } from 'lucide-react';
+import { toast } from 'sonner';
 
 // Use lazy loading for the map component
 const AccidentLocationMap = lazy(() => 
   import('./scheme/AccidentLocationMap').catch(error => {
     console.error('Failed to load AccidentLocationMap:', error);
+    toast('Erreur de chargement de la carte', {
+      description: 'Impossible de charger le composant de carte.'
+    });
     return { default: () => <MapLoadError onRetry={() => window.location.reload()} /> };
   })
 );
@@ -36,6 +40,7 @@ const SchemeStep = ({ geolocation = { lat: null, lng: null, address: '' } }: Sch
   const isMobile = useIsMobile();
   const { lat, lng, address } = geolocation;
   const [isRetrying, setIsRetrying] = useState(false);
+  const [key, setKey] = useState(0); // Key to force re-render of the map component
   
   useEffect(() => {
     // Reset retry state when geolocation changes
@@ -44,9 +49,20 @@ const SchemeStep = ({ geolocation = { lat: null, lng: null, address: '' } }: Sch
     }
   }, [lat, lng, isRetrying]);
   
+  useEffect(() => {
+    // Force re-render of map when location changes
+    setKey(prevKey => prevKey + 1);
+  }, [lat, lng]);
+  
   const handleRetry = () => {
     setIsRetrying(true);
-    // Force re-render of the map component
+    // Force re-render of the map component by changing its key
+    setKey(prevKey => prevKey + 1);
+    toast('Tentative de rechargement de la carte', {
+      description: 'Rechargement en cours...'
+    });
+    
+    // Reset retry state after a short delay
     setTimeout(() => setIsRetrying(false), 100);
   };
   
@@ -74,7 +90,12 @@ const SchemeStep = ({ geolocation = { lat: null, lng: null, address: '' } }: Sch
         </div>
       }>
         {!isRetrying && (
-          <AccidentLocationMap lat={lat} lng={lng} address={address} />
+          <AccidentLocationMap 
+            key={key} 
+            lat={lat} 
+            lng={lng} 
+            address={address} 
+          />
         )}
       </Suspense>
       

@@ -1,5 +1,5 @@
 
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState, useCallback, useRef } from 'react';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { useVehicleScheme } from './useVehicleScheme';
@@ -21,8 +21,10 @@ const DEFAULT_LOCATION = {
 };
 
 const AccidentLocationMap = ({ lat, lng, address }: AccidentLocationMapProps) => {
+  const mapRef = useRef<HTMLDivElement>(null);
   const [map, setMap] = useState<L.Map | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [mapInitAttempted, setMapInitAttempted] = useState(false);
   const { toast } = useToast();
   
   const {
@@ -45,21 +47,31 @@ const AccidentLocationMap = ({ lat, lng, address }: AccidentLocationMapProps) =>
 
   // Map initialization function
   const initializeMap = useCallback(() => {
-    if (!document.getElementById('accident-location-map')) {
-      console.error('Map container not found');
+    if (!mapRef.current) {
+      console.error('Map container reference not found');
       return;
     }
     
-    // Determine coordinates to use
-    const useLocation = {
-      lat: lat || DEFAULT_LOCATION.lat,
-      lng: lng || DEFAULT_LOCATION.lng
-    };
-    
     try {
+      setMapInitAttempted(true);
+      
+      // Clean up any previous map instance
+      if (map) {
+        map.off('click', handleMapClick);
+        map.remove();
+      }
+      
+      // Determine coordinates to use
+      const useLocation = {
+        lat: lat || DEFAULT_LOCATION.lat,
+        lng: lng || DEFAULT_LOCATION.lng
+      };
+      
       console.log('Initializing map at coordinates:', useLocation);
+      console.log('Map container element:', mapRef.current);
+      
       // Create map with optimized settings
-      const newMap = L.map('accident-location-map', {
+      const newMap = L.map(mapRef.current, {
         preferCanvas: true,
         zoomControl: false,
         attributionControl: false,
@@ -94,13 +106,26 @@ const AccidentLocationMap = ({ lat, lng, address }: AccidentLocationMapProps) =>
       });
       setIsLoading(false);
     }
-  }, [lat, lng, toast]);
+  }, [lat, lng, toast, map]);
 
-  // Initialize map on component mount
+  const handleMapClick = useCallback((e: L.LeafletMouseEvent) => {
+    if (!map) return;
+    const point = map.mouseEventToContainerPoint(e.originalEvent);
+    if (isDragging && selectedVehicle) {
+      updateVehiclePosition(selectedVehicle, point.x, point.y);
+    }
+  }, [map, isDragging, selectedVehicle, updateVehiclePosition]);
+
+  // Initialize map when component is fully mounted and ready
   useEffect(() => {
+    // Use a delay to ensure DOM is fully ready
     const timer = setTimeout(() => {
-      initializeMap();
-    }, 300); // Longer delay to ensure DOM is ready
+      if (mapRef.current) {
+        initializeMap();
+      } else {
+        console.error('Map container element not available after timeout');
+      }
+    }, 500);
     
     return () => {
       clearTimeout(timer);
@@ -111,13 +136,19 @@ const AccidentLocationMap = ({ lat, lng, address }: AccidentLocationMapProps) =>
     };
   }, [initializeMap]);
 
-  const handleMapClick = (e: L.LeafletMouseEvent) => {
-    if (!map) return;
-    const point = map.mouseEventToContainerPoint(e.originalEvent);
-    if (isDragging && selectedVehicle) {
-      updateVehiclePosition(selectedVehicle, point.x, point.y);
+  // Re-initialize map when coordinates change
+  useEffect(() => {
+    if (mapInitAttempted && (lat || lng)) {
+      // Small delay to ensure DOM updates before re-initializing
+      const timer = setTimeout(() => {
+        if (mapRef.current) {
+          initializeMap();
+        }
+      }, 300);
+      
+      return () => clearTimeout(timer);
     }
-  };
+  }, [lat, lng, mapInitAttempted, initializeMap]);
 
   const handleVehicleMouseDown = (vehicleId: string, e: React.MouseEvent) => {
     e.preventDefault();
@@ -132,6 +163,7 @@ const AccidentLocationMap = ({ lat, lng, address }: AccidentLocationMapProps) =>
   // If map failed to initialize, provide a retry button
   const handleRetry = () => {
     setIsLoading(true);
+    setMapInitAttempted(false);
     setTimeout(initializeMap, 500);
   };
 
@@ -183,13 +215,12 @@ const AccidentLocationMap = ({ lat, lng, address }: AccidentLocationMapProps) =>
           </div>
         ) : (
           <div 
+            ref={mapRef}
             id="accident-location-map" 
             className="absolute inset-0 z-0"
             style={{ height: '100%' }}
             onMouseUp={handleMouseUp}
-          >
-            {/* Map will be mounted here */}
-          </div>
+          />
         )}
         
         {/* Vehicle icons layer - absolute positioned above the map */}
