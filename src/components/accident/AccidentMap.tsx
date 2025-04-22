@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from 'react';
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import L from 'leaflet';
@@ -33,18 +34,31 @@ const AccidentMap = ({ lat, lng, address }: AccidentMapProps) => {
   const { toast } = useToast();
   const position: [number, number] = [lat, lng];
 
+  // Debugging console logs
+  console.log('AccidentMap Props:', { lat, lng, address });
+  console.log('Position:', position);
+
   useEffect(() => {
-    if (!lat || !lng) return;
+    if (!lat || !lng) {
+      console.warn('Latitude or Longitude is missing');
+      toast({
+        title: "Erreur de localisation",
+        description: "Les coordonnées GPS sont manquantes.",
+        variant: "destructive"
+      });
+      return;
+    }
     
     // Set loading to false after a small delay to ensure the map has time to initialize
     const timer = setTimeout(() => {
+      console.log('Map loading complete');
       setIsLoading(false);
     }, 500);
     
     return () => {
       clearTimeout(timer);
     };
-  }, [lat, lng]);
+  }, [lat, lng, toast]);
 
   if (isLoading) {
     return (
