@@ -1,6 +1,5 @@
 
 import React, { useEffect, useState } from 'react';
-import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { useToast } from '@/hooks/use-toast';
@@ -31,12 +30,11 @@ interface AccidentMapProps {
 
 const AccidentMap = ({ lat, lng, address }: AccidentMapProps) => {
   const [isLoading, setIsLoading] = useState(true);
+  const [mapInitialized, setMapInitialized] = useState(false);
   const { toast } = useToast();
-  const position: [number, number] = [lat, lng];
 
   // Debugging console logs
   console.log('AccidentMap Props:', { lat, lng, address });
-  console.log('Position:', position);
 
   useEffect(() => {
     if (!lat || !lng) {
@@ -46,19 +44,59 @@ const AccidentMap = ({ lat, lng, address }: AccidentMapProps) => {
         description: "Les coordonnées GPS sont manquantes.",
         variant: "destructive"
       });
+      setIsLoading(false);
       return;
     }
     
-    // Set loading to false after a small delay to ensure the map has time to initialize
-    const timer = setTimeout(() => {
-      console.log('Map loading complete');
-      setIsLoading(false);
-    }, 500);
-    
-    return () => {
-      clearTimeout(timer);
-    };
-  }, [lat, lng, toast]);
+    if (!window.L) {
+      console.error('Leaflet not loaded');
+      return;
+    }
+
+    // Initialize map only if it hasn't been initialized yet
+    if (!mapInitialized) {
+      // Set timeout to allow the DOM to render
+      const timer = setTimeout(() => {
+        try {
+          console.log('Initializing map with position:', [lat, lng]);
+          const mapContainer = document.getElementById('accident-map');
+          
+          if (!mapContainer) {
+            console.error('Map container not found');
+            return;
+          }
+          
+          // Create map
+          const map = L.map(mapContainer).setView([lat, lng], 15);
+          
+          // Add tile layer
+          L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+          }).addTo(map);
+          
+          // Add marker
+          const marker = L.marker([lat, lng], { icon: accidentIcon }).addTo(map);
+          marker.bindPopup(address).openPopup();
+          
+          setMapInitialized(true);
+          console.log('Map initialized successfully');
+        } catch (error) {
+          console.error('Error initializing map:', error);
+          toast({
+            title: "Erreur de carte",
+            description: "Impossible d'initialiser la carte.",
+            variant: "destructive"
+          });
+        } finally {
+          setIsLoading(false);
+        }
+      }, 500);
+      
+      return () => {
+        clearTimeout(timer);
+      };
+    }
+  }, [lat, lng, toast, mapInitialized]);
 
   if (isLoading) {
     return (
@@ -70,24 +108,19 @@ const AccidentMap = ({ lat, lng, address }: AccidentMapProps) => {
     );
   }
 
+  if (!lat || !lng) {
+    return (
+      <div className="rounded-lg overflow-hidden shadow-lg bg-red-50 border border-red-200" style={{ height: '300px' }}>
+        <div className="h-full w-full flex items-center justify-center">
+          <div className="text-red-500">Coordonnées GPS manquantes</div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="rounded-lg overflow-hidden shadow-lg">
-      <MapContainer 
-        center={position} 
-        zoom={15} 
-        style={{ height: '300px', width: '100%' }}
-        scrollWheelZoom={false}
-      >
-        <TileLayer
-          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-        />
-        <Marker position={position} icon={accidentIcon}>
-          <Popup>
-            {address}
-          </Popup>
-        </Marker>
-      </MapContainer>
+      <div id="accident-map" style={{ height: '300px', width: '100%' }}></div>
     </div>
   );
 };
