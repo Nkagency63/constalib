@@ -7,8 +7,17 @@ import MapControls from './components/MapControls';
 import MapError from './components/MapError';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
-import { RefreshCcw, AlertTriangle, CheckCircle } from 'lucide-react';
+import { RefreshCcw, AlertTriangle, CheckCircle, HelpCircle } from 'lucide-react';
 import { toast } from 'sonner';
+import { 
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+  DialogFooter
+} from '@/components/ui/dialog';
 
 interface AccidentLocationMapProps {
   lat: number | null;
@@ -20,6 +29,7 @@ const AccidentLocationMap = ({ lat, lng, address }: AccidentLocationMapProps) =>
   const mapRef = useRef<HTMLDivElement>(null);
   const [mapLoaded, setMapLoaded] = useState(false);
   const [loadRetries, setLoadRetries] = useState(0);
+  const [showDiagnosticDialog, setShowDiagnosticDialog] = useState(false);
   
   const {
     vehicles,
@@ -63,7 +73,8 @@ const AccidentLocationMap = ({ lat, lng, address }: AccidentLocationMapProps) =>
     initializeMap, 
     forceReload, 
     initAttempts, 
-    setMapState 
+    setMapState,
+    getDiagnosticInfo
   } = useMapInitialization({
     mapRef,
     lat,
@@ -132,6 +143,10 @@ const AccidentLocationMap = ({ lat, lng, address }: AccidentLocationMapProps) =>
     forceReload();
   };
 
+  const openDiagnosticDialog = () => {
+    setShowDiagnosticDialog(true);
+  };
+
   return (
     <div className="space-y-4">
       <MapControls
@@ -156,14 +171,25 @@ const AccidentLocationMap = ({ lat, lng, address }: AccidentLocationMapProps) =>
               {initAttempts > 1 && (
                 <div className="mt-4">
                   <p className="text-sm text-amber-600 mb-2">Le chargement semble prendre du temps...</p>
-                  <Button 
-                    onClick={handleRetry} 
-                    variant="outline" 
-                    size="sm"
-                  >
-                    <RefreshCcw className="w-4 h-4 mr-2" />
-                    Forcer le rechargement
-                  </Button>
+                  <div className="flex space-x-2">
+                    <Button 
+                      onClick={handleRetry} 
+                      variant="outline" 
+                      size="sm"
+                    >
+                      <RefreshCcw className="w-4 h-4 mr-2" />
+                      Forcer le rechargement
+                    </Button>
+                    
+                    <Button
+                      onClick={openDiagnosticDialog}
+                      variant="outline"
+                      size="sm"
+                    >
+                      <HelpCircle className="w-4 h-4 mr-2" />
+                      Diagnostic
+                    </Button>
+                  </div>
                 </div>
               )}
             </div>
@@ -213,6 +239,18 @@ const AccidentLocationMap = ({ lat, lng, address }: AccidentLocationMapProps) =>
             </div>
           </div>
         )}
+        
+        {/* Add diagnostic button in the corner */}
+        <div className="absolute bottom-2 right-2 z-10">
+          <Button 
+            onClick={openDiagnosticDialog} 
+            variant="outline" 
+            size="sm"
+            className="bg-white/80 hover:bg-white border-gray-200"
+          >
+            <HelpCircle className="w-4 h-4" />
+          </Button>
+        </div>
       </div>
 
       <div className="text-sm text-constalib-dark-gray">
@@ -223,6 +261,47 @@ const AccidentLocationMap = ({ lat, lng, address }: AccidentLocationMapProps) =>
           </p>
         )}
       </div>
+      
+      <Dialog open={showDiagnosticDialog} onOpenChange={setShowDiagnosticDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Informations de diagnostic</DialogTitle>
+            <DialogDescription>
+              Ces informations peuvent aider à résoudre les problèmes de chargement de la carte.
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-2 my-4">
+            <div className="text-sm">
+              <h4 className="font-medium mb-1">État actuel:</h4>
+              <ul className="ml-5 list-disc space-y-1">
+                <li>Carte chargée: {mapLoaded ? 'Oui' : 'Non'}</li>
+                <li>En chargement: {isLoading ? 'Oui' : 'Non'}</li>
+                <li>Erreur: {mapError || 'Aucune'}</li>
+                <li>Tentatives d'initialisation: {initAttempts}</li>
+                <li>Coordonnées: {lat && lng ? `${lat.toFixed(5)}, ${lng.toFixed(5)}` : 'Non définies'}</li>
+              </ul>
+            </div>
+            
+            <div className="text-sm">
+              <h4 className="font-medium mb-1">Informations techniques:</h4>
+              <pre className="bg-gray-100 p-3 rounded text-xs overflow-auto whitespace-pre-wrap">
+                {getDiagnosticInfo()}
+              </pre>
+            </div>
+          </div>
+          
+          <DialogFooter>
+            <Button onClick={handleRetry} className="mr-2">
+              <RefreshCcw className="w-4 h-4 mr-2" />
+              Réinitialiser la carte
+            </Button>
+            <Button onClick={() => setShowDiagnosticDialog(false)} variant="secondary">
+              Fermer
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

@@ -49,15 +49,57 @@ export const useMapInitialization = ({
   
   // Track initialization attempts
   const [initAttempts, setInitAttempts] = useState(0);
+  
+  // Track diagnostic info
+  const [diagnosticInfo, setDiagnosticInfo] = useState<{
+    browserInfo: string;
+    screenDimensions: string;
+    containerDimensions: string;
+    tilesLoaded: boolean;
+    leafletVersion: string;
+    initializationTime: number;
+  } | null>(null);
 
   useEffect(() => {
     setIsMounted(true);
+    
+    // Collect basic diagnostic info
+    const browserInfo = navigator.userAgent;
+    const screenDimensions = `${window.innerWidth}x${window.innerHeight}`;
+    const leafletVersion = L.version || 'unknown';
+    
+    setDiagnosticInfo(prev => ({
+      ...prev,
+      browserInfo,
+      screenDimensions,
+      leafletVersion,
+      containerDimensions: mapRef.current ? 
+        `${mapRef.current.clientWidth}x${mapRef.current.clientHeight}` : 
+        'unknown',
+      tilesLoaded: false,
+      initializationTime: 0
+    }));
+    
     return () => setIsMounted(false);
   }, []);
+
+  const logDiagnostics = () => {
+    if (diagnosticInfo) {
+      console.group('🗺️ Map Diagnostic Information');
+      console.log('Browser Info:', diagnosticInfo.browserInfo);
+      console.log('Screen Dimensions:', diagnosticInfo.screenDimensions);
+      console.log('Container Dimensions:', diagnosticInfo.containerDimensions);
+      console.log('Leaflet Version:', diagnosticInfo.leafletVersion);
+      console.log('Tiles Loaded:', diagnosticInfo.tilesLoaded);
+      console.log('Initialization Time:', `${diagnosticInfo.initializationTime}ms`);
+      console.groupEnd();
+    }
+  };
 
   const initializeMap = useCallback(() => {
     if (!isMounted) return;
     
+    const startTime = performance.now();
     console.log('initializeMap called, mapRef exists:', !!mapRef.current, 'attempt:', initAttempts + 1);
     
     if (!mapRef.current) {
@@ -88,7 +130,15 @@ export const useMapInitialization = ({
       
       console.log('Initializing map at coordinates:', useLocation);
       console.log('Map container element ID:', mapRef.current.id);
-      console.log('Map container dimensions:', mapRef.current.clientWidth, 'x', mapRef.current.clientHeight);
+      
+      const containerDimensions = `${mapRef.current.clientWidth}x${mapRef.current.clientHeight}`;
+      console.log('Map container dimensions:', containerDimensions);
+      
+      // Update diagnostic info
+      setDiagnosticInfo(prev => prev ? {
+        ...prev,
+        containerDimensions
+      } : null);
       
       // Give the DOM some time to be ready
       setTimeout(() => {
@@ -105,6 +155,12 @@ export const useMapInitialization = ({
             // Force dimensions if needed
             mapRef.current.style.width = '100%';
             mapRef.current.style.height = '500px';
+            
+            // Update diagnostic info after forced resize
+            setDiagnosticInfo(prev => prev ? {
+              ...prev,
+              containerDimensions: `${mapRef.current?.clientWidth || 0}x${mapRef.current?.clientHeight || 0} (forced)`
+            } : null);
           }
           
           console.log('Creating map instance with dimensions:', mapRef.current.clientWidth, 'x', mapRef.current.clientHeight);
@@ -119,17 +175,53 @@ export const useMapInitialization = ({
             markerZoomAnimation: false
           }).setView([useLocation.lat, useLocation.lng], 18);
           
+          // Add event listeners for diagnostic purposes
+          newMap.on('load', () => {
+            const endTime = performance.now();
+            const loadTime = Math.round(endTime - startTime);
+            console.log(`Map loaded in ${loadTime}ms`);
+            
+            setDiagnosticInfo(prev => prev ? {
+              ...prev,
+              initializationTime: loadTime
+            } : null);
+          });
+          
           // Add tile layer with timeout to handle connection issues
           const tileLayerPromise = new Promise<void>((resolve, reject) => {
             try {
+              const tileLoadStartTime = performance.now();
+              let tilesLoaded = 0;
+              
               const tileLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
                 attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
                 maxZoom: 19,
                 minZoom: 15,
               });
               
+              tileLayer.on('tileloadstart', () => {
+                tilesLoaded++;
+                if (tilesLoaded === 1) {
+                  console.log('First tile load started');
+                }
+              });
+              
+              tileLayer.on('tileload', () => {
+                if (tilesLoaded === 1) {
+                  const tileLoadTime = Math.round(performance.now() - tileLoadStartTime);
+                  console.log(`First tile loaded in ${tileLoadTime}ms`);
+                }
+              });
+              
               tileLayer.on('load', () => {
-                console.log('Tile layer loaded');
+                const tileLoadTime = Math.round(performance.now() - tileLoadStartTime);
+                console.log(`Tile layer fully loaded in ${tileLoadTime}ms`);
+                
+                setDiagnosticInfo(prev => prev ? {
+                  ...prev,
+                  tilesLoaded: true
+                } : null);
+                
                 resolve();
               });
               
@@ -195,6 +287,7 @@ export const useMapInitialization = ({
               }
               
               console.log('Map initialized successfully');
+              logDiagnostics();
               
               // Even if the load event doesn't fire, consider it loaded after a timeout
               setTimeout(() => {
@@ -259,7 +352,7 @@ export const useMapInitialization = ({
     
     // Increment attempt counter
     setInitAttempts(prev => prev + 1);
-  }, [lat, lng, mapRef, handleMapClick, mapState.map, onLoadComplete, isMounted, initAttempts]);
+  }, [lat, lng, mapRef, handleMapClick, mapState.map, onLoadComplete, isMounted, initAttempts, logDiagnostics]);
 
   // Provide a clean way to force map reinitialization
   const forceReload = useCallback(() => {
@@ -286,11 +379,26 @@ export const useMapInitialization = ({
     }
   }, [mapState.map, initializeMap, isMounted]);
 
+  // Function to get diagnostic information
+  const getDiagnosticInfo = useCallback(() => {
+    if (!diagnosticInfo) return 'Information de diagnostic non disponible';
+    
+    return `
+      Navigateur: ${diagnosticInfo.browserInfo.substring(0, 50)}...
+      Écran: ${diagnosticInfo.screenDimensions}
+      Conteneur carte: ${diagnosticInfo.containerDimensions}
+      Version Leaflet: ${diagnosticInfo.leafletVersion}
+      Tuiles chargées: ${diagnosticInfo.tilesLoaded ? 'Oui' : 'Non'}
+      Temps d'initialisation: ${diagnosticInfo.initializationTime}ms
+    `;
+  }, [diagnosticInfo]);
+
   return {
     ...mapState,
     initializeMap,
     forceReload,
     initAttempts,
-    setMapState
+    setMapState,
+    getDiagnosticInfo
   };
 };
