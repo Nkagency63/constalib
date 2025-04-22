@@ -1,8 +1,7 @@
 
 import React from 'react';
-import VehicleScheme from '../VehicleScheme';
 import { useIsMobile } from '../../hooks/use-mobile';
-import AccidentMap from './AccidentMap';
+import AccidentLocationMap from './scheme/AccidentLocationMap';
 
 interface SchemeStepProps {
   geolocation?: {
@@ -21,7 +20,7 @@ const SchemeStep = ({ geolocation = { lat: null, lng: null, address: '' } }: Sch
       <div className="space-y-2">
         <h3 className="text-lg font-medium text-constalib-dark">Schéma de l'accident</h3>
         <p className="text-sm text-constalib-dark-gray">
-          Positionnez les véhicules pour représenter visuellement l'accident.
+          Positionnez les véhicules directement sur la carte pour représenter visuellement l'accident.
         </p>
         {isMobile && (
           <p className="text-xs text-amber-600 mt-1">
@@ -30,14 +29,7 @@ const SchemeStep = ({ geolocation = { lat: null, lng: null, address: '' } }: Sch
         )}
       </div>
 
-      {lat && lng && (
-        <div className="mb-6">
-          <h4 className="text-md font-medium text-constalib-dark mb-2">Localisation de l'accident</h4>
-          <AccidentMap lat={lat} lng={lng} address={address} />
-        </div>
-      )}
-      
-      <VehicleScheme />
+      <AccidentLocationMap lat={lat} lng={lng} address={address} />
     </div>
   );
 };
