@@ -1,7 +1,5 @@
 
-import { useEffect, useState } from 'react';
-import { UseMapInitializationReturn } from './useMapInitialization';
-import { toast } from 'sonner';
+import { useEffect } from 'react';
 
 interface UseMapLifecycleProps {
   mapReady: boolean;
