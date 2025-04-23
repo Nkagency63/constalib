@@ -1,8 +1,8 @@
-
-import React, { useEffect, useRef, useState, useCallback } from 'react';
+import React, { useRef, useState, useCallback } from 'react';
 import { useVehicleScheme } from './useVehicleScheme';
 import { useMapInitialization } from './hooks/useMapInitialization';
 import { useMapVehicles } from './hooks/useMapVehicles';
+import { useMapLifecycle } from './hooks/useMapLifecycle';
 import MapContainer from './components/MapContainer';
 import MapControls from './components/MapControls';
 import MapError from './components/MapError';
@@ -42,7 +42,6 @@ const AccidentLocationMap = ({ lat, lng, address }: AccidentLocationMapProps) =>
     setZoom
   } = useVehicleScheme();
 
-  // Initialisez la carte
   const handleMapClick = useCallback((e: L.LeafletMouseEvent) => {
     if (!isDragging || !selectedVehicle) return;
     const point = e.target.mouseEventToContainerPoint(e.originalEvent);
@@ -73,6 +72,17 @@ const AccidentLocationMap = ({ lat, lng, address }: AccidentLocationMapProps) =>
     onLoadComplete: handleMapLoaded
   });
 
+  useMapLifecycle({
+    mapReady,
+    setMapReady,
+    mapLoaded,
+    setMapLoaded,
+    mapRef: mapContainerRef,
+    map,
+    initializeMap,
+    handleMapLoaded
+  });
+
   const { handleVehicleMouseDown, handleVehicleInteraction } = useMapVehicles(
     vehicles,
     selectedVehicle,
@@ -80,30 +90,6 @@ const AccidentLocationMap = ({ lat, lng, address }: AccidentLocationMapProps) =>
     rotateVehicle,
     removeVehicle
   );
-
-  useEffect(() => {
-    if (!mapReady) {
-      const timer = setTimeout(() => setMapReady(true), 100);
-      return () => clearTimeout(timer);
-    }
-  }, []);
-
-  useEffect(() => {
-    if (!mapReady) return;
-    let timer: NodeJS.Timeout;
-    if (mapContainerRef.current) {
-      timer = setTimeout(() => {
-        initializeMap();
-      }, 500);
-    }
-    return () => {
-      clearTimeout(timer);
-      if (map) {
-        map.off();
-        map.remove();
-      }
-    };
-  }, [mapReady, initializeMap, map]);
 
   const handleRetry = () => {
     setMapLoaded(false);
