@@ -1,15 +1,15 @@
 
-import React, { useEffect, useRef, useCallback, useState } from 'react';
+import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { useVehicleScheme } from './useVehicleScheme';
 import { useMapInitialization } from './hooks/useMapInitialization';
-import VehicleIcon from './VehicleIcon';
+import { useMapVehicles } from './hooks/useMapVehicles';
+import MapContainer from './components/MapContainer';
 import MapControls from './components/MapControls';
 import MapError from './components/MapError';
 import MapDiagnosticDialog from './components/MapDiagnosticDialog';
 import MapLoadingFallback from './components/MapLoadingFallback';
 import MapMissingCoordinates from './components/MapMissingCoordinates';
-import { Button } from '@/components/ui/button';
-import { RefreshCcw, CheckCircle, HelpCircle } from 'lucide-react';
+import MapVehicles from './components/MapVehicles';
 import { toast } from 'sonner';
 
 interface AccidentLocationMapProps {
@@ -22,7 +22,6 @@ const AccidentLocationMap = ({ lat, lng, address }: AccidentLocationMapProps) =>
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const [mapReady, setMapReady] = useState(false);
   const [mapLoaded, setMapLoaded] = useState(false);
-  const [loadRetries, setLoadRetries] = useState(0);
   const [showDiagnosticDialog, setShowDiagnosticDialog] = useState(false);
 
   const {
@@ -43,6 +42,7 @@ const AccidentLocationMap = ({ lat, lng, address }: AccidentLocationMapProps) =>
     setZoom
   } = useVehicleScheme();
 
+  // Initialisez la carte
   const handleMapClick = useCallback((e: L.LeafletMouseEvent) => {
     if (!isDragging || !selectedVehicle) return;
     const point = e.target.mouseEventToContainerPoint(e.originalEvent);
@@ -53,15 +53,7 @@ const AccidentLocationMap = ({ lat, lng, address }: AccidentLocationMapProps) =>
     setMapLoaded(true);
     toast('Carte chargée', {
       description: 'La carte a été chargée avec succès',
-      icon: <CheckCircle className="h-4 w-4 text-green-500" />
     });
-  }, []);
-
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setMapReady(true);
-    }, 100);
-    return () => clearTimeout(timer);
   }, []);
 
   const {
@@ -81,6 +73,21 @@ const AccidentLocationMap = ({ lat, lng, address }: AccidentLocationMapProps) =>
     onLoadComplete: handleMapLoaded
   });
 
+  const { handleVehicleMouseDown, handleVehicleInteraction } = useMapVehicles(
+    vehicles,
+    selectedVehicle,
+    updateVehiclePosition,
+    rotateVehicle,
+    removeVehicle
+  );
+
+  useEffect(() => {
+    if (!mapReady) {
+      const timer = setTimeout(() => setMapReady(true), 100);
+      return () => clearTimeout(timer);
+    }
+  }, []);
+
   useEffect(() => {
     if (!mapReady) return;
     let timer: NodeJS.Timeout;
@@ -98,63 +105,14 @@ const AccidentLocationMap = ({ lat, lng, address }: AccidentLocationMapProps) =>
     };
   }, [mapReady, initializeMap, map]);
 
-  useEffect(() => {
-    if (!mapReady) return;
-    if (initAttempts > 0 && (lat !== undefined || lng !== undefined)) {
-      const timer = setTimeout(() => {
-        setMapLoaded(false);
-        setMapState(prev => ({ ...prev, isLoading: true, mapError: null }));
-        forceReload();
-      }, 300);
-      return () => clearTimeout(timer);
-    }
-  }, [lat, lng, mapReady, initAttempts, forceReload, setMapState]);
-
-  const handleVehicleMouseDown = (vehicleId: string, e: React.MouseEvent) => {
-    e.preventDefault();
-    setSelectedVehicle(vehicleId);
-    setIsDragging(true);
+  const handleRetry = () => {
+    setMapLoaded(false);
+    setMapReady(true);
+    forceReload();
   };
 
   const handleMouseUp = () => {
     setIsDragging(false);
-  };
-
-  const handleRetry = () => {
-    setLoadRetries(prev => prev + 1);
-    setMapLoaded(false);
-    setMapReady(true);
-    toast('Tentative de rechargement', {
-      description: 'Rechargement de la carte en cours...',
-    });
-    setTimeout(() => {
-      if (mapContainerRef.current) {
-        forceReload();
-      } else {
-        setMapState(prev => ({
-          ...prev,
-          isLoading: false,
-          mapError: 'Conteneur de carte introuvable. Veuillez réessayer.'
-        }));
-      }
-    }, 100);
-  };
-
-  const openDiagnosticDialog = () => {
-    setShowDiagnosticDialog(true);
-  };
-
-  // Pour affichage dans le Dialog
-  const diagnosticState = {
-    mapLoaded,
-    mapReady,
-    isLoading,
-    mapError,
-    containerExists: !!mapContainerRef.current,
-    initAttempts,
-    lat,
-    lng,
-    getDiagnosticInfo,
   };
 
   return (
@@ -174,66 +132,53 @@ const AccidentLocationMap = ({ lat, lng, address }: AccidentLocationMapProps) =>
           <MapLoadingFallback
             initAttempts={initAttempts}
             onRetry={handleRetry}
-            onOpenDiagnostics={openDiagnosticDialog}
+            onOpenDiagnostics={() => setShowDiagnosticDialog(true)}
           />
         ) : mapError ? (
           <MapError error={mapError} onRetry={handleRetry} />
         ) : (
           <>
-            <div
-              ref={mapContainerRef}
-              id="accident-location-map"
-              className="absolute inset-0 z-0"
-              style={{ height: '100%', width: '100%' }}
-              onMouseUp={handleMouseUp}
+            <MapContainer
+              mapRef={mapContainerRef}
+              isLoading={isLoading}
+              mapError={mapError}
             />
+            
+            <MapVehicles
+              vehicles={vehicles}
+              selectedVehicle={selectedVehicle}
+              onVehicleMouseDown={handleVehicleMouseDown}
+              onRotateVehicle={rotateVehicle}
+              onRemoveVehicle={removeVehicle}
+            />
+
             {!mapLoaded && !isLoading && !mapError && (
               <div className="absolute inset-0 flex items-center justify-center bg-gray-100/80">
                 <div className="animate-pulse rounded-full h-6 w-6 border-b-2 border-constalib-blue"></div>
               </div>
             )}
-            {vehicles.map(vehicle => (
-              <VehicleIcon
-                key={vehicle.id}
-                vehicle={vehicle}
-                isSelected={selectedVehicle === vehicle.id}
-                onMouseDown={handleVehicleMouseDown}
-                onRotate={rotateVehicle}
-                onRemove={removeVehicle}
-              />
-            ))}
           </>
         )}
 
         {!isLoading && !mapError && !lat && !lng && (
           <MapMissingCoordinates onRetry={handleRetry} />
         )}
-
-        <div className="absolute bottom-2 right-2 z-10">
-          <Button
-            onClick={openDiagnosticDialog}
-            variant="outline"
-            size="sm"
-            className="bg-white/80 hover:bg-white border-gray-200"
-          >
-            <HelpCircle className="w-4 h-4" />
-          </Button>
-        </div>
-      </div>
-
-      <div className="text-sm text-constalib-dark-gray">
-        <p>Glissez les véhicules sur la carte pour les positionner. Utilisez les outils pour les faire pivoter ou les supprimer.</p>
-        {(!lat || !lng) && (
-          <p className="text-amber-600 mt-1">
-            Conseil: Retournez à l'étape précédente pour définir la position exacte de l'accident.
-          </p>
-        )}
       </div>
 
       <MapDiagnosticDialog
         open={showDiagnosticDialog}
         onOpenChange={setShowDiagnosticDialog}
-        state={diagnosticState}
+        state={{
+          mapLoaded,
+          mapReady,
+          isLoading,
+          mapError,
+          containerExists: !!mapContainerRef.current,
+          initAttempts,
+          lat,
+          lng,
+          getDiagnosticInfo
+        }}
         onRetry={handleRetry}
       />
     </div>
