@@ -1,7 +1,6 @@
-
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { CircleUser, Menu, Bell, X, FileText, Calendar } from 'lucide-react';
+import { CircleUser, Menu, Bell, X, FileText, Calendar, Car } from 'lucide-react';
 import { Button } from './ui/button';
 import { useIsMobile } from '@/hooks/use-mobile';
 import Logo from './Logo';
