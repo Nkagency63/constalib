@@ -3,7 +3,7 @@ import { useRef } from 'react';
 import VehicleScheme from '../VehicleScheme';
 import LocationMap from './LocationMap';
 import { FormData } from './types';
-import { MapPin, Map as MapIcon, Car } from 'lucide-react';
+import { MapPin, Map as MapIcon } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 interface SchemeStepProps {
