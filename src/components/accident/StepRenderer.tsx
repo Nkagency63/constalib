@@ -1,3 +1,4 @@
+
 import React from 'react';
 import BasicInfoStep from './BasicInfoStep';
 import LocationStep from './LocationStep';
@@ -22,14 +23,12 @@ interface StepRendererProps {
   setInvolvedPartyEmails: (emails: string[]) => void;
   setPersonalEmail: (email: string) => void;
   onEmergencyContacted: () => void;
-  handleCheckboxChange: (name: string, checked: boolean) => void;
 }
 
 const StepRenderer = ({
   currentStepId,
   formData,
   handleInputChange,
-  handleCheckboxChange,
   handleOtherVehicleChange,
   handlePhotoUpload,
   setVehicleInfo,
@@ -72,10 +71,7 @@ const StepRenderer = ({
       return (
         <DetailsStep
           description={formData.description}
-          hasInjuries={formData.hasInjuries}
-          hasWitnesses={formData.hasWitnesses}
           handleInputChange={handleInputChange}
-          handleCheckboxChange={handleCheckboxChange}
         />
       );
     case 'photos':

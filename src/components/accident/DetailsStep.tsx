@@ -1,67 +1,40 @@
 
-import React from 'react';
-import { Checkbox } from "@/components/ui/checkbox";
-import { Label } from "@/components/ui/label";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import { AlertCircle } from "lucide-react";
+import { AlertCircle } from 'lucide-react';
 
 interface DetailsStepProps {
   description: string;
-  hasInjuries: boolean;
-  hasWitnesses: boolean;
-  handleInputChange: (e: React.ChangeEvent<HTMLTextAreaElement>) => void;
-  handleCheckboxChange: (name: string, checked: boolean) => void;
+  handleInputChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
 }
 
-const DetailsStep: React.FC<DetailsStepProps> = ({
-  description,
-  hasInjuries,
-  hasWitnesses,
-  handleInputChange,
-  handleCheckboxChange
-}) => {
+const DetailsStep = ({ description, handleInputChange }: DetailsStepProps) => {
   return (
     <div className="space-y-6">
-      <div className="space-y-4">
-        {hasInjuries && (
-          <Alert variant="destructive">
-            <AlertCircle className="h-4 w-4" />
-            <AlertDescription>
-              Vous avez indiqué qu'il y a des blessés. Si ce n'est pas déjà fait, contactez immédiatement les services d'urgence.
-            </AlertDescription>
-          </Alert>
-        )}
-
-        <div className="space-y-4">
-          <div className="flex items-center space-x-2">
-            <Checkbox
-              id="hasInjuries"
-              checked={hasInjuries}
-              onCheckedChange={(checked) => handleCheckboxChange('hasInjuries', checked === true)}
-            />
-            <Label htmlFor="hasInjuries">Y a-t-il des blessés (même légers) ?</Label>
-          </div>
-
-          <div className="flex items-center space-x-2">
-            <Checkbox
-              id="hasWitnesses"
-              checked={hasWitnesses}
-              onCheckedChange={(checked) => handleCheckboxChange('hasWitnesses', checked === true)}
-            />
-            <Label htmlFor="hasWitnesses">Y a-t-il des témoins ?</Label>
-          </div>
-        </div>
-
-        <div className="space-y-2">
-          <Label htmlFor="description">Description détaillée de l'accident</Label>
-          <textarea
-            id="description"
-            name="description"
-            value={description}
-            onChange={handleInputChange}
-            className="w-full h-32 p-2 border border-gray-300 rounded-md"
-            placeholder="Décrivez les circonstances de l'accident..."
-          />
+      <div className="space-y-2">
+        <label htmlFor="description" className="block text-sm font-medium text-constalib-dark">
+          Description de l'accident
+        </label>
+        <textarea
+          id="description"
+          name="description"
+          value={description}
+          onChange={handleInputChange}
+          rows={6}
+          placeholder="Décrivez les circonstances de l'accident..."
+          className="w-full px-4 py-2 border border-constalib-gray rounded-lg focus:ring-2 focus:ring-constalib-blue focus:border-constalib-blue resize-none"
+          required
+        />
+        <p className="text-sm text-constalib-dark-gray mt-1">
+          Soyez aussi précis que possible. Mentionnez les conditions météorologiques, l'état de la route, etc.
+        </p>
+      </div>
+      
+      <div className="bg-constalib-light-blue p-4 rounded-lg flex items-start space-x-3">
+        <AlertCircle className="text-constalib-blue flex-shrink-0 mt-1" size={20} />
+        <div>
+          <h4 className="text-constalib-blue font-medium">Conseil</h4>
+          <p className="text-sm text-constalib-dark-gray">
+            N'admettez pas de responsabilité dans votre description. Contentez-vous de décrire objectivement les faits.
+          </p>
         </div>
       </div>
     </div>

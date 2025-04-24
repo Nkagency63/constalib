@@ -1,3 +1,4 @@
+
 export interface Step {
   id: string;
   title: string;
@@ -22,6 +23,7 @@ export interface FormData {
   description: string;
   vehiclePhotos: File[];
   damagePhotos: File[];
+  // Premier véhicule (le vôtre)
   licensePlate: string;
   vehicleBrand: string;
   vehicleModel: string;
@@ -30,9 +32,7 @@ export interface FormData {
   firstRegistration?: string;
   insurancePolicy?: string;
   insuranceCompany?: string;
-  hasInjuries: boolean;
-  hasWitnesses: boolean;
-  // Premier véhicule (le vôtre)
+  // Second véhicule (l'autre impliqué)
   otherVehicle: {
     licensePlate: string;
     brand: string;
@@ -49,6 +49,7 @@ export interface FormData {
     address: string;
   };
   emergencyContacted: boolean;
+  // Informations d'email
   personalEmail: string;
   insuranceEmails: string[];
   involvedPartyEmails: string[];
