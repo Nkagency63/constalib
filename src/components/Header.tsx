@@ -1,7 +1,6 @@
-
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { CircleUser, Menu, Bell, X, FileText, Calendar } from 'lucide-react';
+import { CircleUser, Menu, Bell, X, FileText, Calendar, Car } from 'lucide-react';
 import { Button } from './ui/button';
 import { useIsMobile } from '@/hooks/use-mobile';
 import Logo from './Logo';
@@ -29,7 +28,8 @@ const Header = () => {
       <div className="container mx-auto px-4 flex justify-between items-center">
         {/* Logo and brand */}
         <Link to="/" className="flex items-center gap-2">
-          <Logo variant="flag-only" />
+          <Logo variant="icon-only" size="sm" />
+          <span className="text-white font-semibold text-xl hidden sm:inline-block">Constalib</span>
         </Link>
 
         {/* Desktop navigation */}
@@ -97,8 +97,9 @@ const Header = () => {
             </SheetTrigger>
             <SheetContent side="right" className="w-[85vw] sm:w-[385px] p-0">
               <SheetHeader className="p-6 border-b">
-                <SheetTitle className="text-xl font-bold text-constalib-blue">
-                  Consta<span className="text-constalib-dark">lib</span>.fr
+                <SheetTitle className="text-xl font-bold text-constalib-blue flex items-center gap-2">
+                  <Logo variant="icon-only" size="sm" />
+                  <span>Constalib</span>
                 </SheetTitle>
               </SheetHeader>
               <div className="flex flex-col p-6">

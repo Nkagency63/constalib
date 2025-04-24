@@ -10,9 +10,10 @@ import FormSubmissionHandler from './accident/FormSubmissionHandler';
 
 interface AccidentFormProps {
   onEmergencyRequest?: () => void;
+  onStepChange?: (stepId: string) => void;
 }
 
-const AccidentForm = ({ onEmergencyRequest }: AccidentFormProps) => {
+const AccidentForm = ({ onEmergencyRequest, onStepChange }: AccidentFormProps) => {
   const {
     formData,
     currentStepIndex,
@@ -37,6 +38,11 @@ const AccidentForm = ({ onEmergencyRequest }: AccidentFormProps) => {
   }
 
   const currentStep = accidentFormSteps[currentStepIndex];
+  
+  // Notify parent when step changes
+  if (onStepChange) {
+    onStepChange(currentStep.id);
+  }
 
   return (
     <div className="max-w-3xl mx-auto">
