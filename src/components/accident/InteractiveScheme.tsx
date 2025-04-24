@@ -78,10 +78,10 @@ const MapControls = ({ onAddVehicle, onAddAnnotation, onTakeSnapshot, onAddTraje
 };
 
 // Custom Vehicle Marker
-const VehicleMarker = ({ vehicle, isSelected, onClick, onRotate, onMove, onUpdate, onDelete }) => {
+const VehicleMarker = ({ vehicle, isSelected, onClick, onMove, onUpdate, onDelete }) => {
   const carIcon = useMemo(() => {
-    return createCarIcon(vehicle.color, vehicle.rotation, isSelected);
-  }, [vehicle.color, vehicle.rotation, isSelected]);
+    return createCarIcon(vehicle.color, isSelected);
+  }, [vehicle.color, isSelected]);
 
   return (
     <Marker
@@ -115,17 +115,6 @@ const VehicleMarker = ({ vehicle, isSelected, onClick, onRotate, onMove, onUpdat
               onChange={(e) => onUpdate(vehicle.id, { label: e.target.value })}
               className="mt-1"
             />
-          </div>
-          <div className="mb-2">
-            <Label>Rotation</Label>
-            <div className="flex gap-2 mt-1">
-              <Button size="sm" variant="outline" onClick={() => onRotate(vehicle.id, -45)}>
-                ↺
-              </Button>
-              <Button size="sm" variant="outline" onClick={() => onRotate(vehicle.id, 45)}>
-                ↻
-              </Button>
-            </div>
           </div>
           <Button size="sm" variant="destructive" className="mt-2" onClick={() => onDelete(vehicle.id)}>
             Supprimer
@@ -410,7 +399,6 @@ const InteractiveScheme = ({ center, address, onSaveScheme }: InteractiveSchemeP
             vehicle={vehicle}
             isSelected={selectedVehicleId === vehicle.id}
             onClick={(id) => setSelectedItem({ type: 'vehicle', id })}
-            onRotate={handleRotateVehicle}
             onMove={handleMoveVehicle}
             onUpdate={handleUpdateVehicle}
             onDelete={handleDeleteVehicle}
