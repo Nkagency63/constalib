@@ -1,7 +1,6 @@
 
-import { useState } from 'react';
 import { useIsMobile } from '../../hooks/use-mobile';
-import VehicleLeafletMap from '../VehicleLeafletMap';
+import VehicleMap from '../map/VehicleMap';
 
 const SchemeStep = () => {
   const isMobile = useIsMobile();
@@ -20,7 +19,7 @@ const SchemeStep = () => {
         )}
       </div>
       
-      <VehicleLeafletMap />
+      <VehicleMap />
     </div>
   );
 };
