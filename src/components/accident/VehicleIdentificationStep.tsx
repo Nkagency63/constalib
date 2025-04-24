@@ -1,5 +1,6 @@
 
 import { useState } from 'react';
+import { FormData } from './types';
 import { VehicleData, InsuranceData, FvaData } from './types/vehicleTypes';
 import LicensePlateInput from './vehicle/LicensePlateInput';
 import VehicleDetailsAlerts from './vehicle/VehicleDetailsAlerts';
@@ -10,29 +11,21 @@ import VehicleHelpText from './vehicle/VehicleHelpText';
 import { useVehicleLookup } from './hooks/useVehicleLookup';
 
 interface VehicleIdentificationStepProps {
-  licensePlate: string;
-  vehicleBrand: string;
-  vehicleModel: string;
-  vehicleYear: string;
-  vehicleDescription: string;
-  insurancePolicy?: string;
-  insuranceCompany?: string;
+  formData: FormData;
   handleInputChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
+  handleOtherVehicleChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
   setVehicleInfo: (data: {brand: string, model: string, year: string, firstRegistration?: string}) => void;
-  setInsuranceInfo?: (data: {company: string}) => void;
+  setOtherVehicleInfo: (data: {brand: string, model: string, year: string, firstRegistration?: string}) => void;
+  onEmergencyContacted: () => void;
 }
 
 const VehicleIdentificationStep = ({
-  licensePlate,
-  vehicleBrand,
-  vehicleModel,
-  vehicleYear,
-  vehicleDescription,
-  insurancePolicy = '',
-  insuranceCompany = '',
+  formData,
   handleInputChange,
+  handleOtherVehicleChange,
   setVehicleInfo,
-  setInsuranceInfo
+  setOtherVehicleInfo,
+  onEmergencyContacted
 }: VehicleIdentificationStepProps) => {
   const [searchTab, setSearchTab] = useState<'siv' | 'fni'>('siv');
   
@@ -64,10 +57,10 @@ const VehicleIdentificationStep = ({
       resetLookups
     }
   ] = useVehicleLookup({
-    licensePlate,
+    licensePlate: formData.licensePlate,
     handleInputChange,
     setVehicleInfo,
-    setInsuranceInfo
+    setInsuranceInfo: (data: {company: string}) => {}
   });
 
   const handleSearchTabChange = (tab: 'siv' | 'fni') => {
@@ -78,7 +71,7 @@ const VehicleIdentificationStep = ({
   return (
     <div className="space-y-6">
       <LicensePlateInput
-        licensePlate={licensePlate}
+        licensePlate={formData.licensePlate}
         handleInputChange={handleInputChange}
         onSearchTab={handleSearchTabChange}
         searchTab={searchTab}
@@ -112,24 +105,24 @@ const VehicleIdentificationStep = ({
       {showFvaDetails && fvaData && <FvaDetailsCard fvaData={fvaData} />}
       
       <VehicleInfoFields
-        vehicleBrand={vehicleBrand}
-        vehicleModel={vehicleModel}
-        vehicleYear={vehicleYear}
-        vehicleDescription={vehicleDescription}
+        vehicleBrand={formData.vehicleBrand}
+        vehicleModel={formData.vehicleModel}
+        vehicleYear={formData.vehicleYear}
+        vehicleDescription={formData.vehicleDescription}
         handleInputChange={handleInputChange}
         readOnly={lookupSuccess || fvaLookupSuccess}
       />
       
       <InsuranceInfoFields
-        insurancePolicy={insurancePolicy}
-        insuranceCompany={insuranceCompany}
+        insurancePolicy={formData.insurancePolicy}
+        insuranceCompany={formData.insuranceCompany}
         handleInputChange={handleInputChange}
         insuranceLookupSuccess={insuranceLookupSuccess}
         insuranceDetails={insuranceDetails}
         autoInsuranceFound={autoInsuranceFound}
         setInsuranceLookupSuccess={(success) => {}}
         setInsuranceDetails={() => {}}
-        setInsuranceInfo={setInsuranceInfo}
+        setInsuranceInfo={(data: {company: string}) => {}}
       />
     </div>
   );
