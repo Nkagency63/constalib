@@ -13,7 +13,7 @@ const Header = () => {
         {/* Logo and brand */}
         <Link to="/" className="flex items-center gap-2">
           <Logo variant="icon-only" size="sm" />
-          <span className="text-white text-xl hidden sm:inline-block font-extrabold">Constalib</span>
+          <span className="text-white text-xl hidden sm:inline-block font-semibold">Constalib</span>
         </Link>
 
         {/* Desktop navigation */}
