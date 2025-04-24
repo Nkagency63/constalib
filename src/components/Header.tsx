@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { CircleUser, Menu, Bell, X, FileText, Calendar } from 'lucide-react';
@@ -13,7 +14,7 @@ const Header = () => {
         {/* Logo and brand */}
         <Link to="/" className="flex items-center gap-2">
           <Logo variant="icon-only" size="sm" />
-          <span className="text-white text-xl hidden sm:inline-block font-semibold">Constalib</span>
+          <span className="text-white text-xl hidden sm:inline-block font-bold tracking-tight">Constalib</span>
         </Link>
 
         {/* Desktop navigation */}
