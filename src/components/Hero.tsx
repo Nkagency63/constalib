@@ -2,7 +2,7 @@
 import { Link } from 'react-router-dom';
 import { Button } from './ui/button';
 import Logo from './Logo';
-import { Download, Smartphone } from 'lucide-react';
+import { Download } from 'lucide-react';
 import { downloadPDF } from '@/utils/downloadUtils';
 import { toast } from "sonner";
 import { useState } from 'react';
@@ -44,19 +44,13 @@ const Hero = () => {
             </Button>
           </div>
           
-          {/* Boutons "En savoir plus" et mobile app */}
-          <div className="mt-3 flex flex-col sm:flex-row gap-3 justify-center">
+          {/* Bouton "En savoir plus" en dessous */}
+          <div className="mt-3">
             <Link to="/about" className="w-full sm:w-auto inline-block">
               <Button variant="outline" size="lg" className="w-full">
                 En savoir plus
               </Button>
             </Link>
-            <a href="https://constalib.fr/app" className="w-full sm:w-auto">
-              <Button variant="outline" size="lg" className="w-full inline-flex items-center gap-2">
-                <Smartphone className="w-5 h-5" />
-                Télécharger l'application mobile
-              </Button>
-            </a>
           </div>
         </div>
       </div>
