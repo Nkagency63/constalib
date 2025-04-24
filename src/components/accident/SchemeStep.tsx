@@ -1,6 +1,6 @@
 
+import VehicleScheme from '../VehicleScheme';
 import { useIsMobile } from '../../hooks/use-mobile';
-import VehicleMap from '../map/VehicleMap';
 
 const SchemeStep = () => {
   const isMobile = useIsMobile();
@@ -19,7 +19,7 @@ const SchemeStep = () => {
         )}
       </div>
       
-      <VehicleMap />
+      <VehicleScheme />
     </div>
   );
 };
