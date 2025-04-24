@@ -9,53 +9,6 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      accident_report_signatures: {
-        Row: {
-          created_at: string | null
-          id: string
-          party_a_signature: string | null
-          party_a_signed_at: string | null
-          party_b_signature: string | null
-          party_b_signed_at: string | null
-          pdf_generated: boolean | null
-          pdf_url: string | null
-          report_id: string
-          updated_at: string | null
-        }
-        Insert: {
-          created_at?: string | null
-          id?: string
-          party_a_signature?: string | null
-          party_a_signed_at?: string | null
-          party_b_signature?: string | null
-          party_b_signed_at?: string | null
-          pdf_generated?: boolean | null
-          pdf_url?: string | null
-          report_id: string
-          updated_at?: string | null
-        }
-        Update: {
-          created_at?: string | null
-          id?: string
-          party_a_signature?: string | null
-          party_a_signed_at?: string | null
-          party_b_signature?: string | null
-          party_b_signed_at?: string | null
-          pdf_generated?: boolean | null
-          pdf_url?: string | null
-          report_id?: string
-          updated_at?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "accident_report_signatures_report_id_fkey"
-            columns: ["report_id"]
-            isOneToOne: false
-            referencedRelation: "accident_reports"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       accident_reports: {
         Row: {
           created_at: string
@@ -67,7 +20,6 @@ export type Database = {
           geolocation_lng: number | null
           id: string
           location: string
-          other_vehicle_id: string | null
           time: string
           user_id: string | null
           vehicle_id: string | null
@@ -83,7 +35,6 @@ export type Database = {
           geolocation_lng?: number | null
           id?: string
           location: string
-          other_vehicle_id?: string | null
           time: string
           user_id?: string | null
           vehicle_id?: string | null
@@ -99,20 +50,12 @@ export type Database = {
           geolocation_lng?: number | null
           id?: string
           location?: string
-          other_vehicle_id?: string | null
           time?: string
           user_id?: string | null
           vehicle_id?: string | null
           vehicle_photos?: string[] | null
         }
         Relationships: [
-          {
-            foreignKeyName: "accident_reports_other_vehicle_id_fkey"
-            columns: ["other_vehicle_id"]
-            isOneToOne: false
-            referencedRelation: "vehicles"
-            referencedColumns: ["id"]
-          },
           {
             foreignKeyName: "accident_reports_vehicle_id_fkey"
             columns: ["vehicle_id"]

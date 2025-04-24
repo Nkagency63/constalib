@@ -44,7 +44,3 @@ verify_jwt = false
 
 [functions.lookup-fni]
 verify_jwt = false
-
-[functions.generate-accident-report]
-verify_jwt = true
-
