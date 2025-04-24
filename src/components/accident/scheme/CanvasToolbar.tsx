@@ -1,51 +1,60 @@
 
 import { Button } from "@/components/ui/button";
-import { Car, Trash2, Pencil } from 'lucide-react';
+import { Car, Undo, Redo, Plus, Minus } from 'lucide-react';
 
 interface CanvasToolbarProps {
-  drawing: boolean;
-  onToggleDrawing: () => void;
-  onClear: () => void;
-  onAddVehicle?: () => void;
+  onAddVehicle: () => void;
+  onUndo: () => void;
+  onRedo: () => void;
+  onZoomIn: () => void;
+  onZoomOut: () => void;
+  canUndo: boolean;
+  canRedo: boolean;
 }
 
 const CanvasToolbar = ({ 
-  drawing, 
-  onToggleDrawing, 
-  onClear,
-  onAddVehicle
+  onAddVehicle, 
+  onUndo, 
+  onRedo, 
+  onZoomIn, 
+  onZoomOut,
+  canUndo,
+  canRedo 
 }: CanvasToolbarProps) => {
   return (
-    <div className="absolute top-2 left-2 z-10 flex flex-wrap items-center gap-2 bg-white/80 p-1 rounded-md">
-      {onAddVehicle && (
+    <div className="flex flex-wrap items-center gap-2 mb-4">
+      <Button variant="outline" onClick={onAddVehicle}>
+        <Car className="w-4 h-4 mr-2" />
+        Ajouter un véhicule
+      </Button>
+      
+      <div className="ml-auto flex items-center gap-2">
         <Button 
-          variant="outline"
+          variant="ghost" 
           size="sm" 
-          onClick={onAddVehicle} 
-          className="bg-white"
+          onClick={onUndo} 
+          disabled={!canUndo}
         >
-          <Car className="w-4 h-4 mr-1" />
-          <span>Véhicule</span>
+          <Undo className="w-4 h-4" />
         </Button>
-      )}
-      
-      <Button 
-        variant={drawing ? "default" : "outline"}
-        size="sm" 
-        onClick={onToggleDrawing}
-        className={drawing ? "" : "bg-white"}
-      >
-        <Pencil className="w-4 h-4" />
-      </Button>
-      
-      <Button 
-        variant="outline" 
-        size="sm" 
-        onClick={onClear}
-        className="bg-white"
-      >
-        <Trash2 className="w-4 h-4" />
-      </Button>
+        
+        <Button 
+          variant="ghost" 
+          size="sm" 
+          onClick={onRedo} 
+          disabled={!canRedo}
+        >
+          <Redo className="w-4 h-4" />
+        </Button>
+        
+        <Button variant="ghost" size="sm" onClick={onZoomIn}>
+          <Plus className="w-4 h-4" />
+        </Button>
+        
+        <Button variant="ghost" size="sm" onClick={onZoomOut}>
+          <Minus className="w-4 h-4" />
+        </Button>
+      </div>
     </div>
   );
 };
