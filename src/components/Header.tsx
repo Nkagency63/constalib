@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { CircleUser, Menu, Bell, X, FileText, Calendar } from 'lucide-react';
@@ -27,9 +26,16 @@ const Header = () => {
   return (
     <header className="bg-constalib-blue border-b border-constalib-light-blue py-3 md:py-4 fixed w-full top-0 z-50">
       <div className="container mx-auto px-4 flex justify-between items-center">
-        {/* Logo and brand */}
+        {/* Logo and brand with French flag */}
         <Link to="/" className="flex items-center gap-2">
-          <Logo variant="icon-only" size="sm" />
+          <div className="flex flex-col items-center">
+            <div className="flex h-4 mb-1">
+              <div className="h-full w-4 bg-blue-900"></div>
+              <div className="h-full w-4 bg-white"></div>
+              <div className="h-full w-4 bg-red-600"></div>
+            </div>
+            <Logo variant="icon-only" size="sm" />
+          </div>
           <span className="text-white font-semibold text-xl hidden sm:inline-block">Constalib</span>
         </Link>
 
