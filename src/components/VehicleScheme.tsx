@@ -1,21 +1,43 @@
 
 import React from 'react';
 import InteractiveScheme from './accident/InteractiveScheme';
+import { FormData } from './accident/types'; // Import the FormData type
 
 const VehicleScheme = () => {
   // Create a minimal FormData object for the InteractiveScheme component
-  const formData = {
+  const formData: FormData = {
+    date: '', // Add empty string for required fields
+    time: '',
+    location: '',
+    description: '',
+    vehiclePhotos: [],
+    damagePhotos: [],
+    licensePlate: '',
+    vehicleBrand: '',
+    vehicleModel: '',
+    vehicleYear: '',
+    vehicleDescription: '',
+    insurancePolicy: '',
+    insuranceCompany: '',
+    otherVehicle: {
+      licensePlate: '',
+      brand: '',
+      model: '',
+      year: '',
+      description: '',
+      insurancePolicy: '',
+      insuranceCompany: ''
+    },
     geolocation: {
       lat: 48.8566, // Paris coordinates
       lng: 2.3522,
       address: "Emplacement par défaut"
     },
-    vehicleBrand: '',
-    vehicleModel: '',
-    otherVehicle: {
-      brand: '',
-      model: ''
-    }
+    emergencyContacted: false,
+    personalEmail: '',
+    insuranceEmails: [],
+    involvedPartyEmails: [],
+    firstRegistration: ''
   };
 
   return (

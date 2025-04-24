@@ -1,12 +1,10 @@
-
 import React, { useState, useRef, useEffect } from 'react';
 import { MapContainer, TileLayer, useMap } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
-import { createCarIcon } from '@/utils/mapIcons';
 import VehicleIcon from './scheme/VehicleIcon';
 import { Button } from '@/components/ui/button';
-import { Trash2, Plus, Car, Pencil } from 'lucide-react';
+import { Car } from 'lucide-react';
 import { toast } from 'sonner';
 import { v4 as uuidv4 } from 'uuid';
 import CanvasToolbar from './scheme/CanvasToolbar';
@@ -47,24 +45,17 @@ interface Vehicle {
   isSelected: boolean;
 }
 
-interface SchemeProps {
+interface InteractiveSchemeProps {
   formData: FormData;
   onUpdateSchemeData?: (vehicles: Vehicle[]) => void;
   readOnly?: boolean;
 }
 
-// Component to handle map initialization and events
-const MapInitializer: React.FC<{ onMapReady: (map: L.Map) => void }> = ({ onMapReady }) => {
-  const map = useMap();
-  
-  useEffect(() => {
-    onMapReady(map);
-  }, [map, onMapReady]);
-  
-  return null;
-};
-
-const InteractiveScheme: React.FC<SchemeProps> = ({ formData, onUpdateSchemeData, readOnly = false }) => {
+const InteractiveScheme: React.FC<InteractiveSchemeProps> = ({ 
+  formData, 
+  onUpdateSchemeData, 
+  readOnly = false 
+}) => {
   const [vehicles, setVehicles] = useState<Vehicle[]>([]);
   const [selectedVehicle, setSelectedVehicle] = useState<string | null>(null);
   const [drawing, setDrawing] = useState<boolean>(false);
