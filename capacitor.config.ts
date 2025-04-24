@@ -15,16 +15,7 @@ const config: CapacitorConfig = {
       backgroundColor: "#ffffff",
       showSpinner: true,
       spinnerColor: "#3880ff"
-    },
-    App: {
-      webviewAllowBackForwardNavigationGestures: true
     }
-  },
-  ios: {
-    contentInset: "always"
-  },
-  android: {
-    allowMixedContent: true
   }
 };
 
