@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { CircleUser, Menu, Bell, X, FileText, Calendar } from 'lucide-react';
@@ -36,12 +37,12 @@ const Header = () => {
             </div>
             <Logo variant="icon-only" size="sm" />
           </div>
-          <span className="text-white font-semibold text-xl hidden sm:inline-block">Constalib</span>
+          <span className="font-heading text-white font-semibold text-xl hidden sm:inline-block">Constalib</span>
         </Link>
 
         {/* Desktop navigation */}
         <nav className="hidden md:flex items-center gap-6 lg:gap-8">
-          <Link to="/" className="text-white hover:text-constalib-light-blue transition-colors">
+          <Link to="/" className="font-sans text-white hover:text-constalib-light-blue transition-colors">
             Accueil
           </Link>
           <Link to="/accident" className="text-white hover:text-constalib-light-blue transition-colors">
