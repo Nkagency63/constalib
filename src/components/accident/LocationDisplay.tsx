@@ -37,9 +37,6 @@ const LocationDisplay = ({
           <p className="text-sm text-constalib-dark break-words">
             {formattedAddress || `Lat: ${currentLocation.lat.toFixed(6)}, Lng: ${currentLocation.lng.toFixed(6)}`}
           </p>
-          <p className="text-xs text-constalib-dark-gray mt-1">
-            Coordonnées: {currentLocation.lat.toFixed(6)}, {currentLocation.lng.toFixed(6)}
-          </p>
         </div>
         
         {geocodingStatus !== 'none' && (

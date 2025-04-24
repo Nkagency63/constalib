@@ -27,22 +27,14 @@ const Header = () => {
   return (
     <header className="bg-constalib-blue border-b border-constalib-light-blue py-3 md:py-4 fixed w-full top-0 z-50">
       <div className="container mx-auto px-4 flex justify-between items-center">
-        {/* Logo and brand with French flag */}
+        {/* Logo and brand */}
         <Link to="/" className="flex items-center gap-2">
-          <div className="flex flex-col items-center">
-            <div className="flex h-4 mb-1">
-              <div className="h-full w-4 bg-blue-900"></div>
-              <div className="h-full w-4 bg-white"></div>
-              <div className="h-full w-4 bg-red-600"></div>
-            </div>
-            <Logo variant="icon-only" size="sm" />
-          </div>
-          <span className="font-heading text-white font-semibold text-xl hidden sm:inline-block">Constalib</span>
+          <Logo variant="flag-only" />
         </Link>
 
         {/* Desktop navigation */}
         <nav className="hidden md:flex items-center gap-6 lg:gap-8">
-          <Link to="/" className="font-sans text-white hover:text-constalib-light-blue transition-colors">
+          <Link to="/" className="text-white hover:text-constalib-light-blue transition-colors">
             Accueil
           </Link>
           <Link to="/accident" className="text-white hover:text-constalib-light-blue transition-colors">
@@ -105,9 +97,8 @@ const Header = () => {
             </SheetTrigger>
             <SheetContent side="right" className="w-[85vw] sm:w-[385px] p-0">
               <SheetHeader className="p-6 border-b">
-                <SheetTitle className="text-xl font-bold text-constalib-blue flex items-center gap-2">
-                  <Logo variant="icon-only" size="sm" />
-                  <span>Constalib</span>
+                <SheetTitle className="text-xl font-bold text-constalib-blue">
+                  Consta<span className="text-constalib-dark">lib</span>.fr
                 </SheetTitle>
               </SheetHeader>
               <div className="flex flex-col p-6">

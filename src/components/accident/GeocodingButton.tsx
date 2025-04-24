@@ -1,6 +1,6 @@
 
 import { useState } from 'react';
-import { Search, Loader2 } from 'lucide-react';
+import { MapPin, Loader2 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { Button } from "@/components/ui/button";
@@ -69,11 +69,10 @@ const GeocodingButton = ({
       onClick={geocodeAddress}
       disabled={isLoading || !location}
       className="h-8 px-2 text-xs"
-      data-geocode-button
     >
       {isLoading ? 
         <Loader2 className="h-4 w-4 mr-1 animate-spin" /> : 
-        <Search className="h-4 w-4 mr-1" />
+        <MapPin className="h-4 w-4 mr-1" />
       }
       Géolocaliser
     </Button>
