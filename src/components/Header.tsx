@@ -1,36 +1,19 @@
-
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { CircleUser, Menu, Bell, X, FileText, Calendar } from 'lucide-react';
 import { Button } from './ui/button';
 import { useIsMobile } from '@/hooks/use-mobile';
 import Logo from './Logo';
-
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "./ui/dropdown-menu";
-import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-  SheetTrigger,
-  SheetClose,
-} from "@/components/ui/sheet";
-
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "./ui/dropdown-menu";
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger, SheetClose } from "@/components/ui/sheet";
 const Header = () => {
   const isMobile = useIsMobile();
-
-  return (
-    <header className="bg-constalib-blue border-b border-constalib-light-blue py-3 md:py-4 fixed w-full top-0 z-50">
+  return <header className="bg-constalib-blue border-b border-constalib-light-blue py-3 md:py-4 fixed w-full top-0 z-50">
       <div className="container mx-auto px-4 flex justify-between items-center">
         {/* Logo and brand */}
         <Link to="/" className="flex items-center gap-2">
           <Logo variant="icon-only" size="sm" />
-          <span className="text-white font-semibold text-xl hidden sm:inline-block">Constalib</span>
+          <span className="text-white text-xl hidden sm:inline-block font-semibold">Constalib</span>
         </Link>
 
         {/* Desktop navigation */}
@@ -148,8 +131,6 @@ const Header = () => {
           </Sheet>
         </div>
       </div>
-    </header>
-  );
+    </header>;
 };
-
 export default Header;
