@@ -1,126 +1,65 @@
 
-import React, { useEffect, useState } from 'react';
-import L from 'leaflet';
-import 'leaflet/dist/leaflet.css';
-import { useToast } from '@/hooks/use-toast';
-
-// Fix for default icon issue in Leaflet with webpack/vite
-// We need to redefine the default icon paths
-delete (L.Icon.Default.prototype as any)._getIconUrl;
-L.Icon.Default.mergeOptions({
-  iconRetinaUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',
-  iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
-  shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
-});
-
-// Custom icon for accident marker
-const accidentIcon = new L.Icon({
-  iconUrl: 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9IndoaXRlIiBzdHJva2Utd2lkdGg9IjIiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIgY2xhc3M9Imx1Y2lkZSBsdWNpZGUtY2FyIj48cGF0aCBkPSJNMTkgMTdINUwzIDE1VjEzSDIxVjE1TDE5IDE3WiIvPjxwYXRoIGQ9Ik02IDEzVjdDNiA1Ljg5NTQzIDYuODk1NDMgNSA4IDVIMTZDMTcuMTA0NiA1IDE4IDUuODk1NDMgMTggN1YxMyIvPjwvc3ZnPg==',
-  iconSize: [30, 30],
-  iconAnchor: [15, 15],
-  popupAnchor: [0, -15],
-  className: 'bg-red-500 p-1 rounded-full'
-});
+import React, { useEffect, useRef } from 'react';
+import mapboxgl from 'mapbox-gl';
+import 'mapbox-gl/dist/mapbox-gl.css';
+import { CarFront } from 'lucide-react';
 
 interface AccidentMapProps {
-  lat: number | null;
-  lng: number | null;
+  lat: number;
+  lng: number;
   address: string;
 }
 
 const AccidentMap = ({ lat, lng, address }: AccidentMapProps) => {
-  const [isLoading, setIsLoading] = useState(true);
-  const [mapInitialized, setMapInitialized] = useState(false);
-  const { toast } = useToast();
-
-  // Debugging console logs
-  console.log('AccidentMap Props:', { lat, lng, address });
+  const mapContainer = useRef<HTMLDivElement>(null);
+  const map = useRef<mapboxgl.Map | null>(null);
+  const marker = useRef<mapboxgl.Marker | null>(null);
 
   useEffect(() => {
-    if (!lat || !lng) {
-      console.warn('Latitude or Longitude is missing');
-      toast({
-        title: "Erreur de localisation",
-        description: "Les coordonnées GPS sont manquantes.",
-        variant: "destructive"
-      });
-      setIsLoading(false);
-      return;
-    }
+    if (!mapContainer.current || !lat || !lng) return;
+
+    mapboxgl.accessToken = 'pk.eyJ1IjoibG92YWJsZSIsImEiOiJjbHQ4Z2pvNWcwMWR2MmptbDcyeHJsZ3JrIn0.a4QqHi5sxv_8i5H5qyKEHQ';
     
-    if (!window.L) {
-      console.error('Leaflet not loaded');
-      return;
-    }
+    map.current = new mapboxgl.Map({
+      container: mapContainer.current,
+      style: 'mapbox://styles/mapbox/streets-v12',
+      center: [lng, lat],
+      zoom: 15,
+      pitch: 45
+    });
 
-    // Initialize map only if it hasn't been initialized yet
-    if (!mapInitialized) {
-      // Set timeout to allow the DOM to render
-      const timer = setTimeout(() => {
-        try {
-          console.log('Initializing map with position:', [lat, lng]);
-          const mapContainer = document.getElementById('accident-map');
-          
-          if (!mapContainer) {
-            console.error('Map container not found');
-            return;
-          }
-          
-          // Create map
-          const map = L.map(mapContainer).setView([lat, lng], 15);
-          
-          // Add tile layer
-          L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-          }).addTo(map);
-          
-          // Add marker
-          const marker = L.marker([lat, lng], { icon: accidentIcon }).addTo(map);
-          marker.bindPopup(address).openPopup();
-          
-          setMapInitialized(true);
-          console.log('Map initialized successfully');
-        } catch (error) {
-          console.error('Error initializing map:', error);
-          toast({
-            title: "Erreur de carte",
-            description: "Impossible d'initialiser la carte.",
-            variant: "destructive"
-          });
-        } finally {
-          setIsLoading(false);
-        }
-      }, 500);
-      
-      return () => {
-        clearTimeout(timer);
-      };
-    }
-  }, [lat, lng, toast, mapInitialized]);
+    // Ajouter les contrôles de navigation
+    map.current.addControl(new mapboxgl.NavigationControl(), 'top-right');
 
-  if (isLoading) {
-    return (
-      <div className="rounded-lg overflow-hidden shadow-lg bg-gray-100 animate-pulse" style={{ height: '300px' }}>
-        <div className="h-full w-full flex items-center justify-center">
-          <div className="text-gray-400">Chargement de la carte...</div>
-        </div>
-      </div>
-    );
-  }
+    // Créer un marqueur personnalisé pour l'accident
+    const el = document.createElement('div');
+    el.className = 'custom-marker';
+    el.innerHTML = `<div class="bg-red-500 p-2 rounded-full">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+        <path d="M19 17H5L3 15V13H21V15L19 17Z" stroke="white" stroke-width="2"/>
+        <path d="M6 13V7C6 5.89543 6.89543 5 8 5H16C17.1046 5 18 5.89543 18 7V13" stroke="white" stroke-width="2"/>
+      </svg>
+    </div>`;
 
-  if (!lat || !lng) {
-    return (
-      <div className="rounded-lg overflow-hidden shadow-lg bg-red-50 border border-red-200" style={{ height: '300px' }}>
-        <div className="h-full w-full flex items-center justify-center">
-          <div className="text-red-500">Coordonnées GPS manquantes</div>
-        </div>
-      </div>
-    );
-  }
+    // Ajouter le marqueur à la carte
+    marker.current = new mapboxgl.Marker(el)
+      .setLngLat([lng, lat])
+      .setPopup(new mapboxgl.Popup({ offset: 25 }).setHTML(`<p>${address}</p>`))
+      .addTo(map.current);
+
+    return () => {
+      map.current?.remove();
+    };
+  }, [lat, lng, address]);
 
   return (
     <div className="rounded-lg overflow-hidden shadow-lg">
-      <div id="accident-map" style={{ height: '300px', width: '100%' }}></div>
+      <div ref={mapContainer} style={{ height: '300px' }} />
+      <style jsx>{`
+        .custom-marker {
+          cursor: pointer;
+        }
+      `}</style>
     </div>
   );
 };

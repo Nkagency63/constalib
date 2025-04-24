@@ -91,7 +91,7 @@ const StepRenderer = ({
       
     case 'scheme':
       return (
-        <SchemeStep geolocation={formData.geolocation} />
+        <SchemeStep />
       );
       
     case 'email':
