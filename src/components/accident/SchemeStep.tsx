@@ -23,10 +23,16 @@ const SchemeStep = () => {
         )}
       </div>
 
-      {lat && lng && (
+      {lat && lng ? (
         <div className="mb-6">
           <h4 className="text-md font-medium text-constalib-dark mb-2">Localisation de l'accident</h4>
           <AccidentMap lat={lat} lng={lng} address={address} />
+        </div>
+      ) : (
+        <div className="p-4 bg-amber-50 border border-amber-200 rounded-lg">
+          <p className="text-sm text-amber-800">
+            La localisation de l'accident n'a pas été renseignée. Vous pouvez retourner à l'étape "Localisation" pour définir l'emplacement exact.
+          </p>
         </div>
       )}
       
@@ -36,3 +42,4 @@ const SchemeStep = () => {
 };
 
 export default SchemeStep;
+

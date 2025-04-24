@@ -2,7 +2,6 @@
 import React, { useEffect, useRef } from 'react';
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
-import { CarFront } from 'lucide-react';
 
 interface AccidentMapProps {
   lat: number;
@@ -65,3 +64,4 @@ const AccidentMap = ({ lat, lng, address }: AccidentMapProps) => {
 };
 
 export default AccidentMap;
+
