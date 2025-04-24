@@ -1,462 +1,320 @@
-import React, { useState, useCallback, useMemo } from 'react';
-import { MapContainer, TileLayer, Marker, Popup, Polyline, useMapEvents } from 'react-leaflet';
-import { Icon, LatLng, DivIcon } from 'leaflet';
+
+import React, { useState, useRef, useEffect } from 'react';
+import { MapContainer, TileLayer, useMap } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
-import { Car, Flag, ArrowRight } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Tooltip } from '@/components/ui/tooltip';
-import { TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { toast } from 'sonner';
+import L from 'leaflet';
 import { createCarIcon } from '@/utils/mapIcons';
+import VehicleIcon from './scheme/VehicleIcon';
+import { Button } from '@/components/ui/button';
+import { Trash2, Plus, Car } from 'lucide-react';
+import { toast } from 'sonner';
+import { v4 as uuidv4 } from 'uuid';
+import CanvasToolbar from './scheme/CanvasToolbar';
+import VehicleControls from './scheme/VehicleControls';
+import { FormData } from './types';
+
+// Import car icon for marker
+import markerIcon2x from 'leaflet/dist/images/marker-icon-2x.png';
+import markerIcon from 'leaflet/dist/images/marker-icon.png';
+import markerShadow from 'leaflet/dist/images/marker-shadow.png';
+
+// Fix Leaflet icon issues
+delete (L.Icon.Default.prototype as any)._getIconUrl;
+L.Icon.Default.mergeOptions({
+  iconUrl: markerIcon,
+  iconRetinaUrl: markerIcon2x,
+  shadowUrl: markerShadow,
+});
+
+// Available colors for vehicles
+const VEHICLE_COLORS = [
+  '#3b82f6', // blue
+  '#ef4444', // red
+  '#10b981', // green
+  '#f59e0b', // amber
+  '#8b5cf6', // purple
+  '#ec4899', // pink
+  '#06b6d4', // cyan
+  '#f97316', // orange
+];
 
 interface Vehicle {
   id: string;
   position: [number, number];
-  rotation: number;
   color: string;
-  label: string;
-  description?: string;
+  brand?: string;
+  model?: string;
+  isSelected: boolean;
 }
 
-interface Annotation {
-  id: string;
-  position: [number, number];
-  text: string;
-  type: 'flag' | 'info';
+interface SchemeProps {
+  formData: FormData;
+  onUpdateSchemeData?: (vehicles: Vehicle[]) => void;
+  readOnly?: boolean;
 }
 
-interface Trajectory {
-  id: string;
-  points: [number, number][];
-  color: string;
-  vehicleId: string;
-}
-
-interface InteractiveSchemeProps {
-  center: [number, number];
-  address: string;
-  onSaveScheme?: (data: {
-    vehicles: Vehicle[];
-    annotations: Annotation[];
-    trajectories: Trajectory[];
-  }) => void;
-}
-
-// Custom Map Controls Component
-const MapControls = ({ onAddVehicle, onAddAnnotation, onTakeSnapshot, onAddTrajectory, selectedVehicleId, vehicles }) => {
-  const map = useMapEvents({
-    click: (e) => {
-      // This will be used for trajectory points if needed
-    },
-  });
-
-  return (
-    <div className="absolute top-2 right-2 z-[1000] bg-white p-2 rounded-md shadow-md flex flex-col gap-2">
-      <Button size="sm" variant="outline" onClick={onAddVehicle}>
-        <Car className="h-4 w-4 mr-1" />
-        Ajouter véhicule
-      </Button>
-      <Button size="sm" variant="outline" onClick={onAddAnnotation}>
-        <Flag className="h-4 w-4 mr-1" />
-        Ajouter annotation
-      </Button>
-      {selectedVehicleId && (
-        <Button size="sm" variant="outline" onClick={onAddTrajectory}>
-          <ArrowRight className="h-4 w-4 mr-1" />
-          Trajectoire
-        </Button>
-      )}
-      <Button size="sm" variant="default" onClick={onTakeSnapshot}>
-        Exporter
-      </Button>
-    </div>
-  );
+// Component to handle map initialization and events
+const MapInitializer: React.FC<{ onMapReady: (map: L.Map) => void }> = ({ onMapReady }) => {
+  const map = useMap();
+  
+  useEffect(() => {
+    onMapReady(map);
+  }, [map, onMapReady]);
+  
+  return null;
 };
 
-// Custom Vehicle Marker
-const VehicleMarker = ({ vehicle, isSelected, onClick, onMove, onUpdate, onDelete }) => {
-  const carIcon = useMemo(() => {
-    return createCarIcon(vehicle.color, isSelected);
-  }, [vehicle.color, isSelected]);
+const InteractiveScheme: React.FC<SchemeProps> = ({ formData, onUpdateSchemeData, readOnly = false }) => {
+  const [vehicles, setVehicles] = useState<Vehicle[]>([]);
+  const [selectedVehicle, setSelectedVehicle] = useState<string | null>(null);
+  const [drawing, setDrawing] = useState<boolean>(false);
+  const [lines, setLines] = useState<L.Polyline[]>([]);
+  const [currentLine, setCurrentLine] = useState<L.LatLng[]>([]);
+  const [lastPoint, setLastPoint] = useState<L.LatLng | null>(null);
+  
+  // Refs
+  const mapRef = useRef<L.Map | null>(null);
+  const drawingLayerRef = useRef<L.LayerGroup | null>(null);
+  
+  // Calculate center based on form data if available
+  const center: [number, number] = formData.geolocation?.lat && formData.geolocation?.lng
+    ? [formData.geolocation.lat, formData.geolocation.lng]
+    : [48.8566, 2.3522]; // Default to Paris
 
+  // Handle map initialization
+  const handleMapReady = (map: L.Map) => {
+    mapRef.current = map;
+    
+    // Create a layer for drawings
+    drawingLayerRef.current = L.layerGroup().addTo(map);
+    
+    if (!readOnly) {
+      // Add click event for vehicle placement
+      map.on('click', handleMapClick);
+    }
+    
+    // Attempt to add initial vehicles based on form data
+    initializeVehicles();
+  };
+  
+  // Initialize vehicles based on formData if available
+  const initializeVehicles = () => {
+    // This is where you would populate vehicles from saved data
+    // For now, let's add demo vehicles if there's accident location data
+    if (formData.geolocation?.lat && formData.geolocation?.lng && vehicles.length === 0) {
+      // Add your vehicle and other vehicle to the map
+      const initialVehicles: Vehicle[] = [];
+      
+      // Add vehicle representations from the form data
+      if (formData.vehicleBrand && formData.vehicleModel) {
+        initialVehicles.push({
+          id: uuidv4(),
+          position: [
+            formData.geolocation.lat + 0.0002, 
+            formData.geolocation.lng - 0.0002
+          ],
+          color: VEHICLE_COLORS[0],
+          brand: formData.vehicleBrand,
+          model: formData.vehicleModel,
+          isSelected: false
+        });
+      }
+      
+      // Add other vehicle if available
+      if (formData.otherVehicle.brand && formData.otherVehicle.model) {
+        initialVehicles.push({
+          id: uuidv4(),
+          position: [
+            formData.geolocation.lat - 0.0002, 
+            formData.geolocation.lng + 0.0002
+          ],
+          color: VEHICLE_COLORS[1],
+          brand: formData.otherVehicle.brand,
+          model: formData.otherVehicle.model,
+          isSelected: false
+        });
+      }
+      
+      if (initialVehicles.length > 0) {
+        setVehicles(initialVehicles);
+      }
+    }
+  };
+  
+  // Update parent component with scheme data when vehicles change
+  useEffect(() => {
+    if (onUpdateSchemeData) {
+      onUpdateSchemeData(vehicles);
+    }
+  }, [vehicles, onUpdateSchemeData]);
+  
+  // Handle map click to place vehicles or draw lines
+  const handleMapClick = (e: L.LeafletMouseEvent) => {
+    if (drawing) {
+      // Add point to current drawing line
+      const newPoint = e.latlng;
+      
+      if (lastPoint) {
+        // Create a line segment between last point and new point
+        if (drawingLayerRef.current && mapRef.current) {
+          const polyline = L.polyline([lastPoint, newPoint], {
+            color: 'black',
+            weight: 3,
+          }).addTo(drawingLayerRef.current);
+          
+          setLines([...lines, polyline]);
+          setCurrentLine([...currentLine, newPoint]);
+        }
+      } else {
+        // First point in line
+        setCurrentLine([newPoint]);
+      }
+      
+      setLastPoint(newPoint);
+    } else if (vehicles.length < VEHICLE_COLORS.length) {
+      // Add new vehicle at click position
+      addVehicle(e.latlng);
+    } else {
+      toast.warning(`Maximum de ${VEHICLE_COLORS.length} véhicules atteint.`);
+    }
+  };
+  
+  // Add a new vehicle to the map
+  const addVehicle = (location: L.LatLng) => {
+    const newVehicle: Vehicle = {
+      id: uuidv4(),
+      position: [location.lat, location.lng],
+      color: VEHICLE_COLORS[vehicles.length % VEHICLE_COLORS.length],
+      isSelected: false
+    };
+    
+    setVehicles([...vehicles, newVehicle]);
+    
+    // Auto-select the new vehicle
+    setSelectedVehicle(newVehicle.id);
+    updateSelectedStatus(newVehicle.id);
+  };
+  
+  // Remove a vehicle from the map
+  const removeVehicle = (id: string) => {
+    setVehicles(vehicles.filter(v => v.id !== id));
+    if (selectedVehicle === id) {
+      setSelectedVehicle(null);
+    }
+  };
+  
+  // Select a vehicle
+  const selectVehicle = (id: string) => {
+    if (selectedVehicle === id) {
+      setSelectedVehicle(null);
+      updateSelectedStatus(null);
+    } else {
+      setSelectedVehicle(id);
+      updateSelectedStatus(id);
+    }
+  };
+  
+  // Update the isSelected status for all vehicles
+  const updateSelectedStatus = (selectedId: string | null) => {
+    setVehicles(vehicles.map(vehicle => ({
+      ...vehicle,
+      isSelected: vehicle.id === selectedId
+    })));
+  };
+  
+  // Clear all drawings
+  const clearDrawings = () => {
+    if (drawingLayerRef.current) {
+      drawingLayerRef.current.clearLayers();
+      setLines([]);
+      setCurrentLine([]);
+      setLastPoint(null);
+    }
+  };
+  
+  // Toggle drawing mode
+  const toggleDrawingMode = () => {
+    setDrawing(!drawing);
+    if (drawing) {
+      // Exit drawing mode
+      setLastPoint(null);
+    }
+  };
+  
+  // Add a vehicle button
+  const addVehicleAtCenter = () => {
+    if (mapRef.current && vehicles.length < VEHICLE_COLORS.length) {
+      const center = mapRef.current.getCenter();
+      addVehicle(center);
+    } else {
+      toast.warning(`Maximum de ${VEHICLE_COLORS.length} véhicules atteint.`);
+    }
+  };
+  
   return (
-    <Marker
-      position={vehicle.position}
-      icon={carIcon}
-      draggable={true}
-      eventHandlers={{
-        click: () => onClick(vehicle.id),
-        dragend: (e) => onMove(vehicle.id, [e.target.getLatLng().lat, e.target.getLatLng().lng])
-      }}
-    >
-      <Popup>
-        <div className="p-2">
-          <div className="mb-2">
-            <Label>Couleur</Label>
-            <div className="flex gap-2 mt-1">
-              {['#ff9f43', '#0abde3', '#10ac84', '#ee5253', '#8854d0'].map(color => (
-                <button
-                  key={color}
-                  className={`w-6 h-6 rounded-full ${vehicle.color === color ? 'ring-2 ring-offset-2 ring-blue-500' : ''}`}
-                  style={{ backgroundColor: color }}
-                  onClick={() => onUpdate(vehicle.id, { color })}
-                />
-              ))}
-            </div>
-          </div>
-          <div className="mb-2">
-            <Label>Étiquette</Label>
-            <Input
-              value={vehicle.label}
-              onChange={(e) => onUpdate(vehicle.id, { label: e.target.value })}
-              className="mt-1"
-            />
-          </div>
-          <Button size="sm" variant="destructive" className="mt-2" onClick={() => onDelete(vehicle.id)}>
-            Supprimer
+    <div className="relative rounded-lg overflow-hidden shadow-md border border-gray-200">
+      {!readOnly && (
+        <div className="absolute top-2 right-2 z-10 flex gap-2">
+          <Button 
+            size="sm" 
+            variant="outline" 
+            onClick={addVehicleAtCenter} 
+            className="bg-white"
+            title="Ajouter un véhicule"
+          >
+            <Car className="h-4 w-4 mr-1" />
+            <span>Ajouter</span>
           </Button>
         </div>
-      </Popup>
-    </Marker>
-  );
-};
-
-// Annotation Marker
-const AnnotationMarker = ({ annotation, isSelected, onClick, onMove, onUpdate, onDelete }) => {
-  const flagIcon = useMemo(() => {
-    return new DivIcon({
-      className: '',
-      iconSize: [30, 30],
-      html: `
-        <div style="
-          width: 30px; 
-          height: 30px; 
-          display: flex; 
-          align-items: center; 
-          justify-content: center; 
-          background-color: ${annotation.type === 'flag' ? '#f59e0b' : '#3b82f6'}; 
-          border-radius: 50%;
-          ${isSelected ? 'border: 2px solid #3b82f6;' : ''}
-        ">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path fill="white" d="${annotation.type === 'flag'
-              ? 'M4 15s1-1 4-1 5 2 8 2 4-1 4-1V4s-1 1-4 1-5-2-8-2-4 1-4 1z M4 22v-7'
-              : 'M12 8v4M12 16h.01M22 12a10 10 0 11-20 0 10 10 0 0120 0z'}"
-              stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-          </svg>
-        </div>
-      `
-    });
-  }, [annotation.type, isSelected]);
-
-  return (
-    <Marker
-      position={annotation.position}
-      icon={flagIcon}
-      draggable={true}
-      eventHandlers={{
-        click: () => onClick(annotation.id),
-        dragend: (e) => onMove(annotation.id, [e.target.getLatLng().lat, e.target.getLatLng().lng])
-      }}
-    >
-      {isSelected && (
-        <Popup closeButton={false}>
-          <div className="p-2">
-            <div className="mb-2">
-              <Label>Type</Label>
-              <Select
-                value={annotation.type}
-                onValueChange={(value) => onUpdate(annotation.id, { type: value })}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Type" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="flag">Drapeau</SelectItem>
-                  <SelectItem value="info">Information</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="mb-2">
-              <Label>Texte</Label>
-              <Input
-                value={annotation.text}
-                onChange={(e) => onUpdate(annotation.id, { text: e.target.value })}
-                className="mt-1"
-              />
-            </div>
-            <Button size="sm" variant="destructive" className="mt-2" onClick={() => onDelete(annotation.id)}>
-              Supprimer
-            </Button>
-          </div>
-        </Popup>
       )}
-    </Marker>
-  );
-};
-
-// Trajectory Line
-const TrajectoryLine = ({ trajectory, isSelected, onClick, onDelete }) => {
-  return (
-    <>
-      <Polyline
-        positions={trajectory.points}
-        pathOptions={{ color: trajectory.color, weight: 3 }}
-        eventHandlers={{
-          click: () => onClick(trajectory.id)
-        }}
-      />
-      {isSelected && trajectory.points.length > 0 && (
-        <Popup position={trajectory.points[trajectory.points.length - 1]}>
-          <div className="p-2">
-            <Button size="sm" variant="destructive" onClick={() => onDelete(trajectory.id)}>
-              Supprimer trajectoire
-            </Button>
-          </div>
-        </Popup>
+      
+      {!readOnly && (
+        <CanvasToolbar 
+          drawing={drawing} 
+          onToggleDrawing={toggleDrawingMode} 
+          onClear={clearDrawings} 
+        />
       )}
-    </>
-  );
-};
-
-const InteractiveScheme = ({ center, address, onSaveScheme }: InteractiveSchemeProps) => {
-  const [vehicles, setVehicles] = useState<Vehicle[]>([]);
-  const [annotations, setAnnotations] = useState<Annotation[]>([]);
-  const [trajectories, setTrajectories] = useState<Trajectory[]>([]);
-  const [selectedItem, setSelectedItem] = useState<{ type: 'vehicle' | 'annotation' | 'trajectory', id: string } | null>(null);
-  const [isAddingTrajectory, setIsAddingTrajectory] = useState(false);
-  const [activeVehicleId, setActiveVehicleId] = useState<string | null>(null);
-
-  // Derived state
-  const selectedVehicleId = selectedItem?.type === 'vehicle' ? selectedItem.id : null;
-  const selectedAnnotationId = selectedItem?.type === 'annotation' ? selectedItem.id : null;
-  const selectedTrajectoryId = selectedItem?.type === 'trajectory' ? selectedItem.id : null;
-
-  // Add Vehicle
-  const handleAddVehicle = useCallback(() => {
-    const newVehicle: Vehicle = {
-      id: `vehicle-${Date.now()}`,
-      position: center,
-      rotation: 0,
-      color: '#ff9f43',
-      label: `Véhicule ${vehicles.length + 1}`
-    };
-    setVehicles(prev => [...prev, newVehicle]);
-    setSelectedItem({ type: 'vehicle', id: newVehicle.id });
-  }, [center, vehicles.length]);
-
-  // Add Annotation
-  const handleAddAnnotation = useCallback(() => {
-    const newAnnotation: Annotation = {
-      id: `annotation-${Date.now()}`,
-      position: center,
-      text: 'Nouvelle annotation',
-      type: 'flag'
-    };
-    setAnnotations(prev => [...prev, newAnnotation]);
-    setSelectedItem({ type: 'annotation', id: newAnnotation.id });
-  }, [center]);
-
-  // Start Trajectory
-  const handleAddTrajectory = useCallback(() => {
-    if (!selectedVehicleId) return;
-    
-    const vehicle = vehicles.find(v => v.id === selectedVehicleId);
-    if (!vehicle) return;
-    
-    const newTrajectory: Trajectory = {
-      id: `trajectory-${Date.now()}`,
-      points: [vehicle.position],
-      color: vehicle.color,
-      vehicleId: vehicle.id
-    };
-    
-    setTrajectories(prev => [...prev, newTrajectory]);
-    setIsAddingTrajectory(true);
-    setActiveVehicleId(vehicle.id);
-    setSelectedItem({ type: 'trajectory', id: newTrajectory.id });
-    
-    toast.info("Cliquez sur la carte pour ajouter des points à la trajectoire. Cliquez sur 'Terminer' quand vous avez fini.", {
-      duration: 5000
-    });
-  }, [selectedVehicleId, vehicles]);
-
-  // Add point to trajectory
-  const handleMapClick = useCallback((e) => {
-    if (!isAddingTrajectory || !selectedTrajectoryId) return;
-    
-    const { lat, lng } = e.latlng;
-    setTrajectories(prev => prev.map(t => 
-      t.id === selectedTrajectoryId
-        ? { ...t, points: [...t.points, [lat, lng]] }
-        : t
-    ));
-  }, [isAddingTrajectory, selectedTrajectoryId]);
-
-  // Update vehicle
-  const handleUpdateVehicle = useCallback((id: string, updates: Partial<Vehicle>) => {
-    setVehicles(prev => prev.map(v => 
-      v.id === id ? { ...v, ...updates } : v
-    ));
-    
-    // Update related trajectory color if vehicle color changes
-    if (updates.color) {
-      setTrajectories(prev => prev.map(t => 
-        t.vehicleId === id ? { ...t, color: updates.color as string } : t
-      ));
-    }
-  }, []);
-
-  // Rotate vehicle
-  const handleRotateVehicle = useCallback((id: string, degrees: number) => {
-    setVehicles(prev => prev.map(v => 
-      v.id === id ? { ...v, rotation: (v.rotation + degrees) % 360 } : v
-    ));
-  }, []);
-
-  // Move vehicle
-  const handleMoveVehicle = useCallback((id: string, position: [number, number]) => {
-    setVehicles(prev => prev.map(v => 
-      v.id === id ? { ...v, position } : v
-    ));
-  }, []);
-
-  // Delete vehicle
-  const handleDeleteVehicle = useCallback((id: string) => {
-    setVehicles(prev => prev.filter(v => v.id !== id));
-    // Also delete related trajectories
-    setTrajectories(prev => prev.filter(t => t.vehicleId !== id));
-    setSelectedItem(null);
-  }, []);
-
-  // Update annotation
-  const handleUpdateAnnotation = useCallback((id: string, updates: Partial<Annotation>) => {
-    setAnnotations(prev => prev.map(a => 
-      a.id === id ? { ...a, ...updates } : a
-    ));
-  }, []);
-
-  // Move annotation
-  const handleMoveAnnotation = useCallback((id: string, position: [number, number]) => {
-    setAnnotations(prev => prev.map(a => 
-      a.id === id ? { ...a, position } : a
-    ));
-  }, []);
-
-  // Delete annotation
-  const handleDeleteAnnotation = useCallback((id: string) => {
-    setAnnotations(prev => prev.filter(a => a.id !== id));
-    setSelectedItem(null);
-  }, []);
-
-  // Delete trajectory
-  const handleDeleteTrajectory = useCallback((id: string) => {
-    setTrajectories(prev => prev.filter(t => t.id !== id));
-    setSelectedItem(null);
-  }, []);
-
-  // Finish adding trajectory points
-  const handleFinishTrajectory = useCallback(() => {
-    setIsAddingTrajectory(false);
-    setActiveVehicleId(null);
-    toast.success("Trajectoire ajoutée avec succès");
-  }, []);
-
-  // Take snapshot
-  const handleTakeSnapshot = useCallback(() => {
-    if (onSaveScheme) {
-      onSaveScheme({ vehicles, annotations, trajectories });
-    }
-    
-    // Just show a message for now, later we can implement actual export
-    toast.success("Schéma enregistré. L'export sera implémenté prochainement.");
-  }, [vehicles, annotations, trajectories, onSaveScheme]);
-
-  return (
-    <div className="relative w-full h-[500px] rounded-lg shadow-lg">
+      
+      {/* Map Container */}
       <MapContainer
-        center={center as [number, number]}
+        center={center}
         zoom={17}
-        style={{ height: '100%', width: '100%' }}
+        style={{ height: '400px', width: '100%' }}
         className="z-0"
-        whenCreated={(map) => {
-          map.on('click', handleMapClick);
-        }}
+        whenReady={(map) => handleMapReady(map.target)}
       >
         <TileLayer
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         />
         
-        {/* Vehicles */}
-        {vehicles.map(vehicle => (
-          <VehicleMarker
+        {/* Vehicle Markers */}
+        {vehicles.map((vehicle) => (
+          <VehicleIcon
             key={vehicle.id}
-            vehicle={vehicle}
-            isSelected={selectedVehicleId === vehicle.id}
-            onClick={(id) => setSelectedItem({ type: 'vehicle', id })}
-            onMove={handleMoveVehicle}
-            onUpdate={handleUpdateVehicle}
-            onDelete={handleDeleteVehicle}
+            position={vehicle.position}
+            color={vehicle.color}
+            isSelected={vehicle.isSelected}
+            onClick={() => !readOnly && selectVehicle(vehicle.id)}
           />
         ))}
         
-        {/* Annotations */}
-        {annotations.map(annotation => (
-          <AnnotationMarker
-            key={annotation.id}
-            annotation={annotation}
-            isSelected={selectedAnnotationId === annotation.id}
-            onClick={(id) => setSelectedItem({ type: 'annotation', id })}
-            onMove={handleMoveAnnotation}
-            onUpdate={handleUpdateAnnotation}
-            onDelete={handleDeleteAnnotation}
-          />
-        ))}
-        
-        {/* Trajectories */}
-        {trajectories.map(trajectory => (
-          <TrajectoryLine
-            key={trajectory.id}
-            trajectory={trajectory}
-            isSelected={selectedTrajectoryId === trajectory.id}
-            onClick={(id) => setSelectedItem({ type: 'trajectory', id })}
-            onDelete={handleDeleteTrajectory}
-          />
-        ))}
-        
-        {/* Map Controls */}
-        <MapControls
-          onAddVehicle={handleAddVehicle}
-          onAddAnnotation={handleAddAnnotation}
-          onAddTrajectory={handleAddTrajectory}
-          onTakeSnapshot={handleTakeSnapshot}
-          selectedVehicleId={selectedVehicleId}
-          vehicles={vehicles}
-        />
+        {/* Vehicle Controls */}
+        {selectedVehicle && !readOnly && (
+          <div className="absolute top-16 left-1/2 transform -translate-x-1/2 z-50">
+            {vehicles.map((vehicle) => (
+              vehicle.id === selectedVehicle && (
+                <VehicleControls
+                  key={vehicle.id}
+                  vehicleId={vehicle.id}
+                  onRemove={removeVehicle}
+                />
+              )
+            ))}
+          </div>
+        )}
       </MapContainer>
-      
-      {isAddingTrajectory && (
-        <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 z-[1000] bg-white p-2 rounded-md shadow-md">
-          <Button size="sm" onClick={handleFinishTrajectory}>
-            Terminer la trajectoire
-          </Button>
-        </div>
-      )}
-      
-      <style>{`
-        .leaflet-container {
-          font: inherit;
-          border-radius: 0.5rem;
-        }
-        .vehicle-popup .leaflet-popup-content-wrapper {
-          min-width: 200px;
-        }
-      `}</style>
     </div>
   );
 };
