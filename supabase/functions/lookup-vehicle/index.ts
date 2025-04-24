@@ -1,15 +1,13 @@
 
-import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
-import { corsHeaders } from '../_shared/cors.ts';
-import { 
-  createResponse, 
-  handleError, 
-  normalizeLicensePlate, 
-  simulateApiDelay, 
-  filterSensitiveVehicleData 
-} from '../_shared/vehicle-utils.ts';
+import { serve } from 'https://deno.land/std@0.168.0/http/server.ts'
 
-// Simulated SIV database (System of Vehicle Registration)
+// Import les en-têtes CORS depuis le fichier partagé
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+}
+
+// Base de données simulée des véhicules français (à remplacer par une vraie API SIV)
 const frenchVehicleDatabase = {
   'AA123BB': { 
     brand: 'Renault', 
@@ -141,7 +139,7 @@ const frenchVehicleDatabase = {
       name: 'Auto Référence'
     }
   },
-  // Newer format plates (AB-123-CD)
+  // Ajout de plus de plaques d'immatriculation au format français (nouveau format AA-123-BB)
   'AB123CD': { 
     brand: 'Dacia', 
     model: 'Sandero', 
@@ -207,7 +205,47 @@ const frenchVehicleDatabase = {
       name: 'Auto Confort'
     }
   },
-  // With hyphenated format
+  // Ancien format de plaques d'immatriculation (3 chiffres + 3 lettres)
+  '123ABC': { 
+    brand: 'Renault', 
+    model: 'Twingo', 
+    year: '2012', 
+    owner: 'REDACTED', 
+    firstRegistration: '2012-06-18', 
+    status: 'active',
+    insurance: {
+      company: 'MAIF',
+      policy: 'M98765432',
+      name: 'Auto Tous Risques'
+    }
+  },
+  '456DEF': { 
+    brand: 'Peugeot', 
+    model: '206', 
+    year: '2010', 
+    owner: 'REDACTED', 
+    firstRegistration: '2010-04-22', 
+    status: 'active',
+    insurance: {
+      company: 'Groupama',
+      policy: 'G45678901',
+      name: 'Auto Référence'
+    }
+  },
+  '789GHI': { 
+    brand: 'Citroen', 
+    model: 'C2', 
+    year: '2008', 
+    owner: 'REDACTED', 
+    firstRegistration: '2008-09-15', 
+    status: 'active',
+    insurance: {
+      company: 'Allianz',
+      policy: 'A87654321',
+      name: 'Auto Sur Mesure'
+    }
+  },
+  // Ajout des plaques au format avec tirets pour faciliter la recherche
   'GQ691CF': { 
     brand: 'Renault', 
     model: 'Megane', 
@@ -237,29 +275,30 @@ const frenchVehicleDatabase = {
 };
 
 serve(async (req) => {
-  // Handle CORS for OPTIONS requests
+  // Gestion des CORS pour les requêtes OPTIONS
   if (req.method === 'OPTIONS') {
-    return new Response('ok', { headers: corsHeaders });
+    return new Response('ok', { headers: corsHeaders })
   }
 
   try {
-    const { licensePlate } = await req.json();
+    const { licensePlate } = await req.json()
     
-    // Normalize the license plate
-    const normalizedPlate = normalizeLicensePlate(licensePlate, 'siv');
+    // Normalisation de la plaque d'immatriculation (suppression des espaces et tirets, conversion en majuscules)
+    const normalizedPlate = licensePlate.replace(/[\s-]+/g, '').toUpperCase();
     
     console.log(`Recherche de véhicule français avec plaque: ${normalizedPlate}`);
     
-    // Search for the vehicle in the database
+    // Vérification dans la base de données des véhicules français
     let vehicleData = frenchVehicleDatabase[normalizedPlate];
     
-    // Try with hyphenated format if not found
+    // Vérification avec la version avec tirets si non trouvé
     if (!vehicleData && normalizedPlate.length === 7) {
+      // Format possible AA-123-BB
       const formattedPlate = `${normalizedPlate.substring(0, 2)}-${normalizedPlate.substring(2, 5)}-${normalizedPlate.substring(5, 7)}`;
       vehicleData = frenchVehicleDatabase[formattedPlate];
     }
     
-    // If still not found, check fallback database
+    // Fallback à la base de données originale si non trouvé
     if (!vehicleData) {
       const fallbackDatabase = {
         'AA123BB': { 
@@ -299,27 +338,57 @@ serve(async (req) => {
     
     if (!vehicleData) {
       console.log(`Véhicule non trouvé dans la base de données SIV: ${normalizedPlate}`);
-      return createResponse({ 
-        success: false,
-        error: 'Vehicle not found',
-        message: 'Aucun véhicule trouvé avec cette immatriculation dans le SIV'
-      }, 404);
+      return new Response(
+        JSON.stringify({ 
+          error: 'Vehicle not found',
+          message: 'Aucun véhicule trouvé avec cette immatriculation dans le SIV'
+        }),
+        { 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          status: 404 
+        }
+      )
     }
     
-    // Simulate API delay
-    await simulateApiDelay();
+    // Simulation d'un léger délai comme une vraie API aurait (300-800ms)
+    await new Promise(resolve => setTimeout(resolve, Math.floor(Math.random() * 500) + 300));
     
     console.log(`Véhicule trouvé dans SIV: ${JSON.stringify(vehicleData)}`);
     
-    // Filter sensitive data before returning
-    const publicData = filterSensitiveVehicleData(vehicleData);
+    // Retourne uniquement les données publiques (pas les informations du propriétaire)
+    const publicData = {
+      brand: vehicleData.brand,
+      model: vehicleData.model,
+      year: vehicleData.year,
+      firstRegistration: vehicleData.firstRegistration,
+      insurance: vehicleData.insurance ? {
+        company: vehicleData.insurance.company,
+        policy: vehicleData.insurance.policy,
+        name: vehicleData.insurance.name
+      } : null
+    };
     
-    return createResponse({ 
-      success: true,
-      data: publicData,
-      message: 'Véhicule identifié avec succès dans le SIV'
-    });
+    return new Response(
+      JSON.stringify({ 
+        success: true,
+        data: publicData,
+        message: 'Véhicule identifié avec succès dans le SIV'
+      }),
+      { 
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+      }
+    )
   } catch (error) {
-    return handleError(error, 'Erreur lors de la consultation du SIV');
+    console.error(`Erreur dans SIV lookup-vehicle: ${error.message}`);
+    return new Response(
+      JSON.stringify({ 
+        error: error.message,
+        message: 'Erreur lors de la consultation du SIV'
+      }),
+      { 
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        status: 400 
+      }
+    )
   }
-});
+})

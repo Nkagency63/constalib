@@ -1,8 +1,6 @@
 
 import { Camera, FileText, MapPin, Shield } from 'lucide-react';
 import FeatureCard from '@/components/FeatureCard';
-import { Link } from 'react-router-dom';
-import { Button } from '@/components/ui/button';
 
 const FeaturesSection = () => {
   // Features data
@@ -10,26 +8,22 @@ const FeaturesSection = () => {
     {
       icon: FileText,
       title: 'Déclaration simple',
-      description: 'Remplissez votre constat amiable numérique en quelques étapes guidées.',
-      action: '/accident'
+      description: 'Remplissez votre constat amiable numérique en quelques étapes guidées.'
     },
     {
       icon: Camera,
       title: 'Ajout de photos',
-      description: 'Photographiez les dégâts et la scène de l\'accident directement depuis l\'application.',
-      action: '/accident'
+      description: 'Photographiez les dégâts et la scène de l\'accident directement depuis l\'application.'
     },
     {
       icon: MapPin,
       title: 'Localisation des carrossiers',
-      description: 'Trouvez rapidement les carrossiers partenaires proches de vous.',
-      action: '/carrossiers'
+      description: 'Trouvez rapidement les carrossiers partenaires proches de vous.'
     },
     {
       icon: Shield,
       title: 'Données sécurisées',
-      description: 'Vos informations personnelles et vos déclarations sont entièrement protégées.',
-      action: null
+      description: 'Vos informations personnelles et vos déclarations sont entièrement protégées.'
     }
   ];
 
@@ -50,22 +44,12 @@ const FeaturesSection = () => {
         
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           {features.map((feature, index) => (
-            <div key={index} className="flex flex-col h-full">
-              <FeatureCard
-                icon={feature.icon}
-                title={feature.title}
-                description={feature.description}
-              />
-              {feature.action && (
-                <div className="mt-auto pt-4 flex justify-center">
-                  <Link to={feature.action}>
-                    <Button variant="outline" size="sm">
-                      {feature.title === 'Localisation des carrossiers' ? 'Trouver un carrossier' : 'Accéder'}
-                    </Button>
-                  </Link>
-                </div>
-              )}
-            </div>
+            <FeatureCard
+              key={index}
+              icon={feature.icon}
+              title={feature.title}
+              description={feature.description}
+            />
           ))}
         </div>
       </div>

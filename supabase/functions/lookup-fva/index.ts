@@ -1,18 +1,17 @@
 
-import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
-import { corsHeaders } from '../_shared/cors.ts';
-import { 
-  createResponse, 
-  handleError, 
-  normalizeLicensePlate, 
-  simulateApiDelay 
-} from '../_shared/vehicle-utils.ts';
+import { serve } from 'https://deno.land/std@0.168.0/http/server.ts'
 
-// Simulated FVA database (Insured Vehicles File)
+// Import les en-têtes CORS depuis le fichier partagé
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+}
+
+// Base de données simulée du Fichier des Véhicules Assurés (FVA)
 const fvaDatabase = {
   'AA123BB': { 
     vehicleInfo: {
-      licensePlate: 'AA-123-BB',
+      licensePlate: 'AA123BB',
       brand: 'Renault',
       model: 'Clio',
       vin: 'VF1LJN00662696253',
@@ -33,7 +32,7 @@ const fvaDatabase = {
   },
   'BB456CC': { 
     vehicleInfo: {
-      licensePlate: 'BB-456-CC',
+      licensePlate: 'BB456CC',
       brand: 'Peugeot',
       model: '308',
       vin: 'VF3LBZMRPJS112233',
@@ -54,7 +53,7 @@ const fvaDatabase = {
   },
   'CC789DD': { 
     vehicleInfo: {
-      licensePlate: 'CC-789-DD',
+      licensePlate: 'CC789DD',
       brand: 'Citroen',
       model: 'C3',
       vin: 'VF7FCKFVC9A123456',
@@ -75,7 +74,7 @@ const fvaDatabase = {
   },
   'DD321EE': { 
     vehicleInfo: {
-      licensePlate: 'DD-321-EE',
+      licensePlate: 'DD321EE',
       brand: 'Volkswagen',
       model: 'Golf',
       vin: 'WVWZZZ1KZAW987654',
@@ -96,7 +95,7 @@ const fvaDatabase = {
   },
   'EE654FF': { 
     vehicleInfo: {
-      licensePlate: 'EE-654-FF',
+      licensePlate: 'EE654FF',
       brand: 'Toyota',
       model: 'Yaris',
       vin: 'JTDKW113500789012',
@@ -115,7 +114,7 @@ const fvaDatabase = {
       insuredEmail: 'camille.laurent@example.com'
     }
   },
-  // Plates with hyphens for easier search
+  // Ajout des plaques au format avec tirets pour faciliter la recherche
   'GQ-691-CF': { 
     vehicleInfo: {
       licensePlate: 'GQ-691-CF',
@@ -140,26 +139,26 @@ const fvaDatabase = {
 };
 
 serve(async (req) => {
-  // Handle CORS for OPTIONS requests
+  // Gestion des CORS pour les requêtes OPTIONS
   if (req.method === 'OPTIONS') {
-    return new Response('ok', { headers: corsHeaders });
+    return new Response('ok', { headers: corsHeaders })
   }
 
   try {
-    const { licensePlate } = await req.json();
+    const { licensePlate } = await req.json()
     
-    // Normalize the license plate
-    const normalizedPlate = normalizeLicensePlate(licensePlate, 'siv');
+    // Normalisation de la plaque d'immatriculation (suppression des espaces et tirets, conversion en majuscules)
+    const normalizedPlate = licensePlate.replace(/[\s-]+/g, '').toUpperCase();
     const formattedPlate = licensePlate.toUpperCase();
     
     console.log(`Recherche dans le FVA avec plaque: ${normalizedPlate} ou ${formattedPlate}`);
     
-    // Check in the FVA database
+    // Vérification dans la base de données FVA
     let fvaData = fvaDatabase[normalizedPlate] || fvaDatabase[formattedPlate];
     
-    // If not found with normalization, try with original format
+    // Si non trouvé avec la normalisation, essayer avec le format d'origine
     if (!fvaData) {
-      // Format to AA-123-BB if it's a 7-character plate
+      // Formater au format AA-123-BB si c'est une plaque de 7 caractères
       if (normalizedPlate.length === 7) {
         const formattedPlate = `${normalizedPlate.substring(0, 2)}-${normalizedPlate.substring(2, 5)}-${normalizedPlate.substring(5, 7)}`;
         fvaData = fvaDatabase[formattedPlate];
@@ -168,24 +167,44 @@ serve(async (req) => {
     
     if (!fvaData) {
       console.log(`Véhicule non trouvé dans le FVA: ${licensePlate}`);
-      return createResponse({ 
-        success: false,
-        error: 'Vehicle not found in FVA',
-        message: 'Aucune information trouvée pour ce véhicule dans le Fichier des Véhicules Assurés'
-      }, 404);
+      return new Response(
+        JSON.stringify({ 
+          error: 'Vehicle not found in FVA',
+          message: 'Aucune information trouvée pour ce véhicule dans le Fichier des Véhicules Assurés'
+        }),
+        { 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          status: 404 
+        }
+      )
     }
     
-    // Simulate API delay
-    await simulateApiDelay(300, 800);
+    // Simulation d'un léger délai comme une vraie API (300-800ms)
+    await new Promise(resolve => setTimeout(resolve, Math.floor(Math.random() * 500) + 300));
     
     console.log(`Véhicule trouvé dans le FVA: ${JSON.stringify(fvaData)}`);
     
-    return createResponse({ 
-      success: true,
-      data: fvaData,
-      message: 'Informations du FVA récupérées avec succès'
-    });
+    return new Response(
+      JSON.stringify({ 
+        success: true,
+        data: fvaData,
+        message: 'Informations du FVA récupérées avec succès'
+      }),
+      { 
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+      }
+    )
   } catch (error) {
-    return handleError(error, 'Erreur lors de la consultation du Fichier des Véhicules Assurés');
+    console.error(`Erreur dans la consultation du FVA: ${error.message}`);
+    return new Response(
+      JSON.stringify({ 
+        error: error.message,
+        message: 'Erreur lors de la consultation du Fichier des Véhicules Assurés'
+      }),
+      { 
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        status: 400 
+      }
+    )
   }
-});
+})
