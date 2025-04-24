@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import ProgressBar from './accident/ProgressBar';
 import StepNavigation from './accident/StepNavigation';
@@ -30,7 +29,8 @@ const AccidentForm = ({ onEmergencyRequest, onStepChange }: AccidentFormProps) =
     onEmergencyContacted,
     nextStep,
     prevStep,
-    setSubmitted
+    setSubmitted,
+    handleCheckboxChange
   } = useAccidentForm();
 
   if (submitted) {
@@ -76,6 +76,7 @@ const AccidentForm = ({ onEmergencyRequest, onStepChange }: AccidentFormProps) =
           setInvolvedPartyEmails={setInvolvedPartyEmails}
           setPersonalEmail={setPersonalEmail}
           onEmergencyContacted={onEmergencyContacted}
+          handleCheckboxChange={handleCheckboxChange}
         />
       </form>
       

@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { FormData } from '@/components/accident/types';
 import { supabase } from '@/integrations/supabase/client';
@@ -42,7 +41,9 @@ export const useAccidentForm = () => {
     emergencyContacted: false,
     personalEmail: '',
     insuranceEmails: [],
-    involvedPartyEmails: []
+    involvedPartyEmails: [],
+    hasInjuries: false,
+    hasWitnesses: false
   });
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -169,6 +170,10 @@ export const useAccidentForm = () => {
     }
   };
 
+  const handleCheckboxChange = (name: string, checked: boolean) => {
+    setFormData(prev => ({ ...prev, [name]: checked }));
+  };
+
   return {
     formData,
     currentStepIndex,
@@ -191,5 +196,6 @@ export const useAccidentForm = () => {
     onEmergencyContacted,
     nextStep,
     prevStep,
+    handleCheckboxChange,
   };
 };
