@@ -12,9 +12,9 @@ import markerShadow from 'leaflet/dist/images/marker-shadow.png';
 
 delete (Icon.Default.prototype as any)._getIconUrl;
 Icon.Default.mergeOptions({
-  iconUrl: markerIcon.src || markerIcon,
-  iconRetinaUrl: markerIcon2x.src || markerIcon2x,
-  shadowUrl: markerShadow.src || markerShadow,
+  iconUrl: markerIcon,
+  iconRetinaUrl: markerIcon2x,
+  shadowUrl: markerShadow,
 });
 
 // Create a custom accident icon
@@ -36,7 +36,7 @@ const AccidentMap = ({ lat, lng, address, children }: AccidentMapProps) => {
   return (
     <div className="rounded-lg overflow-hidden shadow-lg">
       <MapContainer
-        center={[lat, lng]}
+        center={[lat, lng] as [number, number]}
         zoom={16}
         scrollWheelZoom={false}
         style={{ height: '300px', width: '100%' }}
@@ -46,7 +46,7 @@ const AccidentMap = ({ lat, lng, address, children }: AccidentMapProps) => {
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         />
-        <Marker position={[lat, lng]} icon={accidentIcon}>
+        <Marker position={[lat, lng] as [number, number]} icon={accidentIcon}>
           <Popup>
             <div className="text-sm font-medium">
               <p>{address}</p>

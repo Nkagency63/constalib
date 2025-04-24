@@ -1,4 +1,3 @@
-
 import React, { useState, useCallback, useMemo } from 'react';
 import { MapContainer, TileLayer, Marker, Popup, Polyline, useMapEvents } from 'react-leaflet';
 import { Icon, LatLng, DivIcon } from 'leaflet';
@@ -12,6 +11,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from 'sonner';
+import { createCarIcon } from '@/utils/mapIcons';
 
 interface Vehicle {
   id: string;
@@ -79,44 +79,9 @@ const MapControls = ({ onAddVehicle, onAddAnnotation, onTakeSnapshot, onAddTraje
 
 // Custom Vehicle Marker
 const VehicleMarker = ({ vehicle, isSelected, onClick, onRotate, onMove, onUpdate, onDelete }) => {
-  // Create custom car icon with rotation
   const carIcon = useMemo(() => {
-    return new DivIcon({
-      className: '',
-      iconSize: [40, 40],
-      html: `
-        <div style="
-          width: 40px; 
-          height: 40px; 
-          display: flex; 
-          align-items: center; 
-          justify-content: center; 
-          background-color: ${vehicle.color}; 
-          border-radius: 5px;
-          transform: rotate(${vehicle.rotation}deg);
-          ${isSelected ? 'border: 2px solid #3b82f6;' : ''}
-        ">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M19 17H5L3 15V13H21V15L19 17Z" stroke="white" stroke-width="2"/>
-            <path d="M6 13V7C6 5.89543 6.89543 5 8 5H16C17.1046 5 18 5.89543 18 7V13" stroke="white" stroke-width="2"/>
-          </svg>
-          <div style="
-            position: absolute; 
-            bottom: -20px; 
-            left: 50%; 
-            transform: translateX(-50%); 
-            background-color: white; 
-            padding: 2px 4px; 
-            border-radius: 3px; 
-            font-size: 10px;
-            white-space: nowrap;
-          ">
-            ${vehicle.label}
-          </div>
-        </div>
-      `
-    });
-  }, [vehicle.color, vehicle.rotation, vehicle.label, isSelected]);
+    return createCarIcon(vehicle.color, vehicle.rotation, isSelected);
+  }, [vehicle.color, vehicle.rotation, isSelected]);
 
   return (
     <Marker
@@ -128,47 +93,45 @@ const VehicleMarker = ({ vehicle, isSelected, onClick, onRotate, onMove, onUpdat
         dragend: (e) => onMove(vehicle.id, [e.target.getLatLng().lat, e.target.getLatLng().lng])
       }}
     >
-      {isSelected && (
-        <Popup closeButton={false} className="vehicle-popup">
-          <div className="p-2">
-            <div className="mb-2">
-              <Label>Couleur</Label>
-              <div className="flex gap-2 mt-1">
-                {['#ff9f43', '#0abde3', '#10ac84', '#ee5253', '#8854d0'].map(color => (
-                  <button
-                    key={color}
-                    className={`w-6 h-6 rounded-full ${vehicle.color === color ? 'ring-2 ring-offset-2 ring-blue-500' : ''}`}
-                    style={{ backgroundColor: color }}
-                    onClick={() => onUpdate(vehicle.id, { color })}
-                  />
-                ))}
-              </div>
+      <Popup>
+        <div className="p-2">
+          <div className="mb-2">
+            <Label>Couleur</Label>
+            <div className="flex gap-2 mt-1">
+              {['#ff9f43', '#0abde3', '#10ac84', '#ee5253', '#8854d0'].map(color => (
+                <button
+                  key={color}
+                  className={`w-6 h-6 rounded-full ${vehicle.color === color ? 'ring-2 ring-offset-2 ring-blue-500' : ''}`}
+                  style={{ backgroundColor: color }}
+                  onClick={() => onUpdate(vehicle.id, { color })}
+                />
+              ))}
             </div>
-            <div className="mb-2">
-              <Label>Étiquette</Label>
-              <Input
-                value={vehicle.label}
-                onChange={(e) => onUpdate(vehicle.id, { label: e.target.value })}
-                className="mt-1"
-              />
-            </div>
-            <div className="mb-2">
-              <Label>Rotation</Label>
-              <div className="flex gap-2 mt-1">
-                <Button size="sm" variant="outline" onClick={() => onRotate(vehicle.id, -45)}>
-                  ↺
-                </Button>
-                <Button size="sm" variant="outline" onClick={() => onRotate(vehicle.id, 45)}>
-                  ↻
-                </Button>
-              </div>
-            </div>
-            <Button size="sm" variant="destructive" className="mt-2" onClick={() => onDelete(vehicle.id)}>
-              Supprimer
-            </Button>
           </div>
-        </Popup>
-      )}
+          <div className="mb-2">
+            <Label>Étiquette</Label>
+            <Input
+              value={vehicle.label}
+              onChange={(e) => onUpdate(vehicle.id, { label: e.target.value })}
+              className="mt-1"
+            />
+          </div>
+          <div className="mb-2">
+            <Label>Rotation</Label>
+            <div className="flex gap-2 mt-1">
+              <Button size="sm" variant="outline" onClick={() => onRotate(vehicle.id, -45)}>
+                ↺
+              </Button>
+              <Button size="sm" variant="outline" onClick={() => onRotate(vehicle.id, 45)}>
+                ↻
+              </Button>
+            </div>
+          </div>
+          <Button size="sm" variant="destructive" className="mt-2" onClick={() => onDelete(vehicle.id)}>
+            Supprimer
+          </Button>
+        </div>
+      </Popup>
     </Marker>
   );
 };
@@ -191,9 +154,9 @@ const AnnotationMarker = ({ annotation, isSelected, onClick, onMove, onUpdate, o
           ${isSelected ? 'border: 2px solid #3b82f6;' : ''}
         ">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path fill="white" d="${annotation.type === 'flag' 
-              ? 'M4 15s1-1 4-1 5 2 8 2 4-1 4-1V4s-1 1-4 1-5-2-8-2-4 1-4 1z M4 22v-7' 
-              : 'M12 8v4M12 16h.01M22 12a10 10 0 11-20 0 10 10 0 0120 0z'}" 
+            <path fill="white" d="${annotation.type === 'flag'
+              ? 'M4 15s1-1 4-1 5 2 8 2 4-1 4-1V4s-1 1-4 1-5-2-8-2-4 1-4 1z M4 22v-7'
+              : 'M12 8v4M12 16h.01M22 12a10 10 0 11-20 0 10 10 0 0120 0z'}"
               stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
           </svg>
         </div>
@@ -216,8 +179,8 @@ const AnnotationMarker = ({ annotation, isSelected, onClick, onMove, onUpdate, o
           <div className="p-2">
             <div className="mb-2">
               <Label>Type</Label>
-              <Select 
-                value={annotation.type} 
+              <Select
+                value={annotation.type}
                 onValueChange={(value) => onUpdate(annotation.id, { type: value })}
               >
                 <SelectTrigger>
@@ -427,7 +390,7 @@ const InteractiveScheme = ({ center, address, onSaveScheme }: InteractiveSchemeP
   return (
     <div className="relative w-full h-[500px] rounded-lg shadow-lg">
       <MapContainer
-        center={center}
+        center={center as [number, number]}
         zoom={17}
         style={{ height: '100%', width: '100%' }}
         className="z-0"
