@@ -1,5 +1,6 @@
 
 import { Car } from 'lucide-react';
+import { ReactNode } from 'react';
 
 interface VehicleIconProps {
   color: string;
@@ -7,9 +8,10 @@ interface VehicleIconProps {
   isSelected: boolean;
   onMouseDown: (e: React.MouseEvent) => void;
   style: React.CSSProperties;
+  children?: ReactNode;
 }
 
-const VehicleIcon = ({ color, label, isSelected, onMouseDown, style }: VehicleIconProps) => {
+const VehicleIcon = ({ color, label, isSelected, onMouseDown, style, children }: VehicleIconProps) => {
   return (
     <div
       className={`absolute cursor-move ${isSelected ? 'ring-2 ring-constalib-blue' : ''}`}
@@ -26,6 +28,8 @@ const VehicleIcon = ({ color, label, isSelected, onMouseDown, style }: VehicleIc
       <div className="absolute -bottom-6 left-1/2 transform -translate-x-1/2 text-xs text-constalib-dark-gray bg-white px-1 rounded">
         {label}
       </div>
+      
+      {children}
     </div>
   );
 };

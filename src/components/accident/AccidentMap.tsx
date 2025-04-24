@@ -54,7 +54,7 @@ const AccidentMap = ({ lat, lng, address }: AccidentMapProps) => {
   return (
     <div className="rounded-lg overflow-hidden shadow-lg">
       <div ref={mapContainer} style={{ height: '300px' }} />
-      <style jsx>{`
+      <style>{`
         .custom-marker {
           cursor: pointer;
         }
@@ -64,4 +64,3 @@ const AccidentMap = ({ lat, lng, address }: AccidentMapProps) => {
 };
 
 export default AccidentMap;
-
