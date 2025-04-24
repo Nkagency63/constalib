@@ -1,12 +1,11 @@
 
 import React from 'react';
 import InteractiveScheme from './accident/InteractiveScheme';
-import { FormData } from './accident/types'; // Import the FormData type
+import { FormData } from './accident/types';
 
 const VehicleScheme = () => {
-  // Create a minimal FormData object for the InteractiveScheme component
   const formData: FormData = {
-    date: '', // Add empty string for required fields
+    date: '',
     time: '',
     location: '',
     description: '',
@@ -19,6 +18,8 @@ const VehicleScheme = () => {
     vehicleDescription: '',
     insurancePolicy: '',
     insuranceCompany: '',
+    hasInjuries: false,
+    hasWitnesses: false,
     otherVehicle: {
       licensePlate: '',
       brand: '',
@@ -29,7 +30,7 @@ const VehicleScheme = () => {
       insuranceCompany: ''
     },
     geolocation: {
-      lat: 48.8566, // Paris coordinates
+      lat: 48.8566,
       lng: 2.3522,
       address: "Emplacement par défaut"
     },
@@ -52,3 +53,4 @@ const VehicleScheme = () => {
 };
 
 export default VehicleScheme;
+

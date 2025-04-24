@@ -32,7 +32,6 @@ export interface FormData {
   insuranceCompany?: string;
   hasInjuries: boolean;
   hasWitnesses: boolean;
-  // Premier véhicule (le vôtre)
   otherVehicle: {
     licensePlate: string;
     brand: string;
