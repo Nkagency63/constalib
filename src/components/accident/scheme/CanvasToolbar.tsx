@@ -1,60 +1,51 @@
 
 import { Button } from "@/components/ui/button";
-import { Car, Undo, Redo, Plus, Minus } from 'lucide-react';
+import { Car, Trash2, Pencil } from 'lucide-react';
 
 interface CanvasToolbarProps {
-  onAddVehicle: () => void;
-  onUndo: () => void;
-  onRedo: () => void;
-  onZoomIn: () => void;
-  onZoomOut: () => void;
-  canUndo: boolean;
-  canRedo: boolean;
+  drawing: boolean;
+  onToggleDrawing: () => void;
+  onClear: () => void;
+  onAddVehicle?: () => void;
 }
 
 const CanvasToolbar = ({ 
-  onAddVehicle, 
-  onUndo, 
-  onRedo, 
-  onZoomIn, 
-  onZoomOut,
-  canUndo,
-  canRedo 
+  drawing, 
+  onToggleDrawing, 
+  onClear,
+  onAddVehicle
 }: CanvasToolbarProps) => {
   return (
-    <div className="flex flex-wrap items-center gap-2 mb-4">
-      <Button variant="outline" onClick={onAddVehicle}>
-        <Car className="w-4 h-4 mr-2" />
-        Ajouter un véhicule
+    <div className="absolute top-2 left-2 z-10 flex flex-wrap items-center gap-2 bg-white/80 p-1 rounded-md">
+      {onAddVehicle && (
+        <Button 
+          variant="outline"
+          size="sm" 
+          onClick={onAddVehicle} 
+          className="bg-white"
+        >
+          <Car className="w-4 h-4 mr-1" />
+          <span>Véhicule</span>
+        </Button>
+      )}
+      
+      <Button 
+        variant={drawing ? "default" : "outline"}
+        size="sm" 
+        onClick={onToggleDrawing}
+        className={drawing ? "" : "bg-white"}
+      >
+        <Pencil className="w-4 h-4" />
       </Button>
       
-      <div className="ml-auto flex items-center gap-2">
-        <Button 
-          variant="ghost" 
-          size="sm" 
-          onClick={onUndo} 
-          disabled={!canUndo}
-        >
-          <Undo className="w-4 h-4" />
-        </Button>
-        
-        <Button 
-          variant="ghost" 
-          size="sm" 
-          onClick={onRedo} 
-          disabled={!canRedo}
-        >
-          <Redo className="w-4 h-4" />
-        </Button>
-        
-        <Button variant="ghost" size="sm" onClick={onZoomIn}>
-          <Plus className="w-4 h-4" />
-        </Button>
-        
-        <Button variant="ghost" size="sm" onClick={onZoomOut}>
-          <Minus className="w-4 h-4" />
-        </Button>
-      </div>
+      <Button 
+        variant="outline" 
+        size="sm" 
+        onClick={onClear}
+        className="bg-white"
+      >
+        <Trash2 className="w-4 h-4" />
+      </Button>
     </div>
   );
 };

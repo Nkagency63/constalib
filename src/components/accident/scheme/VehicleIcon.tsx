@@ -1,36 +1,27 @@
 
-import { Car } from 'lucide-react';
-import { ReactNode } from 'react';
+import React from 'react';
+import { Marker, MarkerProps } from 'react-leaflet';
+import L from 'leaflet';
+import { createCarIcon } from '@/utils/mapIcons';
 
 interface VehicleIconProps {
+  position: [number, number];
   color: string;
-  label: string;
   isSelected: boolean;
-  onMouseDown: (e: React.MouseEvent) => void;
-  style: React.CSSProperties;
-  children?: ReactNode;
+  onClick: () => void;
 }
 
-const VehicleIcon = ({ color, label, isSelected, onMouseDown, style, children }: VehicleIconProps) => {
+const VehicleIcon: React.FC<VehicleIconProps> = ({ position, color, isSelected, onClick }) => {
+  const carIcon = createCarIcon(color, isSelected);
+  
   return (
-    <div
-      className={`absolute cursor-move ${isSelected ? 'ring-2 ring-constalib-blue' : ''}`}
-      style={style}
-      onMouseDown={onMouseDown}
-    >
-      <div
-        className="w-16 h-32 flex items-center justify-center rounded-lg"
-        style={{ backgroundColor: color }}
-      >
-        <Car className="w-8 h-8 text-white" />
-      </div>
-      
-      <div className="absolute -bottom-6 left-1/2 transform -translate-x-1/2 text-xs text-constalib-dark-gray bg-white px-1 rounded">
-        {label}
-      </div>
-      
-      {children}
-    </div>
+    <Marker 
+      position={position} 
+      icon={carIcon} 
+      eventHandlers={{ 
+        click: onClick 
+      }} 
+    />
   );
 };
 

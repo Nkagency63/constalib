@@ -6,7 +6,7 @@ import L from 'leaflet';
 import { createCarIcon } from '@/utils/mapIcons';
 import VehicleIcon from './scheme/VehicleIcon';
 import { Button } from '@/components/ui/button';
-import { Trash2, Plus, Car } from 'lucide-react';
+import { Trash2, Plus, Car, Pencil } from 'lucide-react';
 import { toast } from 'sonner';
 import { v4 as uuidv4 } from 'uuid';
 import CanvasToolbar from './scheme/CanvasToolbar';
