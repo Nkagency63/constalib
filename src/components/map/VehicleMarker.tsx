@@ -1,6 +1,7 @@
 
 import { useEffect } from 'react';
 import { Marker, useMap } from 'react-leaflet';
+import L from 'leaflet';
 import { Vehicle } from './types';
 import { createVehicleIcon } from './utils';
 
@@ -73,8 +74,8 @@ const VehicleMarker = ({
   return (
     <Marker
       position={vehicle.position}
-      icon={vehicleIcon}
       eventHandlers={eventHandlers}
+      icon={vehicleIcon as L.Icon}
     />
   );
 };
