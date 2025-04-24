@@ -1,14 +1,14 @@
 
-import { FormData } from './types';
+import React from 'react';
 import BasicInfoStep from './BasicInfoStep';
+import LocationStep from './LocationStep';
+import VehicleIdentificationStep from './VehicleIdentificationStep';
 import DetailsStep from './DetailsStep';
 import PhotosStep from './PhotosStep';
-import SchemeStep from './SchemeStep';
-import ReviewStep from './ReviewStep';
-import VehicleIdentificationStep from './VehicleIdentificationStep';
-import LocationStep from './LocationStep';
-import MultiVehicleStep from './MultiVehicleStep';
 import EmailStep from './EmailStep';
+import ReviewStep from './ReviewStep';
+import SchemeStep from './SchemeStep';
+import { FormData } from './types';
 
 interface StepRendererProps {
   currentStepId: string;
@@ -22,7 +22,7 @@ interface StepRendererProps {
   setInsuranceEmails: (emails: string[]) => void;
   setInvolvedPartyEmails: (emails: string[]) => void;
   setPersonalEmail: (email: string) => void;
-  onEmergencyContacted?: () => void;
+  onEmergencyContacted: () => void;
 }
 
 const StepRenderer = ({
@@ -43,39 +43,30 @@ const StepRenderer = ({
     case 'basics':
       return (
         <BasicInfoStep 
-          date={formData.date}
-          time={formData.time}
+          date={formData.date} 
+          time={formData.time} 
           handleInputChange={handleInputChange}
         />
       );
-    
     case 'location':
       return (
-        <LocationStep
+        <LocationStep 
           location={formData.location}
           handleInputChange={handleInputChange}
           setGeolocation={setGeolocation}
         />
       );
-      
     case 'vehicles':
       return (
-        <MultiVehicleStep
-          licensePlate={formData.licensePlate}
-          vehicleBrand={formData.vehicleBrand}
-          vehicleModel={formData.vehicleModel}
-          vehicleYear={formData.vehicleYear}
-          vehicleDescription={formData.vehicleDescription}
-          insurancePolicy={formData.insurancePolicy}
-          insuranceCompany={formData.insuranceCompany}
-          otherVehicle={formData.otherVehicle}
+        <VehicleIdentificationStep
+          formData={formData}
           handleInputChange={handleInputChange}
           handleOtherVehicleChange={handleOtherVehicleChange}
           setVehicleInfo={setVehicleInfo}
           setOtherVehicleInfo={setOtherVehicleInfo}
+          onEmergencyContacted={onEmergencyContacted}
         />
       );
-      
     case 'details':
       return (
         <DetailsStep
@@ -83,36 +74,31 @@ const StepRenderer = ({
           handleInputChange={handleInputChange}
         />
       );
-      
     case 'photos':
       return (
-        <PhotosStep handlePhotoUpload={handlePhotoUpload} />
+        <PhotosStep
+          vehiclePhotos={formData.vehiclePhotos}
+          damagePhotos={formData.damagePhotos}
+          handlePhotoUpload={handlePhotoUpload}
+        />
       );
-      
     case 'scheme':
-      return (
-        <SchemeStep />
-      );
-      
+      return <SchemeStep formData={formData} />;
     case 'email':
       return (
         <EmailStep
-          insuranceEmails={formData.insuranceEmails}
-          setInsuranceEmails={setInsuranceEmails}
-          involvedPartyEmails={formData.involvedPartyEmails}
-          setInvolvedPartyEmails={setInvolvedPartyEmails}
           personalEmail={formData.personalEmail}
+          insuranceEmails={formData.insuranceEmails}
+          involvedPartyEmails={formData.involvedPartyEmails}
           setPersonalEmail={setPersonalEmail}
+          setInsuranceEmails={setInsuranceEmails}
+          setInvolvedPartyEmails={setInvolvedPartyEmails}
         />
       );
-      
     case 'review':
-      return (
-        <ReviewStep formData={formData} />
-      );
-      
+      return <ReviewStep formData={formData} />;
     default:
-      return null;
+      return <div>Étape non trouvée</div>;
   }
 };
 

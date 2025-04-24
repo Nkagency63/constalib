@@ -2,11 +2,14 @@
 import VehicleScheme from '../VehicleScheme';
 import { useIsMobile } from '../../hooks/use-mobile';
 import AccidentMap from './AccidentMap';
-import { useFormContext } from '@/hooks/useFormContext';
+import { FormData } from './types';
 
-const SchemeStep = () => {
+interface SchemeStepProps {
+  formData: FormData;
+}
+
+const SchemeStep = ({ formData }: SchemeStepProps) => {
   const isMobile = useIsMobile();
-  const { formData } = useFormContext();
   const { lat, lng, address } = formData.geolocation;
   
   return (
@@ -42,4 +45,3 @@ const SchemeStep = () => {
 };
 
 export default SchemeStep;
-
