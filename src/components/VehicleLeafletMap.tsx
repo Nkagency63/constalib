@@ -176,7 +176,6 @@ const VehicleMarker = ({ vehicle, isSelected, onSelect, onRotate, onRemove }: Ve
   return (
     <Marker
       position={vehicle.position}
-      draggable={true}
       icon={vehicleIcon}
       eventHandlers={eventHandlers}
     />
@@ -189,7 +188,7 @@ const VehicleLeafletMap = () => {
   const [zoom, setZoom] = useState(18); // Default zoom level
   const [history, setHistory] = useState<Vehicle[][]>([[]]);
   const [historyIndex, setHistoryIndex] = useState(0);
-  const [center, setCenter] = useState<L.LatLng>(new L.LatLng(48.8566, 2.3522)); // Default: Paris
+  const [center] = useState<[number, number]>([48.8566, 2.3522]); // Default: Paris
   
   // Add vehicle to the map
   const addVehicle = () => {
@@ -198,7 +197,7 @@ const VehicleLeafletMap = () => {
     
     const newVehicle: Vehicle = {
       id: `vehicle-${Date.now()}`,
-      position: new L.LatLng(center.lat + offset, center.lng + offset),
+      position: new L.LatLng(center[0] + offset, center[1] + offset),
       rotation: 0,
       color: colors[vehicles.length % colors.length],
       label: `Véhicule ${vehicles.length + 1}`
@@ -354,11 +353,10 @@ const VehicleLeafletMap = () => {
           center={center} 
           zoom={zoom} 
           style={{ height: '100%', width: '100%' }}
-          scrollWheelZoom={false}
         >
           <TileLayer
-            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
             url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
           />
           
           {vehicles.map(vehicle => (
@@ -385,3 +383,4 @@ const VehicleLeafletMap = () => {
 };
 
 export default VehicleLeafletMap;
+
