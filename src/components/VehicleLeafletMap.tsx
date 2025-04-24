@@ -176,7 +176,6 @@ const VehicleMarker = ({ vehicle, isSelected, onSelect, onRotate, onRemove }: Ve
   return (
     <Marker
       position={vehicle.position}
-      icon={vehicleIcon}
       eventHandlers={eventHandlers}
     />
   );
@@ -350,7 +349,7 @@ const VehicleLeafletMap = () => {
       {/* Map */}
       <div className="relative w-full h-[400px] border border-constalib-gray rounded-lg overflow-hidden mb-4">
         <MapContainer 
-          center={center} 
+          defaultCenter={center} 
           zoom={zoom} 
           style={{ height: '100%', width: '100%' }}
         >
@@ -383,4 +382,3 @@ const VehicleLeafletMap = () => {
 };
 
 export default VehicleLeafletMap;
-
