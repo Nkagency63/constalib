@@ -1,72 +1,44 @@
-
 import { useState } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import VehicleIdentificationStep from './VehicleIdentificationStep';
 import { Car, CarTaxiFront } from 'lucide-react';
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Info } from 'lucide-react';
+import { FormData } from './types';
 
 interface MultiVehicleStepProps {
-  // Premier véhicule (le vôtre)
-  licensePlate: string;
-  vehicleBrand: string;
-  vehicleModel: string;
-  vehicleYear: string;
-  vehicleDescription: string;
-  insurancePolicy?: string;
-  insuranceCompany?: string;
-  // Second véhicule
-  otherVehicle: {
-    licensePlate: string;
-    brand: string;
-    model: string;
-    year: string;
-    description: string;
-    insurancePolicy?: string;
-    insuranceCompany?: string;
-  };
+  formData: FormData;
   handleInputChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
   handleOtherVehicleChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
   setVehicleInfo: (data: {brand: string, model: string, year: string, firstRegistration?: string}) => void;
   setOtherVehicleInfo: (data: {brand: string, model: string, year: string, firstRegistration?: string}) => void;
+  onEmergencyContacted: () => void;
 }
 
 const MultiVehicleStep = ({
-  licensePlate,
-  vehicleBrand,
-  vehicleModel,
-  vehicleYear,
-  vehicleDescription,
-  insurancePolicy,
-  insuranceCompany,
-  otherVehicle,
+  formData,
   handleInputChange,
   handleOtherVehicleChange,
   setVehicleInfo,
-  setOtherVehicleInfo
+  setOtherVehicleInfo,
+  onEmergencyContacted
 }: MultiVehicleStepProps) => {
   const [activeTab, setActiveTab] = useState("your-vehicle");
 
-  const setVehicleInsuranceInfo = (data: {company: string}) => {
-    const syntheticEvent = {
-      target: {
-        name: 'insuranceCompany',
-        value: data.company
-      }
-    } as React.ChangeEvent<HTMLInputElement>;
-    
-    handleInputChange(syntheticEvent);
+  // Create subsets of the form data for each vehicle tab
+  const yourVehicleFormData = {
+    ...formData,
   };
 
-  const setOtherVehicleInsuranceInfo = (data: {company: string}) => {
-    const syntheticEvent = {
-      target: {
-        name: 'otherVehicleInsuranceCompany',
-        value: data.company
-      }
-    } as React.ChangeEvent<HTMLInputElement>;
-    
-    handleOtherVehicleChange(syntheticEvent);
+  const otherVehicleFormData = {
+    ...formData,
+    licensePlate: formData.otherVehicle.licensePlate,
+    vehicleBrand: formData.otherVehicle.brand,
+    vehicleModel: formData.otherVehicle.model,
+    vehicleYear: formData.otherVehicle.year,
+    vehicleDescription: formData.otherVehicle.description,
+    insurancePolicy: formData.otherVehicle.insurancePolicy || '',
+    insuranceCompany: formData.otherVehicle.insuranceCompany || '',
   };
 
   return (
@@ -93,31 +65,23 @@ const MultiVehicleStep = ({
         
         <TabsContent value="your-vehicle" className="mt-0">
           <VehicleIdentificationStep
-            licensePlate={licensePlate}
-            vehicleBrand={vehicleBrand}
-            vehicleModel={vehicleModel}
-            vehicleYear={vehicleYear}
-            vehicleDescription={vehicleDescription}
-            insurancePolicy={insurancePolicy}
-            insuranceCompany={insuranceCompany}
+            formData={yourVehicleFormData}
             handleInputChange={handleInputChange}
+            handleOtherVehicleChange={handleOtherVehicleChange}
             setVehicleInfo={setVehicleInfo}
-            setInsuranceInfo={setVehicleInsuranceInfo}
+            setOtherVehicleInfo={setOtherVehicleInfo}
+            onEmergencyContacted={onEmergencyContacted}
           />
         </TabsContent>
         
         <TabsContent value="other-vehicle" className="mt-0">
           <VehicleIdentificationStep
-            licensePlate={otherVehicle.licensePlate}
-            vehicleBrand={otherVehicle.brand}
-            vehicleModel={otherVehicle.model}
-            vehicleYear={otherVehicle.year}
-            vehicleDescription={otherVehicle.description}
-            insurancePolicy={otherVehicle.insurancePolicy}
-            insuranceCompany={otherVehicle.insuranceCompany}
+            formData={otherVehicleFormData}
             handleInputChange={handleOtherVehicleChange}
+            handleOtherVehicleChange={handleInputChange}
             setVehicleInfo={setOtherVehicleInfo}
-            setInsuranceInfo={setOtherVehicleInsuranceInfo}
+            setOtherVehicleInfo={setVehicleInfo}
+            onEmergencyContacted={onEmergencyContacted}
           />
         </TabsContent>
       </Tabs>
