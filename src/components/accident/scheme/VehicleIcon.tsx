@@ -29,7 +29,7 @@ const VehicleIcon = ({
         
         <CarFront className="w-8 h-8 text-white stroke-[1.5] transition-transform" strokeWidth={2} />
         
-        <div className="text-white text-xs font-medium mt-1 truncate max-w-[90%] text-center">
+        <div className="text-white text-xs font-medium mt-1 truncate max-w-[90%] text-center py-[2px] mx-0 my-0 px-0 rounded-md">
           {label}
         </div>
         
