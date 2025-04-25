@@ -1,3 +1,4 @@
+
 import React, { useRef, useEffect } from 'react';
 import { MapContainer, TileLayer, useMap } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
@@ -14,7 +15,8 @@ import { useSchemeHistory } from './hooks/useSchemeHistory';
 import markerIcon2x from 'leaflet/dist/images/marker-icon-2x.png';
 import markerIcon from 'leaflet/dist/images/marker-icon.png';
 import markerShadow from 'leaflet/dist/images/marker-shadow.png';
-import { SchemeData } from './types';
+import { SchemeData, Annotation } from './types';
+import { v4 as uuidv4 } from 'uuid';
 
 // Fix Leaflet icon issues
 delete L.Icon.Default.prototype['_getIconUrl'];
@@ -54,7 +56,7 @@ const InteractiveScheme = ({
   const { saveToHistory, handleUndo, handleRedo, canUndo, canRedo } = useSchemeHistory();
 
   const [currentTool, setCurrentTool] = React.useState<'select' | 'vehicle' | 'path' | 'annotation'>('select');
-  const [annotations, setAnnotations] = React.useState<any[]>([]);
+  const [annotations, setAnnotations] = React.useState<Annotation[]>([]);
 
   // Calculate center based on form data if available
   const center: [number, number] = formData?.geolocation?.lat && formData?.geolocation?.lng
@@ -85,7 +87,7 @@ const InteractiveScheme = ({
       // Add vehicle representations from the form data
       if (formData.vehicleBrand && formData.vehicleModel) {
         initialVehicles.push({
-          id: 'vehicle-a',
+          id: uuidv4(),
           position: [
             formData.geolocation.lat + 0.0002, 
             formData.geolocation.lng - 0.0002
@@ -101,7 +103,7 @@ const InteractiveScheme = ({
       // Add other vehicle if available
       if (formData.otherVehicle?.brand && formData.otherVehicle?.model) {
         initialVehicles.push({
-          id: 'vehicle-b',
+          id: uuidv4(),
           position: [
             formData.geolocation.lat - 0.0002, 
             formData.geolocation.lng + 0.0002
@@ -127,6 +129,23 @@ const InteractiveScheme = ({
     }
   };
 
+  // Update parent component with scheme data when data changes
+  useEffect(() => {
+    if (onUpdateSchemeData && mapRef.current) {
+      const schemeData: SchemeData = {
+        vehicles,
+        paths,
+        annotations,
+        center: mapRef.current ? [
+          mapRef.current.getCenter().lat,
+          mapRef.current.getCenter().lng
+        ] as [number, number] : center,
+        zoom: mapRef.current ? mapRef.current.getZoom() : 17
+      };
+      onUpdateSchemeData(schemeData);
+    }
+  }, [vehicles, paths, annotations, onUpdateSchemeData]);
+
   const handleMapClick = (e: L.LeafletMouseEvent) => {
     const newPoint: [number, number] = [e.latlng.lat, e.latlng.lng];
     
@@ -134,7 +153,9 @@ const InteractiveScheme = ({
       case 'vehicle':
         if (vehicles.length < VEHICLE_COLORS.length) {
           const updatedVehicles = addVehicle(e.latlng);
-          saveToHistory({ vehicles: updatedVehicles, paths, annotations, center, zoom: 17 });
+          if (updatedVehicles) {
+            saveToHistory({ vehicles: updatedVehicles, paths, annotations, center, zoom: 17 });
+          }
         }
         break;
         
@@ -157,6 +178,7 @@ const InteractiveScheme = ({
         break;
         
       case 'annotation':
+        addAnnotation(newPoint);
         break;
         
       case 'select':
@@ -166,17 +188,24 @@ const InteractiveScheme = ({
     }
   };
 
-  const exportScheme = () => {
-    if (!mapRef.current) return;
+  const addAnnotation = (position: [number, number]) => {
+    const newAnnotation: Annotation = {
+      id: uuidv4(),
+      position,
+      text: 'Note',
+      type: 'note'
+    };
     
-    try {
-      toast.info("Exportation de la carte en cours...");
-      setTimeout(() => {
-        toast.success("Exportation réussie ! Le fichier a été téléchargé.");
-      }, 1000);
-    } catch (error) {
-      toast.error("Erreur lors de l'exportation de la carte.");
-    }
+    const updatedAnnotations = [...annotations, newAnnotation];
+    setAnnotations(updatedAnnotations);
+    
+    saveToHistory({
+      vehicles,
+      paths,
+      annotations: updatedAnnotations,
+      center,
+      zoom: 17
+    });
   };
 
   return (
@@ -186,7 +215,10 @@ const InteractiveScheme = ({
           onAddVehicle={() => {
             if (mapRef.current) {
               const center = mapRef.current.getCenter();
-              addVehicle(center);
+              const updatedVehicles = addVehicle(center);
+              if (updatedVehicles) {
+                saveToHistory({ vehicles: updatedVehicles, paths, annotations, center: [center.lat, center.lng], zoom: 17 });
+              }
             }
           }}
           onUndo={() => {
@@ -298,7 +330,16 @@ const InteractiveScheme = ({
                 <VehicleControls
                   key={vehicle.id}
                   vehicleId={vehicle.id}
-                  onRemove={removeVehicle}
+                  onRemove={(id) => {
+                    const updatedVehicles = removeVehicle(id);
+                    saveToHistory({ 
+                      vehicles: updatedVehicles, 
+                      paths: paths.filter(p => p.vehicleId !== id),
+                      annotations, 
+                      center, 
+                      zoom: 17 
+                    });
+                  }}
                 />
               )
             ))}

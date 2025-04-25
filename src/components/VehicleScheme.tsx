@@ -1,5 +1,8 @@
 
+import { useState } from 'react';
 import InteractiveScheme from './accident/InteractiveScheme';
+import { toast } from 'sonner';
+import { SchemeData } from './accident/types';
 
 // Default coordinates (Paris)
 const DEFAULT_COORDS = [48.8566, 2.3522];
@@ -14,10 +17,16 @@ const VehicleScheme = () => {
     }
   };
 
+  const handleSchemeUpdate = (schemeData: SchemeData) => {
+    // In a real app, this function would save the scheme data
+    console.log('Scheme data updated:', schemeData);
+  };
+
   return (
     <div className="w-full">
       <InteractiveScheme 
         formData={demoFormData}
+        onUpdateSchemeData={handleSchemeUpdate}
       />
       
       <div className="text-sm text-constalib-dark-gray mt-4">

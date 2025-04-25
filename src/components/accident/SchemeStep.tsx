@@ -2,7 +2,7 @@
 import { useIsMobile } from '../../hooks/use-mobile';
 import AccidentMap from './AccidentMap';
 import InteractiveScheme from './InteractiveScheme';
-import { FormData } from './types';
+import { FormData, SchemeData } from './types';
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription } from '@/components/ui/alert';
@@ -19,7 +19,7 @@ const SchemeStep = ({ formData }: SchemeStepProps) => {
   const { lat, lng, address } = formData.geolocation;
   const [activeTab, setActiveTab] = useState<string>("scheme");
   
-  const handleSaveScheme = (schemeData: any) => {
+  const handleSaveScheme = (schemeData: SchemeData) => {
     // In a real app, we would save this data to formData
     console.log("Scheme data saved:", schemeData);
     toast.success("Schéma sauvegardé avec succès");
