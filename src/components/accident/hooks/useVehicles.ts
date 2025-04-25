@@ -4,25 +4,30 @@ import { v4 as uuidv4 } from 'uuid';
 import { Vehicle } from '../types';
 import { toast } from 'sonner';
 
-const VEHICLE_COLORS = [
-  '#3b82f6', '#ef4444', '#10b981', '#f59e0b',
-  '#8b5cf6', '#ec4899', '#06b6d4', '#f97316',
-];
+const VEHICLE_COLORS = {
+  A: '#3b82f6', // Bleu pour véhicule A
+  B: '#ef4444', // Rouge pour véhicule B
+};
 
 export const useVehicles = () => {
   const [vehicles, setVehicles] = useState<Vehicle[]>([]);
   const [selectedVehicle, setSelectedVehicle] = useState<string | null>(null);
 
   const addVehicle = (location: L.LatLng) => {
-    if (vehicles.length >= VEHICLE_COLORS.length) {
-      toast.warning(`Maximum de ${VEHICLE_COLORS.length} véhicules atteint.`);
+    if (vehicles.length >= 2) {
+      toast.warning('Maximum de 2 véhicules atteint');
       return;
     }
+
+    // Determine if this is vehicle A or B
+    const vehicleId = vehicles.length === 0 ? 'A' : 'B';
+    const color = VEHICLE_COLORS[vehicleId];
 
     const newVehicle: Vehicle = {
       id: uuidv4(),
       position: [location.lat, location.lng],
-      color: VEHICLE_COLORS[vehicles.length % VEHICLE_COLORS.length],
+      color,
+      vehicleId,
       rotation: 0,
       isSelected: false
     };
@@ -35,7 +40,12 @@ export const useVehicles = () => {
   };
 
   const removeVehicle = (id: string) => {
-    const updatedVehicles = vehicles.filter(v => v.id !== id);
+    const updatedVehicles = vehicles.filter(v => v.id !== id)
+      .map((v, index) => ({
+        ...v,
+        vehicleId: index === 0 ? 'A' : 'B' as 'A' | 'B'
+      }));
+    
     setVehicles(updatedVehicles);
     
     if (selectedVehicle === id) {

@@ -1,6 +1,7 @@
 
 import { CarFront } from 'lucide-react';
 import { ReactNode } from 'react';
+import { cn } from '@/lib/utils';
 
 interface VehicleIconProps {
   color: string;
@@ -21,32 +22,35 @@ const VehicleIcon = ({
   style, 
   children 
 }: VehicleIconProps) => {
-  const vehicleLabel = vehicleId ? `Véhicule ${vehicleId}` : label;
-  
   return (
     <div
-      className={`absolute cursor-move group ${isSelected ? 'ring-2 ring-constalib-blue' : ''}`}
+      className={cn(
+        "absolute cursor-move group transition-transform hover:scale-105",
+        isSelected ? 'ring-2 ring-constalib-blue ring-offset-2' : ''
+      )}
       style={style}
       onMouseDown={onMouseDown}
     >
       <div
-        className="w-14 h-20 flex flex-col items-center justify-center rounded-lg relative"
+        className="relative w-14 h-20 flex flex-col items-center justify-center rounded-lg shadow-lg"
         style={{ backgroundColor: color }}
       >
+        <div className="absolute -top-3 -right-3 w-6 h-6 rounded-full bg-white shadow-md flex items-center justify-center font-bold text-lg">
+          {vehicleId}
+        </div>
+        
         <CarFront 
-          className="w-8 h-8 text-white stroke-[1.5] group-hover:scale-105 transition-transform" 
+          className="w-8 h-8 text-white stroke-[1.5] transition-transform" 
           strokeWidth={2} 
         />
-        <div className="text-white text-xs font-medium mt-1">
-          {vehicleLabel}
+        
+        <div className="text-white text-xs font-medium mt-1 truncate max-w-[90%] text-center">
+          {label}
         </div>
+        
         {isSelected && (
           <div className="absolute inset-0 border-2 border-constalib-blue rounded-lg opacity-50 animate-pulse"></div>
         )}
-      </div>
-      
-      <div className="absolute -bottom-6 left-1/2 transform -translate-x-1/2 text-xs text-constalib-dark-gray bg-white px-1 rounded shadow-sm">
-        {vehicleId || label}
       </div>
       
       {children}
