@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { MapContainer, TileLayer } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
@@ -49,9 +48,8 @@ const InteractiveScheme = ({ formData, onUpdateSchemeData, readOnly = false }: I
         if (vehicles.length < Object.keys(VEHICLE_COLORS).length) {
           const updatedVehicles = addVehicle(e.latlng);
           if (updatedVehicles) {
-            // Center map on the newly added vehicle
             if (mapRef.current) {
-              mapRef.current.panTo(e.latlng);
+              mapRef.current.setView(e.latlng, mapRef.current.getZoom());
             }
             saveToHistory({ vehicles: updatedVehicles, paths, annotations, center, zoom: 17 });
           }
@@ -115,8 +113,7 @@ const InteractiveScheme = ({ formData, onUpdateSchemeData, readOnly = false }: I
         
         if (initialVehicles.length > 0) {
           setVehicles(initialVehicles);
-          // Make sure to center the map on the initial vehicles
-          if (mapRef.current && initialVehicles.length > 0) {
+          if (mapRef.current) {
             const firstVehiclePosition = L.latLng(
               initialVehicles[0].position[0],
               initialVehicles[0].position[1]
@@ -176,11 +173,10 @@ const InteractiveScheme = ({ formData, onUpdateSchemeData, readOnly = false }: I
       {!readOnly && (
         <CanvasToolbar 
           onAddVehicle={() => {
-            if (mapRef.current) {
+            if (mapRef.current && vehicles.length < Object.keys(VEHICLE_COLORS).length) {
               const center = mapRef.current.getCenter();
               const updatedVehicles = addVehicle(center);
               if (updatedVehicles) {
-                // No need to pan here as the vehicle is already added at the center
                 saveToHistory({ 
                   vehicles: updatedVehicles, 
                   paths, 
@@ -191,18 +187,8 @@ const InteractiveScheme = ({ formData, onUpdateSchemeData, readOnly = false }: I
               }
             }
           }}
-          onUndo={() => {
-            const prevState = handleUndo({ vehicles, paths, annotations, center, zoom: 17 });
-            setVehicles(prevState.vehicles);
-            setPaths(prevState.paths);
-            setAnnotations(prevState.annotations);
-          }}
-          onRedo={() => {
-            const nextState = handleRedo({ vehicles, paths, annotations, center, zoom: 17 });
-            setVehicles(nextState.vehicles);
-            setPaths(nextState.paths);
-            setAnnotations(nextState.annotations);
-          }}
+          onUndo={handleUndo}
+          onRedo={handleRedo}
           onZoomIn={() => mapRef.current?.zoomIn()}
           onZoomOut={() => mapRef.current?.zoomOut()}
           canUndo={canUndo}
@@ -233,7 +219,18 @@ const InteractiveScheme = ({ formData, onUpdateSchemeData, readOnly = false }: I
           selectedVehicle={selectedVehicle}
           readOnly={readOnly}
           onVehicleSelect={selectVehicle}
-          onRemoveVehicle={removeVehicle}
+          onRemoveVehicle={(id) => {
+            const updatedVehicles = removeVehicle(id);
+            if (updatedVehicles) {
+              saveToHistory({ 
+                vehicles: updatedVehicles, 
+                paths, 
+                annotations, 
+                center, 
+                zoom: mapRef.current?.getZoom() || 17 
+              });
+            }
+          }}
         />
         
         <PathsLayer

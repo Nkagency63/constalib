@@ -1,11 +1,12 @@
+
 import { useState } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import { Vehicle } from '../types';
 import { toast } from 'sonner';
 
 const VEHICLE_COLORS = {
-  A: '#3b82f6', // Bleu pour véhicule A
-  B: '#ef4444', // Rouge pour véhicule B
+  A: '#3b82f6', // Blue for vehicle A
+  B: '#ef4444', // Red for vehicle B
 };
 
 export const useVehicles = () => {
@@ -15,7 +16,7 @@ export const useVehicles = () => {
   const addVehicle = (location: L.LatLng) => {
     if (vehicles.length >= 2) {
       toast.warning('Maximum de 2 véhicules atteint');
-      return;
+      return null;
     }
 
     // Determine if this is vehicle A or B
@@ -39,10 +40,12 @@ export const useVehicles = () => {
   };
 
   const removeVehicle = (id: string) => {
-    const updatedVehicles = vehicles.filter(v => v.id !== id)
+    const updatedVehicles = vehicles
+      .filter(v => v.id !== id)
       .map((v, index) => ({
         ...v,
-        vehicleId: index === 0 ? 'A' : 'B' as 'A' | 'B'
+        vehicleId: index === 0 ? 'A' : 'B' as 'A' | 'B',
+        color: index === 0 ? VEHICLE_COLORS['A'] : VEHICLE_COLORS['B']
       }));
     
     setVehicles(updatedVehicles);
