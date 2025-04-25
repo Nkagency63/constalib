@@ -1,3 +1,4 @@
+
 import React, { useEffect } from 'react';
 import { MapContainer, TileLayer } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
@@ -11,7 +12,8 @@ import { useVehicles } from './hooks/useVehicles';
 import { usePaths } from './hooks/usePaths';
 import { useSchemeMap } from './hooks/useSchemeMap';
 import { useSchemeHistory } from './hooks/useSchemeHistory';
-import type { SchemeData } from './types';
+import type { SchemeData, Annotation } from './types';
+import L from 'leaflet';
 
 interface InteractiveSchemeProps {
   formData: any;
@@ -33,7 +35,7 @@ const InteractiveScheme = ({ formData, onUpdateSchemeData, readOnly = false }: I
   const { saveToHistory, handleUndo, handleRedo, canUndo, canRedo } = useSchemeHistory();
   
   const [currentTool, setCurrentTool] = React.useState<'select' | 'vehicle' | 'path' | 'annotation'>('select');
-  const [annotations, setAnnotations] = React.useState<Array<any>>([]);
+  const [annotations, setAnnotations] = React.useState<Annotation[]>([]);
 
   // Calculate center based on form data if available
   const center: [number, number] = formData?.geolocation?.lat && formData?.geolocation?.lng
