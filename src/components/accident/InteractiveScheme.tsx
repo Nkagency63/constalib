@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { MapContainer, TileLayer } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
@@ -45,10 +44,12 @@ const InteractiveScheme = ({ formData, onUpdateSchemeData, readOnly = false }: I
     
     switch (currentTool) {
       case 'vehicle':
-        // Fix: Use Object.keys(VEHICLE_COLORS).length to get the number of vehicle colors
         if (vehicles.length < Object.keys(VEHICLE_COLORS).length) {
           const updatedVehicles = addVehicle(e.latlng);
           if (updatedVehicles) {
+            if (mapRef.current) {
+              mapRef.current.panTo(e.latlng);
+            }
             saveToHistory({ vehicles: updatedVehicles, paths, annotations, center, zoom: 17 });
           }
         }
