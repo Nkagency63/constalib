@@ -3,6 +3,7 @@ import React from 'react';
 import BasicInfoStep from './BasicInfoStep';
 import LocationStep from './LocationStep';
 import VehicleIdentificationStep from './VehicleIdentificationStep';
+import MultiVehicleStep from './MultiVehicleStep';
 import DetailsStep from './DetailsStep';
 import PhotosStep from './PhotosStep';
 import EmailStep from './EmailStep';
@@ -58,7 +59,7 @@ const StepRenderer = ({
       );
     case 'vehicles':
       return (
-        <VehicleIdentificationStep
+        <MultiVehicleStep 
           formData={formData}
           handleInputChange={handleInputChange}
           handleOtherVehicleChange={handleOtherVehicleChange}
