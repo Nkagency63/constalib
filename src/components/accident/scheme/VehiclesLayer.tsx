@@ -45,6 +45,9 @@ const VehiclesLayer = ({
                 key={vehicle.id}
                 vehicleId={vehicle.id}
                 onRemove={onRemoveVehicle}
+                onRotate={(id, angle) => {
+                  // Rotation functionality will be implemented later
+                }}
               />
             )
           ))}

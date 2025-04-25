@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { MapContainer, TileLayer } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
@@ -152,6 +153,23 @@ const InteractiveScheme = ({ formData, onUpdateSchemeData, readOnly = false }: I
     });
   };
 
+  // Create wrapper functions for undo and redo that pass the current state
+  const handleUndoWrapper = () => {
+    const currentState = { vehicles, paths, annotations, center, zoom: mapRef.current?.getZoom() || 17 };
+    const prevState = handleUndo(currentState);
+    setVehicles(prevState.vehicles);
+    setPaths(prevState.paths);
+    setAnnotations(prevState.annotations);
+  };
+
+  const handleRedoWrapper = () => {
+    const currentState = { vehicles, paths, annotations, center, zoom: mapRef.current?.getZoom() || 17 };
+    const nextState = handleRedo(currentState);
+    setVehicles(nextState.vehicles);
+    setPaths(nextState.paths);
+    setAnnotations(nextState.annotations);
+  };
+
   React.useEffect(() => {
     if (onUpdateSchemeData && mapRef.current) {
       const schemeData: SchemeData = {
@@ -187,8 +205,8 @@ const InteractiveScheme = ({ formData, onUpdateSchemeData, readOnly = false }: I
               }
             }
           }}
-          onUndo={handleUndo}
-          onRedo={handleRedo}
+          onUndo={handleUndoWrapper}
+          onRedo={handleRedoWrapper}
           onZoomIn={() => mapRef.current?.zoomIn()}
           onZoomOut={() => mapRef.current?.zoomOut()}
           canUndo={canUndo}
