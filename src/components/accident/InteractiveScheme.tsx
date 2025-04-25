@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect } from 'react';
 import { MapContainer, TileLayer, useMap } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
@@ -562,8 +561,7 @@ const InteractiveScheme: React.FC<SchemeProps> = ({ formData, onUpdateSchemeData
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         />
         
-        {/* Vehicle Markers */}
-        {vehicles.map((vehicle) => (
+        {vehicles.map((vehicle, index) => (
           <VehicleIcon
             key={vehicle.id}
             label={vehicle.brand || "Véhicule"}
@@ -575,6 +573,7 @@ const InteractiveScheme: React.FC<SchemeProps> = ({ formData, onUpdateSchemeData
             color={vehicle.color}
             isSelected={vehicle.isSelected}
             onMouseDown={() => !readOnly && selectVehicle(vehicle.id)}
+            isVehicleA={index === 0}
           />
         ))}
         
