@@ -45,7 +45,8 @@ const InteractiveScheme = ({ formData, onUpdateSchemeData, readOnly = false }: I
     
     switch (currentTool) {
       case 'vehicle':
-        if (vehicles.length < VEHICLE_COLORS.length) {
+        // Fix: Use Object.keys(VEHICLE_COLORS).length to get the number of vehicle colors
+        if (vehicles.length < Object.keys(VEHICLE_COLORS).length) {
           const updatedVehicles = addVehicle(e.latlng);
           if (updatedVehicles) {
             saveToHistory({ vehicles: updatedVehicles, paths, annotations, center, zoom: 17 });
@@ -83,7 +84,7 @@ const InteractiveScheme = ({ formData, onUpdateSchemeData, readOnly = false }: I
               formData.geolocation.lat + 0.0002, 
               formData.geolocation.lng - 0.0002
             ],
-            color: VEHICLE_COLORS[0],
+            color: VEHICLE_COLORS['A'],
             brand: formData.vehicleBrand,
             model: formData.vehicleModel,
             vehicleId: 'A',
@@ -99,7 +100,7 @@ const InteractiveScheme = ({ formData, onUpdateSchemeData, readOnly = false }: I
               formData.geolocation.lat - 0.0002, 
               formData.geolocation.lng + 0.0002
             ],
-            color: VEHICLE_COLORS[1],
+            color: VEHICLE_COLORS['B'],
             brand: formData.otherVehicle.brand,
             model: formData.otherVehicle.model,
             vehicleId: 'B',
