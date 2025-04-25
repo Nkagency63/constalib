@@ -1,17 +1,12 @@
+
 import React from 'react';
-import { MapContainer, TileLayer } from 'react-leaflet';
-import 'leaflet/dist/leaflet.css';
-import { v4 as uuidv4 } from 'uuid';
+import { useSchemeState } from './hooks/useSchemeState';
+import { SchemeProvider } from './context/SchemeContext';
+import SchemeMap from './scheme/SchemeMap';
+import SchemeHelpAlert from './scheme/SchemeHelpAlert';
 import CanvasToolbar from './scheme/CanvasToolbar';
-import MapInitializer from './scheme/MapInitializer';
 import SchemeToolbar from './scheme/SchemeToolbar';
-import VehiclesLayer from './scheme/VehiclesLayer';
-import PathsLayer from './scheme/PathsLayer';
-import { useVehicles } from './hooks/useVehicles';
-import { usePaths } from './hooks/usePaths';
-import { useSchemeMap } from './hooks/useSchemeMap';
-import { useSchemeHistory } from './hooks/useSchemeHistory';
-import type { SchemeData, Annotation } from './types';
+import type { SchemeData } from './types';
 
 interface InteractiveSchemeProps {
   formData: any;
@@ -19,129 +14,51 @@ interface InteractiveSchemeProps {
   readOnly?: boolean;
 }
 
-const InteractiveScheme = ({ formData, onUpdateSchemeData, readOnly = false }: InteractiveSchemeProps) => {
-  const { 
-    vehicles, selectedVehicle, addVehicle, removeVehicle, 
-    selectVehicle, setVehicles, VEHICLE_COLORS 
-  } = useVehicles();
+const InteractiveScheme = ({ 
+  formData, 
+  onUpdateSchemeData, 
+  readOnly = false 
+}: InteractiveSchemeProps) => {
+  const schemeState = useSchemeState(formData, onUpdateSchemeData, readOnly);
   
   const {
-    paths, setPaths, currentPathPoints, isDrawing,
-    startPath, continuePath, completePath, resetPath
-  } = usePaths();
-  
-  const { saveToHistory, handleUndo, handleRedo, canUndo, canRedo } = useSchemeHistory();
-  
-  const [currentTool, setCurrentTool] = React.useState<'select' | 'vehicle' | 'path' | 'annotation'>('select');
-  const [annotations, setAnnotations] = React.useState<Annotation[]>([]);
-
-  const center: [number, number] = formData?.geolocation?.lat && formData?.geolocation?.lng
-    ? [formData.geolocation.lat, formData.geolocation.lng]
-    : [48.8566, 2.3522];
-
-  const handleMapClick = (e: L.LeafletMouseEvent) => {
-    const newPoint: [number, number] = [e.latlng.lat, e.latlng.lng];
-    
-    switch (currentTool) {
-      case 'vehicle':
-        if (vehicles.length < Object.keys(VEHICLE_COLORS).length) {
-          const updatedVehicles = addVehicle(e.latlng);
-          if (updatedVehicles) {
-            if (mapRef.current) {
-              mapRef.current.panTo(e.latlng);
-            }
-            saveToHistory({ vehicles: updatedVehicles, paths, annotations, center, zoom: 17 });
-          }
-        }
-        break;
-      case 'path':
-        if (isDrawing) {
-          continuePath(newPoint);
-        } else {
-          startPath(newPoint);
-        }
-        break;
-      case 'annotation':
-        addAnnotation(newPoint);
-        break;
-      case 'select':
-      default:
-        selectVehicle(null);
-        break;
-    }
-  };
-
-  const { mapRef, drawingLayerRef, handleMapReady } = useSchemeMap(
-    readOnly,
+    mapRef,
+    drawingLayerRef,
+    currentTool,
+    setCurrentTool,
+    vehicles,
+    paths,
+    annotations,
+    selectedVehicle,
+    center,
     handleMapClick,
-    () => {
-      if (formData?.geolocation?.lat && formData?.geolocation?.lng && vehicles.length === 0) {
-        const initialVehicles = [];
-        
-        if (formData.vehicleBrand && formData.vehicleModel) {
-          initialVehicles.push({
-            id: uuidv4(),
-            position: [
-              formData.geolocation.lat + 0.0002, 
-              formData.geolocation.lng - 0.0002
-            ],
-            color: VEHICLE_COLORS['A'],
-            brand: formData.vehicleBrand,
-            model: formData.vehicleModel,
-            vehicleId: 'A',
-            rotation: 0,
-            isSelected: false
-          });
-        }
-        
-        if (formData.otherVehicle?.brand && formData.otherVehicle?.model) {
-          initialVehicles.push({
-            id: uuidv4(),
-            position: [
-              formData.geolocation.lat - 0.0002, 
-              formData.geolocation.lng + 0.0002
-            ],
-            color: VEHICLE_COLORS['B'],
-            brand: formData.otherVehicle.brand,
-            model: formData.otherVehicle.model,
-            vehicleId: 'B',
-            rotation: 0,
-            isSelected: false
-          });
-        }
-        
-        if (initialVehicles.length > 0) {
-          setVehicles(initialVehicles);
-          saveToHistory({
-            vehicles: initialVehicles,
-            paths: [],
-            annotations: [],
-            center,
-            zoom: 17
-          });
-        }
+    handleUndo,
+    handleRedo,
+    canUndo,
+    canRedo,
+    addVehicle,
+    VEHICLE_COLORS
+  } = schemeState;
+
+  const handleMapReady = (map: L.Map) => {
+    mapRef.current = map;
+    drawingLayerRef.current = L.layerGroup().addTo(map);
+    
+    if (!readOnly) {
+      map.on('click', handleMapClick);
+    }
+    
+    if (formData?.geolocation?.lat && formData?.geolocation?.lng && vehicles.length === 0) {
+      const { lat, lng } = formData.geolocation;
+      
+      if (formData.vehicleBrand && formData.vehicleModel) {
+        addVehicle(L.latLng(lat + 0.0002, lng - 0.0002));
+      }
+      
+      if (formData.otherVehicle?.brand && formData.otherVehicle?.model) {
+        addVehicle(L.latLng(lat - 0.0002, lng + 0.0002));
       }
     }
-  );
-
-  const addAnnotation = (position: [number, number]) => {
-    const newAnnotation: Annotation = {
-      id: uuidv4(),
-      position,
-      text: 'Note',
-      type: 'note'
-    };
-    
-    const updatedAnnotations = [...annotations, newAnnotation];
-    setAnnotations(updatedAnnotations);
-    
-    saveToHistory({
-      vehicles,
-      paths,
-      annotations: updatedAnnotations,
-      center,
-      zoom: 17
-    });
   };
 
   React.useEffect(() => {
@@ -161,80 +78,48 @@ const InteractiveScheme = ({ formData, onUpdateSchemeData, readOnly = false }: I
   }, [vehicles, paths, annotations, onUpdateSchemeData]);
 
   return (
-    <div className="relative rounded-lg overflow-hidden shadow-md border border-gray-200">
-      {!readOnly && (
-        <CanvasToolbar 
-          onAddVehicle={() => {
-            if (mapRef.current) {
-              const center = mapRef.current.getCenter();
-              const updatedVehicles = addVehicle(center);
-              if (updatedVehicles) {
-                saveToHistory({ 
-                  vehicles: updatedVehicles, 
-                  paths, 
-                  annotations, 
-                  center: [center.lat, center.lng], 
-                  zoom: 17 
-                });
+    <SchemeProvider value={{
+      mapRef,
+      drawingLayerRef,
+      currentTool,
+      vehicles,
+      paths,
+      annotations,
+      selectedVehicle,
+      readOnly,
+      center,
+      handleMapClick
+    }}>
+      <div className="relative rounded-lg overflow-hidden shadow-md border border-gray-200">
+        {!readOnly && (
+          <CanvasToolbar 
+            onAddVehicle={() => {
+              if (mapRef.current) {
+                const center = mapRef.current.getCenter();
+                addVehicle(center);
               }
-            }
-          }}
-          onUndo={() => {
-            const prevState = handleUndo({ vehicles, paths, annotations, center, zoom: 17 });
-            setVehicles(prevState.vehicles);
-            setPaths(prevState.paths);
-            setAnnotations(prevState.annotations);
-          }}
-          onRedo={() => {
-            const nextState = handleRedo({ vehicles, paths, annotations, center, zoom: 17 });
-            setVehicles(nextState.vehicles);
-            setPaths(nextState.paths);
-            setAnnotations(nextState.annotations);
-          }}
-          onZoomIn={() => mapRef.current?.zoomIn()}
-          onZoomOut={() => mapRef.current?.zoomOut()}
-          canUndo={canUndo}
-          canRedo={canRedo}
-        />
-      )}
+            }}
+            onUndo={handleUndo}
+            onRedo={handleRedo}
+            onZoomIn={() => mapRef.current?.zoomIn()}
+            onZoomOut={() => mapRef.current?.zoomOut()}
+            canUndo={canUndo}
+            canRedo={canRedo}
+          />
+        )}
 
-      {!readOnly && (
-        <SchemeToolbar 
-          currentTool={currentTool}
-          setCurrentTool={setCurrentTool}
-        />
-      )}
+        {!readOnly && (
+          <SchemeToolbar 
+            currentTool={currentTool}
+            setCurrentTool={setCurrentTool}
+          />
+        )}
 
-      <MapContainer
-        center={center}
-        zoom={17}
-        style={{ height: '400px', width: '100%' }}
-        className="z-0"
-      >
-        <TileLayer
-          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-        />
-        
-        <VehiclesLayer
-          vehicles={vehicles}
-          selectedVehicle={selectedVehicle}
-          readOnly={readOnly}
-          onVehicleSelect={selectVehicle}
-          onRemoveVehicle={removeVehicle}
-        />
-        
-        <PathsLayer
-          paths={paths}
-          drawingLayerRef={drawingLayerRef}
-          currentPathPoints={currentPathPoints}
-          selectedVehicle={selectedVehicle}
-          vehicles={vehicles}
-        />
-        
-        <MapInitializer onMapReady={handleMapReady} />
-      </MapContainer>
-    </div>
+        {!readOnly && <SchemeHelpAlert />}
+
+        <SchemeMap onMapReady={handleMapReady} />
+      </div>
+    </SchemeProvider>
   );
 };
 
