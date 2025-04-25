@@ -1,19 +1,18 @@
 
-import React, { useEffect } from 'react';
+import React from 'react';
 import { MapContainer, TileLayer } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import { v4 as uuidv4 } from 'uuid';
-import VehicleIcon from './scheme/VehicleIcon';
 import CanvasToolbar from './scheme/CanvasToolbar';
-import VehicleControls from './scheme/VehicleControls';
 import MapInitializer from './scheme/MapInitializer';
 import SchemeToolbar from './scheme/SchemeToolbar';
+import VehiclesLayer from './scheme/VehiclesLayer';
+import PathsLayer from './scheme/PathsLayer';
 import { useVehicles } from './hooks/useVehicles';
 import { usePaths } from './hooks/usePaths';
 import { useSchemeMap } from './hooks/useSchemeMap';
 import { useSchemeHistory } from './hooks/useSchemeHistory';
 import type { SchemeData, Annotation } from './types';
-import L from 'leaflet';
 
 interface InteractiveSchemeProps {
   formData: any;
@@ -37,10 +36,9 @@ const InteractiveScheme = ({ formData, onUpdateSchemeData, readOnly = false }: I
   const [currentTool, setCurrentTool] = React.useState<'select' | 'vehicle' | 'path' | 'annotation'>('select');
   const [annotations, setAnnotations] = React.useState<Annotation[]>([]);
 
-  // Calculate center based on form data if available
   const center: [number, number] = formData?.geolocation?.lat && formData?.geolocation?.lng
     ? [formData.geolocation.lat, formData.geolocation.lng]
-    : [48.8566, 2.3522]; // Default to Paris
+    : [48.8566, 2.3522];
 
   const handleMapClick = (e: L.LeafletMouseEvent) => {
     const newPoint: [number, number] = [e.latlng.lat, e.latlng.lng];
@@ -57,16 +55,6 @@ const InteractiveScheme = ({ formData, onUpdateSchemeData, readOnly = false }: I
       case 'path':
         if (isDrawing) {
           continuePath(newPoint);
-          if (drawingLayerRef.current && currentPathPoints.length > 0) {
-            const lastPoint = currentPathPoints[currentPathPoints.length - 1];
-            L.polyline([lastPoint, newPoint], {
-              color: selectedVehicle ? 
-                vehicles.find(v => v.id === selectedVehicle)?.color || 'black' : 
-                'black',
-              weight: 3,
-              opacity: 0.7
-            }).addTo(drawingLayerRef.current);
-          }
         } else {
           startPath(newPoint);
         }
@@ -81,57 +69,57 @@ const InteractiveScheme = ({ formData, onUpdateSchemeData, readOnly = false }: I
     }
   };
 
-  const initializeScheme = () => {
-    if (formData?.geolocation?.lat && formData?.geolocation?.lng && vehicles.length === 0) {
-      const initialVehicles: any[] = [];
-      
-      if (formData.vehicleBrand && formData.vehicleModel) {
-        initialVehicles.push({
-          id: uuidv4(),
-          position: [
-            formData.geolocation.lat + 0.0002, 
-            formData.geolocation.lng - 0.0002
-          ],
-          color: VEHICLE_COLORS[0],
-          brand: formData.vehicleBrand,
-          model: formData.vehicleModel,
-          rotation: 0,
-          isSelected: false
-        });
-      }
-      
-      if (formData.otherVehicle?.brand && formData.otherVehicle?.model) {
-        initialVehicles.push({
-          id: uuidv4(),
-          position: [
-            formData.geolocation.lat - 0.0002, 
-            formData.geolocation.lng + 0.0002
-          ],
-          color: VEHICLE_COLORS[1],
-          brand: formData.otherVehicle.brand,
-          model: formData.otherVehicle.model,
-          rotation: 0,
-          isSelected: false
-        });
-      }
-      
-      if (initialVehicles.length > 0) {
-        setVehicles(initialVehicles);
-        saveToHistory({
-          vehicles: initialVehicles,
-          paths: [],
-          annotations: [],
-          center,
-          zoom: 17
-        });
-      }
-    }
-  };
-
   const { mapRef, drawingLayerRef, handleMapReady } = useSchemeMap(
     readOnly,
     handleMapClick,
-    initializeScheme
+    () => {
+      if (formData?.geolocation?.lat && formData?.geolocation?.lng && vehicles.length === 0) {
+        const initialVehicles = [];
+        
+        if (formData.vehicleBrand && formData.vehicleModel) {
+          initialVehicles.push({
+            id: uuidv4(),
+            position: [
+              formData.geolocation.lat + 0.0002, 
+              formData.geolocation.lng - 0.0002
+            ],
+            color: VEHICLE_COLORS[0],
+            brand: formData.vehicleBrand,
+            model: formData.vehicleModel,
+            vehicleId: 'A',
+            rotation: 0,
+            isSelected: false
+          });
+        }
+        
+        if (formData.otherVehicle?.brand && formData.otherVehicle?.model) {
+          initialVehicles.push({
+            id: uuidv4(),
+            position: [
+              formData.geolocation.lat - 0.0002, 
+              formData.geolocation.lng + 0.0002
+            ],
+            color: VEHICLE_COLORS[1],
+            brand: formData.otherVehicle.brand,
+            model: formData.otherVehicle.model,
+            vehicleId: 'B',
+            rotation: 0,
+            isSelected: false
+          });
+        }
+        
+        if (initialVehicles.length > 0) {
+          setVehicles(initialVehicles);
+          saveToHistory({
+            vehicles: initialVehicles,
+            paths: [],
+            annotations: [],
+            center,
+            zoom: 17
+          });
+        }
+      }
+    }
   );
 
   const addAnnotation = (position: [number, number]) => {
@@ -154,7 +142,7 @@ const InteractiveScheme = ({ formData, onUpdateSchemeData, readOnly = false }: I
     });
   };
 
-  useEffect(() => {
+  React.useEffect(() => {
     if (onUpdateSchemeData && mapRef.current) {
       const schemeData: SchemeData = {
         vehicles,
@@ -226,44 +214,21 @@ const InteractiveScheme = ({ formData, onUpdateSchemeData, readOnly = false }: I
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         />
         
-        {vehicles.map((vehicle, index) => (
-          <VehicleIcon
-            key={vehicle.id}
-            label={vehicle.brand || "Véhicule"}
-            style={{
-              position: 'absolute',
-              zIndex: 1000,
-              transform: `translate(-50%, -50%) rotate(${vehicle.rotation}deg)`,
-            }}
-            color={vehicle.color}
-            isSelected={vehicle.isSelected}
-            onMouseDown={() => !readOnly && selectVehicle(vehicle.id)}
-            isVehicleA={index === 0}
-          />
-        ))}
+        <VehiclesLayer
+          vehicles={vehicles}
+          selectedVehicle={selectedVehicle}
+          readOnly={readOnly}
+          onVehicleSelect={selectVehicle}
+          onRemoveVehicle={removeVehicle}
+        />
         
-        {selectedVehicle && !readOnly && (
-          <div className="absolute top-16 left-1/2 transform -translate-x-1/2 z-50">
-            {vehicles.map(vehicle => (
-              vehicle.id === selectedVehicle && (
-                <VehicleControls
-                  key={vehicle.id}
-                  vehicleId={vehicle.id}
-                  onRemove={(id) => {
-                    const updatedVehicles = removeVehicle(id);
-                    saveToHistory({ 
-                      vehicles: updatedVehicles, 
-                      paths: paths.filter(p => p.vehicleId !== id),
-                      annotations, 
-                      center, 
-                      zoom: 17 
-                    });
-                  }}
-                />
-              )
-            ))}
-          </div>
-        )}
+        <PathsLayer
+          paths={paths}
+          drawingLayerRef={drawingLayerRef}
+          currentPathPoints={currentPathPoints}
+          selectedVehicle={selectedVehicle}
+          vehicles={vehicles}
+        />
         
         <MapInitializer onMapReady={handleMapReady} />
       </MapContainer>

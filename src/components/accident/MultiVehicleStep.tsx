@@ -25,7 +25,6 @@ const MultiVehicleStep = ({
 }: MultiVehicleStepProps) => {
   const [activeTab, setActiveTab] = useState("your-vehicle");
 
-  // Créer des sous-ensembles de données pour chaque véhicule
   const vehicleAFormData = {
     ...formData,
     vehicleId: 'A',
