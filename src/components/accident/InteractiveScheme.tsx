@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect } from 'react';
 import { MapContainer, TileLayer, useMap } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
@@ -19,7 +18,7 @@ import markerIcon from 'leaflet/dist/images/marker-icon.png';
 import markerShadow from 'leaflet/dist/images/marker-shadow.png';
 
 // Fix Leaflet icon issues
-delete (L.Icon.Default.prototype as any)._getIconUrl;
+delete L.Icon.Default.prototype['_getIconUrl'];
 L.Icon.Default.mergeOptions({
   iconUrl: markerIcon,
   iconRetinaUrl: markerIcon2x,
@@ -282,7 +281,7 @@ const InteractiveScheme: React.FC<SchemeProps> = ({ formData, onUpdateSchemeData
         zoom={17}
         style={{ height: '400px', width: '100%' }}
         className="z-0"
-        whenReady={(map) => handleMapReady(map.target)}
+        whenReady={(mapEvent) => handleMapReady(mapEvent.target)}
       >
         <TileLayer
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
@@ -314,6 +313,7 @@ const InteractiveScheme: React.FC<SchemeProps> = ({ formData, onUpdateSchemeData
             ))}
           </div>
         )}
+        <MapInitializer onMapReady={handleMapReady} />
       </MapContainer>
     </div>
   );
