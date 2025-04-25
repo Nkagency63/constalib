@@ -27,7 +27,7 @@ const VehiclesLayer = ({
           color={vehicle.color}
           label={vehicle.brand || "Véhicule"}
           vehicleId={vehicle.vehicleId}
-          isSelected={vehicle.isSelected}
+          isSelected={selectedVehicle === vehicle.id}
           onMouseDown={() => !readOnly && onVehicleSelect(vehicle.id)}
           style={{
             position: 'absolute',
@@ -46,7 +46,7 @@ const VehiclesLayer = ({
                 vehicleId={vehicle.id}
                 onRemove={onRemoveVehicle}
                 onRotate={(id, angle) => {
-                  // Rotation functionality will be implemented later
+                  // Cette fonctionnalité sera implémentée plus tard
                 }}
               />
             )

@@ -1,4 +1,3 @@
-
 import React from 'react';
 import BasicInfoStep from './BasicInfoStep';
 import LocationStep from './LocationStep';
@@ -87,7 +86,7 @@ const StepRenderer = ({
           vehicleACircumstances={formData.vehicleACircumstances}
           vehicleBCircumstances={formData.vehicleBCircumstances}
           handleCircumstanceChange={handleCircumstanceChange}
-          currentVehicleId="A"
+          currentVehicleId={formData.currentVehicleId || 'A'}
           setCurrentVehicleId={setCurrentVehicleId}
         />
       );

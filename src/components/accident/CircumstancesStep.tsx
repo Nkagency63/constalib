@@ -6,6 +6,7 @@ import { Search, X } from 'lucide-react';
 import { Checkbox } from '../ui/checkbox';
 import { Label } from '../ui/label';
 import { RadioGroup, RadioGroupItem } from '../ui/radio-group';
+import { toast } from 'sonner';
 
 interface CircumstanceStepProps {
   circumstances: string[];
@@ -70,6 +71,16 @@ const CircumstanceStep: React.FC<CircumstanceStepProps> = ({
   ], []);
 
   const currentCircumstances = currentVehicleId === 'A' ? vehicleACircumstances : vehicleBCircumstances;
+
+  const handleCircumstanceClick = (circumstanceId: string, isChecked: boolean) => {
+    handleCircumstanceChange(currentVehicleId, circumstanceId, isChecked);
+    
+    const selectedCircumstances = currentVehicleId === 'A' ? vehicleACircumstances : vehicleBCircumstances;
+    if (isChecked && selectedCircumstances.length >= 3) {
+      toast.warning("Vous ne pouvez pas sélectionner plus de 3 circonstances par véhicule.");
+      return;
+    }
+  };
 
   const filteredCategories = useMemo(() => {
     if (!searchQuery) return circumstanceCategories;
@@ -142,7 +153,7 @@ const CircumstanceStep: React.FC<CircumstanceStepProps> = ({
                   id={`${currentVehicleId}-${circ.id}`} 
                   checked={currentCircumstances.includes(circ.id)}
                   onCheckedChange={(checked) => {
-                    handleCircumstanceChange(currentVehicleId, circ.id, checked === true);
+                    handleCircumstanceClick(circ.id, checked === true);
                   }}
                   className="mt-1"
                 />
@@ -162,13 +173,13 @@ const CircumstanceStep: React.FC<CircumstanceStepProps> = ({
       ))}
 
       <div className="mt-6 p-4 bg-blue-50 rounded-md border border-blue-200">
-        <h4 className="font-medium text-blue-800 mb-2">Nombre de circonstances sélectionnées:</h4>
+        <h4 className="font-medium text-blue-800 mb-2">Nombre de circonstances sélectionnées :</h4>
         <div className="flex flex-col md:flex-row gap-4">
           <div>
-            <span className="font-semibold">Véhicule A:</span> {vehicleACircumstances.length} circonstance(s)
+            <span className="font-semibold">Véhicule A :</span> {vehicleACircumstances.length} circonstance(s)
           </div>
           <div>
-            <span className="font-semibold">Véhicule B:</span> {vehicleBCircumstances.length} circonstance(s)
+            <span className="font-semibold">Véhicule B :</span> {vehicleBCircumstances.length} circonstance(s)
           </div>
         </div>
       </div>
