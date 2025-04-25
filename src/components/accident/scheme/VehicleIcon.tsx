@@ -19,10 +19,10 @@ const VehicleIcon = ({ color, label, isSelected, onMouseDown, style, children }:
       onMouseDown={onMouseDown}
     >
       <div
-        className="w-16 h-32 flex items-center justify-center rounded-lg"
+        className="w-12 h-20 flex items-center justify-center rounded-lg"
         style={{ backgroundColor: color }}
       >
-        <Car className="w-8 h-8 text-white" />
+        <Car className="w-6 h-6 text-white" />
       </div>
       
       <div className="absolute -bottom-6 left-1/2 transform -translate-x-1/2 text-xs text-constalib-dark-gray bg-white px-1 rounded">

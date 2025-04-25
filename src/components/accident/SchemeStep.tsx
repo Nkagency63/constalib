@@ -19,7 +19,7 @@ const SchemeStep = ({ formData }: SchemeStepProps) => {
   const { lat, lng, address } = formData.geolocation;
   const [activeTab, setActiveTab] = useState<string>("scheme");
   
-  const handleSaveScheme = (schemeData) => {
+  const handleSaveScheme = (schemeData: any) => {
     // In a real app, we would save this data to formData
     console.log("Scheme data saved:", schemeData);
     toast.success("Schéma sauvegardé avec succès");
@@ -57,9 +57,8 @@ const SchemeStep = ({ formData }: SchemeStepProps) => {
               </Alert>
               
               <InteractiveScheme 
-                center={[lat, lng]} 
-                address={address} 
-                onSaveScheme={handleSaveScheme}
+                formData={formData}
+                onUpdateSchemeData={handleSaveScheme}
               />
               
               <div className="mt-4 flex justify-end">
