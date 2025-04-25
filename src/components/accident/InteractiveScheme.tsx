@@ -1,7 +1,9 @@
+
 import React from 'react';
 import { MapContainer, TileLayer } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import { v4 as uuidv4 } from 'uuid';
+import L from 'leaflet';
 import CanvasToolbar from './scheme/CanvasToolbar';
 import MapInitializer from './scheme/MapInitializer';
 import SchemeToolbar from './scheme/SchemeToolbar';
@@ -47,6 +49,7 @@ const InteractiveScheme = ({ formData, onUpdateSchemeData, readOnly = false }: I
         if (vehicles.length < Object.keys(VEHICLE_COLORS).length) {
           const updatedVehicles = addVehicle(e.latlng);
           if (updatedVehicles) {
+            // Center map on the newly added vehicle
             if (mapRef.current) {
               mapRef.current.panTo(e.latlng);
             }
@@ -112,6 +115,14 @@ const InteractiveScheme = ({ formData, onUpdateSchemeData, readOnly = false }: I
         
         if (initialVehicles.length > 0) {
           setVehicles(initialVehicles);
+          // Make sure to center the map on the initial vehicles
+          if (mapRef.current && initialVehicles.length > 0) {
+            const firstVehiclePosition = L.latLng(
+              initialVehicles[0].position[0],
+              initialVehicles[0].position[1]
+            );
+            mapRef.current.setView(firstVehiclePosition, 17);
+          }
           saveToHistory({
             vehicles: initialVehicles,
             paths: [],
@@ -169,6 +180,7 @@ const InteractiveScheme = ({ formData, onUpdateSchemeData, readOnly = false }: I
               const center = mapRef.current.getCenter();
               const updatedVehicles = addVehicle(center);
               if (updatedVehicles) {
+                // No need to pan here as the vehicle is already added at the center
                 saveToHistory({ 
                   vehicles: updatedVehicles, 
                   paths, 
