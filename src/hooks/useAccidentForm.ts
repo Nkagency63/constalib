@@ -9,6 +9,7 @@ export const useAccidentForm = () => {
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
   const [submitted, setSubmitted] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [currentVehicleId, setCurrentVehicleId] = useState<'A' | 'B'>('A');
   const { toast: uiToast } = useToast();
   
   const [formData, setFormData] = useState<FormData>({
@@ -40,6 +41,8 @@ export const useAccidentForm = () => {
       address: ''
     },
     emergencyContacted: false,
+    vehicleACircumstances: [],
+    vehicleBCircumstances: [],
     personalEmail: '',
     insuranceEmails: [],
     involvedPartyEmails: []
@@ -84,6 +87,24 @@ export const useAccidentForm = () => {
         [fieldName]: value
       }
     }));
+  };
+
+  const handleCircumstanceChange = (vehicleId: 'A' | 'B', circumstanceId: string, isChecked: boolean) => {
+    const field = vehicleId === 'A' ? 'vehicleACircumstances' : 'vehicleBCircumstances';
+    
+    setFormData(prev => {
+      if (isChecked) {
+        return {
+          ...prev,
+          [field]: [...prev[field], circumstanceId]
+        };
+      } else {
+        return {
+          ...prev,
+          [field]: prev[field].filter(id => id !== circumstanceId)
+        };
+      }
+    });
   };
 
   const handlePhotoUpload = (type: 'vehiclePhotos' | 'damagePhotos', file: File) => {
@@ -156,7 +177,7 @@ export const useAccidentForm = () => {
   };
 
   const nextStep = () => {
-    if (currentStepIndex < 7) { // Hardcoded 7 as the last index
+    if (currentStepIndex < 8) { // Mis à jour à 8 car nous avons ajouté une étape
       setCurrentStepIndex(prev => prev + 1);
       window.scrollTo(0, 0);
     }
@@ -174,6 +195,7 @@ export const useAccidentForm = () => {
     currentStepIndex,
     submitted,
     isSubmitting,
+    currentVehicleId,
     uiToast,
     setCurrentStepIndex,
     setSubmitted,
@@ -181,6 +203,7 @@ export const useAccidentForm = () => {
     setFormData,
     handleInputChange,
     handleOtherVehicleChange,
+    handleCircumstanceChange,
     handlePhotoUpload,
     setVehicleInfo,
     setOtherVehicleInfo,
@@ -188,6 +211,7 @@ export const useAccidentForm = () => {
     setInsuranceEmails,
     setInvolvedPartyEmails,
     setPersonalEmail,
+    setCurrentVehicleId,
     onEmergencyContacted,
     nextStep,
     prevStep,

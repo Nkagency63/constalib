@@ -5,6 +5,7 @@ import LocationStep from './LocationStep';
 import VehicleIdentificationStep from './VehicleIdentificationStep';
 import MultiVehicleStep from './MultiVehicleStep';
 import DetailsStep from './DetailsStep';
+import CircumstancesStep from './CircumstancesStep';
 import PhotosStep from './PhotosStep';
 import EmailStep from './EmailStep';
 import ReviewStep from './ReviewStep';
@@ -24,6 +25,8 @@ interface StepRendererProps {
   setInvolvedPartyEmails: (emails: string[]) => void;
   setPersonalEmail: (email: string) => void;
   onEmergencyContacted: () => void;
+  handleCircumstanceChange: (vehicleId: 'A' | 'B', circumstanceId: string, isChecked: boolean) => void;
+  setCurrentVehicleId: (vehicleId: 'A' | 'B') => void;
 }
 
 const StepRenderer = ({
@@ -38,7 +41,9 @@ const StepRenderer = ({
   setInsuranceEmails,
   setInvolvedPartyEmails,
   setPersonalEmail,
-  onEmergencyContacted
+  onEmergencyContacted,
+  handleCircumstanceChange,
+  setCurrentVehicleId
 }: StepRendererProps) => {
   switch (currentStepId) {
     case 'basics':
@@ -75,6 +80,19 @@ const StepRenderer = ({
           handleInputChange={handleInputChange}
         />
       );
+    case 'circumstances':
+      return (
+        <CircumstancesStep
+          circumstances={[]}
+          vehicleACircumstances={formData.vehicleACircumstances}
+          vehicleBCircumstances={formData.vehicleBCircumstances}
+          handleCircumstanceChange={handleCircumstanceChange}
+          currentVehicleId="A"
+          setCurrentVehicleId={setCurrentVehicleId}
+        />
+      );
+    case 'scheme':
+      return <SchemeStep formData={formData} />;
     case 'photos':
       return (
         <PhotosStep
@@ -83,8 +101,6 @@ const StepRenderer = ({
           handlePhotoUpload={handlePhotoUpload}
         />
       );
-    case 'scheme':
-      return <SchemeStep formData={formData} />;
     case 'email':
       return (
         <EmailStep

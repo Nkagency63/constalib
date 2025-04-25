@@ -79,6 +79,23 @@ const Accident = () => {
               </AlertDescription>
             </Alert>
           )}
+
+          {showHelp && currentStep === "circumstances" && (
+            <Alert className="mb-6 bg-blue-50 border-blue-200">
+              <Info className="h-5 w-5 text-blue-600" />
+              <AlertTitle className="text-blue-800">Aide pour la sélection des circonstances</AlertTitle>
+              <AlertDescription className="text-blue-700 text-sm">
+                <p className="mb-2">La sélection des circonstances est une étape importante du constat amiable :</p>
+                <ul className="list-disc pl-5 space-y-1">
+                  <li>Cochez les circonstances qui s'appliquent à <strong>chaque véhicule</strong> séparément</li>
+                  <li>Vous pouvez sélectionner <strong>plusieurs circonstances</strong> par véhicule</li>
+                  <li>Soyez précis et objectif dans vos sélections</li>
+                  <li>Si aucune circonstance ne correspond exactement, choisissez celle qui se rapproche le plus</li>
+                </ul>
+                <p className="mt-2">Ces informations sont cruciales pour déterminer les responsabilités dans l'accident.</p>
+              </AlertDescription>
+            </Alert>
+          )}
           
           {currentStep === "vehicles" && (
             <Alert variant="default" className="bg-amber-50 border-amber-200 mb-6">
@@ -87,6 +104,16 @@ const Accident = () => {
                 <strong>Nouveau:</strong> Vous pouvez désormais consulter le FNI (Fichier National des Immatriculations) 
                 pour les véhicules immatriculés avant 2009, en plus du SIV (Système d'Immatriculation des Véhicules) 
                 pour les véhicules récents.
+              </AlertDescription>
+            </Alert>
+          )}
+          
+          {currentStep === "circumstances" && (
+            <Alert variant="default" className="bg-amber-50 border-amber-200 mb-6">
+              <Info className="h-4 w-4 text-amber-600" />
+              <AlertDescription className="text-amber-800 text-sm">
+                <strong>Nouveau:</strong> La sélection des circonstances permet désormais de choisir précisément les 
+                conditions de l'accident pour chaque véhicule. Ces informations seront utilisées dans le constat amiable.
               </AlertDescription>
             </Alert>
           )}

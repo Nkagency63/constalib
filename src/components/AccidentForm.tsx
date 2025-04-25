@@ -18,8 +18,10 @@ const AccidentForm = ({ onEmergencyRequest, onStepChange }: AccidentFormProps) =
     formData,
     currentStepIndex,
     submitted,
+    currentVehicleId,
     handleInputChange,
     handleOtherVehicleChange,
+    handleCircumstanceChange,
     handlePhotoUpload,
     setVehicleInfo,
     setOtherVehicleInfo,
@@ -27,6 +29,7 @@ const AccidentForm = ({ onEmergencyRequest, onStepChange }: AccidentFormProps) =
     setInsuranceEmails,
     setInvolvedPartyEmails,
     setPersonalEmail,
+    setCurrentVehicleId,
     onEmergencyContacted,
     nextStep,
     prevStep,
@@ -76,6 +79,8 @@ const AccidentForm = ({ onEmergencyRequest, onStepChange }: AccidentFormProps) =
           setInvolvedPartyEmails={setInvolvedPartyEmails}
           setPersonalEmail={setPersonalEmail}
           onEmergencyContacted={onEmergencyContacted}
+          handleCircumstanceChange={handleCircumstanceChange}
+          setCurrentVehicleId={setCurrentVehicleId}
         />
       </form>
       

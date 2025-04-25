@@ -50,6 +50,9 @@ export interface FormData {
     address: string;
   };
   emergencyContacted: boolean;
+  // Nouvelles propriétés pour les circonstances
+  vehicleACircumstances: string[];
+  vehicleBCircumstances: string[];
   // Informations d'email
   personalEmail: string;
   insuranceEmails: string[];
@@ -88,4 +91,17 @@ export interface SchemeData {
   annotations: Annotation[];
   center: [number, number];
   zoom: number;
+}
+
+// Nouveaux types pour les circonstances
+export interface Circumstance {
+  id: string;
+  label: string;
+  description: string;
+}
+
+export interface CircumstanceCategory {
+  id: string;
+  title: string;
+  circumstances: Circumstance[];
 }
