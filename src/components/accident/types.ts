@@ -6,6 +6,7 @@ export interface Step {
 }
 
 export interface VehicleData {
+  id?: 'A' | 'B';
   licensePlate: string;
   brand: string;
   model: string;
@@ -57,6 +58,7 @@ export interface FormData {
 
 export interface Vehicle {
   id: string;
+  vehicleId?: 'A' | 'B';
   position: [number, number];
   color: string;
   brand?: string;

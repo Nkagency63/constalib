@@ -5,15 +5,23 @@ import { ReactNode } from 'react';
 interface VehicleIconProps {
   color: string;
   label: string;
+  vehicleId?: 'A' | 'B';
   isSelected: boolean;
   onMouseDown: (e: React.MouseEvent) => void;
   style: React.CSSProperties;
-  isVehicleA?: boolean;
   children?: ReactNode;
 }
 
-const VehicleIcon = ({ color, label, isSelected, onMouseDown, style, isVehicleA, children }: VehicleIconProps) => {
-  const vehicleLabel = isVehicleA ? "Véhicule A" : "Véhicule B";
+const VehicleIcon = ({ 
+  color, 
+  label, 
+  vehicleId,
+  isSelected, 
+  onMouseDown, 
+  style, 
+  children 
+}: VehicleIconProps) => {
+  const vehicleLabel = vehicleId ? `Véhicule ${vehicleId}` : label;
   
   return (
     <div
@@ -38,7 +46,7 @@ const VehicleIcon = ({ color, label, isSelected, onMouseDown, style, isVehicleA,
       </div>
       
       <div className="absolute -bottom-6 left-1/2 transform -translate-x-1/2 text-xs text-constalib-dark-gray bg-white px-1 rounded shadow-sm">
-        {label}
+        {vehicleId || label}
       </div>
       
       {children}

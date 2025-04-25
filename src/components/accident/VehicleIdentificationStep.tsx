@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { FormData } from './types';
 import { VehicleData, InsuranceData, FvaData } from './types/vehicleTypes';
@@ -17,6 +16,7 @@ interface VehicleIdentificationStepProps {
   setVehicleInfo: (data: {brand: string, model: string, year: string, firstRegistration?: string}) => void;
   setOtherVehicleInfo: (data: {brand: string, model: string, year: string, firstRegistration?: string}) => void;
   onEmergencyContacted: () => void;
+  vehicleId: 'A' | 'B';
 }
 
 const VehicleIdentificationStep = ({
@@ -25,7 +25,8 @@ const VehicleIdentificationStep = ({
   handleOtherVehicleChange,
   setVehicleInfo,
   setOtherVehicleInfo,
-  onEmergencyContacted
+  onEmergencyContacted,
+  vehicleId
 }: VehicleIdentificationStepProps) => {
   const [searchTab, setSearchTab] = useState<'siv' | 'fni'>('siv');
   
@@ -70,6 +71,15 @@ const VehicleIdentificationStep = ({
 
   return (
     <div className="space-y-6">
+      <div className="mb-4">
+        <h3 className="text-lg font-medium text-constalib-dark">
+          Véhicule {vehicleId}
+        </h3>
+        <p className="text-sm text-constalib-dark-gray">
+          {vehicleId === 'A' ? 'Votre véhicule' : 'Véhicule adverse'}
+        </p>
+      </div>
+      
       <LicensePlateInput
         licensePlate={formData.licensePlate}
         handleInputChange={handleInputChange}

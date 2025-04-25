@@ -25,13 +25,15 @@ const MultiVehicleStep = ({
 }: MultiVehicleStepProps) => {
   const [activeTab, setActiveTab] = useState("your-vehicle");
 
-  // Create subsets of the form data for each vehicle tab
-  const yourVehicleFormData = {
+  // Créer des sous-ensembles de données pour chaque véhicule
+  const vehicleAFormData = {
     ...formData,
+    vehicleId: 'A',
   };
 
-  const otherVehicleFormData = {
+  const vehicleBFormData = {
     ...formData,
+    vehicleId: 'B',
     licensePlate: formData.otherVehicle.licensePlate,
     vehicleBrand: formData.otherVehicle.brand,
     vehicleModel: formData.otherVehicle.model,
@@ -47,7 +49,7 @@ const MultiVehicleStep = ({
         <Info className="h-4 w-4 text-blue-500" />
         <AlertDescription className="text-blue-700 text-sm">
           Veuillez saisir les informations pour les deux véhicules impliqués dans l'accident.
-          Commencez par votre véhicule, puis saisissez les informations du véhicule adverse.
+          Commencez par le véhicule A (le vôtre), puis saisissez les informations du véhicule B.
         </AlertDescription>
       </Alert>
 
@@ -55,33 +57,35 @@ const MultiVehicleStep = ({
         <TabsList className="grid grid-cols-2 mb-6">
           <TabsTrigger value="your-vehicle" className="flex items-center">
             <Car className="mr-2 h-4 w-4" />
-            Votre véhicule
+            Véhicule A (le vôtre)
           </TabsTrigger>
           <TabsTrigger value="other-vehicle" className="flex items-center">
             <CarTaxiFront className="mr-2 h-4 w-4" />
-            Véhicule adverse
+            Véhicule B
           </TabsTrigger>
         </TabsList>
         
         <TabsContent value="your-vehicle" className="mt-0">
           <VehicleIdentificationStep
-            formData={yourVehicleFormData}
+            formData={vehicleAFormData}
             handleInputChange={handleInputChange}
             handleOtherVehicleChange={handleOtherVehicleChange}
             setVehicleInfo={setVehicleInfo}
             setOtherVehicleInfo={setOtherVehicleInfo}
             onEmergencyContacted={onEmergencyContacted}
+            vehicleId="A"
           />
         </TabsContent>
         
         <TabsContent value="other-vehicle" className="mt-0">
           <VehicleIdentificationStep
-            formData={otherVehicleFormData}
+            formData={vehicleBFormData}
             handleInputChange={handleOtherVehicleChange}
             handleOtherVehicleChange={handleInputChange}
             setVehicleInfo={setOtherVehicleInfo}
             setOtherVehicleInfo={setVehicleInfo}
             onEmergencyContacted={onEmergencyContacted}
+            vehicleId="B"
           />
         </TabsContent>
       </Tabs>
