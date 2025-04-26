@@ -14,12 +14,19 @@ const VehicleScheme = () => {
       lat: DEFAULT_COORDS[0],
       lng: DEFAULT_COORDS[1],
       address: "Emplacement par défaut"
+    },
+    vehicleBrand: "Renault",
+    vehicleModel: "Clio",
+    otherVehicle: {
+      brand: "Peugeot",
+      model: "208"
     }
   };
 
   const handleSchemeUpdate = (schemeData: SchemeData) => {
     // In a real app, this function would save the scheme data
     console.log('Scheme data updated:', schemeData);
+    toast.success("Schéma sauvegardé avec succès");
   };
 
   return (

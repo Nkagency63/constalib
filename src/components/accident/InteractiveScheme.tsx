@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { MapContainer, TileLayer } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import { v4 as uuidv4 } from 'uuid';
@@ -14,6 +14,7 @@ import { usePaths } from './hooks/usePaths';
 import { useSchemeMap } from './hooks/useSchemeMap';
 import { useSchemeHistory } from './hooks/useSchemeHistory';
 import type { SchemeData, Annotation } from './types';
+import { Tooltip, TooltipProvider, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip';
 
 interface InteractiveSchemeProps {
   formData: any;
@@ -49,10 +50,9 @@ const InteractiveScheme = ({ formData, onUpdateSchemeData, readOnly = false }: I
         if (vehicles.length < Object.keys(VEHICLE_COLORS).length) {
           const updatedVehicles = addVehicle(e.latlng);
           if (updatedVehicles) {
-            if (mapRef.current) {
-              mapRef.current.setView(e.latlng, mapRef.current.getZoom());
-            }
             saveToHistory({ vehicles: updatedVehicles, paths, annotations, center, zoom: 17 });
+            // Auto-center on vehicles when a new one is added
+            centerOnVehicles(updatedVehicles);
           }
         }
         break;
@@ -73,7 +73,7 @@ const InteractiveScheme = ({ formData, onUpdateSchemeData, readOnly = false }: I
     }
   };
 
-  const { mapRef, drawingLayerRef, handleMapReady } = useSchemeMap(
+  const { mapRef, drawingLayerRef, handleMapReady, centerOnVehicles } = useSchemeMap(
     readOnly,
     handleMapClick,
     () => {
@@ -114,13 +114,6 @@ const InteractiveScheme = ({ formData, onUpdateSchemeData, readOnly = false }: I
         
         if (initialVehicles.length > 0) {
           setVehicles(initialVehicles);
-          if (mapRef.current) {
-            const firstVehiclePosition = L.latLng(
-              initialVehicles[0].position[0],
-              initialVehicles[0].position[1]
-            );
-            mapRef.current.setView(firstVehiclePosition, 17);
-          }
           saveToHistory({
             vehicles: initialVehicles,
             paths: [],
@@ -128,6 +121,9 @@ const InteractiveScheme = ({ formData, onUpdateSchemeData, readOnly = false }: I
             center,
             zoom: 17
           });
+          
+          // Auto-center on vehicles after initialization
+          setTimeout(() => centerOnVehicles(initialVehicles), 300);
         }
       }
     }
@@ -160,6 +156,11 @@ const InteractiveScheme = ({ formData, onUpdateSchemeData, readOnly = false }: I
     setVehicles(prevState.vehicles);
     setPaths(prevState.paths);
     setAnnotations(prevState.annotations);
+    
+    // Auto-center on vehicles after undo
+    if (prevState.vehicles.length > 0) {
+      setTimeout(() => centerOnVehicles(prevState.vehicles), 100);
+    }
   };
 
   const handleRedoWrapper = () => {
@@ -168,7 +169,19 @@ const InteractiveScheme = ({ formData, onUpdateSchemeData, readOnly = false }: I
     setVehicles(nextState.vehicles);
     setPaths(nextState.paths);
     setAnnotations(nextState.annotations);
+    
+    // Auto-center on vehicles after redo
+    if (nextState.vehicles.length > 0) {
+      setTimeout(() => centerOnVehicles(nextState.vehicles), 100);
+    }
   };
+
+  // Effect to center on vehicles when they change
+  useEffect(() => {
+    if (vehicles.length > 0) {
+      centerOnVehicles(vehicles);
+    }
+  }, [vehicles.length]);
 
   React.useEffect(() => {
     if (onUpdateSchemeData && mapRef.current) {
@@ -187,81 +200,91 @@ const InteractiveScheme = ({ formData, onUpdateSchemeData, readOnly = false }: I
   }, [vehicles, paths, annotations, onUpdateSchemeData]);
 
   return (
-    <div className="relative rounded-lg overflow-hidden shadow-md border border-gray-200">
-      {!readOnly && (
-        <CanvasToolbar 
-          onAddVehicle={() => {
-            if (mapRef.current && vehicles.length < Object.keys(VEHICLE_COLORS).length) {
-              const center = mapRef.current.getCenter();
-              const updatedVehicles = addVehicle(center);
+    <TooltipProvider>
+      <div className="relative rounded-lg overflow-hidden shadow-md border border-gray-200">
+        {!readOnly && (
+          <CanvasToolbar 
+            onAddVehicle={() => {
+              if (mapRef.current && vehicles.length < Object.keys(VEHICLE_COLORS).length) {
+                const center = mapRef.current.getCenter();
+                const updatedVehicles = addVehicle(center);
+                if (updatedVehicles) {
+                  saveToHistory({ 
+                    vehicles: updatedVehicles, 
+                    paths, 
+                    annotations, 
+                    center: [center.lat, center.lng], 
+                    zoom: 17 
+                  });
+                  // Auto-center on vehicles when a new one is added via toolbar
+                  centerOnVehicles(updatedVehicles);
+                }
+              }
+            }}
+            onUndo={handleUndoWrapper}
+            onRedo={handleRedoWrapper}
+            onZoomIn={() => mapRef.current?.zoomIn()}
+            onZoomOut={() => mapRef.current?.zoomOut()}
+            canUndo={canUndo}
+            canRedo={canRedo}
+          />
+        )}
+
+        {!readOnly && (
+          <SchemeToolbar 
+            currentTool={currentTool}
+            setCurrentTool={setCurrentTool}
+          />
+        )}
+
+        <MapContainer
+          center={center}
+          zoom={17}
+          style={{ height: '400px', width: '100%' }}
+          className="z-0"
+          zoomControl={false} // Disable default zoom controls
+        >
+          <TileLayer
+            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+          />
+          
+          <VehiclesLayer
+            vehicles={vehicles}
+            selectedVehicle={selectedVehicle}
+            readOnly={readOnly}
+            onVehicleSelect={selectVehicle}
+            onRemoveVehicle={(id) => {
+              const updatedVehicles = removeVehicle(id);
               if (updatedVehicles) {
                 saveToHistory({ 
                   vehicles: updatedVehicles, 
                   paths, 
                   annotations, 
-                  center: [center.lat, center.lng], 
-                  zoom: 17 
+                  center, 
+                  zoom: mapRef.current?.getZoom() || 17 
                 });
+                
+                // Auto-center on remaining vehicles after removal
+                if (updatedVehicles.length > 0) {
+                  setTimeout(() => centerOnVehicles(updatedVehicles), 100);
+                }
               }
-            }
-          }}
-          onUndo={handleUndoWrapper}
-          onRedo={handleRedoWrapper}
-          onZoomIn={() => mapRef.current?.zoomIn()}
-          onZoomOut={() => mapRef.current?.zoomOut()}
-          canUndo={canUndo}
-          canRedo={canRedo}
-        />
-      )}
-
-      {!readOnly && (
-        <SchemeToolbar 
-          currentTool={currentTool}
-          setCurrentTool={setCurrentTool}
-        />
-      )}
-
-      <MapContainer
-        center={center}
-        zoom={17}
-        style={{ height: '400px', width: '100%' }}
-        className="z-0"
-      >
-        <TileLayer
-          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-        />
-        
-        <VehiclesLayer
-          vehicles={vehicles}
-          selectedVehicle={selectedVehicle}
-          readOnly={readOnly}
-          onVehicleSelect={selectVehicle}
-          onRemoveVehicle={(id) => {
-            const updatedVehicles = removeVehicle(id);
-            if (updatedVehicles) {
-              saveToHistory({ 
-                vehicles: updatedVehicles, 
-                paths, 
-                annotations, 
-                center, 
-                zoom: mapRef.current?.getZoom() || 17 
-              });
-            }
-          }}
-        />
-        
-        <PathsLayer
-          paths={paths}
-          drawingLayerRef={drawingLayerRef}
-          currentPathPoints={currentPathPoints}
-          selectedVehicle={selectedVehicle}
-          vehicles={vehicles}
-        />
-        
-        <MapInitializer onMapReady={handleMapReady} />
-      </MapContainer>
-    </div>
+            }}
+          />
+          
+          <PathsLayer
+            paths={paths}
+            drawingLayerRef={drawingLayerRef}
+            currentPathPoints={currentPathPoints}
+            selectedVehicle={selectedVehicle}
+            vehicles={vehicles}
+          />
+          
+          <MapInitializer onMapReady={handleMapReady} />
+        </MapContainer>
+      </div>
+    </TooltipProvider>
   );
 };
 
