@@ -26,6 +26,12 @@ interface StepRendererProps {
   onEmergencyContacted: () => void;
   handleCircumstanceChange: (vehicleId: 'A' | 'B', circumstanceId: string, isChecked: boolean) => void;
   setCurrentVehicleId: (vehicleId: 'A' | 'B') => void;
+  setHasInjuries: (value: boolean) => void;
+  setInjuriesDescription: (value: string) => void;
+  setHasWitnesses: (value: boolean) => void;
+  updateWitness: (index: number, field: keyof WitnessInfo, value: string) => void;
+  addWitness: () => void;
+  removeWitness: (index: number) => void;
 }
 
 const StepRenderer = ({
@@ -42,7 +48,13 @@ const StepRenderer = ({
   setPersonalEmail,
   onEmergencyContacted,
   handleCircumstanceChange,
-  setCurrentVehicleId
+  setCurrentVehicleId,
+  setHasInjuries,
+  setInjuriesDescription,
+  setHasWitnesses,
+  updateWitness,
+  addWitness,
+  removeWitness
 }: StepRendererProps) => {
   switch (currentStepId) {
     case 'basics':
@@ -76,7 +88,17 @@ const StepRenderer = ({
       return (
         <DetailsStep
           description={formData.description}
+          hasInjuries={formData.hasInjuries}
+          injuriesDescription={formData.injuriesDescription}
+          hasWitnesses={formData.hasWitnesses}
+          witnesses={formData.witnesses}
           handleInputChange={handleInputChange}
+          setHasInjuries={setHasInjuries}
+          setInjuriesDescription={setInjuriesDescription}
+          setHasWitnesses={setHasWitnesses}
+          updateWitness={updateWitness}
+          addWitness={addWitness}
+          removeWitness={removeWitness}
         />
       );
     case 'circumstances':

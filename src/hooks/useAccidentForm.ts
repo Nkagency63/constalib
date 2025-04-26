@@ -1,8 +1,6 @@
 import { useState } from 'react';
-import { FormData } from '@/components/accident/types';
-import { supabase } from '@/integrations/supabase/client';
+import { FormData, WitnessInfo } from '@/components/accident/types';
 import { useToast } from '@/hooks/use-toast';
-import { toast } from 'sonner';
 
 export const useAccidentForm = () => {
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
@@ -45,7 +43,11 @@ export const useAccidentForm = () => {
     personalEmail: '',
     insuranceEmails: [],
     involvedPartyEmails: [],
-    currentVehicleId: 'A'
+    currentVehicleId: 'A',
+    hasInjuries: false,
+    injuriesDescription: '',
+    hasWitnesses: false,
+    witnesses: []
   });
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -201,6 +203,52 @@ export const useAccidentForm = () => {
     }));
   };
 
+  const setHasInjuries = (value: boolean) => {
+    setFormData(prev => ({
+      ...prev,
+      hasInjuries: value,
+      injuriesDescription: value ? prev.injuriesDescription : ''
+    }));
+  };
+
+  const setInjuriesDescription = (value: string) => {
+    setFormData(prev => ({
+      ...prev,
+      injuriesDescription: value
+    }));
+  };
+
+  const setHasWitnesses = (value: boolean) => {
+    setFormData(prev => ({
+      ...prev,
+      hasWitnesses: value,
+      witnesses: value ? prev.witnesses : []
+    }));
+  };
+
+  const updateWitness = (index: number, field: keyof WitnessInfo, value: string) => {
+    setFormData(prev => ({
+      ...prev,
+      witnesses: prev.witnesses.map((witness, i) => 
+        i === index ? { ...witness, [field]: value } : witness
+      )
+    }));
+  };
+
+  const addWitness = () => {
+    setFormData(prev => ({
+      ...prev,
+      witnesses: [...prev.witnesses, { fullName: '', phone: '', email: '' }]
+    }));
+  };
+
+  const removeWitness = (index: number) => {
+    setFormData(prev => ({
+      ...prev,
+      witnesses: prev.witnesses.filter((_, i) => i !== index)
+    }));
+  };
+
   return {
     formData,
     currentStepIndex,
@@ -226,5 +274,11 @@ export const useAccidentForm = () => {
     onEmergencyContacted,
     nextStep,
     prevStep,
+    setHasInjuries,
+    setInjuriesDescription,
+    setHasWitnesses,
+    updateWitness,
+    addWitness,
+    removeWitness
   };
 };

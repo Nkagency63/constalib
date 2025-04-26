@@ -16,6 +16,12 @@ export interface VehicleData {
   insuranceCompany?: string;
 }
 
+export interface WitnessInfo {
+  fullName: string;
+  phone: string;
+  email: string;
+}
+
 export interface FormData {
   date: string;
   time: string;
@@ -58,6 +64,10 @@ export interface FormData {
   involvedPartyEmails: string[];
   // Propriété pour suivre le véhicule actuellement sélectionné
   currentVehicleId?: 'A' | 'B';
+  hasInjuries: boolean;
+  injuriesDescription?: string;
+  hasWitnesses: boolean;
+  witnesses: WitnessInfo[];
 }
 
 export interface Vehicle {
