@@ -73,13 +73,14 @@ const CircumstanceStep: React.FC<CircumstanceStepProps> = ({
   const currentCircumstances = currentVehicleId === 'A' ? vehicleACircumstances : vehicleBCircumstances;
 
   const handleCircumstanceClick = (circumstanceId: string, isChecked: boolean) => {
-    handleCircumstanceChange(currentVehicleId, circumstanceId, isChecked);
-    
     const selectedCircumstances = currentVehicleId === 'A' ? vehicleACircumstances : vehicleBCircumstances;
+    
     if (isChecked && selectedCircumstances.length >= 3) {
       toast.warning("Vous ne pouvez pas sélectionner plus de 3 circonstances par véhicule.");
       return;
     }
+    
+    handleCircumstanceChange(currentVehicleId, circumstanceId, isChecked);
   };
 
   const filteredCategories = useMemo(() => {

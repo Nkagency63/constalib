@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { FormData } from '@/components/accident/types';
 import { supabase } from '@/integrations/supabase/client';
@@ -45,7 +44,8 @@ export const useAccidentForm = () => {
     vehicleBCircumstances: [],
     personalEmail: '',
     insuranceEmails: [],
-    involvedPartyEmails: []
+    involvedPartyEmails: [],
+    currentVehicleId: 'A'
   });
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -94,10 +94,13 @@ export const useAccidentForm = () => {
     
     setFormData(prev => {
       if (isChecked) {
-        return {
-          ...prev,
-          [field]: [...prev[field], circumstanceId]
-        };
+        if (!prev[field].includes(circumstanceId)) {
+          return {
+            ...prev,
+            [field]: [...prev[field], circumstanceId]
+          };
+        }
+        return prev;
       } else {
         return {
           ...prev,
@@ -177,7 +180,7 @@ export const useAccidentForm = () => {
   };
 
   const nextStep = () => {
-    if (currentStepIndex < 8) { // Mis à jour à 8 car nous avons ajouté une étape
+    if (currentStepIndex < 8) {
       setCurrentStepIndex(prev => prev + 1);
       window.scrollTo(0, 0);
     }
@@ -188,6 +191,13 @@ export const useAccidentForm = () => {
       setCurrentStepIndex(prev => prev - 1);
       window.scrollTo(0, 0);
     }
+  };
+
+  const setCurrentVehicleId = (vehicleId: 'A' | 'B') => {
+    setFormData(prev => ({
+      ...prev,
+      currentVehicleId: vehicleId
+    }));
   };
 
   return {

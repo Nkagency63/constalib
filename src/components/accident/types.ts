@@ -1,4 +1,3 @@
-
 export interface Step {
   id: string;
   title: string;
@@ -57,6 +56,8 @@ export interface FormData {
   personalEmail: string;
   insuranceEmails: string[];
   involvedPartyEmails: string[];
+  // Propriété pour suivre le véhicule actuellement sélectionné
+  currentVehicleId?: 'A' | 'B';
 }
 
 export interface Vehicle {
@@ -93,7 +94,6 @@ export interface SchemeData {
   zoom: number;
 }
 
-// Nouveaux types pour les circonstances
 export interface Circumstance {
   id: string;
   label: string;
