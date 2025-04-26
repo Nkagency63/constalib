@@ -193,7 +193,8 @@ export const useAccidentForm = () => {
     }
   };
 
-  const setCurrentVehicleId = (vehicleId: 'A' | 'B') => {
+  const updateCurrentVehicleId = (vehicleId: 'A' | 'B') => {
+    setCurrentVehicleId(vehicleId);
     setFormData(prev => ({
       ...prev,
       currentVehicleId: vehicleId
@@ -221,7 +222,7 @@ export const useAccidentForm = () => {
     setInsuranceEmails,
     setInvolvedPartyEmails,
     setPersonalEmail,
-    setCurrentVehicleId,
+    setCurrentVehicleId: updateCurrentVehicleId,
     onEmergencyContacted,
     nextStep,
     prevStep,
