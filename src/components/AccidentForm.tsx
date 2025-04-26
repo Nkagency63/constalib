@@ -33,7 +33,13 @@ const AccidentForm = ({ onEmergencyRequest, onStepChange }: AccidentFormProps) =
     onEmergencyContacted,
     nextStep,
     prevStep,
-    setSubmitted
+    setSubmitted,
+    setHasInjuries,
+    setInjuriesDescription,
+    setHasWitnesses,
+    updateWitness,
+    addWitness,
+    removeWitness
   } = useAccidentForm();
 
   if (submitted) {
@@ -81,6 +87,12 @@ const AccidentForm = ({ onEmergencyRequest, onStepChange }: AccidentFormProps) =
           onEmergencyContacted={onEmergencyContacted}
           handleCircumstanceChange={handleCircumstanceChange}
           setCurrentVehicleId={setCurrentVehicleId}
+          setHasInjuries={setHasInjuries}
+          setInjuriesDescription={setInjuriesDescription}
+          setHasWitnesses={setHasWitnesses}
+          updateWitness={updateWitness}
+          addWitness={addWitness}
+          removeWitness={removeWitness}
         />
       </form>
       

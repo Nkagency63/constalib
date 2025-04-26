@@ -1,3 +1,4 @@
+
 import React from 'react';
 import BasicInfoStep from './BasicInfoStep';
 import LocationStep from './LocationStep';
@@ -9,7 +10,7 @@ import PhotosStep from './PhotosStep';
 import EmailStep from './EmailStep';
 import ReviewStep from './ReviewStep';
 import SchemeStep from './SchemeStep';
-import { FormData } from './types';
+import { FormData, WitnessInfo } from './types';
 
 interface StepRendererProps {
   currentStepId: string;
