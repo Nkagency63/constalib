@@ -16,14 +16,18 @@ export const useSchemeMap = ({ readOnly, handleMapClick, onReady }: UseSchemeMap
   const handleMapReady = useCallback((map: L.Map) => {
     mapRef.current = map;
     
-    // Vérifier que les contrôles existent avant de les supprimer
-    if (mapRef.current && mapRef.current.zoomControl) {
-      mapRef.current.removeControl(mapRef.current.zoomControl);
-    }
+    // Only try to remove controls if they exist
+    if (mapRef.current) {
+      // Safely check and remove zoom control
+      const zoomControl = mapRef.current.zoomControl;
+      if (zoomControl) {
+        mapRef.current.removeControl(zoomControl);
+      }
 
-    // Setup event handlers if not readOnly
-    if (!readOnly && mapRef.current) {
-      mapRef.current.on('click', handleMapClick);
+      // Setup event handlers if not readOnly
+      if (!readOnly) {
+        mapRef.current.on('click', handleMapClick);
+      }
     }
     
     // Call the onReady callback to initialize the map

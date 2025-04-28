@@ -7,10 +7,16 @@ export const usePaths = () => {
   const [paths, setPaths] = useState<Path[]>([]);
   const [currentPathPoints, setCurrentPathPoints] = useState<[number, number][]>([]);
   const [isDrawing, setIsDrawing] = useState(false);
+  const [currentVehicleId, setCurrentVehicleId] = useState<string | undefined>(undefined);
+  const [currentPathColor, setCurrentPathColor] = useState<string | null>(null);
 
-  const startPath = (point: [number, number]) => {
+  const startPath = (point: [number, number], vehicleId?: string, color?: string | null) => {
     setIsDrawing(true);
     setCurrentPathPoints([point]);
+    
+    // Store the vehicle ID and color if provided
+    if (vehicleId) setCurrentVehicleId(vehicleId);
+    if (color) setCurrentPathColor(color);
   };
 
   const continuePath = (point: [number, number]) => {
@@ -22,8 +28,8 @@ export const usePaths = () => {
       const newPath: Path = {
         id: uuidv4(),
         points: currentPathPoints,
-        color: selectedVehicle ? vehicleColor || 'black' : 'black',
-        vehicleId: selectedVehicle || undefined,
+        color: currentPathColor || vehicleColor || 'black',
+        vehicleId: currentVehicleId || selectedVehicle || undefined,
         isSelected: false
       };
 
@@ -38,6 +44,8 @@ export const usePaths = () => {
   const resetPath = () => {
     setIsDrawing(false);
     setCurrentPathPoints([]);
+    setCurrentVehicleId(undefined);
+    setCurrentPathColor(null);
   };
 
   return {

@@ -12,16 +12,17 @@ export const createMapIcon = (color: string = '#3B82F6') => {
 
 export const createCarIcon = (color: string = '#3B82F6', rotation: number = 0, isSelected: boolean = false) => {
   const borderClass = isSelected ? 'border-2 border-white' : '';
+  const selectionIndicator = isSelected ? '✓' : '';
   
   return L.divIcon({
     className: 'custom-car-icon',
-    iconSize: [40, 40], // Increased size from 30x30 to 40x40
-    iconAnchor: [20, 20],
+    iconSize: [44, 44], // Increased size for better visibility
+    iconAnchor: [22, 22],
     html: `
       <div class="${borderClass}" style="
         background-color: ${color}; 
-        width: 34px; 
-        height: 34px; 
+        width: 38px; 
+        height: 38px; 
         border-radius: 50%; 
         display: flex; 
         align-items: center; 
@@ -43,24 +44,24 @@ export const createCarIcon = (color: string = '#3B82F6', rotation: number = 0, i
           font-weight: bold;
           font-size: 12px;
           box-shadow: 0 1px 3px rgba(0,0,0,0.3);">
-          ${isSelected ? '✓' : ''}
+          ${selectionIndicator}
         </div>
-        <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <path d="M19 17h2c.6 0 1-.4 1-1v-3c0-.9-.7-1.7-1.5-1.9C18.7 10.6 16 10 16 10s-1.3-1.4-2.2-2.3c-.5-.6-1.2-.9-1.9-1L9 6.3c-.7-.1-1.5.1-2.1.5L4 9.1c-.2.1-.1.4.2.4H7a2 2 0 0 1 2 1.6l.1.9"/>
           <path d="M9 17h6"/>
           <circle cx="7.5" cy="17.5" r="2.5"/>
           <circle cx="16.5" cy="17.5" r="2.5"/>
         </svg>
-        <!-- Direction arrow -->
+        <!-- Direction arrow - more prominent -->
         <div style="
           position: absolute;
           width: 0;
           height: 0;
-          border-left: 6px solid transparent;
-          border-right: 6px solid transparent;
-          border-bottom: 12px solid white;
-          top: -14px;
-          opacity: 0.8;">
+          border-left: 8px solid transparent;
+          border-right: 8px solid transparent;
+          border-bottom: 16px solid white;
+          top: -16px;
+          opacity: 0.9;">
         </div>
       </div>
     `,
