@@ -4,20 +4,24 @@ import { MapContainer as LeafletMapContainer, TileLayer } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import VehiclesLayer from './VehiclesLayer';
 import PathsLayer from './PathsLayer';
+import AnnotationsLayer from './AnnotationsLayer';
 import MapInitializer from './MapInitializer';
-import { Vehicle, Path } from '../types';
+import { Vehicle, Path, Annotation } from '../types';
 
 interface MapContainerProps {
   center: [number, number];
   zoom: number;
   vehicles: Vehicle[];
   paths: Path[];
+  annotations: Annotation[];
   currentPathPoints: [number, number][];
   drawingLayerRef: React.MutableRefObject<L.LayerGroup | null>;
   selectedVehicle: string | null;
   onVehicleSelect: (id: string | null) => void;
   onRemoveVehicle: (id: string) => void;
   onRotateVehicle?: (id: string, degrees: number) => void;
+  onRemoveAnnotation?: (id: string) => void;
+  onUpdateAnnotation?: (id: string, text: string) => void;
   onMapReady: (map: L.Map) => void;
   readOnly: boolean;
 }
@@ -27,12 +31,15 @@ const MapContainer = ({
   zoom,
   vehicles,
   paths,
+  annotations,
   currentPathPoints,
   drawingLayerRef,
   selectedVehicle,
   onVehicleSelect,
   onRemoveVehicle,
   onRotateVehicle,
+  onRemoveAnnotation,
+  onUpdateAnnotation,
   onMapReady,
   readOnly
 }: MapContainerProps) => {
@@ -64,6 +71,13 @@ const MapContainer = ({
         currentPathPoints={currentPathPoints}
         selectedVehicle={selectedVehicle}
         vehicles={vehicles}
+      />
+      
+      <AnnotationsLayer 
+        annotations={annotations}
+        readOnly={readOnly}
+        onRemoveAnnotation={onRemoveAnnotation}
+        onUpdateAnnotation={onUpdateAnnotation}
       />
       
       <MapInitializer onMapReady={onMapReady} />

@@ -5,11 +5,13 @@ import { toast } from 'sonner';
 import CanvasToolbar from './CanvasToolbar';
 import SchemeToolbar from './SchemeToolbar';
 import MapContainer from './MapContainer';
-import { Vehicle, SchemeData } from '../types';
+import { SchemeData } from '../types';
 import { useVehicles } from '../hooks/useVehicles';
 import { usePaths } from '../hooks/usePaths';
+import { useAnnotations } from '../hooks/useAnnotations';
 import { useSchemeHistory } from '../hooks/useSchemeHistory';
 import { useSchemeMap } from '../hooks/useSchemeMap';
+import { useKeyboardControls } from '../hooks/useKeyboardControls';
 
 interface SchemeContainerProps {
   formData: any;
@@ -33,13 +35,17 @@ const SchemeContainer = ({
     startPath, continuePath, completePath, resetPath
   } = usePaths();
   
+  const {
+    annotations, setAnnotations, addAnnotation,
+    updateAnnotation, removeAnnotation
+  } = useAnnotations();
+  
   const { 
     saveToHistory, handleUndo, handleRedo, canUndo, canRedo 
   } = useSchemeHistory();
   
   // Local state
   const [currentTool, setCurrentTool] = useState<'select' | 'vehicle' | 'path' | 'annotation'>('select');
-  const [annotations, setAnnotations] = useState<any[]>([]);
   const [isMapReady, setIsMapReady] = useState(false);
 
   // Get default center coordinates from formData or use Paris as default
@@ -82,7 +88,14 @@ const SchemeContainer = ({
         break;
         
       case 'annotation':
-        addAnnotation(newPoint);
+        const updatedAnnotations = addAnnotation(newPoint);
+        saveToHistory({
+          vehicles,
+          paths,
+          annotations: updatedAnnotations,
+          center,
+          zoom: 17
+        });
         break;
         
       case 'select':
@@ -102,10 +115,18 @@ const SchemeContainer = ({
     }
   });
 
+  // Setup keyboard controls for vehicles
+  useKeyboardControls({
+    selectedVehicle,
+    readOnly,
+    onRotateVehicle: rotateVehicle,
+    onRemoveVehicle: removeVehicle
+  });
+
   // Initialize vehicles if none exist and we have formData
   const initializeVehicles = () => {
     if (formData?.geolocation?.lat && formData?.geolocation?.lng && vehicles.length === 0) {
-      const initialVehicles: Vehicle[] = [];
+      const initialVehicles = [];
       
       // Add vehicle A if we have data
       if (formData.vehicleBrand && formData.vehicleModel) {
@@ -156,26 +177,6 @@ const SchemeContainer = ({
         setTimeout(() => centerOnVehicles(initialVehicles), 300);
       }
     }
-  };
-
-  const addAnnotation = (position: [number, number]) => {
-    const newAnnotation = {
-      id: crypto.randomUUID(),
-      position,
-      text: 'Note',
-      type: 'note'
-    };
-    
-    const updatedAnnotations = [...annotations, newAnnotation];
-    setAnnotations(updatedAnnotations);
-    
-    saveToHistory({
-      vehicles,
-      paths,
-      annotations: updatedAnnotations,
-      center,
-      zoom: 17
-    });
   };
 
   // Handle undo with current state
@@ -232,29 +233,8 @@ const SchemeContainer = ({
     }
 
     try {
-      // Crée un élément pour contenir une copie de la carte
-      const mapContainer = mapRef.current.getContainer();
-      const clonedMap = mapContainer.cloneNode(true) as HTMLElement;
-      
-      // Applique des styles pour l'export
-      clonedMap.style.width = '1200px';
-      clonedMap.style.height = '800px';
-      
-      // Crée une nouvelle div pour contenir la capture
-      const container = document.createElement('div');
-      container.style.position = 'absolute';
-      container.style.left = '-9999px';
-      container.style.top = '-9999px';
-      container.appendChild(clonedMap);
-      document.body.appendChild(container);
-      
-      // Utilise html2canvas pour créer une image (simulation)
-      setTimeout(() => {
-        document.body.removeChild(container);
-        toast.success("Export d'image simulé - cette fonctionnalité nécessite html2canvas");
-      }, 1000);
-      
       toast.info("Préparation de l'image...");
+      toast.success("Export d'image simulé - cette fonctionnalité nécessite html2canvas");
     } catch (error) {
       toast.error("Erreur lors de l'exportation de l'image");
       console.error("Erreur d'exportation:", error);
@@ -284,29 +264,6 @@ const SchemeContainer = ({
       onUpdateSchemeData(schemeData);
     }
   }, [vehicles, paths, annotations, onUpdateSchemeData]);
-
-  // Handle key down events for vehicle controls
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (readOnly || !selectedVehicle) return;
-      
-      switch (e.key) {
-        case 'ArrowLeft':
-          rotateVehicle(selectedVehicle, -45);
-          break;
-        case 'ArrowRight':
-          rotateVehicle(selectedVehicle, 45);
-          break;
-        case 'Delete':
-        case 'Backspace':
-          removeVehicle(selectedVehicle);
-          break;
-      }
-    };
-    
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [selectedVehicle, readOnly]);
 
   return (
     <TooltipProvider>
@@ -354,12 +311,15 @@ const SchemeContainer = ({
           zoom={17}
           vehicles={vehicles}
           paths={paths}
+          annotations={annotations}
           currentPathPoints={currentPathPoints}
           drawingLayerRef={drawingLayerRef}
           selectedVehicle={selectedVehicle}
           onVehicleSelect={selectVehicle}
           onRemoveVehicle={removeVehicle}
           onRotateVehicle={rotateVehicle}
+          onRemoveAnnotation={removeAnnotation}
+          onUpdateAnnotation={updateAnnotation}
           onMapReady={handleMapReady}
           readOnly={readOnly}
         />
