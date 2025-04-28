@@ -6,7 +6,7 @@ import { cn } from '@/lib/utils';
 interface VehicleIconProps {
   color: string;
   label: string;
-  vehicleId?: 'A' | 'B';
+  vehicleId?: 'A' | 'B' | 'C' | 'D';
   isSelected: boolean;
   onMouseDown: (e: React.MouseEvent) => void;
   style: React.CSSProperties;

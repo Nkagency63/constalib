@@ -36,9 +36,7 @@ const VehiclesLayer = ({
         <Marker
           key={vehicle.id}
           position={vehicle.position}
-          icon={createCarIcon(vehicle.color, selectedVehicle === vehicle.id)}
-          rotationAngle={vehicle.rotation}
-          rotationOrigin="center"
+          icon={createCarIcon(vehicle.color, vehicle.rotation, selectedVehicle === vehicle.id)}
           eventHandlers={{
             click: () => !readOnly && onVehicleSelect(vehicle.id),
           }}

@@ -105,10 +105,10 @@ const InteractiveScheme = ({ formData, onUpdateSchemeData, readOnly = false }: I
     }
   };
 
-  const { mapRef, drawingLayerRef, handleMapReady, centerOnVehicles } = useSchemeMap(
+  const { mapRef, drawingLayerRef, handleMapReady, centerOnVehicles } = useSchemeMap({
     readOnly,
     handleMapClick,
-    () => {
+    onReady: () => {
       setIsMapReady(true);
       
       // Initialize vehicles if none exist and we have formData
@@ -165,7 +165,7 @@ const InteractiveScheme = ({ formData, onUpdateSchemeData, readOnly = false }: I
         }
       }
     }
-  );
+  });
 
   const addAnnotation = (position: [number, number]) => {
     const newAnnotation: Annotation = {

@@ -1,62 +1,50 @@
 
-import { useRef, useEffect } from 'react';
+import { useRef, useCallback } from 'react';
 import L from 'leaflet';
-import { SchemeData, Vehicle } from '../types';
-import markerIcon2x from 'leaflet/dist/images/marker-icon-2x.png';
-import markerIcon from 'leaflet/dist/images/marker-icon.png';
-import markerShadow from 'leaflet/dist/images/marker-shadow.png';
+import { Vehicle } from '../types';
 
-// Fix Leaflet icon issues
-delete L.Icon.Default.prototype['_getIconUrl'];
-L.Icon.Default.mergeOptions({
-  iconUrl: markerIcon,
-  iconRetinaUrl: markerIcon2x,
-  shadowUrl: markerShadow,
-});
+interface UseSchemeMapProps {
+  readOnly: boolean;
+  handleMapClick: (e: L.LeafletMouseEvent) => void;
+  onReady: () => void;
+}
 
-export const useSchemeMap = (
-  readOnly: boolean,
-  handleMapClick: (e: L.LeafletMouseEvent) => void,
-  initializeScheme: () => void
-) => {
+export const useSchemeMap = ({ readOnly, handleMapClick, onReady }: UseSchemeMapProps) => {
   const mapRef = useRef<L.Map | null>(null);
   const drawingLayerRef = useRef<L.LayerGroup | null>(null);
 
-  const handleMapReady = (map: L.Map) => {
+  const handleMapReady = useCallback((map: L.Map) => {
     mapRef.current = map;
-    drawingLayerRef.current = L.layerGroup().addTo(map);
     
-    if (!readOnly) {
-      map.on('click', handleMapClick);
+    // Remove zoom control and add it back in a different position
+    if (mapRef.current) {
+      mapRef.current.removeControl(mapRef.current.zoomControl);
+    }
+
+    // Setup event handlers if not readOnly
+    if (!readOnly && mapRef.current) {
+      mapRef.current.on('click', handleMapClick);
     }
     
-    // Remove the zoom control as we'll use our custom one
-    map.removeControl(map.zoomControl);
-    
-    initializeScheme();
-  };
+    // Call the onReady callback to initialize the map
+    onReady();
+  }, [readOnly, handleMapClick, onReady]);
 
-  const centerOnVehicles = (vehicles: Vehicle[]) => {
+  const centerOnVehicles = useCallback((vehicles: Vehicle[]) => {
     if (!mapRef.current || vehicles.length === 0) return;
     
-    if (vehicles.length === 1) {
-      // If there's only one vehicle, center on it with a reasonable zoom
-      const position = L.latLng(vehicles[0].position[0], vehicles[0].position[1]);
-      mapRef.current.setView(position, 18);
-      return;
-    }
+    // Create a bounds object to contain all vehicle positions
+    const bounds = L.latLngBounds(vehicles.map(v => v.position));
     
-    // Create bounds from all vehicle positions
-    const bounds = L.latLngBounds(
-      vehicles.map(v => L.latLng(v.position[0], v.position[1]))
-    );
+    // Expand bounds slightly for better visibility
+    bounds.pad(0.2);
     
-    // Fit the map to these bounds with padding
-    mapRef.current.fitBounds(bounds, { 
+    // Fit the map to these bounds with animation
+    mapRef.current.flyToBounds(bounds, {
       padding: [50, 50],
-      maxZoom: 18
+      duration: 0.5
     });
-  };
+  }, []);
 
   return {
     mapRef,

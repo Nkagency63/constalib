@@ -1,3 +1,4 @@
+
 export interface Step {
   id: string;
   title: string;
@@ -72,7 +73,7 @@ export interface FormData {
 
 export interface Vehicle {
   id: string;
-  vehicleId?: 'A' | 'B';
+  vehicleId: 'A' | 'B' | 'C' | 'D';
   position: [number, number];
   color: string;
   brand?: string;
