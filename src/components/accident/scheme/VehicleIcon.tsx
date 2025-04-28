@@ -32,14 +32,18 @@ const VehicleIcon = ({
       onMouseDown={onMouseDown}
     >
       <div 
-        className="relative w-14 h-20 flex flex-col items-center justify-center rounded-lg shadow-lg" 
+        className="relative w-16 h-22 flex flex-col items-center justify-center rounded-lg shadow-lg" 
         style={{ backgroundColor: color }}
       >
-        <div className="absolute -top-3 -right-3 w-6 h-6 rounded-full bg-white shadow-md flex items-center justify-center font-bold text-lg">
+        <div className="absolute -top-3 -right-3 w-7 h-7 rounded-full bg-white shadow-md flex items-center justify-center font-bold text-lg">
           {vehicleId}
         </div>
         
-        <CarFront className="w-8 h-8 text-white stroke-[1.5] transition-transform" strokeWidth={2} />
+        <div className="absolute -top-4 left-1/2 transform -translate-x-1/2 w-0 h-0 border-left-4 border-right-4 border-solid border-transparent border-b-white border-b-8" 
+          style={{ transform: `rotate(${isSelected ? '45deg' : '0deg'})` }}>
+        </div>
+        
+        <CarFront className="w-9 h-9 text-white stroke-[1.5] transition-transform" strokeWidth={2} />
         
         <div className="text-white text-xs font-medium mt-1 truncate max-w-[90%] text-center py-[2px] mx-0 my-0 px-0 rounded-md">
           {label}

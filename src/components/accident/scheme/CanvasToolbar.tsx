@@ -1,6 +1,6 @@
 
 import { Button } from "@/components/ui/button";
-import { Car, Undo, Redo, ZoomIn, ZoomOut } from 'lucide-react';
+import { Car, Undo, Redo, ZoomIn, ZoomOut, Download, MapPin } from 'lucide-react';
 import { 
   Tooltip,
   TooltipContent,
@@ -13,6 +13,8 @@ interface CanvasToolbarProps {
   onRedo: () => void;
   onZoomIn: () => void;
   onZoomOut: () => void;
+  onExportImage?: () => void;
+  onCenterVehicles?: () => void;
   canUndo: boolean;
   canRedo: boolean;
 }
@@ -23,6 +25,8 @@ const CanvasToolbar = ({
   onRedo, 
   onZoomIn, 
   onZoomOut,
+  onExportImage,
+  onCenterVehicles,
   canUndo,
   canRedo 
 }: CanvasToolbarProps) => {
@@ -39,6 +43,20 @@ const CanvasToolbar = ({
           <p>Cliquez pour ajouter un véhicule au centre de la carte</p>
         </TooltipContent>
       </Tooltip>
+      
+      {onCenterVehicles && (
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button variant="outline" size="sm" onClick={onCenterVehicles}>
+              <MapPin className="w-4 h-4 mr-2" />
+              Centrer
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent>
+            <p>Centrer la carte sur tous les véhicules</p>
+          </TooltipContent>
+        </Tooltip>
+      )}
       
       <div className="ml-auto flex items-center gap-2">
         <Tooltip>
@@ -94,6 +112,19 @@ const CanvasToolbar = ({
             <p>Zoom arrière</p>
           </TooltipContent>
         </Tooltip>
+        
+        {onExportImage && (
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button variant="ghost" size="sm" onClick={onExportImage}>
+                <Download className="w-4 h-4" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>Exporter en image</p>
+            </TooltipContent>
+          </Tooltip>
+        )}
       </div>
     </div>
   );

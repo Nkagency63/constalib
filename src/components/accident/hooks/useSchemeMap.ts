@@ -16,8 +16,8 @@ export const useSchemeMap = ({ readOnly, handleMapClick, onReady }: UseSchemeMap
   const handleMapReady = useCallback((map: L.Map) => {
     mapRef.current = map;
     
-    // Remove zoom control and add it back in a different position
-    if (mapRef.current) {
+    // Vérifier que les contrôles existent avant de les supprimer
+    if (mapRef.current && mapRef.current.zoomControl) {
       mapRef.current.removeControl(mapRef.current.zoomControl);
     }
 

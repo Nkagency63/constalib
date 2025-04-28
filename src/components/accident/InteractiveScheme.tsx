@@ -280,6 +280,43 @@ const InteractiveScheme = ({ formData, onUpdateSchemeData, readOnly = false }: I
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [selectedVehicle, readOnly]);
 
+  // Implémentation de la fonction d'exportation d'image
+  const handleExportImage = () => {
+    if (!mapRef.current) {
+      toast.error("Impossible d'exporter la carte");
+      return;
+    }
+
+    try {
+      // Crée un élément pour contenir une copie de la carte
+      const mapContainer = mapRef.current.getContainer();
+      const clonedMap = mapContainer.cloneNode(true) as HTMLElement;
+      
+      // Applique des styles pour l'export
+      clonedMap.style.width = '1200px';
+      clonedMap.style.height = '800px';
+      
+      // Crée une nouvelle div pour contenir la capture
+      const container = document.createElement('div');
+      container.style.position = 'absolute';
+      container.style.left = '-9999px';
+      container.style.top = '-9999px';
+      container.appendChild(clonedMap);
+      document.body.appendChild(container);
+      
+      // Utilise html2canvas pour créer une image (simulation)
+      setTimeout(() => {
+        document.body.removeChild(container);
+        toast.success("Export d'image simulé - cette fonctionnalité nécessite html2canvas");
+      }, 1000);
+      
+      toast.info("Préparation de l'image...");
+    } catch (error) {
+      toast.error("Erreur lors de l'exportation de l'image");
+      console.error("Erreur d'exportation:", error);
+    }
+  };
+
   return (
     <TooltipProvider>
       <div className="relative rounded-lg overflow-hidden shadow-md border border-gray-200">
@@ -310,6 +347,8 @@ const InteractiveScheme = ({ formData, onUpdateSchemeData, readOnly = false }: I
             onZoomOut={() => mapRef.current?.zoomOut()}
             canUndo={canUndo}
             canRedo={canRedo}
+            onExportImage={handleExportImage}
+            onCenterVehicles={() => centerOnVehicles(vehicles)}
           />
         )}
 

@@ -4,11 +4,11 @@ import { v4 as uuidv4 } from 'uuid';
 import { Vehicle } from '../types';
 import { toast } from 'sonner';
 
-export const VEHICLE_COLORS = {
-  'A': '#3b82f6', // Blue for vehicle A
-  'B': '#ef4444', // Red for vehicle B
-  'C': '#10b981', // Green for vehicle C
-  'D': '#f59e0b', // Amber for vehicle D
+export const VEHICLE_COLORS: Record<'A' | 'B' | 'C' | 'D', string> = {
+  'A': '#1e40af', // Bleu plus vif
+  'B': '#dc2626', // Rouge éclatant
+  'C': '#059669', // Vert visible
+  'D': '#d97706', // Orange distinct
 };
 
 export const useVehicles = () => {
@@ -23,7 +23,9 @@ export const useVehicles = () => {
 
     // Determine vehicle ID based on existing vehicles
     const usedIds = vehicles.map(v => v.vehicleId);
-    const availableIds = Object.keys(VEHICLE_COLORS).filter(id => !usedIds.includes(id)) as ('A' | 'B' | 'C' | 'D')[];
+    const availableIds = (Object.keys(VEHICLE_COLORS) as Array<'A' | 'B' | 'C' | 'D'>).filter(
+      id => !usedIds.includes(id)
+    );
     const vehicleId = availableIds[0];
     const color = VEHICLE_COLORS[vehicleId];
 

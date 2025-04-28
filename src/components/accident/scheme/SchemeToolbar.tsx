@@ -6,6 +6,7 @@ import {
   TooltipContent,
   TooltipTrigger
 } from '@/components/ui/tooltip';
+import { MapPin, Car, Flag } from 'lucide-react';
 
 interface SchemeToolbarProps {
   currentTool: 'select' | 'vehicle' | 'path' | 'annotation';
@@ -43,15 +44,46 @@ const SchemeToolbar = ({ currentTool, setCurrentTool }: SchemeToolbarProps) => {
             onClick={() => setCurrentTool('vehicle')}
             className="flex items-center"
           >
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M18.5 8.5 5.5 8.5a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h13a2 2 0 0 0 2-2v-9a2 2 0 0 0-2-2Z"/>
-              <path d="M15 8.5V5a1 1 0 0 0-1-1H10a1 1 0 0 0-1 1v3.5"/>
-              <line x1="3" x2="21" y1="12.5" y2="12.5"/>
-            </svg>
+            <Car className="w-4 h-4" />
           </Button>
         </TooltipTrigger>
         <TooltipContent>
           <p>Ajouter un véhicule</p>
+        </TooltipContent>
+      </Tooltip>
+
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <Button
+            size="sm"
+            variant={currentTool === 'path' ? 'default' : 'outline'}
+            onClick={() => setCurrentTool('path')}
+            className="flex items-center"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M3 3v18h18" />
+              <path d="m7 17 4-4 4 4 6-6" />
+            </svg>
+          </Button>
+        </TooltipTrigger>
+        <TooltipContent>
+          <p>Tracer une trajectoire</p>
+        </TooltipContent>
+      </Tooltip>
+      
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <Button
+            size="sm"
+            variant={currentTool === 'annotation' ? 'default' : 'outline'}
+            onClick={() => setCurrentTool('annotation')}
+            className="flex items-center"
+          >
+            <Flag className="w-4 h-4" />
+          </Button>
+        </TooltipTrigger>
+        <TooltipContent>
+          <p>Ajouter une annotation</p>
         </TooltipContent>
       </Tooltip>
     </div>
