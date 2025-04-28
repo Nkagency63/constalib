@@ -1,5 +1,5 @@
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { MapContainer, TileLayer } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import { v4 as uuidv4 } from 'uuid';
@@ -9,12 +9,25 @@ import MapInitializer from './scheme/MapInitializer';
 import SchemeToolbar from './scheme/SchemeToolbar';
 import VehiclesLayer from './scheme/VehiclesLayer';
 import PathsLayer from './scheme/PathsLayer';
-import { useVehicles } from './hooks/useVehicles';
+import { useVehicles, VEHICLE_COLORS } from './hooks/useVehicles';
 import { usePaths } from './hooks/usePaths';
 import { useSchemeMap } from './hooks/useSchemeMap';
 import { useSchemeHistory } from './hooks/useSchemeHistory';
-import type { SchemeData, Annotation } from './types';
-import { Tooltip, TooltipProvider, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip';
+import type { SchemeData, Annotation, Vehicle } from './types';
+import { Tooltip, TooltipProvider } from '@/components/ui/tooltip';
+import { toast } from 'sonner';
+
+// Fix Leaflet marker icon issue
+import markerIcon2x from 'leaflet/dist/images/marker-icon-2x.png';
+import markerIcon from 'leaflet/dist/images/marker-icon.png';
+import markerShadow from 'leaflet/dist/images/marker-shadow.png';
+
+delete (L.Icon.Default.prototype as any)._getIconUrl;
+L.Icon.Default.mergeOptions({
+  iconUrl: markerIcon,
+  iconRetinaUrl: markerIcon2x,
+  shadowUrl: markerShadow,
+});
 
 interface InteractiveSchemeProps {
   formData: any;
@@ -23,9 +36,10 @@ interface InteractiveSchemeProps {
 }
 
 const InteractiveScheme = ({ formData, onUpdateSchemeData, readOnly = false }: InteractiveSchemeProps) => {
+  // Custom hooks
   const { 
     vehicles, selectedVehicle, addVehicle, removeVehicle, 
-    selectVehicle, setVehicles, VEHICLE_COLORS 
+    selectVehicle, setVehicles, rotateVehicle
   } = useVehicles();
   
   const {
@@ -35,39 +49,57 @@ const InteractiveScheme = ({ formData, onUpdateSchemeData, readOnly = false }: I
   
   const { saveToHistory, handleUndo, handleRedo, canUndo, canRedo } = useSchemeHistory();
   
-  const [currentTool, setCurrentTool] = React.useState<'select' | 'vehicle' | 'path' | 'annotation'>('select');
-  const [annotations, setAnnotations] = React.useState<Annotation[]>([]);
+  // Local state
+  const [currentTool, setCurrentTool] = useState<'select' | 'vehicle' | 'path' | 'annotation'>('select');
+  const [annotations, setAnnotations] = useState<Annotation[]>([]);
+  const [isMapReady, setIsMapReady] = useState(false);
 
+  // Get default center coordinates from formData or use Paris as default
   const center: [number, number] = formData?.geolocation?.lat && formData?.geolocation?.lng
     ? [formData.geolocation.lat, formData.geolocation.lng]
     : [48.8566, 2.3522];
 
+  // Map click handler based on selected tool
   const handleMapClick = (e: L.LeafletMouseEvent) => {
+    if (readOnly) return;
+    
     const newPoint: [number, number] = [e.latlng.lat, e.latlng.lng];
     
     switch (currentTool) {
       case 'vehicle':
-        if (vehicles.length < Object.keys(VEHICLE_COLORS).length) {
+        if (vehicles.length < 4) {
           const updatedVehicles = addVehicle(e.latlng);
           if (updatedVehicles) {
             saveToHistory({ vehicles: updatedVehicles, paths, annotations, center, zoom: 17 });
             // Auto-center on vehicles when a new one is added
             centerOnVehicles(updatedVehicles);
           }
+        } else {
+          toast.warning("Maximum de 4 véhicules atteint");
         }
         break;
+        
       case 'path':
         if (isDrawing) {
           continuePath(newPoint);
+        } else if (selectedVehicle) {
+          // Start drawing a path from the selected vehicle
+          const vehicle = vehicles.find(v => v.id === selectedVehicle);
+          if (vehicle) {
+            startPath(vehicle.position, vehicle.id, vehicle.color);
+          }
         } else {
           startPath(newPoint);
         }
         break;
+        
       case 'annotation':
         addAnnotation(newPoint);
         break;
+        
       case 'select':
       default:
+        // In select mode, deselect current vehicle
         selectVehicle(null);
         break;
     }
@@ -77,9 +109,13 @@ const InteractiveScheme = ({ formData, onUpdateSchemeData, readOnly = false }: I
     readOnly,
     handleMapClick,
     () => {
+      setIsMapReady(true);
+      
+      // Initialize vehicles if none exist and we have formData
       if (formData?.geolocation?.lat && formData?.geolocation?.lng && vehicles.length === 0) {
-        const initialVehicles = [];
+        const initialVehicles: Vehicle[] = [];
         
+        // Add vehicle A if we have data
         if (formData.vehicleBrand && formData.vehicleModel) {
           initialVehicles.push({
             id: uuidv4(),
@@ -96,6 +132,7 @@ const InteractiveScheme = ({ formData, onUpdateSchemeData, readOnly = false }: I
           });
         }
         
+        // Add vehicle B if we have data
         if (formData.otherVehicle?.brand && formData.otherVehicle?.model) {
           initialVehicles.push({
             id: uuidv4(),
@@ -112,6 +149,7 @@ const InteractiveScheme = ({ formData, onUpdateSchemeData, readOnly = false }: I
           });
         }
         
+        // Set initial vehicles if we have any
         if (initialVehicles.length > 0) {
           setVehicles(initialVehicles);
           saveToHistory({
@@ -149,9 +187,18 @@ const InteractiveScheme = ({ formData, onUpdateSchemeData, readOnly = false }: I
     });
   };
 
-  // Create wrapper functions for undo and redo that pass the current state
+  // Handle undo with current state
   const handleUndoWrapper = () => {
-    const currentState = { vehicles, paths, annotations, center, zoom: mapRef.current?.getZoom() || 17 };
+    if (!canUndo) return;
+    
+    const currentState = { 
+      vehicles, 
+      paths, 
+      annotations, 
+      center, 
+      zoom: mapRef.current?.getZoom() || 17 
+    };
+    
     const prevState = handleUndo(currentState);
     setVehicles(prevState.vehicles);
     setPaths(prevState.paths);
@@ -163,8 +210,18 @@ const InteractiveScheme = ({ formData, onUpdateSchemeData, readOnly = false }: I
     }
   };
 
+  // Handle redo with current state
   const handleRedoWrapper = () => {
-    const currentState = { vehicles, paths, annotations, center, zoom: mapRef.current?.getZoom() || 17 };
+    if (!canRedo) return;
+    
+    const currentState = { 
+      vehicles, 
+      paths, 
+      annotations, 
+      center, 
+      zoom: mapRef.current?.getZoom() || 17 
+    };
+    
     const nextState = handleRedo(currentState);
     setVehicles(nextState.vehicles);
     setPaths(nextState.paths);
@@ -176,14 +233,15 @@ const InteractiveScheme = ({ formData, onUpdateSchemeData, readOnly = false }: I
     }
   };
 
-  // Effect to center on vehicles when they change
+  // Center on vehicles when they change
   useEffect(() => {
-    if (vehicles.length > 0) {
+    if (vehicles.length > 0 && isMapReady) {
       centerOnVehicles(vehicles);
     }
-  }, [vehicles.length]);
+  }, [vehicles.length, isMapReady]);
 
-  React.useEffect(() => {
+  // Update scheme data when state changes
+  useEffect(() => {
     if (onUpdateSchemeData && mapRef.current) {
       const schemeData: SchemeData = {
         vehicles,
@@ -199,13 +257,36 @@ const InteractiveScheme = ({ formData, onUpdateSchemeData, readOnly = false }: I
     }
   }, [vehicles, paths, annotations, onUpdateSchemeData]);
 
+  // Handle key down events
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (readOnly || !selectedVehicle) return;
+      
+      switch (e.key) {
+        case 'ArrowLeft':
+          rotateVehicle(selectedVehicle, -45);
+          break;
+        case 'ArrowRight':
+          rotateVehicle(selectedVehicle, 45);
+          break;
+        case 'Delete':
+        case 'Backspace':
+          removeVehicle(selectedVehicle);
+          break;
+      }
+    };
+    
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [selectedVehicle, readOnly]);
+
   return (
     <TooltipProvider>
       <div className="relative rounded-lg overflow-hidden shadow-md border border-gray-200">
         {!readOnly && (
           <CanvasToolbar 
             onAddVehicle={() => {
-              if (mapRef.current && vehicles.length < Object.keys(VEHICLE_COLORS).length) {
+              if (mapRef.current && vehicles.length < 4) {
                 const center = mapRef.current.getCenter();
                 const updatedVehicles = addVehicle(center);
                 if (updatedVehicles) {
@@ -214,11 +295,13 @@ const InteractiveScheme = ({ formData, onUpdateSchemeData, readOnly = false }: I
                     paths, 
                     annotations, 
                     center: [center.lat, center.lng], 
-                    zoom: 17 
+                    zoom: mapRef.current.getZoom() 
                   });
-                  // Auto-center on vehicles when a new one is added via toolbar
+                  // Auto-center on vehicles when a new one is added
                   centerOnVehicles(updatedVehicles);
                 }
+              } else {
+                toast.warning("Maximum de 4 véhicules atteint");
               }
             }}
             onUndo={handleUndoWrapper}
@@ -242,7 +325,7 @@ const InteractiveScheme = ({ formData, onUpdateSchemeData, readOnly = false }: I
           zoom={17}
           style={{ height: '400px', width: '100%' }}
           className="z-0"
-          zoomControl={false} // Disable default zoom controls
+          zoomControl={false}
         >
           <TileLayer
             attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
@@ -254,23 +337,8 @@ const InteractiveScheme = ({ formData, onUpdateSchemeData, readOnly = false }: I
             selectedVehicle={selectedVehicle}
             readOnly={readOnly}
             onVehicleSelect={selectVehicle}
-            onRemoveVehicle={(id) => {
-              const updatedVehicles = removeVehicle(id);
-              if (updatedVehicles) {
-                saveToHistory({ 
-                  vehicles: updatedVehicles, 
-                  paths, 
-                  annotations, 
-                  center, 
-                  zoom: mapRef.current?.getZoom() || 17 
-                });
-                
-                // Auto-center on remaining vehicles after removal
-                if (updatedVehicles.length > 0) {
-                  setTimeout(() => centerOnVehicles(updatedVehicles), 100);
-                }
-              }
-            }}
+            onRemoveVehicle={removeVehicle}
+            onRotateVehicle={rotateVehicle}
           />
           
           <PathsLayer
@@ -283,6 +351,18 @@ const InteractiveScheme = ({ formData, onUpdateSchemeData, readOnly = false }: I
           
           <MapInitializer onMapReady={handleMapReady} />
         </MapContainer>
+
+        <div className="bg-white p-2 text-xs text-gray-500 border-t">
+          {vehicles.length === 0 ? (
+            <p>Cliquez sur la carte pour ajouter des véhicules, trajectoires, et annotations</p>
+          ) : (
+            <p>
+              {vehicles.length} véhicule{vehicles.length > 1 ? 's' : ''} • 
+              {paths.length} trajectoire{paths.length > 1 ? 's' : ''} • 
+              {annotations.length} annotation{annotations.length > 1 ? 's' : ''}
+            </p>
+          )}
+        </div>
       </div>
     </TooltipProvider>
   );

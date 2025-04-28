@@ -1,14 +1,14 @@
 
 import React from 'react';
-import { Path } from '../types';
-import L from 'leaflet';
+import { Polyline, LayerGroup } from 'react-leaflet';
+import { Path, Vehicle } from '../types';
 
 interface PathsLayerProps {
   paths: Path[];
   drawingLayerRef: React.MutableRefObject<L.LayerGroup | null>;
   currentPathPoints: [number, number][];
   selectedVehicle: string | null;
-  vehicles: { id: string; color: string; }[];
+  vehicles: Vehicle[];
 }
 
 const PathsLayer = ({
@@ -18,22 +18,46 @@ const PathsLayer = ({
   selectedVehicle,
   vehicles
 }: PathsLayerProps) => {
-  React.useEffect(() => {
-    if (drawingLayerRef.current && currentPathPoints.length > 1) {
-      const lastTwoPoints = currentPathPoints.slice(-2);
-      const selectedVehicleColor = selectedVehicle 
-        ? vehicles.find(v => v.id === selectedVehicle)?.color 
-        : 'black';
+  // Get color of selected vehicle
+  const selectedVehicleColor = React.useMemo(() => {
+    if (!selectedVehicle) return '#3b82f6'; // Default blue
+    const vehicle = vehicles.find(v => v.id === selectedVehicle);
+    return vehicle?.color || '#3b82f6';
+  }, [selectedVehicle, vehicles]);
+  
+  return (
+    <>
+      {/* Completed paths */}
+      {paths.map((path) => (
+        <Polyline
+          key={path.id}
+          positions={path.points}
+          pathOptions={{
+            color: path.color,
+            weight: 4,
+            opacity: 0.7,
+            dashArray: '10, 10',
+          }}
+        />
+      ))}
       
-      L.polyline(lastTwoPoints, {
-        color: selectedVehicleColor || 'black',
-        weight: 3,
-        opacity: 0.7
-      }).addTo(drawingLayerRef.current);
-    }
-  }, [currentPathPoints, selectedVehicle, vehicles]);
-
-  return null;
+      {/* Currently drawing path */}
+      {currentPathPoints.length > 0 && (
+        <Polyline
+          positions={currentPathPoints}
+          pathOptions={{
+            color: selectedVehicleColor,
+            weight: 4,
+            opacity: 0.7,
+            dashArray: '5, 10',
+          }}
+        />
+      )}
+      
+      {/* Layer group for dynamic drawing */}
+      <LayerGroup ref={drawingLayerRef} />
+    </>
+  );
 };
 
 export default PathsLayer;

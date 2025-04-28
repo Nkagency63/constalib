@@ -4,9 +4,11 @@ import { v4 as uuidv4 } from 'uuid';
 import { Vehicle } from '../types';
 import { toast } from 'sonner';
 
-const VEHICLE_COLORS = {
-  A: '#3b82f6', // Blue for vehicle A
-  B: '#ef4444', // Red for vehicle B
+export const VEHICLE_COLORS = {
+  'A': '#3b82f6', // Blue for vehicle A
+  'B': '#ef4444', // Red for vehicle B
+  'C': '#10b981', // Green for vehicle C
+  'D': '#f59e0b', // Amber for vehicle D
 };
 
 export const useVehicles = () => {
@@ -14,13 +16,15 @@ export const useVehicles = () => {
   const [selectedVehicle, setSelectedVehicle] = useState<string | null>(null);
 
   const addVehicle = (location: L.LatLng) => {
-    if (vehicles.length >= 2) {
-      toast.warning('Maximum de 2 véhicules atteint');
+    if (vehicles.length >= Object.keys(VEHICLE_COLORS).length) {
+      toast.warning(`Maximum de ${Object.keys(VEHICLE_COLORS).length} véhicules atteint`);
       return null;
     }
 
-    // Determine if this is vehicle A or B
-    const vehicleId = vehicles.length === 0 ? 'A' : 'B';
+    // Determine vehicle ID based on existing vehicles
+    const usedIds = vehicles.map(v => v.vehicleId);
+    const availableIds = Object.keys(VEHICLE_COLORS).filter(id => !usedIds.includes(id)) as ('A' | 'B' | 'C' | 'D')[];
+    const vehicleId = availableIds[0];
     const color = VEHICLE_COLORS[vehicleId];
 
     const newVehicle: Vehicle = {
@@ -40,13 +44,10 @@ export const useVehicles = () => {
   };
 
   const removeVehicle = (id: string) => {
-    const updatedVehicles = vehicles
-      .filter(v => v.id !== id)
-      .map((v, index) => ({
-        ...v,
-        vehicleId: index === 0 ? 'A' : 'B' as 'A' | 'B',
-        color: index === 0 ? VEHICLE_COLORS['A'] : VEHICLE_COLORS['B']
-      }));
+    const vehicleToRemove = vehicles.find(v => v.id === id);
+    if (!vehicleToRemove) return vehicles;
+    
+    const updatedVehicles = vehicles.filter(v => v.id !== id);
     
     setVehicles(updatedVehicles);
     
@@ -65,12 +66,23 @@ export const useVehicles = () => {
     })));
   };
 
+  const rotateVehicle = (id: string, degrees: number) => {
+    const updatedVehicles = vehicles.map(vehicle => 
+      vehicle.id === id 
+        ? { ...vehicle, rotation: (vehicle.rotation + degrees) % 360 }
+        : vehicle
+    );
+    setVehicles(updatedVehicles);
+    return updatedVehicles;
+  };
+
   return {
     vehicles,
     selectedVehicle,
     addVehicle,
     removeVehicle,
     selectVehicle,
+    rotateVehicle,
     setVehicles,
     VEHICLE_COLORS
   };
