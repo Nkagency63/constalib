@@ -1,19 +1,20 @@
 
-import { Vehicle, Path, Annotation } from '../types';
+import { Vehicle, Path, Annotation, SchemeData } from '../types';
+import { MutableRefObject } from 'react';
 
-interface UndoRedoProps {
+export interface UndoRedoProps {
   canUndo: boolean;
   canRedo: boolean;
   vehicles: Vehicle[];
   paths: Path[];
   annotations: Annotation[];
-  handleUndo: (currentState: any) => any;
-  handleRedo: (currentState: any) => any;
-  setVehicles: (vehicles: Vehicle[]) => void;
-  setPaths: (paths: Path[]) => void;
-  setAnnotations: (annotations: Annotation[]) => void;
+  handleUndo: (currentState: SchemeData) => SchemeData;
+  handleRedo: (currentState: SchemeData) => SchemeData;
+  setVehicles: React.Dispatch<React.SetStateAction<Vehicle[]>>;
+  setPaths: React.Dispatch<React.SetStateAction<Path[]>>;
+  setAnnotations: React.Dispatch<React.SetStateAction<Annotation[]>>;
   centerOnVehicles: (vehicles: Vehicle[]) => void;
-  mapRef: React.MutableRefObject<L.Map | null>;
+  mapRef: MutableRefObject<L.Map | null>;
 }
 
 export const handleUndoWrapper = ({
@@ -28,24 +29,27 @@ export const handleUndoWrapper = ({
   centerOnVehicles,
   mapRef
 }: UndoRedoProps) => {
-  if (!canUndo) return;
-  
-  const currentState = { 
-    vehicles, 
-    paths, 
-    annotations, 
-    center: [0, 0], 
-    zoom: mapRef.current?.getZoom() || 17 
+  if (!canUndo || !mapRef.current) return;
+
+  const currentState: SchemeData = {
+    vehicles,
+    paths,
+    annotations,
+    center: [
+      mapRef.current.getCenter().lat,
+      mapRef.current.getCenter().lng
+    ],
+    zoom: mapRef.current.getZoom()
   };
-  
+
   const prevState = handleUndo(currentState);
+  
   setVehicles(prevState.vehicles);
   setPaths(prevState.paths);
   setAnnotations(prevState.annotations);
   
-  // Auto-center on vehicles after undo
   if (prevState.vehicles.length > 0) {
-    setTimeout(() => centerOnVehicles(prevState.vehicles), 100);
+    centerOnVehicles(prevState.vehicles);
   }
 };
 
@@ -61,23 +65,26 @@ export const handleRedoWrapper = ({
   centerOnVehicles,
   mapRef
 }: UndoRedoProps) => {
-  if (!canRedo) return;
-  
-  const currentState = { 
-    vehicles, 
-    paths, 
-    annotations, 
-    center: [0, 0], 
-    zoom: mapRef.current?.getZoom() || 17 
+  if (!canRedo || !mapRef.current) return;
+
+  const currentState: SchemeData = {
+    vehicles,
+    paths,
+    annotations,
+    center: [
+      mapRef.current.getCenter().lat,
+      mapRef.current.getCenter().lng
+    ],
+    zoom: mapRef.current.getZoom()
   };
-  
+
   const nextState = handleRedo(currentState);
+  
   setVehicles(nextState.vehicles);
   setPaths(nextState.paths);
   setAnnotations(nextState.annotations);
   
-  // Auto-center on vehicles after redo
   if (nextState.vehicles.length > 0) {
-    setTimeout(() => centerOnVehicles(nextState.vehicles), 100);
+    centerOnVehicles(nextState.vehicles);
   }
 };
