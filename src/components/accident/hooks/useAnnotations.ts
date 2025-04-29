@@ -6,12 +6,12 @@ import { Annotation } from '../types';
 export const useAnnotations = () => {
   const [annotations, setAnnotations] = useState<Annotation[]>([]);
 
-  const addAnnotation = (position: [number, number], type: 'obstacle' | 'sign' | 'note' = 'note') => {
+  const addAnnotation = (position: [number, number]) => {
     const newAnnotation: Annotation = {
       id: uuidv4(),
       position,
-      text: type === 'note' ? 'Note' : type === 'obstacle' ? 'Obstacle' : 'Panneau',
-      type
+      text: 'Note',
+      type: 'note'
     };
     
     const updatedAnnotations = [...annotations, newAnnotation];
@@ -28,8 +28,9 @@ export const useAnnotations = () => {
   };
 
   const removeAnnotation = (id: string) => {
-    setAnnotations(current => current.filter(annotation => annotation.id !== id));
-    return annotations.filter(annotation => annotation.id !== id);
+    const updatedAnnotations = annotations.filter(annotation => annotation.id !== id);
+    setAnnotations(updatedAnnotations);
+    return updatedAnnotations;
   };
 
   return {

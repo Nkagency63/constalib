@@ -3,15 +3,12 @@ import { toast } from 'sonner';
 import InteractiveScheme from './accident/InteractiveScheme';
 import { SchemeData } from './accident/types';
 
-// Default coordinates (Paris)
-const DEFAULT_COORDS = [48.8566, 2.3522];
-
 const VehicleScheme = () => {
-  // Create a simple formData object with just the geolocation data
+  // Données par défaut (Paris)
   const demoFormData = {
     geolocation: {
-      lat: DEFAULT_COORDS[0],
-      lng: DEFAULT_COORDS[1],
+      lat: 48.8566,
+      lng: 2.3522,
       address: "Emplacement par défaut"
     },
     vehicleBrand: "Renault",

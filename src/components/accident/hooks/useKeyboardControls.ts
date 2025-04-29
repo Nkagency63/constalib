@@ -18,18 +18,9 @@ export const useKeyboardControls = ({
     if (readOnly || !selectedVehicle) return;
     
     const handleKeyDown = (e: KeyboardEvent) => {
-      switch (e.key) {
-        case 'ArrowLeft': 
-          onRotateVehicle(selectedVehicle, -45); 
-          break;
-        case 'ArrowRight': 
-          onRotateVehicle(selectedVehicle, 45); 
-          break;
-        case 'Delete':
-        case 'Backspace': 
-          onRemoveVehicle(selectedVehicle); 
-          break;
-      }
+      if (e.key === 'ArrowLeft') onRotateVehicle(selectedVehicle, -45);
+      if (e.key === 'ArrowRight') onRotateVehicle(selectedVehicle, 45);
+      if (e.key === 'Delete' || e.key === 'Backspace') onRemoveVehicle(selectedVehicle);
     };
     
     window.addEventListener('keydown', handleKeyDown);

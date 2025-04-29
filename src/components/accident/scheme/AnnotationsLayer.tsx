@@ -17,22 +17,13 @@ const AnnotationsLayer = ({
   onRemoveAnnotation,
   onUpdateAnnotation
 }: AnnotationsLayerProps) => {
-  // Different colors for different annotation types
-  const getAnnotationColor = (type: string): string => {
-    switch (type) {
-      case 'obstacle': return '#f59e0b'; // Amber
-      case 'sign': return '#3b82f6'; // Blue
-      default: return '#10b981'; // Green for notes
-    }
-  };
-
   return (
     <>
       {annotations.map((annotation) => (
         <Marker
           key={annotation.id}
           position={annotation.position}
-          icon={createMapIcon(getAnnotationColor(annotation.type))}
+          icon={createMapIcon('#10b981')}
         >
           <Popup>
             {readOnly ? (

@@ -25,11 +25,7 @@ interface InteractiveSchemeProps {
   readOnly?: boolean;
 }
 
-const InteractiveScheme = ({ 
-  formData, 
-  onUpdateSchemeData, 
-  readOnly = false 
-}: InteractiveSchemeProps) => (
+const InteractiveScheme = ({ formData, onUpdateSchemeData, readOnly = false }: InteractiveSchemeProps) => (
   <SchemeContainer
     formData={formData}
     onUpdateSchemeData={onUpdateSchemeData}
