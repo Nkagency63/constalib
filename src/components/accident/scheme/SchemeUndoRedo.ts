@@ -19,10 +19,12 @@ export interface UndoRedoProps {
 
 export const handleUndoWrapper = ({
   canUndo,
+  canRedo,
   vehicles,
   paths,
   annotations,
   handleUndo,
+  handleRedo,
   setVehicles,
   setPaths,
   setAnnotations,
@@ -54,10 +56,12 @@ export const handleUndoWrapper = ({
 };
 
 export const handleRedoWrapper = ({
+  canUndo,
   canRedo,
   vehicles,
   paths,
   annotations,
+  handleUndo,
   handleRedo,
   setVehicles,
   setPaths,

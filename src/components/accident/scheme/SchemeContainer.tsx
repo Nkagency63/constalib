@@ -151,14 +151,32 @@ const SchemeContainer = ({
           <CanvasToolbar 
             onAddVehicle={handleAddVehicle}
             onUndo={() => handleUndoWrapper({
-              canUndo, vehicles, paths, annotations,
-              handleUndo, setVehicles, setPaths, setAnnotations,
-              centerOnVehicles, mapRef
+              canUndo,
+              canRedo,
+              vehicles,
+              paths,
+              annotations,
+              handleUndo,
+              handleRedo,
+              setVehicles,
+              setPaths,
+              setAnnotations,
+              centerOnVehicles,
+              mapRef
             })}
             onRedo={() => handleRedoWrapper({
-              canRedo, vehicles, paths, annotations,
-              handleRedo, setVehicles, setPaths, setAnnotations,
-              centerOnVehicles, mapRef
+              canUndo,
+              canRedo,
+              vehicles,
+              paths,
+              annotations,
+              handleUndo,
+              handleRedo,
+              setVehicles,
+              setPaths,
+              setAnnotations,
+              centerOnVehicles,
+              mapRef
             })}
             onZoomIn={() => mapRef.current?.zoomIn()}
             onZoomOut={() => mapRef.current?.zoomOut()}
