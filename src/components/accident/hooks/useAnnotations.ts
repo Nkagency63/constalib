@@ -28,9 +28,8 @@ export const useAnnotations = () => {
   };
 
   const removeAnnotation = (id: string) => {
-    const updatedAnnotations = annotations.filter(annotation => annotation.id !== id);
-    setAnnotations(updatedAnnotations);
-    return updatedAnnotations;
+    setAnnotations(current => current.filter(annotation => annotation.id !== id));
+    return annotations.filter(annotation => annotation.id !== id);
   };
 
   return {

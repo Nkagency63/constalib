@@ -1,7 +1,6 @@
 
-import { useState } from 'react';
-import InteractiveScheme from './accident/InteractiveScheme';
 import { toast } from 'sonner';
+import InteractiveScheme from './accident/InteractiveScheme';
 import { SchemeData } from './accident/types';
 
 // Default coordinates (Paris)
@@ -24,7 +23,6 @@ const VehicleScheme = () => {
   };
 
   const handleSchemeUpdate = (schemeData: SchemeData) => {
-    // In a real app, this function would save the scheme data
     console.log('Scheme data updated:', schemeData);
     toast.success("Schéma sauvegardé avec succès");
   };

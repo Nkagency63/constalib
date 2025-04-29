@@ -15,19 +15,19 @@ export const useKeyboardControls = ({
   onRemoveVehicle
 }: KeyboardControlsProps) => {
   useEffect(() => {
+    if (readOnly || !selectedVehicle) return;
+    
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (readOnly || !selectedVehicle) return;
-      
       switch (e.key) {
-        case 'ArrowLeft':
-          onRotateVehicle(selectedVehicle, -45);
+        case 'ArrowLeft': 
+          onRotateVehicle(selectedVehicle, -45); 
           break;
-        case 'ArrowRight':
-          onRotateVehicle(selectedVehicle, 45);
+        case 'ArrowRight': 
+          onRotateVehicle(selectedVehicle, 45); 
           break;
         case 'Delete':
-        case 'Backspace':
-          onRemoveVehicle(selectedVehicle);
+        case 'Backspace': 
+          onRemoveVehicle(selectedVehicle); 
           break;
       }
     };
