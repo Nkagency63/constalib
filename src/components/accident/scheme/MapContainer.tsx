@@ -20,6 +20,7 @@ interface MapContainerProps {
   onVehicleSelect: (id: string | null) => void;
   onRemoveVehicle: (id: string) => void;
   onRotateVehicle?: (id: string, degrees: number) => void;
+  onChangeVehicleType?: (type: 'car' | 'truck' | 'bike') => void;
   onRemoveAnnotation?: (id: string) => void;
   onUpdateAnnotation?: (id: string, text: string) => void;
   onMapReady: (map: L.Map) => void;
@@ -38,6 +39,7 @@ const MapContainer = ({
   onVehicleSelect,
   onRemoveVehicle,
   onRotateVehicle,
+  onChangeVehicleType,
   onRemoveAnnotation,
   onUpdateAnnotation,
   onMapReady,
@@ -63,6 +65,7 @@ const MapContainer = ({
         onVehicleSelect={onVehicleSelect}
         onRemoveVehicle={onRemoveVehicle}
         onRotateVehicle={onRotateVehicle}
+        onChangeVehicleType={onChangeVehicleType}
       />
       
       <PathsLayer

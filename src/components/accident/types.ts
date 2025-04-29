@@ -80,6 +80,7 @@ export interface Vehicle {
   model?: string;
   rotation: number;
   isSelected: boolean;
+  vehicleType: 'car' | 'truck' | 'bike'; // nouveau type de véhicule
 }
 
 export interface Path {

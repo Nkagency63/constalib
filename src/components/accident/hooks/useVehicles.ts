@@ -14,6 +14,7 @@ export const VEHICLE_COLORS: Record<'A' | 'B' | 'C' | 'D', string> = {
 export const useVehicles = () => {
   const [vehicles, setVehicles] = useState<Vehicle[]>([]);
   const [selectedVehicle, setSelectedVehicle] = useState<string | null>(null);
+  const [currentVehicleType, setCurrentVehicleType] = useState<'car' | 'truck' | 'bike'>('car');
 
   const addVehicle = (location: L.LatLng) => {
     if (vehicles.length >= Object.keys(VEHICLE_COLORS).length) {
@@ -35,7 +36,8 @@ export const useVehicles = () => {
       color,
       vehicleId,
       rotation: 0,
-      isSelected: false
+      isSelected: false,
+      vehicleType: currentVehicleType
     };
 
     const updatedVehicles = [...vehicles, newVehicle];
@@ -78,13 +80,31 @@ export const useVehicles = () => {
     return updatedVehicles;
   };
 
+  const changeVehicleType = (type: 'car' | 'truck' | 'bike') => {
+    setCurrentVehicleType(type);
+
+    if (selectedVehicle) {
+      const updatedVehicles = vehicles.map(vehicle => 
+        vehicle.id === selectedVehicle 
+          ? { ...vehicle, vehicleType: type }
+          : vehicle
+      );
+      setVehicles(updatedVehicles);
+      return updatedVehicles;
+    }
+    
+    return vehicles;
+  };
+
   return {
     vehicles,
     selectedVehicle,
+    currentVehicleType,
     addVehicle,
     removeVehicle,
     selectVehicle,
     rotateVehicle,
+    changeVehicleType,
     setVehicles,
     VEHICLE_COLORS
   };

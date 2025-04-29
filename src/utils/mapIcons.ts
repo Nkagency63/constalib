@@ -10,9 +10,48 @@ export const createMapIcon = (color: string = '#3B82F6') => {
   });
 };
 
-export const createCarIcon = (color: string = '#3B82F6', rotation: number = 0, isSelected: boolean = false) => {
+export const createCarIcon = (
+  color: string = '#3B82F6', 
+  rotation: number = 0, 
+  isSelected: boolean = false,
+  vehicleType: 'car' | 'truck' | 'bike' = 'car'
+) => {
   const borderClass = isSelected ? 'border-2 border-white' : '';
   const selectionIndicator = isSelected ? '✓' : '';
+  
+  // Déterminer l'icône SVG en fonction du type de véhicule
+  let vehicleIcon;
+  
+  switch (vehicleType) {
+    case 'truck':
+      vehicleIcon = `
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M10 17h4V5H2v12h3"/>
+          <path d="M20 17h2v-3.34a4 4 0 0 0-1.17-2.83L19 9h-5v8h1"/>
+          <circle cx="7.5" cy="17.5" r="2.5"/>
+          <circle cx="17.5" cy="17.5" r="2.5"/>
+        </svg>
+      `;
+      break;
+    case 'bike':
+      vehicleIcon = `
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="5.5" cy="17.5" r="3.5"/>
+          <circle cx="18.5" cy="17.5" r="3.5"/>
+          <path d="M15 6a1 1 0 1 0 0-2 1 1 0 0 0 0 2zm-3 11.5V14l-3-3 4-3 2 3h2"/>
+        </svg>
+      `;
+      break;
+    default: // 'car'
+      vehicleIcon = `
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M19 17h2c.6 0 1-.4 1-1v-3c0-.9-.7-1.7-1.5-1.9C18.7 10.6 16 10 16 10s-1.3-1.4-2.2-2.3c-.5-.6-1.2-.9-1.9-1L9 6.3c-.7-.1-1.5.1-2.1.5L4 9.1c-.2.1-.1.4.2.4H7a2 2 0 0 1 2 1.6l.1.9"/>
+          <path d="M9 17h6"/>
+          <circle cx="7.5" cy="17.5" r="2.5"/>
+          <circle cx="16.5" cy="17.5" r="2.5"/>
+        </svg>
+      `;
+  }
   
   return L.divIcon({
     className: 'custom-car-icon',
@@ -46,12 +85,7 @@ export const createCarIcon = (color: string = '#3B82F6', rotation: number = 0, i
           box-shadow: 0 1px 3px rgba(0,0,0,0.3);">
           ${selectionIndicator}
         </div>
-        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M19 17h2c.6 0 1-.4 1-1v-3c0-.9-.7-1.7-1.5-1.9C18.7 10.6 16 10 16 10s-1.3-1.4-2.2-2.3c-.5-.6-1.2-.9-1.9-1L9 6.3c-.7-.1-1.5.1-2.1.5L4 9.1c-.2.1-.1.4.2.4H7a2 2 0 0 1 2 1.6l.1.9"/>
-          <path d="M9 17h6"/>
-          <circle cx="7.5" cy="17.5" r="2.5"/>
-          <circle cx="16.5" cy="17.5" r="2.5"/>
-        </svg>
+        ${vehicleIcon}
         <!-- Direction arrow - more prominent -->
         <div style="
           position: absolute;

@@ -33,7 +33,8 @@ export const initializeVehicles = ({
       model: formData.vehicleModel,
       vehicleId: 'A',
       rotation: 0,
-      isSelected: false
+      isSelected: false,
+      vehicleType: 'car' // Type par défaut
     });
   }
   
@@ -50,7 +51,8 @@ export const initializeVehicles = ({
       model: formData.otherVehicle.model,
       vehicleId: 'B',
       rotation: 0,
-      isSelected: false
+      isSelected: false,
+      vehicleType: 'car' // Type par défaut
     });
   }
   

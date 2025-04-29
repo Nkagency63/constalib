@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { toast } from 'sonner';
@@ -32,7 +31,8 @@ const SchemeContainer = ({
   // Custom hooks
   const { 
     vehicles, selectedVehicle, addVehicle, removeVehicle, 
-    selectVehicle, setVehicles, rotateVehicle
+    selectVehicle, setVehicles, rotateVehicle, changeVehicleType,
+    currentVehicleType
   } = useVehicles();
   
   const {
@@ -184,6 +184,8 @@ const SchemeContainer = ({
             canRedo={canRedo}
             onExportImage={() => handleExportImage({ mapRef })}
             onCenterVehicles={() => centerOnVehicles(vehicles)}
+            currentVehicleType={currentVehicleType}
+            onChangeVehicleType={changeVehicleType}
           />
         )}
 
@@ -206,6 +208,7 @@ const SchemeContainer = ({
           onVehicleSelect={selectVehicle}
           onRemoveVehicle={removeVehicle}
           onRotateVehicle={rotateVehicle}
+          onChangeVehicleType={changeVehicleType}
           onRemoveAnnotation={removeAnnotation}
           onUpdateAnnotation={updateAnnotation}
           onMapReady={handleMapReady}
