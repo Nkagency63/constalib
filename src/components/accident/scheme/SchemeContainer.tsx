@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { toast } from 'sonner';
@@ -5,6 +6,9 @@ import CanvasToolbar from './CanvasToolbar';
 import SchemeToolbar from './SchemeToolbar';
 import MapContainer from './MapContainer';
 import SchemeInfo from './SchemeInfo';
+import SchemeGuide from './SchemeGuide';
+import StepByStepGuide from './StepByStepGuide';
+import KeyboardShortcuts from './KeyboardShortcuts';
 import { SchemeData } from '../types';
 import { useVehicles } from '../hooks/useVehicles';
 import { usePaths } from '../hooks/usePaths';
@@ -52,6 +56,7 @@ const SchemeContainer = ({
   // Local state
   const [currentTool, setCurrentTool] = useState<'select' | 'vehicle' | 'path' | 'annotation'>('select');
   const [isMapReady, setIsMapReady] = useState(false);
+  const [showGuidesFirstTime, setShowGuidesFirstTime] = useState(true);
 
   // Get default center coordinates from formData or use Paris as default
   const center: [number, number] = formData?.geolocation?.lat && formData?.geolocation?.lng
@@ -88,6 +93,13 @@ const SchemeContainer = ({
       if (initialized) {
         // Auto-center on vehicles after initialization
         setTimeout(() => centerOnVehicles(vehicles), 300);
+      } else if (showGuidesFirstTime) {
+        // Pour les nouveaux utilisateurs, montrer un toast de bienvenue
+        toast.info("Bienvenue sur l'éditeur de schéma d'accident", {
+          description: "Utilisez les outils sur la gauche pour créer votre schéma. Commencez par ajouter un véhicule.",
+          duration: 6000,
+        });
+        setShowGuidesFirstTime(false);
       }
     }
   });
@@ -138,11 +150,21 @@ const SchemeContainer = ({
           zoom: mapRef.current.getZoom() 
         });
         centerOnVehicles(updatedVehicles);
+        
+        // Afficher un toast de guidance après l'ajout du premier véhicule
+        if (updatedVehicles.length === 1) {
+          toast.success("Véhicule ajouté", {
+            description: "Vous pouvez maintenant le déplacer ou le faire pivoter. Utilisez l'outil trajectoire pour tracer son parcours.",
+            duration: 5000,
+          });
+        }
       }
     } else {
       toast.warning("Maximum de 4 véhicules atteint");
     }
   };
+
+  const isEmpty = vehicles.length === 0;
 
   return (
     <TooltipProvider>
@@ -215,11 +237,31 @@ const SchemeContainer = ({
           readOnly={readOnly}
         />
 
+        {/* Ajout des composants de guidance */}
+        {!readOnly && (
+          <>
+            <SchemeGuide 
+              currentTool={currentTool}
+              isEmpty={isEmpty}
+            />
+            
+            <StepByStepGuide 
+              vehicleCount={vehicles.length}
+              pathCount={paths.length}
+              annotationCount={annotations.length}
+            />
+            
+            <KeyboardShortcuts 
+              selectedVehicle={selectedVehicle}
+            />
+          </>
+        )}
+
         <SchemeInfo 
           vehicleCount={vehicles.length}
           pathCount={paths.length}
           annotationCount={annotations.length}
-          isEmpty={vehicles.length === 0}
+          isEmpty={isEmpty}
         />
       </div>
     </TooltipProvider>

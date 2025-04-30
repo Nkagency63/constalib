@@ -5,8 +5,8 @@ import AccidentMap from './AccidentMap';
 import InteractiveScheme from './InteractiveScheme';
 import { FormData, SchemeData } from './types';
 import { Button } from '@/components/ui/button';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Info } from 'lucide-react';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { Info, HelpCircle } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from 'sonner';
 
@@ -19,6 +19,7 @@ const SchemeStep = ({ formData }: SchemeStepProps) => {
   const { lat, lng, address } = formData.geolocation;
   const [activeTab, setActiveTab] = useState<string>("scheme");
   const [schemeData, setSchemeData] = useState<SchemeData | null>(null);
+  const [showHelp, setShowHelp] = useState(false);
   
   const handleSaveScheme = (data: SchemeData) => {
     setSchemeData(data);
@@ -31,13 +32,17 @@ const SchemeStep = ({ formData }: SchemeStepProps) => {
     // In a real implementation, we would use leaflet's methods to capture the map as an image
     toast.success("Fonction d'exportation en cours de développement");
   };
+  
+  const toggleHelp = () => {
+    setShowHelp(!showHelp);
+  };
 
   return (
     <div className="space-y-6">
       <div className="space-y-2">
         <h3 className="text-lg font-medium text-constalib-dark">Schéma de l'accident</h3>
         <p className="text-sm text-constalib-dark-gray">
-          Positionnez les véhicules pour représenter visuellement l'accident.
+          Créez une représentation visuelle de l'accident en suivant le guide étape par étape.
         </p>
         {isMobile && (
           <p className="text-xs text-amber-600 mt-1">
@@ -48,21 +53,52 @@ const SchemeStep = ({ formData }: SchemeStepProps) => {
 
       {lat && lng ? (
         <div className="space-y-6">
+          <div className="flex justify-end">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={toggleHelp}
+              className="flex items-center gap-1"
+            >
+              <HelpCircle className="w-4 h-4" />
+              {showHelp ? "Masquer l'aide" : "Afficher l'aide"}
+            </Button>
+          </div>
+          
+          {showHelp && (
+            <Alert variant="default" className="bg-blue-50 border-blue-200 mb-4">
+              <Info className="h-4 w-4 text-blue-600" />
+              <AlertTitle className="text-blue-800">Comment créer votre schéma d'accident</AlertTitle>
+              <AlertDescription className="text-blue-800 text-sm">
+                <ol className="list-decimal pl-5 space-y-2 mt-2">
+                  <li>
+                    <strong>Ajoutez les véhicules</strong> impliqués dans l'accident en cliquant sur l'icône de véhicule
+                    dans la barre d'outils latérale, puis en cliquant sur la carte.
+                  </li>
+                  <li>
+                    <strong>Positionnez précisément</strong> chaque véhicule en le faisant glisser à l'emplacement souhaité.
+                    Utilisez les flèches du clavier pour faire pivoter un véhicule sélectionné.
+                  </li>
+                  <li>
+                    <strong>Tracez les trajectoires</strong> en sélectionnant l'outil trajectoire, puis en cliquant pour
+                    placer des points sur la carte. Sélectionnez d'abord un véhicule pour associer la trajectoire à ce véhicule.
+                  </li>
+                  <li>
+                    <strong>Ajoutez des annotations</strong> pour indiquer des éléments importants comme des feux de
+                    signalisation, des obstacles, ou tout autre détail pertinent.
+                  </li>
+                </ol>
+              </AlertDescription>
+            </Alert>
+          )}
+
           <Tabs defaultValue="scheme" value={activeTab} onValueChange={setActiveTab}>
             <TabsList className="grid grid-cols-2 w-full">
               <TabsTrigger value="scheme">Schéma interactif</TabsTrigger>
               <TabsTrigger value="location">Localisation</TabsTrigger>
             </TabsList>
             
-            <TabsContent value="scheme" className="mt-4">
-              <Alert variant="default" className="bg-blue-50 border-blue-200 mb-4">
-                <Info className="h-4 w-4 text-blue-600" />
-                <AlertDescription className="text-blue-800 text-sm">
-                  Utilisez les outils pour ajouter des véhicules, des annotations et des trajectoires. 
-                  Sélectionnez un véhicule pour le modifier ou le supprimer.
-                </AlertDescription>
-              </Alert>
-              
+            <TabsContent value="scheme" className="mt-4">              
               <InteractiveScheme 
                 formData={formData}
                 onUpdateSchemeData={handleSaveScheme}
