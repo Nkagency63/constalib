@@ -5,6 +5,7 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { downloadPDF } from "@/utils/downloadUtils";
 import { FormData } from "./types";
+import { generateCerfaPDF } from "@/utils/cerfaGeneration";
 
 interface CerfaGenerationButtonProps {
   formData: FormData;
@@ -17,8 +18,11 @@ const CerfaGenerationButton = ({ formData, className = "" }: CerfaGenerationButt
   const handleGenerateCerfa = async () => {
     setIsGenerating(true);
     try {
-      // Pour l'instant, on télécharge simplement le fichier PDF vierge
-      await downloadPDF("/pdf/constat-amiable-vierge.pdf", "constat-amiable.pdf");
+      // Utilisation de la fonction de génération du CERFA avec les données du formulaire
+      const pdfUrl = await generateCerfaPDF(formData);
+      
+      // Téléchargement du PDF généré
+      await downloadPDF(pdfUrl, "constat-amiable.pdf");
       toast.success("Téléchargement du constat amiable au format CERFA réussi");
     } catch (error: any) {
       console.error("Erreur lors de la génération du CERFA:", error);
