@@ -51,6 +51,7 @@ const MapContainer = ({
       zoom={zoom}
       style={{ height: '400px', width: '100%' }}
       className="z-0"
+      // Désactiver explicitement les contrôles de zoom
       zoomControl={false}
     >
       <TileLayer

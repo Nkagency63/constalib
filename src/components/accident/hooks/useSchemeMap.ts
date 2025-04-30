@@ -16,34 +16,28 @@ export const useSchemeMap = ({ readOnly, handleMapClick, onReady }: UseSchemeMap
   const handleMapReady = useCallback((map: L.Map) => {
     mapRef.current = map;
     
-    // Only try to remove controls if they exist
-    if (mapRef.current) {
-      // Safely check and remove zoom control
-      const zoomControl = mapRef.current.zoomControl;
-      if (zoomControl) {
-        mapRef.current.removeControl(zoomControl);
-      }
-
-      // Setup event handlers if not readOnly
-      if (!readOnly) {
-        mapRef.current.on('click', handleMapClick);
-      }
+    // Ne pas essayer de supprimer les contrôles, car cela peut causer des erreurs
+    // si les contrôles n'existent pas ou ne sont pas correctement initialisés
+    
+    // Configurer les gestionnaires d'événements si non en lecture seule
+    if (!readOnly && mapRef.current) {
+      mapRef.current.on('click', handleMapClick);
     }
     
-    // Call the onReady callback to initialize the map
+    // Appeler le callback onReady pour initialiser la carte
     onReady();
   }, [readOnly, handleMapClick, onReady]);
 
   const centerOnVehicles = useCallback((vehicles: Vehicle[]) => {
     if (!mapRef.current || vehicles.length === 0) return;
     
-    // Create a bounds object to contain all vehicle positions
+    // Créer un objet bounds pour contenir toutes les positions des véhicules
     const bounds = L.latLngBounds(vehicles.map(v => v.position));
     
-    // Expand bounds slightly for better visibility
+    // Légèrement agrandir les limites pour une meilleure visibilité
     bounds.pad(0.2);
     
-    // Fit the map to these bounds with animation
+    // Ajuster la carte à ces limites avec animation
     mapRef.current.flyToBounds(bounds, {
       padding: [50, 50],
       duration: 0.5

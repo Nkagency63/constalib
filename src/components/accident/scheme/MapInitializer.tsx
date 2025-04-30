@@ -11,7 +11,10 @@ const MapInitializer = ({ onMapReady }: MapInitializerProps) => {
   const map = useMap();
   
   React.useEffect(() => {
-    onMapReady(map);
+    if (map) {
+      // Appeler onMapReady avec l'objet map seulement si map existe
+      onMapReady(map);
+    }
   }, [map, onMapReady]);
   
   return null;
