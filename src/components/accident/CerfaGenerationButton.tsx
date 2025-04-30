@@ -1,6 +1,6 @@
 
 import { Button } from "@/components/ui/button";
-import { FileText, Download } from "lucide-react";
+import { FileText } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 import { downloadPDF } from "@/utils/downloadUtils";
@@ -23,7 +23,7 @@ const CerfaGenerationButton = ({ formData, className = "" }: CerfaGenerationButt
       
       // Téléchargement du PDF généré
       await downloadPDF(pdfUrl, "constat-amiable.pdf");
-      toast.success("Téléchargement du constat amiable au format CERFA réussi");
+      toast.success("Téléchargement du constat amiable réussi");
     } catch (error: any) {
       console.error("Erreur lors de la génération du CERFA:", error);
       toast.error(error.message || "Erreur lors de la génération du PDF");
