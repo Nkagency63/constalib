@@ -1,7 +1,8 @@
 
-import { toast } from 'sonner';
+import { useToast } from '@/hooks/use-toast';
 import InteractiveScheme from './accident/InteractiveScheme';
 import { SchemeData } from './accident/types';
+import { useState } from 'react';
 
 const VehicleScheme = () => {
   // Données par défaut (Paris)
@@ -19,9 +20,20 @@ const VehicleScheme = () => {
     }
   };
 
+  const { toast } = useToast();
+  const [hasShownSaveToast, setHasShownSaveToast] = useState(false);
+
   const handleSchemeUpdate = (schemeData: SchemeData) => {
     console.log('Scheme data updated:', schemeData);
-    toast.success("Schéma sauvegardé avec succès");
+    
+    // N'afficher le toast que lors de la première modification
+    if (!hasShownSaveToast) {
+      toast({
+        title: "Schéma enregistré",
+        description: "Les modifications sont sauvegardées automatiquement"
+      });
+      setHasShownSaveToast(true);
+    }
   };
 
   return (

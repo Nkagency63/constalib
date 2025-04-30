@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Info, HelpCircle } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { toast } from 'sonner';
+import { toast } from '@/hooks/use-toast';
 
 interface SchemeStepProps {
   formData: FormData;
@@ -21,16 +21,31 @@ const SchemeStep = ({ formData }: SchemeStepProps) => {
   const [schemeData, setSchemeData] = useState<SchemeData | null>(null);
   const [showHelp, setShowHelp] = useState(false);
   
+  // Variable pour suivre si une sauvegarde a déjà été affichée
+  const [hasShownSaveToast, setHasShownSaveToast] = useState(false);
+  
   const handleSaveScheme = (data: SchemeData) => {
     setSchemeData(data);
     console.log("Scheme data saved:", data);
-    toast.success("Schéma sauvegardé automatiquement");
+    
+    // N'afficher le toast que lors de la première sauvegarde
+    if (!hasShownSaveToast) {
+      toast({
+        title: "Schéma enregistré",
+        description: "Les modifications sont sauvegardées automatiquement",
+        variant: "default",
+      });
+      setHasShownSaveToast(true);
+    }
   };
 
   const handleExportImage = () => {
     // This is a placeholder for the export image functionality
     // In a real implementation, we would use leaflet's methods to capture the map as an image
-    toast.success("Fonction d'exportation en cours de développement");
+    toast({
+      title: "Exportation",
+      description: "Fonction d'exportation en cours de développement",
+    });
   };
   
   const toggleHelp = () => {

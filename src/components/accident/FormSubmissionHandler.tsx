@@ -2,7 +2,7 @@
 import { useState } from 'react';
 import { FormData } from './types';
 import { useToast } from '@/hooks/use-toast';
-import { toast } from 'sonner';
+import { toast as sonnerToast } from 'sonner';
 import { saveVehicleData, uploadPhotos, saveAccidentReport, sendEmails } from '@/services/accidentReportService';
 
 interface FormSubmissionHandlerProps {
@@ -20,7 +20,7 @@ const FormSubmissionHandler = ({
   onSubmitSuccess 
 }: FormSubmissionHandlerProps) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const { toast: uiToast } = useToast();
+  const { toast } = useToast();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -63,14 +63,14 @@ const FormSubmissionHandler = ({
       if (data && data[0] && (formData.personalEmail || formData.insuranceEmails.length > 0 || formData.involvedPartyEmails.length > 0)) {
         try {
           await sendEmails(data[0].id, formData);
-          uiToast({
+          toast({
             title: "Emails envoyés",
             description: "Le constat a été envoyé par email aux destinataires spécifiés.",
             variant: "default"
           });
         } catch (emailError: any) {
           console.error("Error sending emails:", emailError);
-          uiToast({
+          toast({
             title: "Alerte",
             description: `La déclaration a été enregistrée mais l'envoi des emails a échoué: ${emailError.message}`,
             variant: "destructive"
@@ -78,21 +78,21 @@ const FormSubmissionHandler = ({
         }
       }
       
-      uiToast({
+      toast({
         title: "Succès",
         description: "Votre déclaration a été envoyée avec succès.",
         variant: "default"
       });
-      toast.success("Votre déclaration a été envoyée avec succès.");
+      sonnerToast.success("Votre déclaration a été envoyée avec succès.");
       onSubmitSuccess();
     } catch (err: any) {
       console.error('Error in submission process:', err);
-      uiToast({
+      toast({
         title: "Erreur",
         description: err.message || "Une erreur est survenue lors de la soumission de votre déclaration.",
         variant: "destructive"
       });
-      toast.error("Une erreur est survenue lors de la soumission de votre déclaration.");
+      sonnerToast.error("Une erreur est survenue lors de la soumission de votre déclaration.");
     } finally {
       setIsSubmitting(false);
     }

@@ -1,7 +1,7 @@
-
 import React, { useState, useEffect } from 'react';
 import { TooltipProvider } from '@/components/ui/tooltip';
-import { toast } from 'sonner';
+import { useToast } from '@/hooks/use-toast';
+import { toast as sonnerToast } from 'sonner';
 import CanvasToolbar from './CanvasToolbar';
 import SchemeToolbar from './SchemeToolbar';
 import MapContainer from './MapContainer';
@@ -33,6 +33,8 @@ const SchemeContainer = ({
   readOnly = false 
 }: SchemeContainerProps) => {
   // Custom hooks
+  const { toast } = useToast();
+  
   const { 
     vehicles, selectedVehicle, addVehicle, removeVehicle, 
     selectVehicle, setVehicles, rotateVehicle, changeVehicleType,
@@ -57,6 +59,7 @@ const SchemeContainer = ({
   const [currentTool, setCurrentTool] = useState<'select' | 'vehicle' | 'path' | 'annotation'>('select');
   const [isMapReady, setIsMapReady] = useState(false);
   const [showGuidesFirstTime, setShowGuidesFirstTime] = useState(true);
+  const [lastUpdateTime, setLastUpdateTime] = useState(0); // Pour limiter la fréquence des mises à jour
 
   // Get default center coordinates from formData or use Paris as default
   const center: [number, number] = formData?.geolocation?.lat && formData?.geolocation?.lng
@@ -95,7 +98,8 @@ const SchemeContainer = ({
         setTimeout(() => centerOnVehicles(vehicles), 300);
       } else if (showGuidesFirstTime) {
         // Pour les nouveaux utilisateurs, montrer un toast de bienvenue
-        toast.info("Bienvenue sur l'éditeur de schéma d'accident", {
+        toast({
+          title: "Bienvenue sur l'éditeur de schéma d'accident",
           description: "Utilisez les outils sur la gauche pour créer votre schéma. Commencez par ajouter un véhicule.",
           duration: 6000,
         });
@@ -104,7 +108,6 @@ const SchemeContainer = ({
     }
   });
 
-  // Setup keyboard controls for vehicles
   useKeyboardControls({
     selectedVehicle,
     readOnly,
@@ -112,27 +115,31 @@ const SchemeContainer = ({
     onRemoveVehicle: removeVehicle
   });
 
-  // Center on vehicles when they change
   useEffect(() => {
     if (vehicles.length > 0 && isMapReady) {
       centerOnVehicles(vehicles);
     }
   }, [vehicles.length, isMapReady]);
 
-  // Update scheme data when state changes
+  // Update scheme data when state changes - avec limitation de fréquence
   useEffect(() => {
     if (onUpdateSchemeData && mapRef.current) {
-      const schemeData: SchemeData = {
-        vehicles,
-        paths,
-        annotations,
-        center: mapRef.current ? [
-          mapRef.current.getCenter().lat,
-          mapRef.current.getCenter().lng
-        ] as [number, number] : center,
-        zoom: mapRef.current ? mapRef.current.getZoom() : 17
-      };
-      onUpdateSchemeData(schemeData);
+      const now = Date.now();
+      // Limiter les mises à jour à une fois toutes les 2 secondes
+      if (now - lastUpdateTime > 2000) {
+        const schemeData: SchemeData = {
+          vehicles,
+          paths,
+          annotations,
+          center: mapRef.current ? [
+            mapRef.current.getCenter().lat,
+            mapRef.current.getCenter().lng
+          ] as [number, number] : center,
+          zoom: mapRef.current ? mapRef.current.getZoom() : 17
+        };
+        onUpdateSchemeData(schemeData);
+        setLastUpdateTime(now);
+      }
     }
   }, [vehicles, paths, annotations, onUpdateSchemeData]);
 
@@ -153,14 +160,15 @@ const SchemeContainer = ({
         
         // Afficher un toast de guidance après l'ajout du premier véhicule
         if (updatedVehicles.length === 1) {
-          toast.success("Véhicule ajouté", {
+          toast({
+            title: "Véhicule ajouté",
             description: "Vous pouvez maintenant le déplacer ou le faire pivoter. Utilisez l'outil trajectoire pour tracer son parcours.",
             duration: 5000,
           });
         }
       }
     } else {
-      toast.warning("Maximum de 4 véhicules atteint");
+      sonnerToast.warning("Maximum de 4 véhicules atteint");
     }
   };
 
