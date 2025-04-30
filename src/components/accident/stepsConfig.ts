@@ -38,13 +38,13 @@ export const accidentFormSteps: Step[] = [
     description: 'Photographies des véhicules et des dégâts'
   },
   {
+    id: 'review',
+    title: 'Vérification',
+    description: 'Vérifiez les informations et générez le constat'
+  },
+  {
     id: 'email',
     title: 'Envoi',
     description: 'Destinataires du constat'
-  },
-  {
-    id: 'review',
-    title: 'Vérification',
-    description: 'Vérifiez les informations avant de soumettre'
   }
 ];

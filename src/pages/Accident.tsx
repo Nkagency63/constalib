@@ -1,3 +1,4 @@
+
 import Header from '@/components/Header';
 import AccidentForm from '@/components/AccidentForm';
 import { Button } from '@/components/ui/button';
@@ -114,6 +115,17 @@ const Accident = () => {
               <AlertDescription className="text-amber-800 text-sm">
                 <strong>Nouveau:</strong> La sélection des circonstances permet désormais de choisir précisément les 
                 conditions de l'accident pour chaque véhicule. Ces informations seront utilisées dans le constat amiable.
+              </AlertDescription>
+            </Alert>
+          )}
+
+          {currentStep === "review" && (
+            <Alert variant="default" className="bg-amber-50 border-amber-200 mb-6">
+              <Info className="h-4 w-4 text-amber-600" />
+              <AlertDescription className="text-amber-800 text-sm">
+                <strong>Nouveau:</strong> Vous pouvez maintenant générer un document CERFA de constat amiable 
+                pré-rempli avec les informations que vous avez saisies. Celui-ci peut être téléchargé pour 
+                impression ou envoi électronique.
               </AlertDescription>
             </Alert>
           )}

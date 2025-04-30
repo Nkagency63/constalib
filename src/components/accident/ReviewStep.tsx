@@ -1,6 +1,7 @@
 
 import { FormData } from './types';
 import { Check, Car, MapPin, Calendar, Clock, FileText, Image, CarTaxiFront, Shield, Mail } from 'lucide-react';
+import CerfaGenerationButton from './CerfaGenerationButton';
 
 interface ReviewStepProps {
   formData: FormData;
@@ -200,6 +201,10 @@ const ReviewStep = ({ formData }: ReviewStepProps) => {
             </div>
           </div>
         )}
+      </div>
+      
+      <div className="flex justify-center mt-6">
+        <CerfaGenerationButton formData={formData} className="w-full md:w-auto" />
       </div>
     </div>
   );

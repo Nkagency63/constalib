@@ -7,7 +7,7 @@ export const useFormNavigation = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const nextStep = () => {
-    if (currentStepIndex < 8) {
+    if (currentStepIndex < 9) {  // Mis à jour pour tenir compte de l'étape supplémentaire
       setCurrentStepIndex(prev => prev + 1);
       window.scrollTo(0, 0);
     }
