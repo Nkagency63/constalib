@@ -1,3 +1,4 @@
+
 import { FormData } from "@/components/accident/types";
 import { toast } from "sonner";
 import { PDFDocument, rgb, StandardFonts } from 'pdf-lib';
@@ -5,9 +6,10 @@ import { PDFDocument, rgb, StandardFonts } from 'pdf-lib';
 /**
  * Remplit automatiquement le PDF du constat amiable avec les données du formulaire
  * @param formData Données du formulaire pour pré-remplir le constat
+ * @param schemeImageDataUrl URL de données de l'image du schéma (optionnel)
  * @returns Promise qui résoud vers l'URL du PDF généré
  */
-export const generateCerfaPDF = async (formData: FormData): Promise<string> => {
+export const generateCerfaPDF = async (formData: FormData, schemeImageDataUrl: string | null = null): Promise<string> => {
   try {
     console.log("Début de la génération du CERFA avec données:", formData);
     
@@ -24,7 +26,7 @@ export const generateCerfaPDF = async (formData: FormData): Promise<string> => {
       // Vérifie si le fichier est un placeholder (contient des commentaires au lieu d'un vrai PDF)
       if (responseData.includes('// Ce fichier est un placeholder')) {
         console.warn("Le fichier PDF est un placeholder, utilisation du PDF de secours");
-        return generatePlaceholderPDF(formData);
+        return generatePlaceholderPDF(formData, schemeImageDataUrl);
       }
       
       // Si c'est un vrai PDF, procéder normalement
@@ -208,6 +210,65 @@ export const generateCerfaPDF = async (formData: FormData): Promise<string> => {
         font: helveticaFont,
         color: textColor
       });
+
+      // Ajouter le schéma de l'accident si disponible
+      if (schemeImageDataUrl) {
+        try {
+          // Convertir l'image dataURL en Uint8Array
+          const base64Data = schemeImageDataUrl.split(',')[1];
+          const imageBytes = Uint8Array.from(atob(base64Data), c => c.charCodeAt(0));
+          
+          // Créer une nouvelle page pour le schéma
+          const schemePage = pdfDoc.addPage();
+          const { width: schemeWidth, height: schemeHeight } = schemePage.getSize();
+          
+          // Titre pour la page du schéma
+          schemePage.drawText("SCHÉMA DE L'ACCIDENT", {
+            x: 50,
+            y: schemeHeight - 50,
+            size: 16,
+            font: helveticaBold,
+            color: rgb(0, 0, 0)
+          });
+          
+          // Incorporer l'image dans le PDF
+          const image = await pdfDoc.embedPng(imageBytes);
+          
+          // Calculer les dimensions pour l'image (ajuster à la page avec des marges)
+          const margin = 50;
+          const maxImageWidth = schemeWidth - (margin * 2);
+          const maxImageHeight = schemeHeight - 100 - margin; // 100 pour le titre et l'espace
+          
+          const imageRatio = image.width / image.height;
+          let imageWidth = maxImageWidth;
+          let imageHeight = imageWidth / imageRatio;
+          
+          // Si l'image est trop haute, ajuster en conséquence
+          if (imageHeight > maxImageHeight) {
+            imageHeight = maxImageHeight;
+            imageWidth = imageHeight * imageRatio;
+          }
+          
+          // Dessiner l'image sur la page
+          schemePage.drawImage(image, {
+            x: margin + (maxImageWidth - imageWidth) / 2, // Centrer horizontalement
+            y: schemeHeight - 100 - imageHeight, // Positionner sous le titre
+            width: imageWidth,
+            height: imageHeight
+          });
+          
+          // Légende
+          schemePage.drawText(`Schéma généré le ${formattedDate}`, {
+            x: margin,
+            y: margin - 20,
+            size: 10,
+            font: helveticaFont,
+            color: rgb(0.5, 0.5, 0.5)
+          });
+        } catch (imageError) {
+          console.error("Erreur lors de l'incorporation de l'image du schéma:", imageError);
+        }
+      }
       
       // Générer le document final
       const pdfBytesModified = await pdfDoc.save();
@@ -221,7 +282,7 @@ export const generateCerfaPDF = async (formData: FormData): Promise<string> => {
     } catch (pdfError) {
       console.error("Erreur lors du traitement du PDF:", pdfError);
       // En cas d'erreur, générer un PDF de secours
-      return generatePlaceholderPDF(formData);
+      return generatePlaceholderPDF(formData, schemeImageDataUrl);
     }
   } catch (error: any) {
     console.error("Erreur lors de la génération du CERFA:", error);
@@ -233,9 +294,10 @@ export const generateCerfaPDF = async (formData: FormData): Promise<string> => {
 /**
  * Génère un PDF de secours avec les données du formulaire lorsque le PDF vierge n'est pas disponible
  * @param formData Données du formulaire
+ * @param schemeImageDataUrl URL de données de l'image du schéma (optionnel)
  * @returns Promise qui résoud vers l'URL du PDF généré
  */
-async function generatePlaceholderPDF(formData: FormData): Promise<string> {
+async function generatePlaceholderPDF(formData: FormData, schemeImageDataUrl: string | null = null): Promise<string> {
   // Créer un nouveau document PDF vierge
   const pdfDoc = await PDFDocument.create();
   const page = pdfDoc.addPage([595, 842]); // Format A4
@@ -460,6 +522,67 @@ async function generatePlaceholderPDF(formData: FormData): Promise<string> {
         color: rgb(0, 0, 0)
       });
     });
+  }
+
+  // Ajout du schéma sur une nouvelle page si disponible
+  if (schemeImageDataUrl) {
+    try {
+      // Convertir l'image dataURL en Uint8Array
+      const base64Data = schemeImageDataUrl.split(',')[1];
+      const imageBytes = Uint8Array.from(atob(base64Data), c => c.charCodeAt(0));
+      
+      // Créer une nouvelle page pour le schéma
+      const schemePage = pdfDoc.addPage();
+      const { width: schemeWidth, height: schemeHeight } = schemePage.getSize();
+      
+      // Titre pour la page du schéma
+      schemePage.drawText("SCHÉMA DE L'ACCIDENT", {
+        x: 50,
+        y: schemeHeight - 50,
+        size: 16,
+        font: helveticaBold,
+        color: rgb(0, 0, 0)
+      });
+      
+      // Incorporer l'image dans le PDF
+      const image = await pdfDoc.embedPng(imageBytes);
+      
+      // Calculer les dimensions pour l'image
+      const margin = 50;
+      const maxImageWidth = schemeWidth - (margin * 2);
+      const maxImageHeight = schemeHeight - 100 - margin; // 100 pour le titre et l'espace
+      
+      const imageRatio = image.width / image.height;
+      let imageWidth = maxImageWidth;
+      let imageHeight = imageWidth / imageRatio;
+      
+      // Si l'image est trop haute, ajuster en conséquence
+      if (imageHeight > maxImageHeight) {
+        imageHeight = maxImageHeight;
+        imageWidth = imageHeight * imageRatio;
+      }
+      
+      // Dessiner l'image sur la page
+      schemePage.drawImage(image, {
+        x: margin + (maxImageWidth - imageWidth) / 2, // Centrer horizontalement
+        y: schemeHeight - 100 - imageHeight, // Positionner sous le titre
+        width: imageWidth,
+        height: imageHeight
+      });
+      
+      // Légende
+      const today = new Date();
+      const formattedDate = today.toLocaleDateString('fr-FR');
+      schemePage.drawText(`Schéma généré le ${formattedDate}`, {
+        x: margin,
+        y: margin - 20,
+        size: 10,
+        font: helvetica,
+        color: rgb(0.5, 0.5, 0.5)
+      });
+    } catch (imageError) {
+      console.error("Erreur lors de l'incorporation de l'image du schéma:", imageError);
+    }
   }
   
   // Pied de page

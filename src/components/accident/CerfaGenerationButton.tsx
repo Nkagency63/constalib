@@ -4,8 +4,9 @@ import { FileText } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 import { downloadPDF } from "@/utils/downloadUtils";
-import { FormData } from "./types";
+import { FormData, SchemeData } from "./types";
 import { generateCerfaPDF } from "@/utils/cerfaGeneration";
+import html2canvas from "html2canvas";
 
 interface CerfaGenerationButtonProps {
   formData: FormData;
@@ -15,11 +16,40 @@ interface CerfaGenerationButtonProps {
 const CerfaGenerationButton = ({ formData, className = "" }: CerfaGenerationButtonProps) => {
   const [isGenerating, setIsGenerating] = useState(false);
 
+  const captureSchemeImage = async (): Promise<string | null> => {
+    try {
+      // Chercher le conteneur du schéma
+      const schemeContainer = document.querySelector('.leaflet-container') as HTMLElement;
+      
+      if (!schemeContainer) {
+        console.warn("Conteneur du schéma non trouvé");
+        return null;
+      }
+
+      // Capturer le schéma comme une image
+      const canvas = await html2canvas(schemeContainer, {
+        useCORS: true,
+        allowTaint: true,
+        backgroundColor: "#ffffff",
+        scale: 2, // Meilleure qualité
+      });
+      
+      // Convertir le canvas en dataURL
+      return canvas.toDataURL('image/png');
+    } catch (error) {
+      console.error("Erreur lors de la capture du schéma:", error);
+      return null;
+    }
+  };
+
   const handleGenerateCerfa = async () => {
     setIsGenerating(true);
     try {
-      // Utilisation de la fonction de génération du CERFA avec les données du formulaire
-      const pdfUrl = await generateCerfaPDF(formData);
+      // Capturer le schéma comme une image
+      const schemeImageDataUrl = await captureSchemeImage();
+      
+      // Utilisation de la fonction de génération du CERFA avec les données du formulaire et l'image du schéma
+      const pdfUrl = await generateCerfaPDF(formData, schemeImageDataUrl);
       
       // Téléchargement du PDF généré
       await downloadPDF(pdfUrl, "constat-amiable.pdf");
