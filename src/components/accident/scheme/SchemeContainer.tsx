@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { useToast } from '@/hooks/use-toast';
@@ -60,6 +61,7 @@ const SchemeContainer = ({
   const [isMapReady, setIsMapReady] = useState(false);
   const [showGuidesFirstTime, setShowGuidesFirstTime] = useState(true);
   const [lastUpdateTime, setLastUpdateTime] = useState(0); // Pour limiter la fréquence des mises à jour
+  const [mapInitialized, setMapInitialized] = useState(false);
 
   // Get default center coordinates from formData or use Paris as default
   const center: [number, number] = formData?.geolocation?.lat && formData?.geolocation?.lng
@@ -85,7 +87,10 @@ const SchemeContainer = ({
       addAnnotation
     }),
     onReady: () => {
+      console.log("Map is ready");
       setIsMapReady(true);
+      setMapInitialized(true);
+      
       const initialized = initializeVehicles({
         formData,
         vehiclesLength: vehicles.length,
@@ -94,6 +99,7 @@ const SchemeContainer = ({
       });
       
       if (initialized) {
+        console.log("Vehicles initialized successfully");
         // Auto-center on vehicles after initialization
         setTimeout(() => centerOnVehicles(vehicles), 300);
       } else if (showGuidesFirstTime) {
@@ -115,11 +121,21 @@ const SchemeContainer = ({
     onRemoveVehicle: removeVehicle
   });
 
+  // Effet pour centrer sur les véhicules quand la carte est prête
   useEffect(() => {
-    if (vehicles.length > 0 && isMapReady) {
-      centerOnVehicles(vehicles);
+    if (isMapReady && mapRef.current && vehicles.length > 0) {
+      console.log("Centering on vehicles after map ready");
+      setTimeout(() => centerOnVehicles(vehicles), 300);
     }
-  }, [vehicles.length, isMapReady]);
+  }, [isMapReady, vehicles.length, mapRef.current]);
+
+  // Effet pour rafraîchir la carte quand currentTool change
+  useEffect(() => {
+    if (mapRef.current && isMapReady) {
+      console.log("Tool changed, invalidating map size");
+      mapRef.current.invalidateSize();
+    }
+  }, [currentTool, isMapReady]);
 
   // Update scheme data when state changes - avec limitation de fréquence
   useEffect(() => {
@@ -145,10 +161,18 @@ const SchemeContainer = ({
 
   // Handle vehicle add from toolbar
   const handleAddVehicle = () => {
-    if (mapRef.current && vehicles.length < 4) {
+    if (!mapRef.current) {
+      console.error("Map reference not available");
+      return;
+    }
+    
+    if (vehicles.length < 4) {
+      console.log("Adding vehicle from toolbar");
       const center = mapRef.current.getCenter();
       const updatedVehicles = addVehicle(center);
+      
       if (updatedVehicles) {
+        console.log("Vehicle added successfully from toolbar");
         saveToHistory({ 
           vehicles: updatedVehicles, 
           paths, 
@@ -156,7 +180,13 @@ const SchemeContainer = ({
           center: [center.lat, center.lng], 
           zoom: mapRef.current.getZoom() 
         });
-        centerOnVehicles(updatedVehicles);
+        
+        // Assurez-vous que la mise à jour est reflétée dans l'UI
+        setTimeout(() => {
+          console.log("Centering on vehicles after adding");
+          centerOnVehicles(updatedVehicles);
+          mapRef.current?.invalidateSize();
+        }, 100);
         
         // Afficher un toast de guidance après l'ajout du premier véhicule
         if (updatedVehicles.length === 1) {
@@ -166,6 +196,8 @@ const SchemeContainer = ({
             duration: 5000,
           });
         }
+      } else {
+        console.error("Failed to add vehicle from toolbar");
       }
     } else {
       sonnerToast.warning("Maximum de 4 véhicules atteint");
@@ -174,12 +206,18 @@ const SchemeContainer = ({
 
   const isEmpty = vehicles.length === 0;
 
+  // Auto-switch to vehicle tool when clicking "Add Vehicle" button
+  const handleToolbarAddVehicle = () => {
+    setCurrentTool('vehicle');
+    setTimeout(handleAddVehicle, 100);
+  };
+
   return (
     <TooltipProvider>
       <div className="relative rounded-lg overflow-hidden shadow-md border border-gray-200">
         {!readOnly && (
           <CanvasToolbar 
-            onAddVehicle={handleAddVehicle}
+            onAddVehicle={handleToolbarAddVehicle}
             onUndo={() => handleUndoWrapper({
               canUndo,
               canRedo,

@@ -1,5 +1,4 @@
-
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import { Vehicle } from '../types';
 import { toast } from 'sonner';
@@ -30,21 +29,37 @@ export const useVehicles = () => {
     const vehicleId = availableIds[0];
     const color = VEHICLE_COLORS[vehicleId];
 
+    // Générer un ID unique pour le véhicule
+    const uniqueId = uuidv4();
+
+    // Créer le nouveau véhicule avec une position précise
     const newVehicle: Vehicle = {
-      id: uuidv4(),
+      id: uniqueId,
       position: [location.lat, location.lng],
       color,
       vehicleId,
       rotation: 0,
-      isSelected: false,
+      isSelected: true,
       vehicleType: currentVehicleType
     };
 
+    console.log("Creating new vehicle:", newVehicle);
+
+    // Mettre à jour la liste des véhicules et sélectionner le nouveau véhicule
     const updatedVehicles = [...vehicles, newVehicle];
-    setVehicles(updatedVehicles);
-    selectVehicle(newVehicle.id);
     
-    return updatedVehicles;
+    // Nous devons d'abord mettre à jour les véhicules existants pour désélectionner les autres
+    const deselectedVehicles = vehicles.map(v => ({...v, isSelected: false}));
+    
+    // Puis ajouter le nouveau véhicule sélectionné
+    const finalUpdatedVehicles = [...deselectedVehicles, newVehicle];
+    
+    setVehicles(finalUpdatedVehicles);
+    setSelectedVehicle(uniqueId);
+    
+    console.log("Updated vehicles list:", finalUpdatedVehicles);
+    
+    return finalUpdatedVehicles;
   };
 
   const removeVehicle = (id: string) => {
@@ -95,6 +110,11 @@ export const useVehicles = () => {
     
     return vehicles;
   };
+
+  // Afficher dans la console les véhicules actuels pour déboguer
+  useEffect(() => {
+    console.log("Current vehicles:", vehicles);
+  }, [vehicles]);
 
   return {
     vehicles,

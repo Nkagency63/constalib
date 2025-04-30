@@ -1,6 +1,6 @@
 
-import React from 'react';
-import { Marker } from 'react-leaflet';
+import React, { useEffect } from 'react';
+import { Marker, useMap } from 'react-leaflet';
 import { createCarIcon } from '@/utils/mapIcons';
 import { Tooltip } from '@/components/ui/tooltip';
 import { TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
@@ -26,6 +26,8 @@ const VehiclesLayer = ({
   onRotateVehicle,
   onChangeVehicleType
 }: VehiclesLayerProps) => {
+  const map = useMap();
+  
   const handleRotate = (id: string, degrees: number) => {
     if (onRotateVehicle) {
       onRotateVehicle(id, degrees);
@@ -39,6 +41,15 @@ const VehiclesLayer = ({
   };
 
   const selectedVehicleData = vehicles.find(v => v.id === selectedVehicle);
+  
+  // Forcer un rafraîchissement de la carte lorsque les véhicules changent
+  useEffect(() => {
+    if (vehicles.length > 0) {
+      setTimeout(() => {
+        map.invalidateSize();
+      }, 100);
+    }
+  }, [vehicles, map]);
 
   return (
     <>

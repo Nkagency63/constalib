@@ -46,8 +46,10 @@ export const handleMapClick = (
   switch (currentTool) {
     case 'vehicle':
       if (vehicles.length < 4) {
+        console.log("Adding vehicle at position:", newPoint);
         const updatedVehicles = addVehicle(e.latlng);
         if (updatedVehicles) {
+          console.log("Vehicle added successfully:", updatedVehicles.length);
           saveToHistory({ 
             vehicles: updatedVehicles, 
             paths, 
@@ -55,8 +57,11 @@ export const handleMapClick = (
             center: [e.latlng.lat, e.latlng.lng],
             zoom: 17 
           });
-          // Auto-center on vehicles when a new one is added
-          centerOnVehicles(updatedVehicles);
+          
+          // Force update vehicle positions and center on new vehicle
+          setTimeout(() => centerOnVehicles(updatedVehicles), 100);
+        } else {
+          console.error("Failed to add vehicle");
         }
       } else {
         toast.warning("Maximum de 4 véhicules atteint");
