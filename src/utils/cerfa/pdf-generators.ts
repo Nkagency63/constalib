@@ -3,6 +3,7 @@ import { FormData } from "@/components/accident/types";
 import { toast } from "sonner";
 import { PDFDocument, rgb, StandardFonts } from 'pdf-lib';
 import { splitTextIntoLines } from "./pdf-utils";
+import { generatePlaceholderPDF } from "./placeholder-generator";
 
 /**
  * Remplit automatiquement le PDF du constat amiable avec les données du formulaire
