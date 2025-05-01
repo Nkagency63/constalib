@@ -1,4 +1,3 @@
-
 /**
  * Fallback PDF generator for when the official CERFA form is not available
  */
