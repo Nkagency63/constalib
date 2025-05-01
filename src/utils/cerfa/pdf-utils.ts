@@ -1,13 +1,13 @@
 
 /**
- * Utilitaires pour la manipulation de PDF
+ * Utility functions for PDF manipulation
  */
 
 /**
- * Divise un texte en lignes de longueur maximale spécifiée
- * @param text Texte à diviser
- * @param maxCharsPerLine Nombre maximum de caractères par ligne
- * @returns Tableau de lignes de texte
+ * Splits text into lines with a maximum length
+ * @param text Text to split
+ * @param maxCharsPerLine Maximum characters per line
+ * @returns Array of text lines
  */
 export function splitTextIntoLines(text: string, maxCharsPerLine: number): string[] {
   const words = text.split(' ');

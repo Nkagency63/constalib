@@ -1,9 +1,9 @@
 
 /**
- * Point d'entrée pour la génération de PDF CERFA
+ * Entry point for CERFA PDF generation
  */
-import { generateCerfaPDF } from './pdf-generators';
-import { generatePlaceholderPDF } from './placeholder-generator';
+import { generateCerfaPDF } from './generators/cerfa-generator';
+import { generatePlaceholderPDF } from './generators/placeholder-generator';
 
 export {
   generateCerfaPDF,

@@ -1,24 +1,27 @@
 
+/**
+ * Fallback PDF generator when official template is not available
+ */
 import { FormData } from "@/components/accident/types";
 import { PDFDocument, rgb, StandardFonts } from 'pdf-lib';
-import { splitTextIntoLines } from "./pdf-utils";
+import { splitTextIntoLines } from "../pdf-utils";
 
 /**
- * Génère un PDF de secours avec les données du formulaire lorsque le PDF vierge n'est pas disponible
- * @param formData Données du formulaire
- * @param schemeImageDataUrl URL de données de l'image du schéma (optionnel)
- * @returns Promise qui résoud vers l'URL du PDF généré
+ * Generates a fallback PDF with form data when the template is unavailable
+ * @param formData Form data to include in the PDF
+ * @param schemeImageDataUrl Optional scheme image data URL
+ * @returns Promise resolving to the URL of the generated PDF
  */
 export async function generatePlaceholderPDF(formData: FormData, schemeImageDataUrl: string | null = null): Promise<string> {
-  // Créer un nouveau document PDF vierge
+  // Create a new blank PDF document
   const pdfDoc = await PDFDocument.create();
-  const page = pdfDoc.addPage([595, 842]); // Format A4
+  const page = pdfDoc.addPage([595, 842]); // A4 format
   const helvetica = await pdfDoc.embedFont(StandardFonts.Helvetica);
   const helveticaBold = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
   
   const { width, height } = page.getSize();
   
-  // Ajouter un titre
+  // Add a title
   page.drawText("CONSTAT AMIABLE D'ACCIDENT AUTOMOBILE", {
     x: 50,
     y: height - 50,
@@ -35,7 +38,46 @@ export async function generatePlaceholderPDF(formData: FormData, schemeImageData
     color: rgb(0, 0, 0)
   });
   
-  // Informations sur l'accident
+  // Add accident information
+  await addAccidentInfo(pdfDoc, page, formData);
+  
+  // Add vehicle information
+  await addVehicleInfo(pdfDoc, page, formData);
+  
+  // Add circumstances and description
+  await addCircumstancesAndDescription(pdfDoc, page, formData);
+  
+  // Add the accident scheme if available
+  if (schemeImageDataUrl) {
+    await addSchemeImage(pdfDoc, schemeImageDataUrl);
+  }
+  
+  // Add footer
+  page.drawText("Ce document est un résumé généré automatiquement et ne remplace pas le constat amiable officiel.", {
+    x: 50,
+    y: 50,
+    size: 8,
+    font: helvetica,
+    color: rgb(0.5, 0.5, 0.5)
+  });
+  
+  // Generate the PDF
+  const pdfBytes = await pdfDoc.save();
+  const blob = new Blob([pdfBytes], { type: 'application/pdf' });
+  const url = URL.createObjectURL(blob);
+  
+  console.log("PDF de secours généré avec succès");
+  return url;
+}
+
+/**
+ * Add accident information to the PDF
+ */
+async function addAccidentInfo(pdfDoc: PDFDocument, page: PDFDocument.PDFPage, formData: FormData) {
+  const helvetica = await pdfDoc.embedFont(StandardFonts.Helvetica);
+  const helveticaBold = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
+  const { height } = page.getSize();
+  
   page.drawText("INFORMATIONS SUR L'ACCIDENT", {
     x: 50,
     y: height - 120,
@@ -68,8 +110,17 @@ export async function generatePlaceholderPDF(formData: FormData, schemeImageData
     color: rgb(0, 0, 0),
     maxWidth: 400
   });
+}
+
+/**
+ * Add vehicle information to the PDF
+ */
+async function addVehicleInfo(pdfDoc: PDFDocument, page: PDFDocument.PDFPage, formData: FormData) {
+  const helvetica = await pdfDoc.embedFont(StandardFonts.Helvetica);
+  const helveticaBold = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
+  const { height } = page.getSize();
   
-  // Informations sur les véhicules
+  // Vehicle A
   page.drawText("VÉHICULE A (VOUS)", {
     x: 50,
     y: height - 240,
@@ -114,6 +165,7 @@ export async function generatePlaceholderPDF(formData: FormData, schemeImageData
     });
   }
   
+  // Vehicle B
   page.drawText("VÉHICULE B (TIERS)", {
     x: 50,
     y: height - 380,
@@ -159,8 +211,17 @@ export async function generatePlaceholderPDF(formData: FormData, schemeImageData
       color: rgb(0, 0, 0)
     });
   }
+}
+
+/**
+ * Add circumstances and description to the PDF
+ */
+async function addCircumstancesAndDescription(pdfDoc: PDFDocument, page: PDFDocument.PDFPage, formData: FormData) {
+  const helvetica = await pdfDoc.embedFont(StandardFonts.Helvetica);
+  const helveticaBold = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
+  const { height } = page.getSize();
   
-  // Circonstances
+  // Circumstances
   page.drawText("CIRCONSTANCES", {
     x: 50,
     y: height - 520,
@@ -190,7 +251,7 @@ export async function generatePlaceholderPDF(formData: FormData, schemeImageData
   }
   
   if (formData.vehicleBCircumstances && formData.vehicleBCircumstances.length > 0) {
-    const yStart = height - 550 - (formData.vehicleACircumstances.length * 20) - 40;
+    const yStart = height - 550 - (formData.vehicleACircumstances?.length * 20 || 0) - 40;
     
     page.drawText("Véhicule B:", {
       x: 50,
@@ -213,8 +274,8 @@ export async function generatePlaceholderPDF(formData: FormData, schemeImageData
   
   // Description
   if (formData.description) {
-    const yStart = height - 550 - (formData.vehicleACircumstances.length * 20) - 
-                  (formData.vehicleBCircumstances.length * 20) - 80;
+    const yStart = height - 550 - (formData.vehicleACircumstances?.length * 20 || 0) - 
+                  (formData.vehicleBCircumstances?.length * 20 || 0) - 80;
     
     page.drawText("DESCRIPTION:", {
       x: 50,
@@ -235,82 +296,70 @@ export async function generatePlaceholderPDF(formData: FormData, schemeImageData
       });
     });
   }
+}
 
-  // Ajout du schéma sur une nouvelle page si disponible
-  if (schemeImageDataUrl) {
-    try {
-      // Convertir l'image dataURL en Uint8Array
-      const base64Data = schemeImageDataUrl.split(',')[1];
-      const imageBytes = Uint8Array.from(atob(base64Data), c => c.charCodeAt(0));
-      
-      // Créer une nouvelle page pour le schéma
-      const schemePage = pdfDoc.addPage();
-      const { width: schemeWidth, height: schemeHeight } = schemePage.getSize();
-      
-      // Titre pour la page du schéma
-      schemePage.drawText("SCHÉMA DE L'ACCIDENT", {
-        x: 50,
-        y: schemeHeight - 50,
-        size: 16,
-        font: helveticaBold,
-        color: rgb(0, 0, 0)
-      });
-      
-      // Incorporer l'image dans le PDF
-      const image = await pdfDoc.embedPng(imageBytes);
-      
-      // Calculer les dimensions pour l'image
-      const margin = 50;
-      const maxImageWidth = schemeWidth - (margin * 2);
-      const maxImageHeight = schemeHeight - 100 - margin; // 100 pour le titre et l'espace
-      
-      const imageRatio = image.width / image.height;
-      let imageWidth = maxImageWidth;
-      let imageHeight = imageWidth / imageRatio;
-      
-      // Si l'image est trop haute, ajuster en conséquence
-      if (imageHeight > maxImageHeight) {
-        imageHeight = maxImageHeight;
-        imageWidth = imageHeight * imageRatio;
-      }
-      
-      // Dessiner l'image sur la page
-      schemePage.drawImage(image, {
-        x: margin + (maxImageWidth - imageWidth) / 2, // Centrer horizontalement
-        y: schemeHeight - 100 - imageHeight, // Positionner sous le titre
-        width: imageWidth,
-        height: imageHeight
-      });
-      
-      // Légende
-      const today = new Date();
-      const formattedDate = today.toLocaleDateString('fr-FR');
-      schemePage.drawText(`Schéma généré le ${formattedDate}`, {
-        x: margin,
-        y: margin - 20,
-        size: 10,
-        font: helvetica,
-        color: rgb(0.5, 0.5, 0.5)
-      });
-    } catch (imageError) {
-      console.error("Erreur lors de l'incorporation de l'image du schéma:", imageError);
+/**
+ * Add scheme image to a new page
+ */
+async function addSchemeImage(pdfDoc: PDFDocument, schemeImageDataUrl: string) {
+  try {
+    const helvetica = await pdfDoc.embedFont(StandardFonts.Helvetica);
+    const helveticaBold = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
+    
+    // Convert dataURL to Uint8Array
+    const base64Data = schemeImageDataUrl.split(',')[1];
+    const imageBytes = Uint8Array.from(atob(base64Data), c => c.charCodeAt(0));
+    
+    // Create a new page for the scheme
+    const schemePage = pdfDoc.addPage();
+    const { width: schemeWidth, height: schemeHeight } = schemePage.getSize();
+    
+    // Add title
+    schemePage.drawText("SCHÉMA DE L'ACCIDENT", {
+      x: 50,
+      y: schemeHeight - 50,
+      size: 16,
+      font: helveticaBold,
+      color: rgb(0, 0, 0)
+    });
+    
+    // Embed the image
+    const image = await pdfDoc.embedPng(imageBytes);
+    
+    // Calculate dimensions with margins
+    const margin = 50;
+    const maxImageWidth = schemeWidth - (margin * 2);
+    const maxImageHeight = schemeHeight - 100 - margin; // 100px for title and space
+    
+    const imageRatio = image.width / image.height;
+    let imageWidth = maxImageWidth;
+    let imageHeight = imageWidth / imageRatio;
+    
+    // Adjust if image is too tall
+    if (imageHeight > maxImageHeight) {
+      imageHeight = maxImageHeight;
+      imageWidth = imageHeight * imageRatio;
     }
+    
+    // Draw the image
+    schemePage.drawImage(image, {
+      x: margin + (maxImageWidth - imageWidth) / 2, // Center horizontally
+      y: schemeHeight - 100 - imageHeight, // Position under title
+      width: imageWidth,
+      height: imageHeight
+    });
+    
+    // Add footer
+    const today = new Date();
+    const formattedDate = today.toLocaleDateString('fr-FR');
+    schemePage.drawText(`Schéma généré le ${formattedDate}`, {
+      x: margin,
+      y: margin - 20,
+      size: 10,
+      font: helvetica,
+      color: rgb(0.5, 0.5, 0.5)
+    });
+  } catch (imageError) {
+    console.error("Erreur lors de l'incorporation de l'image du schéma:", imageError);
   }
-  
-  // Pied de page
-  page.drawText("Ce document est un résumé généré automatiquement et ne remplace pas le constat amiable officiel.", {
-    x: 50,
-    y: 50,
-    size: 8,
-    font: helvetica,
-    color: rgb(0.5, 0.5, 0.5)
-  });
-  
-  // Générer le PDF
-  const pdfBytes = await pdfDoc.save();
-  const blob = new Blob([pdfBytes], { type: 'application/pdf' });
-  const url = URL.createObjectURL(blob);
-  
-  console.log("PDF de secours généré avec succès");
-  return url;
 }
