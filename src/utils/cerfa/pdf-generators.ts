@@ -1,4 +1,3 @@
-
 import { FormData } from "@/components/accident/types";
 import { toast } from "sonner";
 import { PDFDocument, rgb, StandardFonts } from 'pdf-lib';
@@ -21,39 +20,27 @@ export const generateCerfaPDF = async (formData: FormData, schemeImageDataUrl: s
     }
     
     try {
-      // Tentative de récupération du PDF vierge à partir du répertoire public
-      const response = await fetch("/pdf/constat-amiable-vierge.pdf");
-      const responseData = await response.text();
+      // Récupération du formulaire officiel de constat amiable
+      const response = await fetch("/pdf/constat-amiable-officiel.pdf");
       
-      // Vérifie si le fichier est un placeholder (contient des commentaires au lieu d'un vrai PDF)
-      if (responseData.includes('// Ce fichier est un placeholder')) {
-        console.warn("Le fichier PDF est un placeholder, utilisation du PDF de secours");
-        return generatePlaceholderPDF(formData, schemeImageDataUrl);
+      if (!response.ok) {
+        console.warn("Formulaire officiel non trouvé, tentative avec le formulaire vierge standard");
+        const fallbackResponse = await fetch("/pdf/constat-amiable-vierge.pdf");
+        const responseData = await fallbackResponse.text();
+        
+        // Vérifie si le fichier est un placeholder
+        if (responseData.includes('// Ce fichier est un placeholder')) {
+          console.warn("Le fichier PDF est un placeholder, utilisation du PDF de secours");
+          return generatePlaceholderPDF(formData, schemeImageDataUrl);
+        }
+        
+        const pdfBytes = await fallbackResponse.arrayBuffer();
+        return await processFormPDF(pdfBytes, formData, schemeImageDataUrl);
       }
       
-      // Si c'est un vrai PDF, procéder normalement
       const pdfBytes = await response.arrayBuffer();
-      const pdfDoc = await PDFDocument.load(pdfBytes);
+      return await processFormPDF(pdfBytes, formData, schemeImageDataUrl);
       
-      // Appel des fonctions spécialisées pour remplir les différentes parties du PDF
-      await fillBasicInfo(pdfDoc, formData);
-      await fillVehicleInfo(pdfDoc, formData);
-      await fillDescription(pdfDoc, formData);
-      
-      // Ajouter le schéma de l'accident si disponible
-      if (schemeImageDataUrl) {
-        await addSchemeToDocument(pdfDoc, schemeImageDataUrl);
-      }
-      
-      // Générer le document final
-      const pdfBytesModified = await pdfDoc.save();
-      
-      // Créer un Blob et une URL pour le téléchargement
-      const blob = new Blob([pdfBytesModified], { type: 'application/pdf' });
-      const url = URL.createObjectURL(blob);
-      
-      console.log("Génération du CERFA terminée avec succès");
-      return url;
     } catch (pdfError) {
       console.error("Erreur lors du traitement du PDF:", pdfError);
       // En cas d'erreur, générer un PDF de secours
@@ -65,6 +52,33 @@ export const generateCerfaPDF = async (formData: FormData, schemeImageDataUrl: s
     throw new Error(`Erreur lors de la génération du CERFA: ${error.message}`);
   }
 };
+
+/**
+ * Traite le PDF du formulaire et y ajoute les données
+ */
+async function processFormPDF(pdfBytes: ArrayBuffer, formData: FormData, schemeImageDataUrl: string | null): Promise<string> {
+  const pdfDoc = await PDFDocument.load(pdfBytes);
+  
+  // Appel des fonctions spécialisées pour remplir les différentes parties du PDF
+  await fillBasicInfo(pdfDoc, formData);
+  await fillVehicleInfo(pdfDoc, formData);
+  await fillDescription(pdfDoc, formData);
+  
+  // Ajouter le schéma de l'accident si disponible
+  if (schemeImageDataUrl) {
+    await addSchemeToDocument(pdfDoc, schemeImageDataUrl);
+  }
+  
+  // Générer le document final
+  const pdfBytesModified = await pdfDoc.save();
+  
+  // Créer un Blob et une URL pour le téléchargement
+  const blob = new Blob([pdfBytesModified], { type: 'application/pdf' });
+  const url = URL.createObjectURL(blob);
+  
+  console.log("Génération du CERFA terminée avec succès");
+  return url;
+}
 
 /**
  * Remplit les informations de base du constat (date, heure, lieu)
@@ -80,10 +94,12 @@ async function fillBasicInfo(pdfDoc: PDFDocument, formData: FormData) {
   const fontSize = 10;
   const textColor = rgb(0, 0, 0);
   
+  // Coordonnées adaptées au formulaire officiel de constat amiable
+  
   // Remplir la date et heure de l'accident
   page.drawText(`${formData.date} à ${formData.time}`, {
-    x: 130,
-    y: height - 120,
+    x: 155,
+    y: height - 123,
     size: fontSize,
     font: helveticaFont,
     color: textColor
@@ -91,8 +107,8 @@ async function fillBasicInfo(pdfDoc: PDFDocument, formData: FormData) {
   
   // Remplir le lieu de l'accident
   page.drawText(formData.location, {
-    x: 130,
-    y: height - 155,
+    x: 150,
+    y: height - 152,
     size: fontSize,
     font: helveticaFont,
     color: textColor,
