@@ -85,7 +85,7 @@ async function addHeader(pdfDoc: PDFDocument, page: PDFPage) {
     height: height - 40,
     borderColor: rgb(0, 0, 0),
     borderWidth: 1,
-    color: rgb(1, 1, 1, 0)
+    color: rgb(1, 1, 1)
   });
 }
 
