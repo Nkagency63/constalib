@@ -73,7 +73,7 @@ export async function generatePlaceholderPDF(formData: FormData, schemeImageData
 /**
  * Add accident information to the PDF
  */
-async function addAccidentInfo(pdfDoc: PDFDocument, page: PDFDocument.PDFPage, formData: FormData) {
+async function addAccidentInfo(pdfDoc: PDFDocument, page: PDFDocument["Page"], formData: FormData) {
   const helvetica = await pdfDoc.embedFont(StandardFonts.Helvetica);
   const helveticaBold = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
   const { height } = page.getSize();
@@ -115,7 +115,7 @@ async function addAccidentInfo(pdfDoc: PDFDocument, page: PDFDocument.PDFPage, f
 /**
  * Add vehicle information to the PDF
  */
-async function addVehicleInfo(pdfDoc: PDFDocument, page: PDFDocument.PDFPage, formData: FormData) {
+async function addVehicleInfo(pdfDoc: PDFDocument, page: PDFDocument["Page"], formData: FormData) {
   const helvetica = await pdfDoc.embedFont(StandardFonts.Helvetica);
   const helveticaBold = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
   const { height } = page.getSize();
@@ -216,7 +216,7 @@ async function addVehicleInfo(pdfDoc: PDFDocument, page: PDFDocument.PDFPage, fo
 /**
  * Add circumstances and description to the PDF
  */
-async function addCircumstancesAndDescription(pdfDoc: PDFDocument, page: PDFDocument.PDFPage, formData: FormData) {
+async function addCircumstancesAndDescription(pdfDoc: PDFDocument, page: PDFDocument["Page"], formData: FormData) {
   const helvetica = await pdfDoc.embedFont(StandardFonts.Helvetica);
   const helveticaBold = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
   const { height } = page.getSize();

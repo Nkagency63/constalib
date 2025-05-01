@@ -4,7 +4,6 @@
  */
 import { PDFDocument, rgb, StandardFonts } from 'pdf-lib';
 import { FormData } from "@/components/accident/types";
-import { toast } from "sonner";
 
 /**
  * Core process for generating a PDF document with form data
@@ -136,18 +135,9 @@ export async function fillBasicInfo(pdfDoc: PDFDocument, formData: FormData) {
 }
 
 /**
- * Exports the required functions for use in other modules
- */
-export {
-  fillBasicInfo,
-  fillVehicleInfo,
-  fillDescription
-};
-
-/**
  * Fills vehicle information in PDF
  */
-async function fillVehicleInfo(pdfDoc: PDFDocument, formData: FormData) {
+export async function fillVehicleInfo(pdfDoc: PDFDocument, formData: FormData) {
   const helveticaFont = await pdfDoc.embedFont(StandardFonts.Helvetica);
   
   const page = pdfDoc.getPages()[0];
@@ -238,7 +228,7 @@ async function fillVehicleInfo(pdfDoc: PDFDocument, formData: FormData) {
 /**
  * Fills description and circumstances in PDF
  */
-async function fillDescription(pdfDoc: PDFDocument, formData: FormData) {
+export async function fillDescription(pdfDoc: PDFDocument, formData: FormData) {
   const helveticaFont = await pdfDoc.embedFont(StandardFonts.Helvetica);
   
   const page = pdfDoc.getPages()[0];
