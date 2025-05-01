@@ -5,7 +5,7 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { downloadPDF } from "@/utils/downloadUtils";
 import { FormData, SchemeData } from "./types";
-import { generateCerfaPDF } from "@/utils/cerfaGeneration";
+import { generateCerfaPDF } from "@/utils/cerfa";
 import html2canvas from "html2canvas";
 
 interface CerfaGenerationButtonProps {
