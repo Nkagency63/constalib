@@ -1,53 +1,43 @@
 
-import { useState, useEffect } from 'react';
-import { useToast } from '@/hooks/use-toast';
-import { toast as sonnerToast } from 'sonner';
-import { SchemeData } from '../../types';
-import { useVehicles } from '../../hooks/useVehicles';
-import { usePaths } from '../../hooks/usePaths';
-import { useAnnotations } from '../../hooks/useAnnotations';
-import { useSchemeHistory } from '../../hooks/useSchemeHistory';
+import { useState, useRef, useCallback } from 'react';
+import L from 'leaflet';
+import { SchemeData, Vehicle, Path, Annotation } from '../../types';
 
-export const useSchemeState = (
-  formData: any, 
-  onUpdateSchemeData: (data: SchemeData) => void, 
-  readOnly: boolean
-) => {
-  // Custom hooks
-  const { toast } = useToast();
+interface UseSchemeStateProps {
+  formData: any;
+  onUpdateSchemeData: (data: SchemeData) => void;
+}
+
+export const useSchemeState = ({ formData, onUpdateSchemeData }: UseSchemeStateProps) => {
+  // Map references
+  const mapRef = useRef<L.Map | null>(null);
+  const drawingLayerRef = useRef<L.LayerGroup | null>(null);
   
-  const { 
-    vehicles, selectedVehicle, addVehicle, removeVehicle, 
-    selectVehicle, setVehicles, rotateVehicle, changeVehicleType,
-    currentVehicleType
-  } = useVehicles();
+  // Get default center coordinates from formData or use Paris as default
+  const center: [number, number] = formData?.geolocation?.lat && formData?.geolocation?.lng
+    ? [formData.geolocation.lat, formData.geolocation.lng]
+    : [48.8566, 2.3522];
   
-  const {
-    paths, setPaths, currentPathPoints, isDrawing,
-    startPath, continuePath, completePath, resetPath
-  } = usePaths();
-  
-  const {
-    annotations, setAnnotations, addAnnotation,
-    updateAnnotation, removeAnnotation
-  } = useAnnotations();
-  
-  const { 
-    saveToHistory, handleUndo, handleRedo, canUndo, canRedo 
-  } = useSchemeHistory();
-  
-  // Local state
+  // State for scheme elements
+  const [vehicles, setVehicles] = useState<Vehicle[]>([]);
+  const [paths, setPaths] = useState<Path[]>([]);
+  const [annotations, setAnnotations] = useState<Annotation[]>([]);
+  const [selectedVehicle, setSelectedVehicle] = useState<string | null>(null);
   const [currentTool, setCurrentTool] = useState<'select' | 'vehicle' | 'path' | 'annotation'>('select');
+  
+  // State for map initialization
   const [isMapReady, setIsMapReady] = useState(false);
-  const [showGuidesFirstTime, setShowGuidesFirstTime] = useState(true);
-  const [lastUpdateTime, setLastUpdateTime] = useState(0); // Pour limiter la fréquence des mises à jour
   const [mapInitialized, setMapInitialized] = useState(false);
-
-  // Update scheme data when state changes - avec limitation de fréquence
-  useEffect(() => {
+  
+  // State for feedback and UI
+  const [showGuidesFirstTime, setShowGuidesFirstTime] = useState(true);
+  const [lastUpdateTime, setLastUpdateTime] = useState(0);
+  
+  // Handle scheme data updates with frequency limitation
+  const updateSchemeData = useCallback(() => {
     if (onUpdateSchemeData && mapRef.current) {
       const now = Date.now();
-      // Limiter les mises à jour à une fois toutes les 2 secondes
+      // Limit updates to once every 2 seconds
       if (now - lastUpdateTime > 2000) {
         const schemeData: SchemeData = {
           vehicles,
@@ -63,46 +53,46 @@ export const useSchemeState = (
         setLastUpdateTime(now);
       }
     }
-  }, [vehicles, paths, annotations, onUpdateSchemeData]);
-
-  const isEmpty = vehicles.length === 0;
-
+  }, [vehicles, paths, annotations, onUpdateSchemeData, lastUpdateTime, center]);
+  
+  // Handle map ready event
+  const handleMapReady = useCallback((map: L.Map) => {
+    mapRef.current = map;
+    setIsMapReady(true);
+    setMapInitialized(true);
+  }, []);
+  
   return {
+    // Map references
+    mapRef,
+    drawingLayerRef,
+    
+    // Map state
+    center,
+    isMapReady,
+    mapInitialized,
+    
+    // Scheme elements
     vehicles,
-    selectedVehicle,
-    addVehicle,
-    removeVehicle,
-    selectVehicle,
     setVehicles,
-    rotateVehicle,
-    changeVehicleType,
-    currentVehicleType,
     paths,
     setPaths,
-    currentPathPoints,
-    isDrawing,
-    startPath,
-    continuePath,
-    completePath,
     annotations,
     setAnnotations,
-    addAnnotation,
-    updateAnnotation,
-    removeAnnotation,
-    saveToHistory,
-    handleUndo,
-    handleRedo,
-    canUndo,
-    canRedo,
+    selectedVehicle,
+    setSelectedVehicle,
+    
+    // UI state
     currentTool,
     setCurrentTool,
-    isMapReady,
-    setIsMapReady,
     showGuidesFirstTime,
     setShowGuidesFirstTime,
-    mapInitialized,
+    
+    // Handlers
+    handleMapReady,
+    updateSchemeData,
+    setIsMapReady,
     setMapInitialized,
-    isEmpty,
-    toast
+    setLastUpdateTime
   };
 };
