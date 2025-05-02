@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import ProgressBar from './accident/ProgressBar';
 import StepNavigation from './accident/StepNavigation';
@@ -104,7 +105,7 @@ const AccidentForm = ({ onEmergencyRequest, onStepChange }: AccidentFormProps) =
         <StepNavigation 
           prevStep={prevStep}
           nextStep={nextStep}
-          handleSubmit={(e) => e.preventDefault()}
+          handleSubmit={async (e) => e.preventDefault()}
           currentStepIndex={currentStepIndex}
           totalSteps={accidentFormSteps.length}
           isSubmitting={false}
