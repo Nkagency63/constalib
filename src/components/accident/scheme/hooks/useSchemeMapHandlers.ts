@@ -1,7 +1,7 @@
 
 import { useState, useCallback } from 'react';
 import { useToast } from '@/hooks/use-toast'; 
-import { sonnerToast } from 'sonner';
+import { toast as sonnerToast } from 'sonner';
 import { SchemeData } from '../../types';
 import { useSchemeMap } from '../../hooks/useSchemeMap';
 import { handleMapClick } from '../SchemeMapHandlers';
