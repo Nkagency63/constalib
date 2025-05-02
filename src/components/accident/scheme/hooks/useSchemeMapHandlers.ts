@@ -1,7 +1,7 @@
 
 import { useState, useCallback } from 'react';
 import { useToast } from '@/hooks/use-toast'; 
-import { toast as sonnerToast } from 'sonner';
+import { toast } from 'sonner';
 import { SchemeData } from '../../types';
 import { useSchemeMap } from '../../hooks/useSchemeMap';
 import { handleMapClick } from '../SchemeMapHandlers';
@@ -28,7 +28,7 @@ export const useSchemeMapHandlers = (
   setMapInitialized: (initialized: boolean) => void,
   showGuidesFirstTime: boolean
 ) => {
-  const { toast } = useToast();
+  const { toast: uiToast } = useToast();
   
   // Get default center coordinates from formData or use Paris as default
   const center: [number, number] = formData?.geolocation?.lat && formData?.geolocation?.lng
@@ -53,7 +53,7 @@ export const useSchemeMapHandlers = (
       setTimeout(() => centerOnVehicles(vehicles), 300);
     } else if (showGuidesFirstTime) {
       // Pour les nouveaux utilisateurs, montrer un toast de bienvenue
-      toast({
+      uiToast({
         title: "Bienvenue sur l'éditeur de schéma d'accident",
         description: "Utilisez les outils sur la gauche pour créer votre schéma. Commencez par ajouter un véhicule.",
         duration: 6000,
@@ -113,7 +113,7 @@ export const useSchemeMapHandlers = (
         
         // Afficher un toast de guidance après l'ajout du premier véhicule
         if (updatedVehicles.length === 1) {
-          toast({
+          uiToast({
             title: "Véhicule ajouté",
             description: "Vous pouvez maintenant le déplacer ou le faire pivoter. Utilisez l'outil trajectoire pour tracer son parcours.",
             duration: 5000,
@@ -123,7 +123,7 @@ export const useSchemeMapHandlers = (
         console.error("Failed to add vehicle from toolbar");
       }
     } else {
-      sonnerToast.warning("Maximum de 4 véhicules atteint");
+      toast.warning("Maximum de 4 véhicules atteint");
     }
   }, [mapRef, vehicles, addVehicle, paths, annotations, saveToHistory, centerOnVehicles]);
 

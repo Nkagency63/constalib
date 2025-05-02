@@ -96,22 +96,21 @@ const AccidentForm = ({ onEmergencyRequest, onStepChange }: AccidentFormProps) =
         />
       </form>
       
-      <FormSubmissionHandler 
-        formData={formData} 
-        onSubmitSuccess={() => setSubmitted(true)}
-      >
-        {({ handleSubmit, isSubmitting }) => (
-          <StepNavigation 
-            prevStep={prevStep}
-            nextStep={nextStep}
-            handleSubmit={handleSubmit}
-            currentStepIndex={currentStepIndex}
-            totalSteps={accidentFormSteps.length}
-            isSubmitting={isSubmitting}
-            onEmergencyRequest={onEmergencyRequest}
-          />
-        )}
-      </FormSubmissionHandler>
+      {currentStep.id === "review" ? (
+        <FormSubmissionHandler 
+          formData={formData} 
+          onSubmitSuccess={() => setSubmitted(true)}
+        />
+      ) : (
+        <StepNavigation 
+          prevStep={prevStep}
+          nextStep={nextStep}
+          currentStepIndex={currentStepIndex}
+          totalSteps={accidentFormSteps.length}
+          isSubmitting={false}
+          onEmergencyRequest={onEmergencyRequest}
+        />
+      )}
     </div>
   );
 };

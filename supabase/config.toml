@@ -6,41 +6,13 @@ enabled = true
 port = 54321
 schemas = ["public", "storage", "graphql_public"]
 
+[functions]
+[functions.register-accident-report]
+verify_jwt = true
+[functions.send-official-report-confirmation]
+verify_jwt = true
+
 [db]
 port = 54322
-
-[realtime]
-enabled = true
-
-[studio]
-enabled = true
-port = 54323
-
-[inbucket]
-enabled = true
-port = 54324
-
-[auth]
-enabled = true
-site_url = "http://localhost:3000"
-
-[storage]
-enabled = true
-
-[functions.geocode-location]
-verify_jwt = false
-
-[functions.lookup-vehicle]
-verify_jwt = false
-
-[functions.lookup-insurance]
-verify_jwt = false
-
-[functions.lookup-fva]
-verify_jwt = false
-
-[functions.send-accident-report]
-verify_jwt = false
-
-[functions.lookup-fni]
-verify_jwt = false
+shadow_port = 54320
+major_version = 15

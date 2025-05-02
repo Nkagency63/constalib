@@ -2,12 +2,13 @@
 import { useState } from 'react';
 import { FormData } from './types';
 import { useToast } from '@/hooks/use-toast';
-import { toast as sonnerToast } from 'sonner';
+import { toast } from 'sonner';
 import { saveVehicleData, uploadPhotos, saveAccidentReport, sendEmails } from '@/services/accidentReportService';
+import AccidentReportSubmitButton from './AccidentReportSubmitButton';
 
 interface FormSubmissionHandlerProps {
   formData: FormData;
-  children: (props: {
+  children?: (props: {
     handleSubmit: (e: React.FormEvent) => Promise<void>;
     isSubmitting: boolean;
   }) => React.ReactNode;
@@ -20,10 +21,10 @@ const FormSubmissionHandler = ({
   onSubmitSuccess 
 }: FormSubmissionHandlerProps) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const { toast } = useToast();
+  const { toast: uiToast } = useToast();
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+    e?.preventDefault();
     setIsSubmitting(true);
     
     try {
@@ -63,14 +64,14 @@ const FormSubmissionHandler = ({
       if (data && data[0] && (formData.personalEmail || formData.insuranceEmails.length > 0 || formData.involvedPartyEmails.length > 0)) {
         try {
           await sendEmails(data[0].id, formData);
-          toast({
+          uiToast({
             title: "Emails envoyés",
             description: "Le constat a été envoyé par email aux destinataires spécifiés.",
             variant: "default"
           });
         } catch (emailError: any) {
           console.error("Error sending emails:", emailError);
-          toast({
+          uiToast({
             title: "Alerte",
             description: `La déclaration a été enregistrée mais l'envoi des emails a échoué: ${emailError.message}`,
             variant: "destructive"
@@ -78,28 +79,38 @@ const FormSubmissionHandler = ({
         }
       }
       
-      toast({
+      uiToast({
         title: "Succès",
         description: "Votre déclaration a été envoyée avec succès.",
         variant: "default"
       });
-      sonnerToast.success("Votre déclaration a été envoyée avec succès.");
+      toast.success("Votre déclaration a été envoyée avec succès.");
       onSubmitSuccess();
     } catch (err: any) {
       console.error('Error in submission process:', err);
-      toast({
+      uiToast({
         title: "Erreur",
         description: err.message || "Une erreur est survenue lors de la soumission de votre déclaration.",
         variant: "destructive"
       });
-      sonnerToast.error("Une erreur est survenue lors de la soumission de votre déclaration.");
+      toast.error("Une erreur est survenue lors de la soumission de votre déclaration.");
     } finally {
       setIsSubmitting(false);
     }
   };
 
+  // If children prop is provided, use it for custom rendering
+  if (children) {
+    return <>{children({ handleSubmit, isSubmitting })}</>;
+  }
+
+  // Default submit button
   return (
-    <>{children({ handleSubmit, isSubmitting })}</>
+    <AccidentReportSubmitButton
+      formData={formData}
+      submitReport={handleSubmit}
+      isSubmitting={isSubmitting}
+    />
   );
 };
 
