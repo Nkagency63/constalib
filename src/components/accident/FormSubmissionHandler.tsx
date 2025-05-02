@@ -9,7 +9,7 @@ import AccidentReportSubmitButton from './AccidentReportSubmitButton';
 interface FormSubmissionHandlerProps {
   formData: FormData;
   children?: (props: {
-    handleSubmit: (e: React.FormEvent) => Promise<void>;
+    handleSubmit: (e?: React.FormEvent) => Promise<void>;  // Make the event parameter optional
     isSubmitting: boolean;
   }) => React.ReactNode;
   onSubmitSuccess: () => void;
@@ -23,8 +23,8 @@ const FormSubmissionHandler = ({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast: uiToast } = useToast();
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e?.preventDefault();
+  const handleSubmit = async (e?: React.FormEvent) => {  // Make the event parameter optional
+    if (e) e.preventDefault();  // Only call preventDefault if e exists
     setIsSubmitting(true);
     
     try {
