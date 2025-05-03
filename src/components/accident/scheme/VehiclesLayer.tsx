@@ -2,8 +2,6 @@
 import React, { useEffect } from 'react';
 import { Marker, useMap } from 'react-leaflet';
 import { createCarIcon } from '@/utils/mapIcons';
-import { Tooltip } from '@/components/ui/tooltip';
-import { TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { Vehicle } from '../types';
 import { ArrowLeft, ArrowRight, ArrowUp, ArrowDown, Trash2, Car, Truck, Bike } from 'lucide-react';
 
@@ -63,21 +61,13 @@ const VehiclesLayer = ({
           }}
           draggable={!readOnly}
         >
-          <Tooltip>
-            <TooltipContent>
-              <div className="p-2">
-                <p className="font-medium">{`Véhicule ${vehicle.vehicleId}`}</p>
-                {vehicle.brand && vehicle.model && (
-                  <p className="text-sm text-gray-600">{`${vehicle.brand} ${vehicle.model}`}</p>
-                )}
-                <p className="text-xs text-gray-500 mt-1">
-                  {vehicle.vehicleType === 'car' && 'Voiture'}
-                  {vehicle.vehicleType === 'truck' && 'Camion'}
-                  {vehicle.vehicleType === 'bike' && 'Moto'}
-                </p>
-              </div>
-            </TooltipContent>
-          </Tooltip>
+          {/* Tooltip temporairement remplacé par un popup simple */}
+          {vehicle.vehicleId && (
+            <div className="sr-only">
+              Véhicule {vehicle.vehicleId}
+              {vehicle.brand && vehicle.model && ` (${vehicle.brand} ${vehicle.model})`}
+            </div>
+          )}
         </Marker>
       ))}
 

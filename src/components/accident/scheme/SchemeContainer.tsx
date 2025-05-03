@@ -1,6 +1,5 @@
 
 import React, { useState, useEffect } from 'react';
-import { TooltipProvider } from '@/components/ui/tooltip';
 import { SchemeData } from '../types';
 import { useVehicles } from '../hooks/useVehicles';
 import { usePaths } from '../hooks/usePaths';
@@ -10,6 +9,7 @@ import { useKeyboardControls } from '../hooks/useKeyboardControls';
 import SchemeMapWrapper from './components/SchemeMapWrapper';
 import SchemeToolbars from './components/SchemeToolbars';
 import { useSchemeMapHandlers } from './hooks/useSchemeMapHandlers';
+import { TooltipProvider } from '@/components/ui/tooltip';
 
 interface SchemeContainerProps {
   formData: any;
@@ -133,48 +133,50 @@ const SchemeContainer = ({
   };
 
   return (
-    <div className="relative rounded-lg overflow-hidden shadow-md border border-gray-200">
-      <SchemeToolbars
-        readOnly={readOnly}
-        currentTool={currentTool}
-        setCurrentTool={setCurrentTool}
-        onAddVehicle={handleAddVehicle}
-        canUndo={canUndo}
-        canRedo={canRedo}
-        vehicles={vehicles}
-        paths={paths}
-        annotations={annotations}
-        handleUndo={handleUndo}
-        handleRedo={handleRedo}
-        setVehicles={setVehicles}
-        setPaths={setPaths}
-        setAnnotations={setAnnotations}
-        centerOnVehicles={centerOnVehicles}
-        mapRef={mapRef}
-        currentVehicleType={currentVehicleType}
-        onChangeVehicleType={changeVehicleType}
-      />
+    <TooltipProvider>
+      <div className="relative rounded-lg overflow-hidden shadow-md border border-gray-200">
+        <SchemeToolbars
+          readOnly={readOnly}
+          currentTool={currentTool}
+          setCurrentTool={setCurrentTool}
+          onAddVehicle={handleAddVehicle}
+          canUndo={canUndo}
+          canRedo={canRedo}
+          vehicles={vehicles}
+          paths={paths}
+          annotations={annotations}
+          handleUndo={handleUndo}
+          handleRedo={handleRedo}
+          setVehicles={setVehicles}
+          setPaths={setPaths}
+          setAnnotations={setAnnotations}
+          centerOnVehicles={centerOnVehicles}
+          mapRef={mapRef}
+          currentVehicleType={currentVehicleType}
+          onChangeVehicleType={changeVehicleType}
+        />
 
-      <SchemeMapWrapper
-        center={center}
-        vehicles={vehicles}
-        paths={paths}
-        annotations={annotations}
-        currentPathPoints={currentPathPoints}
-        drawingLayerRef={drawingLayerRef}
-        selectedVehicle={selectedVehicle}
-        currentTool={currentTool}
-        isEmpty={isEmpty}
-        readOnly={readOnly}
-        onVehicleSelect={selectVehicle}
-        onRemoveVehicle={removeVehicle}
-        onRotateVehicle={rotateVehicle}
-        onChangeVehicleType={changeVehicleType}
-        onRemoveAnnotation={removeAnnotation}
-        onUpdateAnnotation={updateAnnotation}
-        onMapReady={handleMapReady}
-      />
-    </div>
+        <SchemeMapWrapper
+          center={center}
+          vehicles={vehicles}
+          paths={paths}
+          annotations={annotations}
+          currentPathPoints={currentPathPoints}
+          drawingLayerRef={drawingLayerRef}
+          selectedVehicle={selectedVehicle}
+          currentTool={currentTool}
+          isEmpty={isEmpty}
+          readOnly={readOnly}
+          onVehicleSelect={selectVehicle}
+          onRemoveVehicle={removeVehicle}
+          onRotateVehicle={rotateVehicle}
+          onChangeVehicleType={changeVehicleType}
+          onRemoveAnnotation={removeAnnotation}
+          onUpdateAnnotation={updateAnnotation}
+          onMapReady={handleMapReady}
+        />
+      </div>
+    </TooltipProvider>
   );
 };
 

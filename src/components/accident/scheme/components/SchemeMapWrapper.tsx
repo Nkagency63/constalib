@@ -48,8 +48,8 @@ const SchemeMapWrapper: React.FC<SchemeMapWrapperProps> = ({
   onMapReady
 }) => {
   return (
-    <TooltipProvider>
-      <div className="relative rounded-lg overflow-hidden shadow-md border border-gray-200">
+    <div className="relative rounded-lg overflow-hidden shadow-md border border-gray-200">
+      <TooltipProvider>
         <MapContainer 
           center={center}
           zoom={17}
@@ -95,8 +95,8 @@ const SchemeMapWrapper: React.FC<SchemeMapWrapperProps> = ({
           annotationCount={annotations.length}
           isEmpty={isEmpty}
         />
-      </div>
-    </TooltipProvider>
+      </TooltipProvider>
+    </div>
   );
 };
 
