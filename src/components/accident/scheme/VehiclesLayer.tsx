@@ -61,7 +61,7 @@ const VehiclesLayer = ({
           }}
           draggable={!readOnly}
         >
-          {/* Tooltip temporairement remplacé par un popup simple */}
+          {/* Information du véhicule accessible par les lecteurs d'écran */}
           {vehicle.vehicleId && (
             <div className="sr-only">
               Véhicule {vehicle.vehicleId}

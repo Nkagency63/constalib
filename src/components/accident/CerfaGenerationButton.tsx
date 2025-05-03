@@ -26,12 +26,16 @@ const CerfaGenerationButton = ({ formData, className = "" }: CerfaGenerationButt
         return null;
       }
 
+      // Attendre que la carte soit complètement chargée
+      await new Promise(resolve => setTimeout(resolve, 300));
+
       // Capturer le schéma comme une image
       const canvas = await html2canvas(schemeContainer, {
         useCORS: true,
         allowTaint: true,
         backgroundColor: "#ffffff",
         scale: 2, // Meilleure qualité
+        logging: true, // Activer les logs pour déboguer
       });
       
       // Convertir le canvas en dataURL
@@ -46,9 +50,12 @@ const CerfaGenerationButton = ({ formData, className = "" }: CerfaGenerationButt
     setIsGenerating(true);
     try {
       // Capturer le schéma comme une image
+      console.log("Capture du schéma...");
       const schemeImageDataUrl = await captureSchemeImage();
+      console.log("Schéma capturé:", schemeImageDataUrl ? "Oui" : "Non");
       
       // Utilisation de la fonction de génération du CERFA avec les données du formulaire et l'image du schéma
+      console.log("Génération du PDF...");
       const pdfUrl = await generateCerfaPDF(formData, schemeImageDataUrl);
       
       // Téléchargement du PDF généré
