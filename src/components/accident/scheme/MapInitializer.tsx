@@ -12,26 +12,21 @@ const MapInitializer = ({ onMapReady }: MapInitializerProps) => {
   
   useEffect(() => {
     if (map) {
-      // Use requestAnimationFrame to ensure the DOM is fully rendered
-      // before initializing the map, which helps prevent the "s is undefined" error
-      requestAnimationFrame(() => {
+      // Delay initialization to ensure DOM is ready
+      setTimeout(() => {
         try {
           // Make sure all existing event listeners are cleared to prevent memory leaks
           map.off();
           
-          // Ensure zoom controls are properly initialized before trying to remove them
-          // This prevents the "s is undefined" error which occurs when trying to 
-          // access properties of controls that aren't properly initialized
-          if (map.zoomControl) {
-            map.removeControl(map.zoomControl);
-          }
+          // Don't try to remove zoom controls - they're disabled at creation time now
+          // Just initialize the map without modifying controls
           
           // Call onMapReady with the map object only after ensuring it's properly set up
           onMapReady(map);
         } catch (error) {
           console.error("Error initializing map:", error);
         }
-      });
+      }, 100); // Small delay to ensure rendering is complete
     }
     
     return () => {
