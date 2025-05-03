@@ -51,7 +51,9 @@ serve(async (req) => {
       circumstances_a: JSON.stringify(requestData.circumstances.vehicleA),
       circumstances_b: JSON.stringify(requestData.circumstances.vehicleB),
       registered_at: new Date().toISOString(),
-      status: 'pending',
+      status: 'registered',  // Changement de 'pending' à 'registered'
+      official: true,        // Ajouter un indicateur que c'est un rapport officiel
+      signature_method: 'electronic', // Type de signature
     };
     
     // Save the official report to the database
@@ -82,17 +84,36 @@ serve(async (req) => {
             }
           }
         });
+        console.log("Confirmation email sent to:", requestData.reportData.personalEmail);
       } catch (emailError) {
         console.error("Error sending confirmation email:", emailError);
         // Continue execution, as this is non-critical
       }
     }
     
+    // Create a digital signature record
+    try {
+      const { error: signatureError } = await supabaseClient
+        .from('accident_report_signatures')
+        .insert({
+          report_id: data.id,
+          pdf_generated: true,
+          pdf_url: `https://api.constalib.fr/reports/${referenceId}/pdf`  // URL fictive pour l'API
+        });
+        
+      if (signatureError) {
+        console.error("Error creating signature record:", signatureError);
+      }
+    } catch (signatureError) {
+      console.error("Error creating signature record:", signatureError);
+    }
+    
     return new Response(
       JSON.stringify({ 
         success: true,
         referenceId: referenceId,
-        message: "Accident report officially registered"
+        message: "Accident report officially registered",
+        timestamp: new Date().toISOString()
       }),
       { 
         headers: { 

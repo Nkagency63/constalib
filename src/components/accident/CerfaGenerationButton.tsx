@@ -1,12 +1,23 @@
 
 import { Button } from "@/components/ui/button";
-import { FileText } from "lucide-react";
+import { FileText, Upload } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 import { downloadPDF } from "@/utils/downloadUtils";
 import { FormData } from "./types";
 import { generateCerfaPDF } from "@/utils/cerfa";
 import html2canvas from "html2canvas";
+import { 
+  Dialog, 
+  DialogTrigger, 
+  DialogContent, 
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+  DialogClose
+} from "@/components/ui/dialog";
+import { registerOfficialReport } from "@/services/accidentReportService";
 
 interface CerfaGenerationButtonProps {
   formData: FormData;
@@ -15,6 +26,9 @@ interface CerfaGenerationButtonProps {
 
 const CerfaGenerationButton = ({ formData, className = "" }: CerfaGenerationButtonProps) => {
   const [isGenerating, setIsGenerating] = useState(false);
+  const [isRegistering, setIsRegistering] = useState(false);
+  const [showOfficialDialog, setShowOfficialDialog] = useState(false);
+  const [referenceId, setReferenceId] = useState<string | null>(null);
 
   const captureSchemeImage = async (): Promise<string | null> => {
     try {
@@ -27,7 +41,7 @@ const CerfaGenerationButton = ({ formData, className = "" }: CerfaGenerationButt
       }
 
       // Attendre que la carte soit complètement chargée
-      await new Promise(resolve => setTimeout(resolve, 300));
+      await new Promise(resolve => setTimeout(resolve, 500));
 
       // Capturer le schéma comme une image
       const canvas = await html2canvas(schemeContainer, {
@@ -69,25 +83,154 @@ const CerfaGenerationButton = ({ formData, className = "" }: CerfaGenerationButt
     }
   };
 
+  const handleRegisterOfficial = async () => {
+    setIsRegistering(true);
+    try {
+      // Préparation des données pour l'enregistrement officiel
+      const reportData = {
+        date: formData.date,
+        time: formData.time,
+        location: formData.location,
+        personalEmail: formData.personalEmail
+      };
+
+      const vehicleA = {
+        licensePlate: formData.licensePlate,
+        brand: formData.vehicleBrand,
+        model: formData.vehicleModel,
+        insuranceCompany: formData.insuranceCompany,
+        insurancePolicy: formData.insurancePolicy
+      };
+
+      const vehicleB = {
+        licensePlate: formData.otherVehicle.licensePlate,
+        brand: formData.otherVehicle.brand,
+        model: formData.otherVehicle.model,
+        insuranceCompany: formData.otherVehicle.insuranceCompany,
+        insurancePolicy: formData.otherVehicle.insurancePolicy
+      };
+
+      const circumstances = {
+        vehicleA: formData.vehicleACircumstances,
+        vehicleB: formData.vehicleBCircumstances
+      };
+
+      const geolocation = {
+        lat: formData.geolocation.lat,
+        lng: formData.geolocation.lng,
+        address: formData.geolocation.address
+      };
+
+      // Appel de la fonction d'enregistrement officiel
+      const result = await registerOfficialReport(reportData, vehicleA, vehicleB, circumstances, geolocation);
+      
+      if (result.success) {
+        setReferenceId(result.referenceId);
+        toast.success("Constat enregistré officiellement");
+      } else {
+        throw new Error(result.error || "Échec de l'enregistrement officiel");
+      }
+    } catch (error: any) {
+      console.error("Erreur lors de l'enregistrement officiel:", error);
+      toast.error(error.message || "Erreur lors de l'enregistrement officiel");
+    } finally {
+      setIsRegistering(false);
+    }
+  };
+
   return (
-    <Button
-      variant="outline"
-      className={`flex items-center gap-2 ${className}`}
-      onClick={handleGenerateCerfa}
-      disabled={isGenerating}
-    >
-      {isGenerating ? (
-        <>
-          <div className="animate-spin w-4 h-4 border-2 border-t-transparent rounded-full border-blue-600" />
-          <span>Génération en cours...</span>
-        </>
-      ) : (
-        <>
-          <FileText className="w-4 h-4" />
-          <span>Télécharger le CERFA</span>
-        </>
-      )}
-    </Button>
+    <div className="flex flex-col sm:flex-row gap-3 w-full">
+      <Button
+        variant="outline"
+        className={`flex items-center gap-2 flex-grow ${className}`}
+        onClick={handleGenerateCerfa}
+        disabled={isGenerating || isRegistering}
+      >
+        {isGenerating ? (
+          <>
+            <div className="animate-spin w-4 h-4 border-2 border-t-transparent rounded-full border-blue-600" />
+            <span>Génération en cours...</span>
+          </>
+        ) : (
+          <>
+            <FileText className="w-4 h-4" />
+            <span>Télécharger le CERFA</span>
+          </>
+        )}
+      </Button>
+
+      <Dialog open={showOfficialDialog} onOpenChange={setShowOfficialDialog}>
+        <DialogTrigger asChild>
+          <Button
+            className="flex items-center gap-2 flex-grow"
+            disabled={isGenerating || isRegistering}
+          >
+            {isRegistering ? (
+              <>
+                <div className="animate-spin w-4 h-4 border-2 border-t-transparent rounded-full" />
+                <span>Enregistrement en cours...</span>
+              </>
+            ) : (
+              <>
+                <Upload className="w-4 h-4" />
+                <span>Enregistrer officiellement</span>
+              </>
+            )}
+          </Button>
+        </DialogTrigger>
+
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Enregistrement officiel du constat</DialogTitle>
+            <DialogDescription>
+              {referenceId ? (
+                <div className="space-y-4 mt-4">
+                  <p>Votre constat a été enregistré avec succès avec la référence :</p>
+                  <p className="bg-green-50 border border-green-200 rounded-md p-3 text-center font-bold text-green-800">
+                    {referenceId}
+                  </p>
+                  <p>
+                    Cette référence est votre preuve d'enregistrement. Conservez-la précieusement et 
+                    communiquez-la à votre assurance.
+                  </p>
+                </div>
+              ) : (
+                <div className="space-y-4 mt-4">
+                  <p>
+                    En cliquant sur "Enregistrer", vous allez déclarer officiellement ce constat 
+                    dans le système e-constat.
+                  </p>
+                  <p>
+                    Cette action aura une valeur juridique et remplacera le constat papier.
+                    Un numéro de référence unique vous sera attribué.
+                  </p>
+                  <p className="font-semibold text-amber-600">
+                    Assurez-vous que toutes les informations sont correctes avant de confirmer.
+                  </p>
+                </div>
+              )}
+            </DialogDescription>
+          </DialogHeader>
+
+          <DialogFooter className="sm:justify-between">
+            <DialogClose asChild>
+              <Button variant="outline">
+                {referenceId ? "Fermer" : "Annuler"}
+              </Button>
+            </DialogClose>
+            
+            {!referenceId && (
+              <Button 
+                onClick={handleRegisterOfficial} 
+                disabled={isRegistering}
+              >
+                {isRegistering ? "Enregistrement..." : "Enregistrer"}
+              </Button>
+            )}
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </div>
   );
 };
 

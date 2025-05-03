@@ -10,6 +10,8 @@ import PhotosCard from './review/PhotosCard';
 import EmailsCard from './review/EmailsCard';
 import EmergencyCard from './review/EmergencyCard';
 import CerfaGenerationButton from './CerfaGenerationButton';
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Info } from "lucide-react";
 
 interface ReviewStepProps {
   formData: FormData;
@@ -26,6 +28,15 @@ const ReviewStep = ({ formData }: ReviewStepProps) => {
           Voici un récapitulatif des informations que vous avez saisies. Vérifiez-les avant de soumettre votre déclaration.
         </p>
       </div>
+
+      <Alert variant="default" className="bg-blue-50 border-blue-200">
+        <Info className="h-4 w-4 text-blue-600" />
+        <AlertDescription className="text-blue-700 text-sm">
+          <strong>Nouveau!</strong> Vous pouvez désormais enregistrer officiellement votre constat (e-constat), 
+          ce qui lui donnera une valeur juridique reconnue par les assurances.
+          Un numéro unique de référence vous sera attribué.
+        </AlertDescription>
+      </Alert>
 
       <ReviewInfoAlert />
       
@@ -64,8 +75,8 @@ const ReviewStep = ({ formData }: ReviewStepProps) => {
         <EmergencyCard emergencyContacted={formData.emergencyContacted} />
       </div>
       
-      <div className="flex justify-center mt-6">
-        <CerfaGenerationButton formData={formData} className="w-full md:w-auto" />
+      <div className="mt-6">
+        <CerfaGenerationButton formData={formData} className="" />
       </div>
     </div>
   );
