@@ -15,13 +15,12 @@ const MapInitializer = ({ onMapReady }: MapInitializerProps) => {
       // Delay initialization to ensure DOM is ready
       setTimeout(() => {
         try {
-          // Just ensure event listeners are properly initialized
-          // No need to attempt removing controls as they're disabled at creation time
-          
-          // Call onMapReady with the map object
+          // Simply pass the map object to onMapReady
+          // Avoiding any control manipulation that could cause errors
+          console.log("Map initializer: ready to call onMapReady");
           onMapReady(map);
         } catch (error) {
-          console.error("Error initializing map:", error);
+          console.error("Error in map initialization:", error);
         }
       }, 100); // Small delay to ensure rendering is complete
     }
@@ -30,6 +29,8 @@ const MapInitializer = ({ onMapReady }: MapInitializerProps) => {
       // Clean up event listeners to prevent memory leaks
       if (map) {
         try {
+          // Only clean up event listeners without touching controls
+          console.log("Map initializer: cleaning up event listeners");
           map.off();
         } catch (error) {
           console.error("Error cleaning up map:", error);

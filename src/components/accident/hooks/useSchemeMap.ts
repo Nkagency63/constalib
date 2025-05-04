@@ -19,6 +19,9 @@ export const useSchemeMap = ({ readOnly, handleMapClick, onReady }: UseSchemeMap
     
     // Configure event handlers if not readonly
     if (!readOnly && mapRef.current) {
+      // Make sure to remove any previous click handlers first
+      mapRef.current.off('click');
+      // Then add our new click handler
       mapRef.current.on('click', handleMapClick);
       console.log("Map click handler registered");
     }
