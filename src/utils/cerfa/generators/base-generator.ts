@@ -13,14 +13,17 @@ import { FormData } from "@/components/accident/types";
  * @returns Promise resolving to the URL of the generated PDF
  */
 export async function processFormPDF(pdfBytes: ArrayBuffer, formData: FormData, schemeImageDataUrl: string | null): Promise<string> {
-  console.log("Début du traitement du PDF avec les données:", { 
+  console.log("Starting PDF processing with data:", { 
     date: formData.date,
     time: formData.time,
     vehiclePlate: formData.licensePlate,
-    otherVehiclePlate: formData.otherVehicle?.licensePlate
+    otherVehiclePlate: formData.otherVehicle?.licensePlate,
+    hasCircumstances: formData.vehicleACircumstances?.length > 0
   });
   
   const pdfDoc = await PDFDocument.load(pdfBytes);
+  
+  console.log("PDF loaded successfully, starting to fill data");
   
   // Fill the PDF with data
   await fillBasicInfo(pdfDoc, formData);
@@ -30,20 +33,21 @@ export async function processFormPDF(pdfBytes: ArrayBuffer, formData: FormData, 
   
   // Add scheme image if available
   if (schemeImageDataUrl) {
-    console.log("Image du schéma disponible, ajout au PDF");
+    console.log("Scheme image available, adding to PDF");
     await addSchemeToDocument(pdfDoc, schemeImageDataUrl);
   } else {
-    console.log("Pas d'image de schéma disponible");
+    console.log("No scheme image available");
   }
   
   // Generate the final document
+  console.log("Finalizing PDF document");
   const pdfBytesModified = await pdfDoc.save();
   
   // Create a Blob and URL for download
   const blob = new Blob([pdfBytesModified], { type: 'application/pdf' });
   const url = URL.createObjectURL(blob);
   
-  console.log("Génération du PDF terminée avec succès");
+  console.log("PDF generation completed successfully");
   return url;
 }
 
@@ -52,6 +56,7 @@ export async function processFormPDF(pdfBytes: ArrayBuffer, formData: FormData, 
  */
 export async function addSchemeToDocument(pdfDoc: PDFDocument, schemeImageDataUrl: string) {
   try {
+    console.log("Starting scheme image integration");
     const helveticaFont = await pdfDoc.embedFont(StandardFonts.Helvetica);
     const helveticaBold = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
     
@@ -75,15 +80,17 @@ export async function addSchemeToDocument(pdfDoc: PDFDocument, schemeImageDataUr
     // Embed the image
     let image;
     try {
+      console.log("Attempting to embed image as PNG");
       image = await pdfDoc.embedPng(imageBytes);
     } catch (pngError) {
-      console.error("Erreur lors de l'incorporation de l'image PNG:", pngError);
+      console.error("Error embedding PNG image:", pngError);
       try {
-        // Essayer en tant que JPEG si PNG échoue
+        // Try as JPEG if PNG fails
+        console.log("Attempting to embed image as JPEG");
         image = await pdfDoc.embedJpg(imageBytes);
       } catch (jpgError) {
-        console.error("Erreur lors de l'incorporation de l'image JPG:", jpgError);
-        throw new Error("Format d'image non supporté");
+        console.error("Error embedding JPG image:", jpgError);
+        throw new Error("Unsupported image format");
       }
     }
     
@@ -113,15 +120,17 @@ export async function addSchemeToDocument(pdfDoc: PDFDocument, schemeImageDataUr
     // Add footer
     const today = new Date();
     const formattedDate = today.toLocaleDateString('fr-FR');
-    schemePage.drawText(`Schéma généré le ${formattedDate}`, {
+    schemePage.drawText(`Scheme generated on ${formattedDate}`, {
       x: margin,
       y: margin - 20,
       size: 10,
       font: helveticaFont,
       color: rgb(0.5, 0.5, 0.5)
     });
+    
+    console.log("Scheme image added to PDF successfully");
   } catch (imageError) {
-    console.error("Erreur lors de l'incorporation de l'image du schéma:", imageError);
+    console.error("Error embedding scheme image:", imageError);
   }
 }
 
@@ -133,21 +142,21 @@ export async function fillBasicInfo(pdfDoc: PDFDocument, formData: FormData) {
   
   const pages = pdfDoc.getPages();
   if (pages.length === 0) {
-    console.error("Aucune page trouvée dans le PDF");
+    console.error("No pages found in PDF");
     return;
   }
   
   const page = pages[0];
   const { width, height } = page.getSize();
   
-  console.log("Dimensions de la page:", { width, height });
+  console.log("Page dimensions:", { width, height });
   
   const fontSize = 10;
   const textColor = rgb(0, 0, 0);
   
-  // Coordonnées pour formulaire spécifique
-  // Date et heure - ajuster ces coordonnées selon le constat officiel
-  console.log("Ajout de la date et l'heure:", formData.date, formData.time);
+  // Coordinates for specific form
+  // Date and time - adjust these coordinates based on the official form
+  console.log("Adding date and time:", formData.date, formData.time);
   page.drawText(`${formData.date || ""} ${formData.time || ""}`, {
     x: 275,
     y: height - 140,
@@ -156,8 +165,8 @@ export async function fillBasicInfo(pdfDoc: PDFDocument, formData: FormData) {
     color: textColor
   });
   
-  // Lieu
-  console.log("Ajout du lieu:", formData.location);
+  // Location
+  console.log("Adding location:", formData.location);
   page.drawText(formData.location || "", {
     x: 275,
     y: height - 170,
@@ -167,7 +176,7 @@ export async function fillBasicInfo(pdfDoc: PDFDocument, formData: FormData) {
     maxWidth: 300
   });
   
-  // Blessés (oui/non)
+  // Injuries (yes/no)
   if (formData.hasInjuries) {
     page.drawText("X", {
       x: 275,
@@ -202,10 +211,10 @@ export async function fillVehicleInfo(pdfDoc: PDFDocument, formData: FormData) {
   const fontSize = 10;
   const textColor = rgb(0, 0, 0);
   
-  // VÉHICULE A
-  console.log("Ajout des informations du véhicule A:", formData.licensePlate);
+  // VEHICLE A
+  console.log("Adding Vehicle A information:", formData.licensePlate);
   
-  // Plaque d'immatriculation
+  // License plate
   page.drawText(formData.licensePlate || "", {
     x: 170,
     y: height - 275,
@@ -214,7 +223,7 @@ export async function fillVehicleInfo(pdfDoc: PDFDocument, formData: FormData) {
     color: textColor
   });
   
-  // Marque et modèle
+  // Brand and model
   page.drawText(`${formData.vehicleBrand || ""} ${formData.vehicleModel || ""}`, {
     x: 170,
     y: height - 305,
@@ -223,7 +232,7 @@ export async function fillVehicleInfo(pdfDoc: PDFDocument, formData: FormData) {
     color: textColor
   });
   
-  // Compagnie d'assurance
+  // Insurance company
   if (formData.insuranceCompany) {
     page.drawText(formData.insuranceCompany, {
       x: 170,
@@ -234,7 +243,7 @@ export async function fillVehicleInfo(pdfDoc: PDFDocument, formData: FormData) {
     });
   }
   
-  // Numéro de police
+  // Policy number
   if (formData.insurancePolicy) {
     page.drawText(formData.insurancePolicy, {
       x: 170,
@@ -245,10 +254,10 @@ export async function fillVehicleInfo(pdfDoc: PDFDocument, formData: FormData) {
     });
   }
   
-  // VÉHICULE B
-  console.log("Ajout des informations du véhicule B:", formData.otherVehicle?.licensePlate);
+  // VEHICLE B
+  console.log("Adding Vehicle B information:", formData.otherVehicle?.licensePlate);
   if (formData.otherVehicle) {
-    // Plaque d'immatriculation
+    // License plate
     page.drawText(formData.otherVehicle.licensePlate || "", {
       x: 455,
       y: height - 275,
@@ -257,7 +266,7 @@ export async function fillVehicleInfo(pdfDoc: PDFDocument, formData: FormData) {
       color: textColor
     });
     
-    // Marque et modèle
+    // Brand and model
     if (formData.otherVehicle.brand || formData.otherVehicle.model) {
       page.drawText(`${formData.otherVehicle.brand || ""} ${formData.otherVehicle.model || ""}`, {
         x: 455,
@@ -268,7 +277,7 @@ export async function fillVehicleInfo(pdfDoc: PDFDocument, formData: FormData) {
       });
     }
     
-    // Compagnie d'assurance
+    // Insurance company
     if (formData.otherVehicle.insuranceCompany) {
       page.drawText(formData.otherVehicle.insuranceCompany, {
         x: 455,
@@ -279,7 +288,7 @@ export async function fillVehicleInfo(pdfDoc: PDFDocument, formData: FormData) {
       });
     }
     
-    // Numéro de police
+    // Policy number
     if (formData.otherVehicle.insurancePolicy) {
       page.drawText(formData.otherVehicle.insurancePolicy, {
         x: 455,
@@ -307,9 +316,9 @@ export async function fillDescription(pdfDoc: PDFDocument, formData: FormData) {
   const fontSize = 10;
   const textColor = rgb(0, 0, 0);
   
-  // Description de l'accident
+  // Accident description
   if (formData.description) {
-    console.log("Ajout de la description de l'accident");
+    console.log("Adding accident description");
     page.drawText(formData.description, {
       x: 200,
       y: height - 600,
@@ -321,11 +330,11 @@ export async function fillDescription(pdfDoc: PDFDocument, formData: FormData) {
     });
   }
   
-  // Témoins
+  // Witnesses
   if (formData.hasWitnesses && formData.witnesses && formData.witnesses.length > 0) {
-    console.log("Ajout des témoins");
+    console.log("Adding witnesses");
     formData.witnesses.forEach((witness, index) => {
-      if (index < 2) { // Limiter le nombre de témoins affichés
+      if (index < 2) { // Limit number of witnesses displayed
         page.drawText(`${witness.fullName} (${witness.phone})`, {
           x: 200,
           y: height - 680 - (index * 15),
@@ -337,7 +346,7 @@ export async function fillDescription(pdfDoc: PDFDocument, formData: FormData) {
     });
   }
   
-  // Date pour signature
+  // Date for signature
   const today = new Date();
   const formattedDate = today.toLocaleDateString('fr-FR');
   page.drawText(formattedDate, {
@@ -364,10 +373,10 @@ export async function fillCircumstances(pdfDoc: PDFDocument, formData: FormData)
   const fontSize = 12;
   const textColor = rgb(0, 0, 0);
   
-  // Circonstances véhicule A
+  // Vehicle A circumstances
   if (formData.vehicleACircumstances && formData.vehicleACircumstances.length > 0) {
-    console.log("Ajout des circonstances du véhicule A");
-    // Coordonnées pour les cases à cocher
+    console.log("Adding Vehicle A circumstances:", formData.vehicleACircumstances);
+    // Coordinates for checkboxes
     const circumstancesMap: Record<string, {x: number, y: number}> = {
       "stationary": { x: 110, y: height - 430 },
       "leaving_parking": { x: 110, y: height - 445 },
@@ -388,7 +397,7 @@ export async function fillCircumstances(pdfDoc: PDFDocument, formData: FormData)
       "ignored_priority": { x: 110, y: height - 670 }
     };
     
-    // Marquer les circonstances avec X
+    // Mark circumstances with X
     formData.vehicleACircumstances.forEach(id => {
       if (circumstancesMap[id]) {
         page.drawText("X", {
@@ -402,10 +411,10 @@ export async function fillCircumstances(pdfDoc: PDFDocument, formData: FormData)
     });
   }
   
-  // Circonstances véhicule B
+  // Vehicle B circumstances
   if (formData.vehicleBCircumstances && formData.vehicleBCircumstances.length > 0) {
-    console.log("Ajout des circonstances du véhicule B");
-    // Coordonnées pour les cases à cocher, côté B
+    console.log("Adding Vehicle B circumstances:", formData.vehicleBCircumstances);
+    // Coordinates for checkboxes, B side
     const circumstancesMap: Record<string, {x: number, y: number}> = {
       "stationary": { x: 540, y: height - 430 },
       "leaving_parking": { x: 540, y: height - 445 },
@@ -426,7 +435,7 @@ export async function fillCircumstances(pdfDoc: PDFDocument, formData: FormData)
       "ignored_priority": { x: 540, y: height - 670 }
     };
     
-    // Marquer les circonstances avec X
+    // Mark circumstances with X
     formData.vehicleBCircumstances.forEach(id => {
       if (circumstancesMap[id]) {
         page.drawText("X", {
@@ -440,9 +449,9 @@ export async function fillCircumstances(pdfDoc: PDFDocument, formData: FormData)
     });
   }
   
-  // Points d'impact véhicule A
-  // Place des X pour indiquer les points d'impact, à adapter selon les données disponibles
+  // Vehicle A impact points
+  // Place X marks to indicate impact points (adjust based on available data)
   
-  // Points d'impact véhicule B
-  // Place des X pour indiquer les points d'impact, à adapter selon les données disponibles
+  // Vehicle B impact points
+  // Place X marks to indicate impact points (adjust based on available data)
 }

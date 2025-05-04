@@ -23,18 +23,26 @@ const ReviewStep = ({ formData }: ReviewStepProps) => {
   return (
     <div className="space-y-6">
       <div className="space-y-2">
-        <h3 className="text-lg font-medium text-constalib-dark">Vérifiez votre déclaration</h3>
+        <h3 className="text-lg font-medium text-constalib-dark">Verify Your Report</h3>
         <p className="text-sm text-constalib-dark-gray">
-          Voici un récapitulatif des informations que vous avez saisies. Vérifiez-les avant de soumettre votre déclaration.
+          Here's a summary of the information you've provided. Please verify it before submitting your report.
         </p>
       </div>
 
       <Alert variant="default" className="bg-blue-50 border-blue-200">
         <Info className="h-4 w-4 text-blue-600" />
         <AlertDescription className="text-blue-700 text-sm">
-          <strong>Nouveau!</strong> Vous pouvez désormais enregistrer officiellement votre constat (e-constat), 
-          ce qui lui donnera une valeur juridique reconnue par les assurances.
-          Un numéro unique de référence vous sera attribué.
+          <strong>New!</strong> You can now officially register your accident report (e-constat), 
+          giving it legal value recognized by insurance companies.
+          A unique reference number will be assigned to you.
+        </AlertDescription>
+      </Alert>
+
+      <Alert variant="default" className="bg-green-50 border-green-200">
+        <Info className="h-4 w-4 text-green-600" />
+        <AlertDescription className="text-green-700 text-sm">
+          The PDF will include your accident scheme and all information automatically filled in. 
+          You can download the CERFA for your records or register it officially with insurance companies.
         </AlertDescription>
       </Alert>
 

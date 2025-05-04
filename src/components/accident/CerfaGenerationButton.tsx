@@ -32,30 +32,39 @@ const CerfaGenerationButton = ({ formData, className = "" }: CerfaGenerationButt
 
   const captureSchemeImage = async (): Promise<string | null> => {
     try {
-      // Chercher le conteneur du schéma
+      // Find the scheme container
       const schemeContainer = document.querySelector('.leaflet-container') as HTMLElement;
       
       if (!schemeContainer) {
-        console.warn("Conteneur du schéma non trouvé");
+        console.warn("Scheme container not found");
         return null;
       }
 
-      // Attendre que la carte soit complètement chargée
-      await new Promise(resolve => setTimeout(resolve, 500));
+      toast.info("Capturing accident scheme...", { duration: 2000 });
 
-      // Capturer le schéma comme une image
+      // Wait for any pending renders
+      await new Promise(resolve => setTimeout(resolve, 1000));
+
+      // Capture the scheme as an image
       const canvas = await html2canvas(schemeContainer, {
         useCORS: true,
         allowTaint: true,
         backgroundColor: "#ffffff",
-        scale: 2, // Meilleure qualité
-        logging: true, // Activer les logs pour déboguer
+        scale: 2, // Better quality
+        logging: false,
       });
       
-      // Convertir le canvas en dataURL
-      return canvas.toDataURL('image/png');
+      // Convert canvas to dataURL
+      const imageDataUrl = canvas.toDataURL('image/png');
+      
+      if (imageDataUrl) {
+        toast.success("Scheme captured successfully", { duration: 2000 });
+      }
+      
+      return imageDataUrl;
     } catch (error) {
-      console.error("Erreur lors de la capture du schéma:", error);
+      console.error("Error capturing scheme:", error);
+      toast.error("Could not capture the accident scheme");
       return null;
     }
   };
@@ -63,21 +72,23 @@ const CerfaGenerationButton = ({ formData, className = "" }: CerfaGenerationButt
   const handleGenerateCerfa = async () => {
     setIsGenerating(true);
     try {
-      // Capturer le schéma comme une image
-      console.log("Capture du schéma...");
-      const schemeImageDataUrl = await captureSchemeImage();
-      console.log("Schéma capturé:", schemeImageDataUrl ? "Oui" : "Non");
+      // Capture the scheme as an image
+      toast.info("Preparing PDF document...", { duration: 3000 });
       
-      // Utilisation de la fonction de génération du CERFA avec les données du formulaire et l'image du schéma
-      console.log("Génération du PDF...");
+      console.log("Capturing scheme...");
+      const schemeImageDataUrl = await captureSchemeImage();
+      console.log("Scheme captured:", schemeImageDataUrl ? "Yes" : "No");
+      
+      // Generate the CERFA PDF with form data and scheme image
+      console.log("Generating PDF with form data:", formData.date, formData.time);
       const pdfUrl = await generateCerfaPDF(formData, schemeImageDataUrl);
       
-      // Téléchargement du PDF généré
+      // Download the generated PDF
       await downloadPDF(pdfUrl, "constat-amiable.pdf");
-      toast.success("Téléchargement du constat amiable réussi");
+      toast.success("Your accident report PDF has been downloaded");
     } catch (error: any) {
-      console.error("Erreur lors de la génération du CERFA:", error);
-      toast.error(error.message || "Erreur lors de la génération du PDF");
+      console.error("Error generating CERFA:", error);
+      toast.error(error.message || "Error generating PDF");
     } finally {
       setIsGenerating(false);
     }
@@ -86,7 +97,7 @@ const CerfaGenerationButton = ({ formData, className = "" }: CerfaGenerationButt
   const handleRegisterOfficial = async () => {
     setIsRegistering(true);
     try {
-      // Préparation des données pour l'enregistrement officiel
+      // Prepare data for official registration
       const reportData = {
         date: formData.date,
         time: formData.time,
@@ -121,18 +132,18 @@ const CerfaGenerationButton = ({ formData, className = "" }: CerfaGenerationButt
         address: formData.geolocation.address
       };
 
-      // Appel de la fonction d'enregistrement officiel
+      // Call the official registration function
       const result = await registerOfficialReport(reportData, vehicleA, vehicleB, circumstances, geolocation);
       
       if (result.success) {
         setReferenceId(result.referenceId);
-        toast.success("Constat enregistré officiellement");
+        toast.success("Official report registered successfully");
       } else {
-        throw new Error(result.error || "Échec de l'enregistrement officiel");
+        throw new Error(result.error || "Failed to register official report");
       }
     } catch (error: any) {
-      console.error("Erreur lors de l'enregistrement officiel:", error);
-      toast.error(error.message || "Erreur lors de l'enregistrement officiel");
+      console.error("Error registering official report:", error);
+      toast.error(error.message || "Error registering official report");
     } finally {
       setIsRegistering(false);
     }
@@ -149,12 +160,12 @@ const CerfaGenerationButton = ({ formData, className = "" }: CerfaGenerationButt
         {isGenerating ? (
           <>
             <div className="animate-spin w-4 h-4 border-2 border-t-transparent rounded-full border-blue-600" />
-            <span>Génération en cours...</span>
+            <span>Generating PDF...</span>
           </>
         ) : (
           <>
             <FileText className="w-4 h-4" />
-            <span>Télécharger le CERFA</span>
+            <span>Download CERFA</span>
           </>
         )}
       </Button>
@@ -168,12 +179,12 @@ const CerfaGenerationButton = ({ formData, className = "" }: CerfaGenerationButt
             {isRegistering ? (
               <>
                 <div className="animate-spin w-4 h-4 border-2 border-t-transparent rounded-full" />
-                <span>Enregistrement en cours...</span>
+                <span>Registering...</span>
               </>
             ) : (
               <>
                 <Upload className="w-4 h-4" />
-                <span>Enregistrer officiellement</span>
+                <span>Register Officially</span>
               </>
             )}
           </Button>
@@ -181,31 +192,31 @@ const CerfaGenerationButton = ({ formData, className = "" }: CerfaGenerationButt
 
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>Enregistrement officiel du constat</DialogTitle>
+            <DialogTitle>Official Accident Report Registration</DialogTitle>
             <DialogDescription>
               {referenceId ? (
                 <div className="space-y-4 mt-4">
-                  <p>Votre constat a été enregistré avec succès avec la référence :</p>
+                  <p>Your report has been successfully registered with reference:</p>
                   <p className="bg-green-50 border border-green-200 rounded-md p-3 text-center font-bold text-green-800">
                     {referenceId}
                   </p>
                   <p>
-                    Cette référence est votre preuve d'enregistrement. Conservez-la précieusement et 
-                    communiquez-la à votre assurance.
+                    This reference is your proof of registration. Keep it safe and 
+                    provide it to your insurance company.
                   </p>
                 </div>
               ) : (
                 <div className="space-y-4 mt-4">
                   <p>
-                    En cliquant sur "Enregistrer", vous allez déclarer officiellement ce constat 
-                    dans le système e-constat.
+                    By clicking "Register", you will officially declare this accident report 
+                    in the e-constat system.
                   </p>
                   <p>
-                    Cette action aura une valeur juridique et remplacera le constat papier.
-                    Un numéro de référence unique vous sera attribué.
+                    This action has legal value and will replace the paper accident report.
+                    A unique reference number will be assigned to you.
                   </p>
                   <p className="font-semibold text-amber-600">
-                    Assurez-vous que toutes les informations sont correctes avant de confirmer.
+                    Please make sure all information is correct before confirming.
                   </p>
                 </div>
               )}
@@ -215,7 +226,7 @@ const CerfaGenerationButton = ({ formData, className = "" }: CerfaGenerationButt
           <DialogFooter className="sm:justify-between">
             <DialogClose asChild>
               <Button variant="outline">
-                {referenceId ? "Fermer" : "Annuler"}
+                {referenceId ? "Close" : "Cancel"}
               </Button>
             </DialogClose>
             
@@ -224,7 +235,7 @@ const CerfaGenerationButton = ({ formData, className = "" }: CerfaGenerationButt
                 onClick={handleRegisterOfficial} 
                 disabled={isRegistering}
               >
-                {isRegistering ? "Enregistrement..." : "Enregistrer"}
+                {isRegistering ? "Registering..." : "Register"}
               </Button>
             )}
           </DialogFooter>
