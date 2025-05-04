@@ -15,13 +15,10 @@ const MapInitializer = ({ onMapReady }: MapInitializerProps) => {
       // Delay initialization to ensure DOM is ready
       setTimeout(() => {
         try {
-          // Make sure all existing event listeners are cleared to prevent memory leaks
-          map.off();
+          // Just ensure event listeners are properly initialized
+          // No need to attempt removing controls as they're disabled at creation time
           
-          // Don't try to remove zoom controls - they're disabled at creation time now
-          // Just initialize the map without modifying controls
-          
-          // Call onMapReady with the map object only after ensuring it's properly set up
+          // Call onMapReady with the map object
           onMapReady(map);
         } catch (error) {
           console.error("Error initializing map:", error);

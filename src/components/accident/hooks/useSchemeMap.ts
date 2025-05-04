@@ -17,13 +17,13 @@ export const useSchemeMap = ({ readOnly, handleMapClick, onReady }: UseSchemeMap
     console.log("Map initialization started");
     mapRef.current = map;
     
-    // Configurer les gestionnaires d'événements si non en lecture seule
+    // Configure event handlers if not readonly
     if (!readOnly && mapRef.current) {
       mapRef.current.on('click', handleMapClick);
       console.log("Map click handler registered");
     }
     
-    // S'assurer que la carte est correctement dimensionnée
+    // Ensure map is properly sized
     setTimeout(() => {
       if (mapRef.current) {
         mapRef.current.invalidateSize();
@@ -31,7 +31,7 @@ export const useSchemeMap = ({ readOnly, handleMapClick, onReady }: UseSchemeMap
       }
     }, 100);
     
-    // Appeler le callback onReady pour initialiser la carte
+    // Call the onReady callback to initialize the map
     onReady();
     console.log("Map initialization completed");
   }, [readOnly, handleMapClick, onReady]);
@@ -42,20 +42,20 @@ export const useSchemeMap = ({ readOnly, handleMapClick, onReady }: UseSchemeMap
     console.log("Centering on vehicles:", vehicles.length);
     
     try {
-      // Créer un objet bounds pour contenir toutes les positions des véhicules
+      // Create a bounds object to contain all vehicle positions
       const bounds = L.latLngBounds(vehicles.map(v => v.position));
       
-      // Légèrement agrandir les limites pour une meilleure visibilité
+      // Slightly pad the bounds for better visibility
       bounds.pad(0.2);
       
-      // Ajuster la carte à ces limites avec animation
+      // Adjust the map to these bounds with animation
       mapRef.current.flyToBounds(bounds, {
         padding: [50, 50],
         duration: 0.5,
         maxZoom: 18
       });
       
-      // Forcer un rafraîchissement de la carte
+      // Force a map refresh
       setTimeout(() => {
         if (mapRef.current) {
           mapRef.current.invalidateSize();

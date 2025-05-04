@@ -7,6 +7,8 @@ export interface Vehicle {
   model?: string;
   rotation: number;
   isSelected: boolean;
+  vehicleId?: string;
+  vehicleType: 'car' | 'truck' | 'bike';
 }
 
 export interface Path {
