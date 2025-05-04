@@ -1,0 +1,35 @@
+
+import React from 'react';
+import { Button } from "@/components/ui/button";
+import { FileText } from "lucide-react";
+
+interface DownloadButtonProps {
+  onClick: () => Promise<void>;
+  isGenerating: boolean;
+  className?: string;
+}
+
+const DownloadButton = ({ onClick, isGenerating, className = "" }: DownloadButtonProps) => {
+  return (
+    <Button
+      variant="outline"
+      className={`flex items-center gap-2 flex-grow ${className}`}
+      onClick={onClick}
+      disabled={isGenerating}
+    >
+      {isGenerating ? (
+        <>
+          <div className="animate-spin w-4 h-4 border-2 border-t-transparent rounded-full border-blue-600" />
+          <span>Génération PDF...</span>
+        </>
+      ) : (
+        <>
+          <FileText className="w-4 h-4" />
+          <span>Télécharger le CERFA</span>
+        </>
+      )}
+    </Button>
+  );
+};
+
+export default DownloadButton;
