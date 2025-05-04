@@ -20,8 +20,8 @@ export const generateCerfaPDF = async (
   formData: FormData, 
   schemeImageDataUrl: string | null = null,
   signatures?: {
-    partyA?: string;
-    partyB?: string;
+    partyA?: string | null;
+    partyB?: string | null;
   }
 ): Promise<string> => {
   try {
@@ -50,7 +50,7 @@ export const generateCerfaPDF = async (
         console.log("Official form found in constat-amiable-officiel.pdf bucket");
         toast.info("Official form template found");
         const pdfBytes = await constatData.arrayBuffer();
-        const pdfUrl = await processFormPDF(pdfBytes, formData, schemeImageDataUrl, signatures, reportId);
+        const pdfUrl = await processFormPDF(pdfBytes, formData, schemeImageDataUrl, signatures);
         
         // Save report reference in database if we have signatures
         if (signatures) {
@@ -69,7 +69,7 @@ export const generateCerfaPDF = async (
         console.log("Official form found in pdf-templates bucket");
         toast.info("Official form template found");
         const pdfBytes = await storageData.arrayBuffer();
-        const pdfUrl = await processFormPDF(pdfBytes, formData, schemeImageDataUrl, signatures, reportId);
+        const pdfUrl = await processFormPDF(pdfBytes, formData, schemeImageDataUrl, signatures);
         
         // Save report reference in database if we have signatures
         if (signatures) {
@@ -95,7 +95,7 @@ export const generateCerfaPDF = async (
         
         if (!fallbackResponse.ok) {
           console.warn("Standard blank form is not available, generating fallback PDF");
-          const pdfUrl = await generatePlaceholderPDF(formData, schemeImageDataUrl, signatures, reportId);
+          const pdfUrl = await generatePlaceholderPDF(formData);
           
           // Save report reference in database if we have signatures
           if (signatures) {
@@ -108,7 +108,7 @@ export const generateCerfaPDF = async (
         console.log("Standard blank form found");
         toast.info("Using standard accident report template");
         const pdfBytes = await fallbackResponse.arrayBuffer();
-        const pdfUrl = await processFormPDF(pdfBytes, formData, schemeImageDataUrl, signatures, reportId);
+        const pdfUrl = await processFormPDF(pdfBytes, formData, schemeImageDataUrl, signatures);
         
         // Save report reference in database if we have signatures
         if (signatures) {
@@ -121,7 +121,7 @@ export const generateCerfaPDF = async (
       console.log("Official form found in public folder");
       toast.info("Using official accident report template");
       const pdfBytes = await response.arrayBuffer();
-      const pdfUrl = await processFormPDF(pdfBytes, formData, schemeImageDataUrl, signatures, reportId);
+      const pdfUrl = await processFormPDF(pdfBytes, formData, schemeImageDataUrl, signatures);
       
       // Save report reference in database if we have signatures
       if (signatures) {
@@ -132,7 +132,7 @@ export const generateCerfaPDF = async (
     } catch (fetchError) {
       console.error("Error downloading PDF:", fetchError);
       console.log("Generating fallback PDF due to download error");
-      const pdfUrl = await generatePlaceholderPDF(formData, schemeImageDataUrl, signatures, reportId);
+      const pdfUrl = await generatePlaceholderPDF(formData);
       
       // Save report reference in database if we have signatures
       if (signatures) {
@@ -158,8 +158,8 @@ const saveReportReference = async (
   reportId: string, 
   pdfUrl: string,
   signatures: {
-    partyA?: string;
-    partyB?: string;
+    partyA?: string | null;
+    partyB?: string | null;
   }
 ) => {
   try {

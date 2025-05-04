@@ -1,563 +1,236 @@
-/**
- * Fallback PDF generator for when the official CERFA form is not available
- */
-import { PDFDocument, rgb, StandardFonts } from 'pdf-lib';
-import { FormData } from '@/components/accident/types';
 
 /**
- * Generates a placeholder PDF when the official CERFA can't be loaded
+ * Generates a placeholder PDF for cases when the official form is not available
+ */
+import { FormData } from "@/components/accident/types";
+import { PDFDocument, rgb, StandardFonts } from "pdf-lib";
+
+/**
+ * Creates a simple placeholder PDF with the essential accident information
  * @param formData Form data to include in the PDF
- * @param schemeImageDataUrl Optional scheme image data URL
  * @returns Promise resolving to the URL of the generated PDF
  */
-export const generatePlaceholderPDF = async (formData: FormData, schemeImageDataUrl: string | null = null): Promise<string> => {
-  console.log("Génération du PDF de secours avec les données:", formData);
-  
+export const generatePlaceholderPDF = async (
+  formData: FormData,
+  schemeImageDataUrl: string | null = null,
+  signatures?: {
+    partyA?: string | null;
+    partyB?: string | null;
+  }
+): Promise<string> => {
   try {
     // Create a new PDF document
     const pdfDoc = await PDFDocument.create();
     
-    // Add first page (main constat)
+    // Add a page to the document
     const page = pdfDoc.addPage([595, 842]); // A4 size
     
-    // Add header
-    await addHeader(pdfDoc, page);
+    // Get font
+    const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
+    const boldFont = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
     
-    // Add accident information
-    await addAccidentInfo(pdfDoc, page, formData);
+    // Set text properties
+    page.setFont(font);
+    page.setFontSize(12);
     
-    // Add vehicle information
-    await addVehicleInfo(pdfDoc, page, formData);
+    // Add title
+    page.setFont(boldFont);
+    page.setFontSize(24);
+    page.drawText("CONSTAT AMIABLE D'ACCIDENT AUTOMOBILE", {
+      x: 50,
+      y: 800,
+      color: rgb(0, 0, 0),
+    });
     
-    // Add circumstances and description
-    await addCircumstancesAndDescription(pdfDoc, page, formData);
+    // Add date and time
+    page.setFont(boldFont);
+    page.setFontSize(14);
+    page.drawText("Date et heure de l'accident:", {
+      x: 50,
+      y: 760,
+      color: rgb(0, 0, 0),
+    });
     
-    // Add scheme image if available
-    if (schemeImageDataUrl) {
-      await addSchemeImage(pdfDoc, schemeImageDataUrl);
+    page.setFont(font);
+    page.setFontSize(12);
+    page.drawText(`${formData.date} à ${formData.time}`, {
+      x: 250,
+      y: 760,
+      color: rgb(0, 0, 0),
+    });
+    
+    // Add location
+    page.setFont(boldFont);
+    page.setFontSize(14);
+    page.drawText("Lieu:", {
+      x: 50,
+      y: 730,
+      color: rgb(0, 0, 0),
+    });
+    
+    page.setFont(font);
+    page.setFontSize(12);
+    page.drawText(formData.location, {
+      x: 90,
+      y: 730,
+      color: rgb(0, 0, 0),
+    });
+    
+    // Vehicle A information
+    page.setFont(boldFont);
+    page.setFontSize(16);
+    page.drawText("VÉHICULE A", {
+      x: 50,
+      y: 680,
+      color: rgb(0, 0, 0),
+    });
+    
+    page.setFont(font);
+    page.setFontSize(12);
+    page.drawText(`Marque: ${formData.vehicleBrand || 'Non précisé'}`, {
+      x: 50,
+      y: 660,
+      color: rgb(0, 0, 0),
+    });
+    
+    page.drawText(`Modèle: ${formData.vehicleModel || 'Non précisé'}`, {
+      x: 50,
+      y: 640,
+      color: rgb(0, 0, 0),
+    });
+    
+    page.drawText(`Immatriculation: ${formData.licensePlate || 'Non précisé'}`, {
+      x: 50,
+      y: 620,
+      color: rgb(0, 0, 0),
+    });
+    
+    page.drawText(`Compagnie d'assurance: ${formData.insuranceCompany || 'Non précisé'}`, {
+      x: 50,
+      y: 600,
+      color: rgb(0, 0, 0),
+    });
+    
+    page.drawText(`N° de police: ${formData.insurancePolicy || 'Non précisé'}`, {
+      x: 50,
+      y: 580,
+      color: rgb(0, 0, 0),
+    });
+    
+    // Vehicle B information
+    page.setFont(boldFont);
+    page.setFontSize(16);
+    page.drawText("VÉHICULE B", {
+      x: 350,
+      y: 680,
+      color: rgb(0, 0, 0),
+    });
+    
+    page.setFont(font);
+    page.setFontSize(12);
+    page.drawText(`Marque: ${formData.otherVehicle.brand || 'Non précisé'}`, {
+      x: 350,
+      y: 660,
+      color: rgb(0, 0, 0),
+    });
+    
+    page.drawText(`Modèle: ${formData.otherVehicle.model || 'Non précisé'}`, {
+      x: 350,
+      y: 640,
+      color: rgb(0, 0, 0),
+    });
+    
+    page.drawText(`Immatriculation: ${formData.otherVehicle.licensePlate || 'Non précisé'}`, {
+      x: 350,
+      y: 620,
+      color: rgb(0, 0, 0),
+    });
+    
+    page.drawText(`Compagnie d'assurance: ${formData.otherVehicle.insuranceCompany || 'Non précisé'}`, {
+      x: 350,
+      y: 600,
+      color: rgb(0, 0, 0),
+    });
+    
+    page.drawText(`N° de police: ${formData.otherVehicle.insurancePolicy || 'Non précisé'}`, {
+      x: 350,
+      y: 580,
+      color: rgb(0, 0, 0),
+    });
+    
+    // Description
+    page.setFont(boldFont);
+    page.setFontSize(14);
+    page.drawText("Description:", {
+      x: 50,
+      y: 520,
+      color: rgb(0, 0, 0),
+    });
+    
+    page.setFont(font);
+    page.setFontSize(12);
+    
+    // Split description into lines for better display
+    const descriptionLines = splitTextIntoLines(formData.description || 'Aucune description fournie', 80);
+    let lineY = 500;
+    for (const line of descriptionLines) {
+      page.drawText(line, {
+        x: 50,
+        y: lineY,
+        color: rgb(0, 0, 0),
+      });
+      lineY -= 20;
     }
     
-    // Generate the final document
-    const pdfBytesModified = await pdfDoc.save();
+    // Add disclaimer
+    page.setFont(font);
+    page.setFontSize(10);
+    page.drawText("Ce document est une version simplifiée du constat amiable. Le formulaire officiel n'étant pas disponible,", {
+      x: 50,
+      y: 100,
+      color: rgb(0.5, 0.5, 0.5),
+    });
+    page.drawText("ce document reprend les informations essentielles pour la déclaration de votre sinistre.", {
+      x: 50,
+      y: 85,
+      color: rgb(0.5, 0.5, 0.5),
+    });
     
-    // Create a Blob and URL for download
-    const blob = new Blob([pdfBytesModified], { type: 'application/pdf' });
+    // Save document and create URL
+    const pdfBytes = await pdfDoc.save();
+    const blob = new Blob([pdfBytes], { type: "application/pdf" });
     const url = URL.createObjectURL(blob);
     
-    console.log("Génération du PDF de secours terminée avec succès");
     return url;
   } catch (error) {
-    console.error("Erreur lors de la génération du PDF de secours:", error);
-    throw new Error(`Erreur lors de la génération du PDF de secours: ${(error as Error).message}`);
+    console.error("Error generating placeholder PDF:", error);
+    throw new Error(`Unable to generate placeholder PDF: ${error}`);
   }
 };
 
 /**
- * Add header to the PDF
+ * Splits text into lines with a maximum length
+ * @param text Text to split
+ * @param maxCharsPerLine Maximum characters per line
+ * @returns Array of text lines
  */
-async function addHeader(pdfDoc: PDFDocument, page: PDFPage) {
-  const helveticaBold = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
-  const { width, height } = page.getSize();
+function splitTextIntoLines(text: string, maxCharsPerLine: number): string[] {
+  const words = text.split(' ');
+  const lines: string[] = [];
+  let currentLine = '';
   
-  // Title
-  page.drawText("CONSTAT AMIABLE D'ACCIDENT AUTOMOBILE", {
-    x: 150,
-    y: height - 50,
-    size: 16,
-    font: helveticaBold,
-    color: rgb(0, 0, 0)
-  });
-  
-  // Disclaimer
-  page.drawText("Document généré par Constalib.fr (Version de secours)", {
-    x: 120,
-    y: height - 80,
-    size: 10,
-    font: helveticaBold,
-    color: rgb(0.5, 0, 0)
-  });
-  
-  // Border
-  page.drawRectangle({
-    x: 20,
-    y: 20,
-    width: width - 40,
-    height: height - 40,
-    borderColor: rgb(0, 0, 0),
-    borderWidth: 1,
-    color: rgb(1, 1, 1)
-  });
-}
-
-/**
- * Add accident information to the PDF
- */
-async function addAccidentInfo(pdfDoc: PDFDocument, page: PDFPage, formData: FormData) {
-  const helvetica = await pdfDoc.embedFont(StandardFonts.Helvetica);
-  const helveticaBold = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
-  const { height } = page.getSize();
-  
-  // Date et heure
-  page.drawText("DATE DE L'ACCIDENT", {
-    x: 50,
-    y: height - 120,
-    size: 10,
-    font: helveticaBold,
-    color: rgb(0, 0, 0)
-  });
-  
-  page.drawText(formData.date, {
-    x: 50,
-    y: height - 140,
-    size: 12,
-    font: helvetica,
-    color: rgb(0, 0, 0)
-  });
-  
-  page.drawText("HEURE", {
-    x: 180,
-    y: height - 120,
-    size: 10,
-    font: helveticaBold,
-    color: rgb(0, 0, 0)
-  });
-  
-  page.drawText(formData.time, {
-    x: 180,
-    y: height - 140,
-    size: 12,
-    font: helvetica,
-    color: rgb(0, 0, 0)
-  });
-  
-  // Lieu
-  page.drawText("LIEU", {
-    x: 50,
-    y: height - 170,
-    size: 10,
-    font: helveticaBold,
-    color: rgb(0, 0, 0)
-  });
-  
-  page.drawText(formData.location, {
-    x: 50,
-    y: height - 190,
-    size: 12,
-    font: helvetica,
-    color: rgb(0, 0, 0),
-    maxWidth: 300
-  });
-}
-
-/**
- * Add vehicle information to the PDF
- */
-async function addVehicleInfo(pdfDoc: PDFDocument, page: PDFPage, formData: FormData) {
-  const helvetica = await pdfDoc.embedFont(StandardFonts.Helvetica);
-  const helveticaBold = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
-  const { height } = page.getSize();
-  
-  // Section title
-  page.drawText("IDENTIFICATION DES VÉHICULES", {
-    x: 50,
-    y: height - 230,
-    size: 12,
-    font: helveticaBold,
-    color: rgb(0, 0, 0)
-  });
-  
-  // Vehicle A (left column)
-  page.drawText("VÉHICULE A", {
-    x: 60,
-    y: height - 260,
-    size: 10,
-    font: helveticaBold,
-    color: rgb(0, 0, 0)
-  });
-  
-  page.drawText("Immatriculation:", {
-    x: 60,
-    y: height - 280,
-    size: 9,
-    font: helveticaBold,
-    color: rgb(0, 0, 0)
-  });
-  
-  page.drawText(formData.licensePlate, {
-    x: 160,
-    y: height - 280,
-    size: 9,
-    font: helvetica,
-    color: rgb(0, 0, 0)
-  });
-  
-  page.drawText("Marque/Modèle:", {
-    x: 60,
-    y: height - 300,
-    size: 9,
-    font: helveticaBold,
-    color: rgb(0, 0, 0)
-  });
-  
-  page.drawText(`${formData.vehicleBrand} ${formData.vehicleModel}`, {
-    x: 160,
-    y: height - 300,
-    size: 9,
-    font: helvetica,
-    color: rgb(0, 0, 0)
-  });
-  
-  if (formData.insuranceCompany) {
-    page.drawText("Assurance:", {
-      x: 60,
-      y: height - 320,
-      size: 9,
-      font: helveticaBold,
-      color: rgb(0, 0, 0)
-    });
-    
-    page.drawText(formData.insuranceCompany, {
-      x: 160,
-      y: height - 320,
-      size: 9,
-      font: helvetica,
-      color: rgb(0, 0, 0)
-    });
-  }
-  
-  if (formData.insurancePolicy) {
-    page.drawText("N° Police:", {
-      x: 60,
-      y: height - 340,
-      size: 9,
-      font: helveticaBold,
-      color: rgb(0, 0, 0)
-    });
-    
-    page.drawText(formData.insurancePolicy, {
-      x: 160,
-      y: height - 340,
-      size: 9,
-      font: helvetica,
-      color: rgb(0, 0, 0)
-    });
-  }
-  
-  // Vehicle B (right column)
-  if (formData.otherVehicle) {
-    page.drawText("VÉHICULE B", {
-      x: 340,
-      y: height - 260,
-      size: 10,
-      font: helveticaBold,
-      color: rgb(0, 0, 0)
-    });
-    
-    page.drawText("Immatriculation:", {
-      x: 340,
-      y: height - 280,
-      size: 9,
-      font: helveticaBold,
-      color: rgb(0, 0, 0)
-    });
-    
-    page.drawText(formData.otherVehicle.licensePlate || "", {
-      x: 440,
-      y: height - 280,
-      size: 9,
-      font: helvetica,
-      color: rgb(0, 0, 0)
-    });
-    
-    if (formData.otherVehicle.brand && formData.otherVehicle.model) {
-      page.drawText("Marque/Modèle:", {
-        x: 340,
-        y: height - 300,
-        size: 9,
-        font: helveticaBold,
-        color: rgb(0, 0, 0)
-      });
-      
-      page.drawText(`${formData.otherVehicle.brand} ${formData.otherVehicle.model}`, {
-        x: 440,
-        y: height - 300,
-        size: 9,
-        font: helvetica,
-        color: rgb(0, 0, 0)
-      });
+  words.forEach(word => {
+    if ((currentLine.length + word.length + 1) <= maxCharsPerLine) {
+      currentLine += (currentLine ? ' ' : '') + word;
+    } else {
+      lines.push(currentLine);
+      currentLine = word;
     }
-    
-    if (formData.otherVehicle.insuranceCompany) {
-      page.drawText("Assurance:", {
-        x: 340,
-        y: height - 320,
-        size: 9,
-        font: helveticaBold,
-        color: rgb(0, 0, 0)
-      });
-      
-      page.drawText(formData.otherVehicle.insuranceCompany, {
-        x: 440,
-        y: height - 320,
-        size: 9,
-        font: helvetica,
-        color: rgb(0, 0, 0)
-      });
-    }
-    
-    if (formData.otherVehicle.insurancePolicy) {
-      page.drawText("N° Police:", {
-        x: 340,
-        y: height - 340,
-        size: 9,
-        font: helveticaBold,
-        color: rgb(0, 0, 0)
-      });
-      
-      page.drawText(formData.otherVehicle.insurancePolicy, {
-        x: 440,
-        y: height - 340,
-        size: 9,
-        font: helvetica,
-        color: rgb(0, 0, 0)
-      });
-    }
+  });
+  
+  if (currentLine) {
+    lines.push(currentLine);
   }
+  
+  return lines;
 }
-
-/**
- * Add circumstances and description to the PDF
- */
-async function addCircumstancesAndDescription(pdfDoc: PDFDocument, page: PDFPage, formData: FormData) {
-  const helvetica = await pdfDoc.embedFont(StandardFonts.Helvetica);
-  const helveticaBold = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
-  const { height } = page.getSize();
-  
-  // Description
-  page.drawText("DESCRIPTION DE L'ACCIDENT", {
-    x: 50,
-    y: height - 400,
-    size: 12,
-    font: helveticaBold,
-    color: rgb(0, 0, 0)
-  });
-  
-  if (formData.description) {
-    const descriptionLines = formData.description.split('\n');
-    let yPosition = height - 430;
-    
-    for (const line of descriptionLines) {
-      page.drawText(line, {
-        x: 60,
-        y: yPosition,
-        size: 9,
-        font: helvetica,
-        color: rgb(0, 0, 0),
-        maxWidth: 480
-      });
-      yPosition -= 15;
-    }
-  } else {
-    page.drawText("Aucune description fournie.", {
-      x: 60,
-      y: height - 430,
-      size: 9,
-      font: helvetica,
-      color: rgb(0.5, 0.5, 0.5)
-    });
-  }
-  
-  // Circumstances
-  page.drawText("CIRCONSTANCES", {
-    x: 50,
-    y: height - 490,
-    size: 12,
-    font: helveticaBold,
-    color: rgb(0, 0, 0)
-  });
-  
-  // Vehicle A circumstances
-  if (formData.vehicleACircumstances && formData.vehicleACircumstances.length > 0) {
-    page.drawText("Véhicule A:", {
-      x: 60,
-      y: height - 520,
-      size: 10,
-      font: helveticaBold,
-      color: rgb(0, 0, 0)
-    });
-    
-    let yPos = height - 540;
-    formData.vehicleACircumstances.forEach((circumstance, index) => {
-      if (index < 8) { // Limit to prevent overflowing the page
-        page.drawText(`- ${circumstance}`, {
-          x: 70,
-          y: yPos,
-          size: 9,
-          font: helvetica,
-          color: rgb(0, 0, 0),
-          maxWidth: 180
-        });
-        yPos -= 15;
-      }
-    });
-  }
-  
-  // Vehicle B circumstances
-  if (formData.vehicleBCircumstances && formData.vehicleBCircumstances.length > 0) {
-    page.drawText("Véhicule B:", {
-      x: 340,
-      y: height - 520,
-      size: 10,
-      font: helveticaBold,
-      color: rgb(0, 0, 0)
-    });
-    
-    let yPos = height - 540;
-    formData.vehicleBCircumstances.forEach((circumstance, index) => {
-      if (index < 8) { // Limit to prevent overflowing the page
-        page.drawText(`- ${circumstance}`, {
-          x: 350,
-          y: yPos,
-          size: 9,
-          font: helvetica,
-          color: rgb(0, 0, 0),
-          maxWidth: 180
-        });
-        yPos -= 15;
-      }
-    });
-  }
-  
-  // Witnesses
-  if (formData.hasWitnesses && formData.witnesses && formData.witnesses.length > 0) {
-    page.drawText("TÉMOINS", {
-      x: 50,
-      y: height - 650,
-      size: 12,
-      font: helveticaBold,
-      color: rgb(0, 0, 0)
-    });
-    
-    let witnessYPos = height - 670;
-    formData.witnesses.forEach((witness, index) => {
-      if (index < 3) { // Limit to prevent overflowing the page
-        page.drawText(`${witness.fullName} (${witness.phone})`, {
-          x: 60,
-          y: witnessYPos,
-          size: 9,
-          font: helvetica,
-          color: rgb(0, 0, 0)
-        });
-        witnessYPos -= 15;
-      }
-    });
-  }
-  
-  // Signature line
-  page.drawLine({
-    start: { x: 50, y: height - 750 },
-    end: { x: 250, y: height - 750 },
-    thickness: 1,
-    color: rgb(0, 0, 0),
-  });
-  
-  page.drawText("Signature", {
-    x: 50,
-    y: height - 765,
-    size: 9,
-    font: helveticaBold,
-    color: rgb(0, 0, 0)
-  });
-  
-  // Date
-  const today = new Date();
-  const formattedDate = today.toLocaleDateString('fr-FR');
-  
-  page.drawText(`Date: ${formattedDate}`, {
-    x: 50,
-    y: height - 790,
-    size: 9,
-    font: helvetica,
-    color: rgb(0, 0, 0)
-  });
-  
-  // Footer
-  page.drawText("Document généré par Constalib.fr - Ce document est un modèle simplifié et ne remplace pas le constat officiel", {
-    x: 50,
-    y: 40,
-    size: 8,
-    font: helvetica,
-    color: rgb(0.5, 0.5, 0.5)
-  });
-}
-
-/**
- * Adds the scheme image to a new page in the PDF
- */
-async function addSchemeImage(pdfDoc: PDFDocument, schemeImageDataUrl: string) {
-  try {
-    // Convert dataURL to Uint8Array
-    const base64Data = schemeImageDataUrl.split(',')[1];
-    const imageBytes = Uint8Array.from(atob(base64Data), c => c.charCodeAt(0));
-    
-    // Create a new page for the scheme
-    const schemePage = pdfDoc.addPage();
-    const { width: pageWidth, height: pageHeight } = schemePage.getSize();
-    
-    const helveticaFont = await pdfDoc.embedFont(StandardFonts.Helvetica);
-    const helveticaBold = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
-    
-    // Add title
-    schemePage.drawText("SCHÉMA DE L'ACCIDENT", {
-      x: 50,
-      y: pageHeight - 50,
-      size: 16,
-      font: helveticaBold,
-      color: rgb(0, 0, 0)
-    });
-    
-    // Embed the image
-    const image = await pdfDoc.embedPng(imageBytes);
-    const { width: imgWidth, height: imgHeight } = image;
-    
-    // Calculate dimensions with margins
-    const margin = 50;
-    const maxImageWidth = pageWidth - (margin * 2);
-    const maxImageHeight = pageHeight - 100 - margin; // 100px for title and space
-    
-    const imageRatio = imgWidth / imgHeight;
-    let imageWidth = maxImageWidth;
-    let imageHeight = imageWidth / imageRatio;
-    
-    // Adjust if image is too tall
-    if (imageHeight > maxImageHeight) {
-      imageHeight = maxImageHeight;
-      imageWidth = imageHeight * imageRatio;
-    }
-    
-    // Draw the image
-    schemePage.drawImage(image, {
-      x: margin + (maxImageWidth - imageWidth) / 2, // Center horizontally
-      y: pageHeight - 100 - imageHeight, // Position under title
-      width: imageWidth,
-      height: imageHeight
-    });
-    
-    // Add footer
-    const today = new Date();
-    const formattedDate = today.toLocaleDateString('fr-FR');
-    
-    schemePage.drawText(`Schéma généré le ${formattedDate}`, {
-      x: margin,
-      y: margin - 20,
-      size: 10,
-      font: helveticaFont,
-      color: rgb(0.5, 0.5, 0.5)
-    });
-  } catch (error) {
-    console.error("Erreur lors de l'ajout du schéma:", error);
-  }
-}
-
-// TypeScript type alias for PDFPage
-type PDFPage = ReturnType<typeof PDFDocument.prototype.addPage>;
