@@ -28,18 +28,31 @@ export const generateCerfaPDF = async (formData: FormData, schemeImageDataUrl: s
     // First try to get the official form from Supabase Storage
     console.log("Attempting to retrieve form from Supabase Storage");
     try {
+      // First try the new bucket name you provided
+      const { data: constatData, error: constatError } = await supabase.storage
+        .from('constat-amiable-officiel.pdf')
+        .download('constat-amiable-officiel.pdf');
+      
+      if (!constatError && constatData) {
+        console.log("Official form found in constat-amiable-officiel.pdf bucket");
+        toast.info("Official form template found");
+        const pdfBytes = await constatData.arrayBuffer();
+        return await processFormPDF(pdfBytes, formData, schemeImageDataUrl);
+      }
+      
+      // Try from pdf-templates bucket if the first attempt fails
       const { data: storageData, error: storageError } = await supabase.storage
         .from('pdf-templates')
         .download('constat-amiable-officiel.pdf');
       
       if (!storageError && storageData) {
-        console.log("Official form found in Supabase Storage");
+        console.log("Official form found in pdf-templates bucket");
         toast.info("Official form template found");
         const pdfBytes = await storageData.arrayBuffer();
         return await processFormPDF(pdfBytes, formData, schemeImageDataUrl);
       }
       
-      console.warn("Form not found in Supabase Storage:", storageError?.message);
+      console.warn("Form not found in Supabase Storage:", storageError?.message || constatError?.message);
     } catch (storageError) {
       console.error("Error accessing Supabase storage:", storageError);
     }

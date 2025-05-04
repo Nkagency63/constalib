@@ -30,38 +30,54 @@ export const downloadPDF = async (url: string, filename: string) => {
       
       console.log(`Attempting to download from Supabase: bucket=${bucketName}, path=${filePath}`);
       
-      // Try to get the public URL and download from there
-      const { data: publicUrlData } = supabase.storage
-        .from(bucketName)
-        .getPublicUrl(filePath);
-      
-      if (publicUrlData && publicUrlData.publicUrl) {
-        console.log('Found public URL:', publicUrlData.publicUrl);
+      try {
+        // First try to get the public URL if the bucket is public
+        const { data: publicUrlData } = supabase.storage
+          .from(bucketName)
+          .getPublicUrl(filePath);
         
-        // Create a temporary link element to test if the file exists
-        const testLink = document.createElement('a');
-        testLink.href = publicUrlData.publicUrl;
-        
-        // Fetch the file first to check if it exists
-        try {
-          const response = await fetch(publicUrlData.publicUrl, { method: 'HEAD' });
-          if (response.ok) {
-            triggerDownload(publicUrlData.publicUrl, filename);
-            toast.success("Téléchargement réussi");
-            return;
-          } else {
-            console.error('File not found at URL:', publicUrlData.publicUrl);
-            throw new Error("Le fichier n'a pas été trouvé dans le stockage");
+        if (publicUrlData && publicUrlData.publicUrl) {
+          console.log('Found public URL:', publicUrlData.publicUrl);
+          
+          // Fetch the file first to check if it exists
+          try {
+            const response = await fetch(publicUrlData.publicUrl, { method: 'HEAD' });
+            if (response.ok) {
+              triggerDownload(publicUrlData.publicUrl, filename);
+              toast.success("Téléchargement réussi");
+              return;
+            } else {
+              console.error('File not found at URL:', publicUrlData.publicUrl);
+              throw new Error("Le fichier n'a pas été trouvé dans le stockage");
+            }
+          } catch (fetchError) {
+            console.error('Error fetching file from public URL:', fetchError);
+            throw new Error("Erreur lors de l'accès au fichier");
           }
-        } catch (fetchError) {
-          console.error('Error fetching file from public URL:', fetchError);
-          throw new Error("Erreur lors de l'accès au fichier");
         }
-      } else {
-        console.error('No public URL found, attempting direct download');
+      } catch (publicUrlError) {
+        console.error('Error getting public URL:', publicUrlError);
       }
       
-      // If public URL doesn't work or is not available, try direct download
+      // If public URL doesn't work or is not available, try signed URL
+      try {
+        const { data: signedURL, error: signedURLError } = await supabase.storage
+          .from(bucketName)
+          .createSignedUrl(filePath, 60); // 60 seconds expiry
+          
+        if (signedURLError || !signedURL) {
+          console.error('Error creating signed URL:', signedURLError);
+          throw new Error(`Impossible de créer un lien de téléchargement: ${signedURLError?.message || 'Erreur inconnue'}`);
+        }
+        
+        triggerDownload(signedURL.signedUrl, filename);
+        toast.success("Téléchargement réussi");
+        return;
+      } catch (signedURLError) {
+        console.error('Error with signed URL:', signedURLError);
+      }
+      
+      // Try direct download as last resort
       try {
         const { data, error } = await supabase.storage
           .from(bucketName)

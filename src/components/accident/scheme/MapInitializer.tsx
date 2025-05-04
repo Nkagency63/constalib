@@ -15,22 +15,26 @@ const MapInitializer = ({ onMapReady }: MapInitializerProps) => {
       // Delay initialization to ensure DOM is ready
       setTimeout(() => {
         try {
-          // Simply pass the map object to onMapReady
-          // Avoiding any control manipulation that could cause errors
-          console.log("Map initializer: ready to call onMapReady");
+          // Simplified approach to avoid control manipulation
+          console.log("Map initializer: map object is ready");
+          
+          // Force invalidate size to ensure proper rendering
+          map.invalidateSize();
+          
+          // Call the callback with the map object
           onMapReady(map);
         } catch (error) {
           console.error("Error in map initialization:", error);
         }
-      }, 100); // Small delay to ensure rendering is complete
+      }, 200); // Increased delay to ensure rendering is complete
     }
     
     return () => {
       // Clean up event listeners to prevent memory leaks
       if (map) {
         try {
-          // Only clean up event listeners without touching controls
           console.log("Map initializer: cleaning up event listeners");
+          // Only remove our specific event listeners, not touching controls
           map.off();
         } catch (error) {
           console.error("Error cleaning up map:", error);

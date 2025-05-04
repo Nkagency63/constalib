@@ -83,8 +83,18 @@ const CerfaGenerationButton = ({ formData, className = "" }: CerfaGenerationButt
       console.log("Generating PDF with form data:", formData.date, formData.time);
       const pdfUrl = await generateCerfaPDF(formData, schemeImageDataUrl);
       
-      // Download the generated PDF
-      await downloadPDF(pdfUrl, "constat-amiable.pdf");
+      // Try to download using the Supabase storage path
+      const supabasePath = "storage:constat-amiable-officiel.pdf/constat-amiable-officiel.pdf";
+      toast.info("Checking for official PDF in Supabase storage...");
+      
+      try {
+        await downloadPDF(supabasePath, "constat-amiable.pdf");
+      } catch (storageError) {
+        console.error("Error downloading from Supabase:", storageError);
+        // Fallback to the generated PDF if Supabase download fails
+        await downloadPDF(pdfUrl, "constat-amiable.pdf");
+      }
+      
       toast.success("Your accident report PDF has been downloaded");
     } catch (error: any) {
       console.error("Error generating CERFA:", error);
