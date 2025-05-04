@@ -1,3 +1,4 @@
+
 import { FormData } from '@/components/accident/types';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -149,7 +150,12 @@ export const registerOfficialReport = async (
   vehicleA: any,
   vehicleB: any,
   circumstances: any,
-  geolocation: any
+  geolocation: any,
+  signatureData?: {
+    partyA: string | null;
+    partyB: string | null;
+    timestamp: string;
+  }
 ) => {
   try {
     const { data, error } = await supabase.functions.invoke('register-accident-report', {
@@ -158,7 +164,8 @@ export const registerOfficialReport = async (
         vehicleA,
         vehicleB,
         circumstances,
-        geolocation
+        geolocation,
+        signatureData
       }
     });
 

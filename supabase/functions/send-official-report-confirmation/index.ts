@@ -1,107 +1,117 @@
 
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
+import { Resend } from "npm:resend@2.0.0";
 
-// CORS headers for browser requests
+const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
+
 const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
 serve(async (req) => {
   // Handle CORS preflight requests
-  if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders });
+  if (req.method === "OPTIONS") {
+    return new Response(null, {
+      headers: corsHeaders,
+    });
   }
 
   try {
-    // Get request body
-    const { email, referenceId, reportDetails } = await req.json();
+    const { email, referenceId, reportData, vehicleA, vehicleB } = await req.json();
 
     if (!email || !referenceId) {
-      throw new Error("Missing required parameters: email and referenceId");
+      throw new Error("Email and reference ID are required");
     }
-    
-    // Create Supabase client
-    const supabaseClient = createClient(
-      Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_ANON_KEY') ?? '',
-    );
-    
-    // Format the email content
-    const date = new Date().toLocaleDateString('fr-FR');
-    const time = new Date().toLocaleTimeString('fr-FR');
-    
-    // Create HTML email content
-    const htmlContent = `
-      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e0e0e0; border-radius: 5px;">
-        <div style="text-align: center; margin-bottom: 20px;">
-          <h1 style="color: #2563eb; margin-bottom: 10px;">Confirmation de Constat Amiable</h1>
-          <p style="color: #4b5563; font-size: 16px;">E-Constat enregistré avec succès</p>
+
+    console.log(`Sending official report confirmation to ${email} for reference ${referenceId}`);
+
+    // Format the date properly for the email
+    const date = new Date();
+    const formattedDate = new Intl.DateTimeFormat('fr-FR', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    }).format(date);
+
+    // Create the email content
+    const emailResponse = await resend.emails.send({
+      from: "ConstaLib <noreply@constalib.fr>",
+      to: [email],
+      subject: `Confirmation de votre constat amiable - Réf: ${referenceId}`,
+      html: `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e0e0e0; border-radius: 5px;">
+          <div style="text-align: center; margin-bottom: 20px;">
+            <h1 style="color: #1e3a8a;">Confirmation d'Enregistrement</h1>
+            <p style="font-size: 16px; color: #666;">Constat Amiable d'Accident de la Route</p>
+          </div>
+          
+          <div style="background-color: #f5f7ff; padding: 15px; border-radius: 5px; margin-bottom: 20px;">
+            <p style="margin: 5px 0;">Référence unique: <strong>${referenceId}</strong></p>
+            <p style="margin: 5px 0;">Date et heure d'enregistrement: <strong>${formattedDate}</strong></p>
+          </div>
+          
+          <p>Bonjour,</p>
+          
+          <p>Nous vous confirmons que votre constat amiable d'accident a été enregistré avec succès dans notre système. Ce document a désormais une valeur juridique et peut être communiqué à votre assurance.</p>
+          
+          <h3 style="color: #1e3a8a; border-bottom: 1px solid #e0e0e0; padding-bottom: 5px;">Détails de l'accident</h3>
+          
+          <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px;">
+            <tr>
+              <td style="padding: 8px; border-bottom: 1px solid #e0e0e0;"><strong>Date:</strong></td>
+              <td style="padding: 8px; border-bottom: 1px solid #e0e0e0;">${reportData.date || 'Non spécifié'}</td>
+            </tr>
+            <tr>
+              <td style="padding: 8px; border-bottom: 1px solid #e0e0e0;"><strong>Heure:</strong></td>
+              <td style="padding: 8px; border-bottom: 1px solid #e0e0e0;">${reportData.time || 'Non spécifié'}</td>
+            </tr>
+            <tr>
+              <td style="padding: 8px; border-bottom: 1px solid #e0e0e0;"><strong>Lieu:</strong></td>
+              <td style="padding: 8px; border-bottom: 1px solid #e0e0e0;">${reportData.location || 'Non spécifié'}</td>
+            </tr>
+          </table>
+          
+          <h3 style="color: #1e3a8a; border-bottom: 1px solid #e0e0e0; padding-bottom: 5px;">Véhicules impliqués</h3>
+          
+          <div style="margin-bottom: 15px;">
+            <h4 style="margin-bottom: 5px;">Véhicule A:</h4>
+            <p style="margin: 3px 0;">Marque/Modèle: <strong>${vehicleA.brand || ''} ${vehicleA.model || ''}</strong></p>
+            <p style="margin: 3px 0;">Immatriculation: <strong>${vehicleA.licensePlate || 'Non spécifié'}</strong></p>
+            <p style="margin: 3px 0;">Assurance: <strong>${vehicleA.insuranceCompany || 'Non spécifiée'}</strong></p>
+            <p style="margin: 3px 0;">N° de police: <strong>${vehicleA.insurancePolicy || 'Non spécifié'}</strong></p>
+          </div>
+          
+          <div style="margin-bottom: 20px;">
+            <h4 style="margin-bottom: 5px;">Véhicule B:</h4>
+            <p style="margin: 3px 0;">Marque/Modèle: <strong>${vehicleB.brand || ''} ${vehicleB.model || ''}</strong></p>
+            <p style="margin: 3px 0;">Immatriculation: <strong>${vehicleB.licensePlate || 'Non spécifié'}</strong></p>
+            <p style="margin: 3px 0;">Assurance: <strong>${vehicleB.insuranceCompany || 'Non spécifiée'}</strong></p>
+            <p style="margin: 3px 0;">N° de police: <strong>${vehicleB.insurancePolicy || 'Non spécifié'}</strong></p>
+          </div>
+          
+          <p style="border-top: 1px solid #e0e0e0; margin-top: 20px; padding-top: 15px;">Ce document électronique est certifié et horodaté. Conservez cette confirmation qui pourra être demandée par votre assureur.</p>
+          
+          <div style="margin-top: 30px; text-align: center; color: #666; font-size: 12px;">
+            <p>Ce message a été envoyé automatiquement, merci de ne pas y répondre.</p>
+            <p>© ${new Date().getFullYear()} ConstaLib - Tous droits réservés</p>
+          </div>
         </div>
-        
-        <div style="background-color: #f3f4f6; padding: 15px; border-radius: 5px; margin-bottom: 20px;">
-          <p style="margin: 0; font-size: 16px;">Numéro de référence: <strong style="color: #2563eb;">${referenceId}</strong></p>
-        </div>
-        
-        <p style="color: #4b5563; line-height: 1.5;">Bonjour,</p>
-        
-        <p style="color: #4b5563; line-height: 1.5;">
-          Nous vous confirmons l'enregistrement de votre constat électronique concernant l'accident survenu 
-          le <strong>${reportDetails.date}</strong> à <strong>${reportDetails.time}</strong> à <strong>${reportDetails.location}</strong>.
-        </p>
-        
-        <div style="margin: 20px 0; padding: 15px; border-left: 4px solid #2563eb; background-color: #f3f4f6;">
-          <h3 style="color: #1e3a8a; margin-top: 0;">Détails du constat:</h3>
-          <p><strong>Véhicule A:</strong> ${reportDetails.vehicleA.brand} ${reportDetails.vehicleA.model} - ${reportDetails.vehicleA.licensePlate}</p>
-          <p><strong>Véhicule B:</strong> ${reportDetails.vehicleB.brand} ${reportDetails.vehicleB.model} - ${reportDetails.vehicleB.licensePlate}</p>
-        </div>
-        
-        <p style="color: #4b5563; line-height: 1.5;">
-          Ce constat électronique a désormais une valeur juridique équivalente à un constat papier signé. 
-          Il a été enregistré dans la base nationale des e-constats et transmis aux compagnies d'assurance concernées.
-        </p>
-        
-        <p style="color: #4b5563; line-height: 1.5;">
-          Conservez précieusement le numéro de référence mentionné ci-dessus pour toute communication 
-          avec votre assureur concernant ce sinistre.
-        </p>
-        
-        <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e0e0e0; color: #6b7280; font-size: 14px;">
-          <p style="margin: 0;">
-            Email envoyé automatiquement le ${date} à ${time}.<br>
-            © 2025 Constalib - Service e-constat officiel
-          </p>
-        </div>
-      </div>
-    `;
-    
-    // Send the email using the Resend API through Edge Function
-    const { data: emailData, error: emailError } = await supabaseClient.functions.invoke('send-accident-report', {
-      body: {
-        to: [email],
-        subject: `Confirmation e-Constat [${referenceId}] - Accident du ${reportDetails.date}`,
-        html: htmlContent,
-        text: `Confirmation de votre e-Constat. Référence: ${referenceId}. Conservez ce numéro pour vos démarches.`,
-      },
+      `,
     });
-    
-    if (emailError) {
-      console.error("Error sending confirmation email:", emailError);
-      throw new Error(`Failed to send confirmation email: ${emailError.message}`);
-    }
+
+    console.log("Email sent successfully:", emailResponse);
 
     return new Response(
       JSON.stringify({ 
-        success: true,
-        message: "Confirmation email sent successfully"
+        success: true, 
+        messageId: emailResponse.id,
+        message: "Confirmation email sent successfully" 
       }),
-      { 
-        headers: { 
-          "Content-Type": "application/json",
-          ...corsHeaders
-        },
-        status: 200,
+      {
+        headers: { "Content-Type": "application/json", ...corsHeaders },
       }
     );
   } catch (error) {
@@ -109,15 +119,12 @@ serve(async (req) => {
     
     return new Response(
       JSON.stringify({ 
-        success: false,
-        error: error.message || "An error occurred sending the confirmation email"
+        success: false, 
+        error: error.message || "An error occurred while sending confirmation" 
       }),
-      { 
-        headers: { 
-          "Content-Type": "application/json",
-          ...corsHeaders
-        },
+      {
         status: 500,
+        headers: { "Content-Type": "application/json", ...corsHeaders },
       }
     );
   }

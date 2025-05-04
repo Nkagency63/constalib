@@ -22,9 +22,13 @@ import { registerOfficialReport } from "@/services/accidentReportService";
 interface CerfaGenerationButtonProps {
   formData: FormData;
   className?: string;
+  signatures?: {
+    partyA: string | null;
+    partyB: string | null;
+  };
 }
 
-const CerfaGenerationButton = ({ formData, className = "" }: CerfaGenerationButtonProps) => {
+const CerfaGenerationButton = ({ formData, className = "", signatures }: CerfaGenerationButtonProps) => {
   const [isGenerating, setIsGenerating] = useState(false);
   const [isRegistering, setIsRegistering] = useState(false);
   const [showOfficialDialog, setShowOfficialDialog] = useState(false);
@@ -81,7 +85,7 @@ const CerfaGenerationButton = ({ formData, className = "" }: CerfaGenerationButt
       
       // Generate the CERFA PDF with form data and scheme image
       console.log("Generating PDF with form data:", formData.date, formData.time);
-      const pdfUrl = await generateCerfaPDF(formData, schemeImageDataUrl);
+      const pdfUrl = await generateCerfaPDF(formData, schemeImageDataUrl, signatures);
       
       // Try to download using the Supabase storage path
       const supabasePath = "storage:constat-amiable-officiel.pdf/constat-amiable-officiel.pdf";
@@ -96,6 +100,11 @@ const CerfaGenerationButton = ({ formData, className = "" }: CerfaGenerationButt
       }
       
       toast.success("Your accident report PDF has been downloaded");
+      
+      // Set referenceId if signatures were provided (official document)
+      if (signatures?.partyA && signatures?.partyB) {
+        setReferenceId("CR-" + pdfUrl.split("/").pop()?.split(".")[0]);
+      }
     } catch (error: any) {
       console.error("Error generating CERFA:", error);
       toast.error(error.message || "Error generating PDF");
@@ -105,6 +114,11 @@ const CerfaGenerationButton = ({ formData, className = "" }: CerfaGenerationButt
   };
 
   const handleRegisterOfficial = async () => {
+    if (!signatures?.partyA || !signatures?.partyB) {
+      toast.error("Les deux signatures sont nécessaires pour l'enregistrement officiel");
+      return;
+    }
+    
     setIsRegistering(true);
     try {
       // Prepare data for official registration
@@ -141,13 +155,28 @@ const CerfaGenerationButton = ({ formData, className = "" }: CerfaGenerationButt
         lng: formData.geolocation.lng,
         address: formData.geolocation.address
       };
+      
+      // Include signatures in the registration data
+      const signatureData = {
+        partyA: signatures.partyA,
+        partyB: signatures.partyB,
+        timestamp: new Date().toISOString()
+      };
 
       // Call the official registration function
-      const result = await registerOfficialReport(reportData, vehicleA, vehicleB, circumstances, geolocation);
+      const result = await registerOfficialReport(
+        reportData, 
+        vehicleA, 
+        vehicleB, 
+        circumstances, 
+        geolocation,
+        signatureData
+      );
       
       if (result.success) {
         setReferenceId(result.referenceId);
-        toast.success("Official report registered successfully");
+        setShowOfficialDialog(true);
+        toast.success("Constat enregistré officiellement");
       } else {
         throw new Error(result.error || "Failed to register official report");
       }
@@ -158,6 +187,9 @@ const CerfaGenerationButton = ({ formData, className = "" }: CerfaGenerationButt
       setIsRegistering(false);
     }
   };
+
+  // Determine if the official register button should be enabled
+  const canRegisterOfficial = Boolean(signatures?.partyA && signatures?.partyB);
 
   return (
     <div className="flex flex-col sm:flex-row gap-3 w-full">
@@ -170,12 +202,12 @@ const CerfaGenerationButton = ({ formData, className = "" }: CerfaGenerationButt
         {isGenerating ? (
           <>
             <div className="animate-spin w-4 h-4 border-2 border-t-transparent rounded-full border-blue-600" />
-            <span>Generating PDF...</span>
+            <span>Génération PDF...</span>
           </>
         ) : (
           <>
             <FileText className="w-4 h-4" />
-            <span>Download CERFA</span>
+            <span>Télécharger le CERFA</span>
           </>
         )}
       </Button>
@@ -184,17 +216,18 @@ const CerfaGenerationButton = ({ formData, className = "" }: CerfaGenerationButt
         <DialogTrigger asChild>
           <Button
             className="flex items-center gap-2 flex-grow"
-            disabled={isGenerating || isRegistering}
+            disabled={isGenerating || isRegistering || !canRegisterOfficial}
+            onClick={canRegisterOfficial ? handleRegisterOfficial : undefined}
           >
             {isRegistering ? (
               <>
                 <div className="animate-spin w-4 h-4 border-2 border-t-transparent rounded-full" />
-                <span>Registering...</span>
+                <span>Enregistrement...</span>
               </>
             ) : (
               <>
                 <Upload className="w-4 h-4" />
-                <span>Register Officially</span>
+                <span>Enregistrer Officiellement</span>
               </>
             )}
           </Button>
@@ -202,31 +235,31 @@ const CerfaGenerationButton = ({ formData, className = "" }: CerfaGenerationButt
 
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>Official Accident Report Registration</DialogTitle>
+            <DialogTitle>Enregistrement Officiel du Constat</DialogTitle>
             <DialogDescription>
               {referenceId ? (
                 <div className="space-y-4 mt-4">
-                  <p>Your report has been successfully registered with reference:</p>
+                  <p>Votre constat a été enregistré avec succès sous la référence :</p>
                   <p className="bg-green-50 border border-green-200 rounded-md p-3 text-center font-bold text-green-800">
                     {referenceId}
                   </p>
                   <p>
-                    This reference is your proof of registration. Keep it safe and 
-                    provide it to your insurance company.
+                    Cette référence est votre preuve d'enregistrement. Conservez-la précieusement
+                    et communiquez-la à votre assurance.
                   </p>
                 </div>
               ) : (
                 <div className="space-y-4 mt-4">
                   <p>
-                    By clicking "Register", you will officially declare this accident report 
-                    in the e-constat system.
+                    En cliquant sur "Enregistrer", vous déclarerez officiellement ce constat
+                    dans le système e-constat.
                   </p>
                   <p>
-                    This action has legal value and will replace the paper accident report.
-                    A unique reference number will be assigned to you.
+                    Cette action a une valeur juridique et remplacera le constat papier.
+                    Un numéro de référence unique vous sera attribué.
                   </p>
                   <p className="font-semibold text-amber-600">
-                    Please make sure all information is correct before confirming.
+                    Veuillez vérifier que toutes les informations sont correctes avant de confirmer.
                   </p>
                 </div>
               )}
@@ -236,16 +269,16 @@ const CerfaGenerationButton = ({ formData, className = "" }: CerfaGenerationButt
           <DialogFooter className="sm:justify-between">
             <DialogClose asChild>
               <Button variant="outline">
-                {referenceId ? "Close" : "Cancel"}
+                {referenceId ? "Fermer" : "Annuler"}
               </Button>
             </DialogClose>
             
-            {!referenceId && (
+            {!referenceId && canRegisterOfficial && (
               <Button 
                 onClick={handleRegisterOfficial} 
                 disabled={isRegistering}
               >
-                {isRegistering ? "Registering..." : "Register"}
+                {isRegistering ? "Enregistrement..." : "Enregistrer"}
               </Button>
             )}
           </DialogFooter>
