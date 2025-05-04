@@ -12,111 +12,80 @@ import { toast } from "sonner";
  */
 export const downloadPDF = async (url: string, filename: string) => {
   try {
+    // If it's a blob URL (from in-memory generation), download directly
+    if (url.startsWith('blob:')) {
+      triggerDownload(url, filename);
+      return;
+    }
+    
     // If URL is a storage path, get the file from Supabase
     if (url.startsWith('storage:')) {
-      // Parse the storage path (format: storage:bucketName/path/to/file)
-      const storagePath = url.substring(8); // Remove 'storage:' prefix
-      const slashIndex = storagePath.indexOf('/');
-      
-      if (slashIndex === -1) {
-        console.error('Invalid storage path format, falling back to local file');
-        // Fallback to local file immediately
-        triggerLocalDownload(filename);
-        return;
-      }
-      
-      const bucketName = storagePath.substring(0, slashIndex);
-      const filePath = storagePath.substring(slashIndex + 1);
-      
-      console.log(`Attempting to download from Supabase: bucket=${bucketName}, path=${filePath}`);
-      
       try {
-        // First try to get the public URL if the bucket is public
-        const { data: publicUrlData } = supabase.storage
-          .from(bucketName)
-          .getPublicUrl(filePath);
-        
-        if (publicUrlData && publicUrlData.publicUrl) {
-          console.log('Found public URL:', publicUrlData.publicUrl);
-          
-          // Fetch the file first to check if it exists
-          try {
-            const response = await fetch(publicUrlData.publicUrl, { method: 'HEAD' });
-            if (response.ok) {
-              triggerDownload(publicUrlData.publicUrl, filename);
-              toast.success("Téléchargement réussi");
-              return;
-            } else {
-              console.error('File not found at URL:', publicUrlData.publicUrl);
-              throw new Error("Le fichier n'a pas été trouvé dans le stockage");
-            }
-          } catch (fetchError) {
-            console.error('Error fetching file from public URL:', fetchError);
-            throw new Error("Erreur lors de l'accès au fichier");
-          }
-        }
-      } catch (publicUrlError) {
-        console.error('Error getting public URL:', publicUrlError);
-      }
-      
-      // If public URL doesn't work or is not available, try signed URL
-      try {
-        const { data: signedURL, error: signedURLError } = await supabase.storage
-          .from(bucketName)
-          .createSignedUrl(filePath, 60); // 60 seconds expiry
-          
-        if (signedURLError || !signedURL) {
-          console.error('Error creating signed URL:', signedURLError);
-          throw new Error(`Impossible de créer un lien de téléchargement: ${signedURLError?.message || 'Erreur inconnue'}`);
-        }
-        
-        triggerDownload(signedURL.signedUrl, filename);
-        toast.success("Téléchargement réussi");
-        return;
-      } catch (signedURLError) {
-        console.error('Error with signed URL:', signedURLError);
-      }
-      
-      // Try direct download as last resort
-      try {
-        const { data, error } = await supabase.storage
-          .from(bucketName)
-          .download(filePath);
-        
-        if (error || !data) {
-          console.error('Error downloading file:', error);
-          throw new Error(`Fichier non trouvé: ${error?.message || 'Erreur inconnue'}`);
-        }
-        
-        // Create URL from the blob and trigger download
-        const blobUrl = window.URL.createObjectURL(data);
-        triggerDownload(blobUrl, filename);
-        
-        // Clean up the blob URL after download
-        setTimeout(() => window.URL.revokeObjectURL(blobUrl), 100);
-        
-        toast.success("Téléchargement réussi");
-        return;
+        await downloadFromStorage(url, filename);
       } catch (storageError) {
-        console.error('Error downloading from Supabase:', storageError);
-        toast.warning("Impossible de récupérer le fichier depuis Supabase. Utilisation du fichier local...");
-        
-        // Fallback to local file if Supabase storage fails
+        console.error('Error downloading from storage:', storageError);
+        toast.warning("Impossible d'accéder au stockage. Utilisation du fichier local...");
         triggerLocalDownload(filename);
-        return;
       }
-    } else {
-      // For regular URLs, download directly
-      triggerDownload(url, filename);
+      return;
+    }
+    
+    // For regular URLs, try to download
+    try {
+      // Check if URL is accessible
+      const response = await fetch(url, { method: 'HEAD' });
+      if (response.ok) {
+        triggerDownload(url, filename);
+      } else {
+        console.error('File not accessible:', url);
+        toast.warning("Le fichier n'est pas accessible. Utilisation du fichier local...");
+        triggerLocalDownload(filename);
+      }
+    } catch (fetchError) {
+      console.error('Error fetching URL:', fetchError);
+      toast.warning("Le fichier n'est pas accessible. Utilisation du fichier local...");
+      triggerLocalDownload(filename);
     }
   } catch (error) {
     console.error('Error downloading PDF:', error);
-    toast.error("Erreur lors du téléchargement du PDF. Tentative avec la version locale...");
-    
-    // Final fallback to local file
+    toast.error("Erreur lors du téléchargement du PDF. Utilisation de la version locale...");
     triggerLocalDownload(filename);
   }
 };
+
+/**
+ * Downloads a file from Supabase storage
+ * @param storagePath Storage path in format 'storage:bucketName/filePath'
+ * @param filename Name to give the downloaded file
+ */
+async function downloadFromStorage(storagePath: string, filename: string) {
+  // Parse the storage path (format: storage:bucketName/path/to/file)
+  const path = storagePath.substring(8); // Remove 'storage:' prefix
+  const slashIndex = path.indexOf('/');
+  
+  if (slashIndex === -1) {
+    console.error('Invalid storage path format');
+    throw new Error('Invalid storage path format');
+  }
+  
+  const bucketName = path.substring(0, slashIndex);
+  const filePath = path.substring(slashIndex + 1);
+  
+  console.log(`Downloading from Supabase: bucket=${bucketName}, path=${filePath}`);
+  
+  // Try to get a signed URL
+  const { data: signedURL, error: signedURLError } = await supabase.storage
+    .from(bucketName)
+    .createSignedUrl(filePath, 60); // 60 seconds expiry
+    
+  if (signedURLError || !signedURL) {
+    console.error('Error creating signed URL:', signedURLError);
+    throw new Error(`Impossible de créer un lien de téléchargement`);
+  }
+  
+  triggerDownload(signedURL.signedUrl, filename);
+  toast.success("Téléchargement réussi");
+}
 
 /**
  * Helper function to upload file to Supabase storage
@@ -151,7 +120,7 @@ export const uploadFileToStorage = async (file: File, bucketName: string, filePa
  * Helper function to trigger download from local public folder
  */
 const triggerLocalDownload = (filename: string) => {
-  const localUrl = `/pdf/${filename}`;
+  const localUrl = `/pdf/${filename.toLowerCase()}`;
   console.log(`Using local file for download: ${localUrl}`);
   triggerDownload(localUrl, filename);
 };

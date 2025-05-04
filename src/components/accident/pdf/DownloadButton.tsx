@@ -2,6 +2,7 @@
 import React from 'react';
 import { Button } from "@/components/ui/button";
 import { FileText } from "lucide-react";
+import { toast } from "sonner";
 
 interface DownloadButtonProps {
   onClick: () => Promise<void>;
@@ -10,11 +11,20 @@ interface DownloadButtonProps {
 }
 
 const DownloadButton = ({ onClick, isGenerating, className = "" }: DownloadButtonProps) => {
+  const handleDownloadClick = async () => {
+    try {
+      await onClick();
+    } catch (error) {
+      console.error("Error in download button handler:", error);
+      toast.error("Une erreur est survenue lors de la génération du PDF");
+    }
+  };
+
   return (
     <Button
       variant="outline"
       className={`flex items-center gap-2 flex-grow ${className}`}
-      onClick={onClick}
+      onClick={handleDownloadClick}
       disabled={isGenerating}
     >
       {isGenerating ? (

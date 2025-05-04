@@ -74,23 +74,13 @@ export const useCerfaGeneration = ({ formData, signatures }: UseCerfaGenerationP
       console.log("Generating PDF with form data:", formData.date, formData.time);
       const pdfUrl = await generateCerfaPDF(formData, schemeImageDataUrl, signatures);
       
-      // Try to download using the Supabase storage path
-      const supabasePath = "storage:constat-amiable-officiel.pdf/constat-amiable-officiel.pdf";
-      toast.info("Checking for official PDF in Supabase storage...");
-      
-      try {
-        await downloadPDF(supabasePath, "constat-amiable.pdf");
-      } catch (storageError) {
-        console.error("Error downloading from Supabase:", storageError);
-        // Fallback to the generated PDF if Supabase download fails
-        await downloadPDF(pdfUrl, "constat-amiable.pdf");
-      }
-      
+      // Download the generated PDF
+      await downloadPDF(pdfUrl, "constat-amiable.pdf");
       toast.success("Your accident report PDF has been downloaded");
       
       // Set referenceId if signatures were provided (official document)
       if (signatures?.partyA && signatures?.partyB) {
-        setReferenceId("CR-" + pdfUrl.split("/").pop()?.split(".")[0]);
+        setReferenceId("CR-" + Math.random().toString(36).substring(2, 9));
       }
     } catch (error: any) {
       console.error("Error generating CERFA:", error);

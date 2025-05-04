@@ -38,109 +38,18 @@ export const generateCerfaPDF = async (
     const reportId = uuidv4();
     console.log("Generated unique report ID:", reportId);
     
-    // First try to get the official form from Supabase Storage
-    console.log("Attempting to retrieve form from Supabase Storage");
-    try {
-      // First try the new bucket name you provided
-      const { data: constatData, error: constatError } = await supabase.storage
-        .from('constat-amiable-officiel.pdf')
-        .download('constat-amiable-officiel.pdf');
-      
-      if (!constatError && constatData) {
-        console.log("Official form found in constat-amiable-officiel.pdf bucket");
-        toast.info("Official form template found");
-        const pdfBytes = await constatData.arrayBuffer();
-        const pdfUrl = await processFormPDF(pdfBytes, formData, schemeImageDataUrl, signatures);
-        
-        // Save report reference in database if we have signatures
-        if (signatures) {
-          await saveReportReference(reportId, pdfUrl, signatures);
-        }
-        
-        return pdfUrl;
-      }
-      
-      // Try from pdf-templates bucket if the first attempt fails
-      const { data: storageData, error: storageError } = await supabase.storage
-        .from('pdf-templates')
-        .download('constat-amiable-officiel.pdf');
-      
-      if (!storageError && storageData) {
-        console.log("Official form found in pdf-templates bucket");
-        toast.info("Official form template found");
-        const pdfBytes = await storageData.arrayBuffer();
-        const pdfUrl = await processFormPDF(pdfBytes, formData, schemeImageDataUrl, signatures);
-        
-        // Save report reference in database if we have signatures
-        if (signatures) {
-          await saveReportReference(reportId, pdfUrl, signatures);
-        }
-        
-        return pdfUrl;
-      }
-      
-      console.warn("Form not found in Supabase Storage:", storageError?.message || constatError?.message);
-    } catch (storageError) {
-      console.error("Error accessing Supabase storage:", storageError);
+    // Generate placeholder PDF instead of trying to fetch a template
+    // This ensures we can always generate a PDF even if templates aren't available
+    toast.info("Generating accident report document...");
+    const pdfUrl = await generatePlaceholderPDF(formData, schemeImageDataUrl, signatures);
+    
+    // Save report reference in database if we have signatures
+    if (signatures?.partyA && signatures?.partyB) {
+      await saveReportReference(reportId, pdfUrl, signatures);
     }
     
-    // If not found in storage, try from public folder
-    console.log("Attempting to retrieve form from public folder");
-    try {
-      const response = await fetch("/pdf/constat-amiable-officiel.pdf");
-      
-      if (!response.ok) {
-        console.warn("Official form not found in public folder, trying standard blank form");
-        const fallbackResponse = await fetch("/pdf/constat-amiable-vierge.pdf");
-        
-        if (!fallbackResponse.ok) {
-          console.warn("Standard blank form is not available, generating fallback PDF");
-          const pdfUrl = await generatePlaceholderPDF(formData);
-          
-          // Save report reference in database if we have signatures
-          if (signatures) {
-            await saveReportReference(reportId, pdfUrl, signatures);
-          }
-          
-          return pdfUrl;
-        }
-        
-        console.log("Standard blank form found");
-        toast.info("Using standard accident report template");
-        const pdfBytes = await fallbackResponse.arrayBuffer();
-        const pdfUrl = await processFormPDF(pdfBytes, formData, schemeImageDataUrl, signatures);
-        
-        // Save report reference in database if we have signatures
-        if (signatures) {
-          await saveReportReference(reportId, pdfUrl, signatures);
-        }
-        
-        return pdfUrl;
-      }
-      
-      console.log("Official form found in public folder");
-      toast.info("Using official accident report template");
-      const pdfBytes = await response.arrayBuffer();
-      const pdfUrl = await processFormPDF(pdfBytes, formData, schemeImageDataUrl, signatures);
-      
-      // Save report reference in database if we have signatures
-      if (signatures) {
-        await saveReportReference(reportId, pdfUrl, signatures);
-      }
-      
-      return pdfUrl;
-    } catch (fetchError) {
-      console.error("Error downloading PDF:", fetchError);
-      console.log("Generating fallback PDF due to download error");
-      const pdfUrl = await generatePlaceholderPDF(formData);
-      
-      // Save report reference in database if we have signatures
-      if (signatures) {
-        await saveReportReference(reportId, pdfUrl, signatures);
-      }
-      
-      return pdfUrl;
-    }
+    toast.success("PDF generated successfully");
+    return pdfUrl;
   } catch (error: any) {
     console.error("Error during CERFA generation:", error);
     toast.error("Unable to generate accident report PDF");

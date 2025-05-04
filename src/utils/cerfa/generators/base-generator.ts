@@ -1,3 +1,4 @@
+
 /**
  * Base functionality for PDF generation
  */
@@ -25,6 +26,11 @@ export const processFormPDF = async (
   reportId?: string
 ): Promise<string> => {
   try {
+    // Validate that the bytes are a proper PDF
+    if (!isPDF(formBytes)) {
+      throw new Error("Invalid PDF file format");
+    }
+    
     // Load the PDF document
     const pdfDoc = await PDFDocument.load(formBytes);
     
@@ -51,3 +57,23 @@ export const processFormPDF = async (
     throw new Error(`Error processing PDF: ${error}`);
   }
 };
+
+/**
+ * Check if the provided bytes are likely a PDF file
+ * @param bytes ArrayBuffer to check
+ * @returns boolean indicating if bytes are a PDF
+ */
+function isPDF(bytes: ArrayBuffer): boolean {
+  // Check for PDF magic number (%PDF-) at the beginning of the file
+  const uint8Array = new Uint8Array(bytes);
+  if (uint8Array.length < 5) return false;
+  
+  // Check for %PDF- signature (37 80 68 70 45 in hex)
+  return (
+    uint8Array[0] === 0x25 && // %
+    uint8Array[1] === 0x50 && // P
+    uint8Array[2] === 0x44 && // D
+    uint8Array[3] === 0x46 && // F
+    uint8Array[4] === 0x2D    // -
+  );
+}
