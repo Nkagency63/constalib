@@ -78,7 +78,7 @@ const SchemeStep = ({ formData }: SchemeStepProps) => {
           toast({
             title: "Exportation réussie",
             description: "L'image du schéma a été téléchargée",
-            variant: "success",
+            variant: "default",
           });
         }).catch(err => {
           console.error("Error exporting image:", err);

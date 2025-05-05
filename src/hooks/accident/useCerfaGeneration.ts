@@ -5,7 +5,7 @@ import { FormData } from "@/components/accident/types";
 import { generateCerfaPDF } from "@/utils/cerfa";
 import { downloadPDF } from "@/utils/downloadUtils";
 import { registerOfficialReport } from "@/services/accidentReportService";
-import html2canvas from "html2canvas";
+import { captureSchemeAsDataUrl } from "@/components/accident/scheme/SchemeExport";
 
 interface UseCerfaGenerationProps {
   formData: FormData;
@@ -23,39 +23,19 @@ export const useCerfaGeneration = ({ formData, signatures }: UseCerfaGenerationP
 
   const captureSchemeImage = async (): Promise<string | null> => {
     try {
-      // Find the scheme container
-      const schemeContainer = document.querySelector('.leaflet-container') as HTMLElement;
+      toast.info("Capture du schéma d'accident en cours...", { duration: 2000 });
       
-      if (!schemeContainer) {
-        console.warn("Scheme container not found");
-        return null;
-      }
-
-      toast.info("Capturing accident scheme...", { duration: 2000 });
-
-      // Wait for any pending renders
-      await new Promise(resolve => setTimeout(resolve, 1000));
-
-      // Capture the scheme as an image
-      const canvas = await html2canvas(schemeContainer, {
-        useCORS: true,
-        allowTaint: true,
-        backgroundColor: "#ffffff",
-        scale: 2, // Better quality
-        logging: false,
-      });
-      
-      // Convert canvas to dataURL
-      const imageDataUrl = canvas.toDataURL('image/png');
+      // Utiliser la fonction dédiée pour capturer le schéma
+      const imageDataUrl = await captureSchemeAsDataUrl();
       
       if (imageDataUrl) {
-        toast.success("Scheme captured successfully", { duration: 2000 });
+        toast.success("Schéma capturé avec succès", { duration: 2000 });
       }
       
       return imageDataUrl;
     } catch (error) {
-      console.error("Error capturing scheme:", error);
-      toast.error("Could not capture the accident scheme");
+      console.error("Erreur lors de la capture du schéma:", error);
+      toast.error("Impossible de capturer le schéma de l'accident");
       return null;
     }
   };
@@ -64,27 +44,82 @@ export const useCerfaGeneration = ({ formData, signatures }: UseCerfaGenerationP
     setIsGenerating(true);
     try {
       // Capture the scheme as an image
-      toast.info("Preparing PDF document...", { duration: 3000 });
+      toast.info("Préparation du document PDF...", { duration: 3000 });
       
-      console.log("Capturing scheme...");
+      console.log("Capture du schéma en cours...");
       const schemeImageDataUrl = await captureSchemeImage();
-      console.log("Scheme captured:", schemeImageDataUrl ? "Yes" : "No");
+      console.log("Schéma capturé:", schemeImageDataUrl ? "Oui" : "Non");
       
-      // Generate the CERFA PDF with form data and scheme image
-      console.log("Generating PDF with form data:", formData.date, formData.time);
-      const pdfUrl = await generateCerfaPDF(formData, schemeImageDataUrl, signatures);
+      // Préparer les données supplémentaires pour le CERFA
+      const completeFormData = {
+        ...formData,
+        vehicleLabels: {
+          A: {
+            brand: formData.vehicleBrand,
+            model: formData.vehicleModel,
+            licensePlate: formData.licensePlate
+          },
+          B: {
+            brand: formData.otherVehicle.brand,
+            model: formData.otherVehicle.model,
+            licensePlate: formData.otherVehicle.licensePlate
+          }
+        },
+        // Ajouter les données pour les sections manquantes
+        driverInfo: {
+          A: {
+            name: formData.driverName || formData.insuredName || "Non renseigné",
+            address: formData.driverAddress || formData.insuredAddress || "Non renseigné",
+            licenseNumber: formData.driverLicense || "Non renseigné",
+            phone: formData.driverPhone || formData.insuredPhone || "Non renseigné",
+          },
+          B: {
+            name: formData.otherDriverName || "Non renseigné",
+            address: formData.otherDriverAddress || "Non renseigné",
+            licenseNumber: formData.otherDriverLicense || "Non renseigné",
+            phone: formData.otherDriverPhone || "Non renseigné",
+          }
+        },
+        insuredInfo: {
+          A: {
+            name: formData.insuredName || "Non renseigné",
+            address: formData.insuredAddress || "Non renseigné",
+            phone: formData.insuredPhone || "Non renseigné",
+            email: formData.personalEmail || "Non renseigné",
+          },
+          B: {
+            name: formData.otherInsuredName || "Non renseigné",
+            address: formData.otherInsuredAddress || "Non renseigné",
+            phone: formData.otherInsuredPhone || "Non renseigné",
+            email: formData.otherInsuredEmail || "Non renseigné",
+          }
+        },
+        injuries: {
+          hasInjuries: formData.hasInjuries || false,
+          description: formData.injuriesDescription || "",
+          victims: formData.injuries || []
+        },
+        materialDamage: {
+          hasMaterialDamage: formData.hasMaterialDamage || false,
+          description: formData.materialDamageDescription || ""
+        }
+      };
+      
+      // Generate the CERFA PDF with complete form data and scheme image
+      console.log("Génération du PDF avec les données:", completeFormData.date, completeFormData.time);
+      const pdfUrl = await generateCerfaPDF(completeFormData, schemeImageDataUrl, signatures);
       
       // Download the generated PDF
       await downloadPDF(pdfUrl, "constat-amiable.pdf");
-      toast.success("Your accident report PDF has been downloaded");
+      toast.success("Votre constat amiable PDF a été téléchargé");
       
       // Set referenceId if signatures were provided (official document)
       if (signatures?.partyA && signatures?.partyB) {
         setReferenceId("CR-" + Math.random().toString(36).substring(2, 9));
       }
     } catch (error: any) {
-      console.error("Error generating CERFA:", error);
-      toast.error(error.message || "Error generating PDF");
+      console.error("Erreur de génération du CERFA:", error);
+      toast.error(error.message || "Erreur de génération du PDF");
     } finally {
       setIsGenerating(false);
     }

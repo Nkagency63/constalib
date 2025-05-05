@@ -69,6 +69,27 @@ export interface FormData {
   injuriesDescription?: string;
   hasWitnesses: boolean;
   witnesses: WitnessInfo[];
+  // Nouvelles propriétés pour les informations du conducteur et de l'assuré
+  driverName?: string;
+  driverAddress?: string;
+  driverPhone?: string;
+  driverLicense?: string;
+  insuredName?: string;
+  insuredAddress?: string;
+  insuredPhone?: string;
+  otherDriverName?: string;
+  otherDriverAddress?: string;
+  otherDriverPhone?: string;
+  otherDriverLicense?: string;
+  otherInsuredName?: string;
+  otherInsuredAddress?: string;
+  otherInsuredPhone?: string;
+  otherInsuredEmail?: string;
+  // Nouvelles propriétés pour les dégâts matériels
+  hasMaterialDamage?: boolean;
+  materialDamageDescription?: string;
+  // Informations sur les blessés
+  injuries?: {name: string, contact: string}[];
 }
 
 export interface Vehicle {

@@ -46,3 +46,36 @@ export const handleExportImage = async ({ mapRef }: ExportImageProps) => {
     console.error("Erreur d'exportation:", error);
   }
 };
+
+// Fonction pour capturer le schéma sans téléchargement - utilisé pour le CERFA
+export const captureSchemeAsDataUrl = async (): Promise<string | null> => {
+  try {
+    // Trouver le conteneur de la carte
+    const schemeContainer = document.querySelector('.leaflet-container') as HTMLElement;
+    
+    if (!schemeContainer) {
+      console.warn("Conteneur de schéma introuvable");
+      return null;
+    }
+    
+    // Attendre les rendus en cours
+    await new Promise(resolve => setTimeout(resolve, 300));
+    
+    // Paramètres améliorés pour une meilleure qualité
+    const canvas = await html2canvas(schemeContainer, {
+      useCORS: true,
+      allowTaint: true,
+      backgroundColor: "#ffffff",
+      scale: 2.5,
+      logging: false,
+      width: schemeContainer.offsetWidth,
+      height: schemeContainer.offsetHeight,
+    });
+    
+    // Convertir en URL de données avec haute qualité
+    return canvas.toDataURL('image/png', 0.95);
+  } catch (error) {
+    console.error("Erreur lors de la capture du schéma:", error);
+    return null;
+  }
+};
