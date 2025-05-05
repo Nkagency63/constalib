@@ -32,7 +32,7 @@ export const useSchemeMap = ({ readOnly, handleMapClick, onReady }: UseSchemeMap
         mapRef.current.invalidateSize();
         console.log("Map size invalidated");
       }
-    }, 100);
+    }, 200);
     
     // Call the onReady callback to initialize the map
     onReady();
@@ -63,7 +63,7 @@ export const useSchemeMap = ({ readOnly, handleMapClick, onReady }: UseSchemeMap
         if (mapRef.current) {
           mapRef.current.invalidateSize();
         }
-      }, 100);
+      }, 200);
       
       console.log("Map centered on vehicles successfully");
     } catch (error) {
