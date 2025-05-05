@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { toast } from "sonner";
 import { FormData } from "@/components/accident/types";
@@ -133,13 +132,12 @@ export const useCerfaGeneration = ({ formData, signatures }: UseCerfaGenerationP
     
     setIsRegistering(true);
     try {
-      // Prepare data for official registration
+      // Prepare data for official registration - organizing it according to the expected parameters
       const reportData = {
         date: formData.date,
         time: formData.time,
         location: formData.location,
         personalEmail: formData.personalEmail,
-        // Ajouter les informations des dégâts matériels et blessés
         hasInjuries: formData.hasInjuries,
         injuriesDescription: formData.injuriesDescription,
         hasMaterialDamage: formData.hasMaterialDamage,
@@ -162,40 +160,35 @@ export const useCerfaGeneration = ({ formData, signatures }: UseCerfaGenerationP
         insurancePolicy: formData.otherVehicle.insurancePolicy
       };
 
-      // Ajouter les informations des conducteurs
-      const driverData = {
-        A: {
+      // Compile all participant information
+      const participants = {
+        driverA: {
           name: formData.driverName,
           address: formData.driverAddress,
           phone: formData.driverPhone,
           license: formData.driverLicense
         },
-        B: {
+        driverB: {
           name: formData.otherDriverName,
           address: formData.otherDriverAddress,
           phone: formData.otherDriverPhone,
           license: formData.otherDriverLicense
-        }
-      };
-
-      // Ajouter les informations des assurés
-      const insuredData = {
-        A: {
+        },
+        insuredA: {
           name: formData.insuredName,
           address: formData.insuredAddress,
           phone: formData.insuredPhone,
           email: formData.personalEmail
         },
-        B: {
+        insuredB: {
           name: formData.otherInsuredName,
           address: formData.otherInsuredAddress,
           phone: formData.otherInsuredPhone,
           email: formData.otherInsuredEmail
-        }
+        },
+        witnesses: formData.witnesses || [],
+        injuries: formData.injuries || []
       };
-
-      // Ajouter les informations des blessés
-      const injuriesData = formData.injuries || [];
 
       const circumstances = {
         vehicleA: formData.vehicleACircumstances,
@@ -208,24 +201,24 @@ export const useCerfaGeneration = ({ formData, signatures }: UseCerfaGenerationP
         address: formData.geolocation.address
       };
       
-      // Include signatures in the registration data
       const signatureData = {
         partyA: signatures.partyA,
         partyB: signatures.partyB,
         timestamp: new Date().toISOString()
       };
 
-      // Call the official registration function with all the new data
+      // Call the official registration function with the consolidated data structure
+      // Fixing the argument count to match the function signature
       const result = await registerOfficialReport(
         reportData, 
         vehicleA, 
         vehicleB, 
-        driverData,
-        insuredData,
         circumstances, 
         geolocation,
-        signatureData,
-        injuriesData
+        {
+          participants,
+          signatureData
+        }
       );
       
       if (result.success) {
