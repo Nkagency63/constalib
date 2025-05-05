@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { toast } from "sonner";
 import { FormData } from "@/components/accident/types";
@@ -51,7 +50,7 @@ export const useCerfaGeneration = ({ formData, signatures }: UseCerfaGenerationP
       console.log("Schéma capturé:", schemeImageDataUrl ? "Oui" : "Non");
       
       // Préparer les données supplémentaires pour le CERFA
-      const completeFormData = {
+      const completeFormData: FormData = {
         ...formData,
         vehicleLabels: {
           A: {
@@ -94,15 +93,13 @@ export const useCerfaGeneration = ({ formData, signatures }: UseCerfaGenerationP
             email: formData.otherInsuredEmail || "Non renseigné",
           }
         },
-        injuries: {
-          hasInjuries: formData.hasInjuries || false,
-          description: formData.injuriesDescription || "",
-          victims: formData.injuries || []
-        },
-        materialDamage: {
-          hasMaterialDamage: formData.hasMaterialDamage || false,
-          description: formData.materialDamageDescription || ""
-        }
+        // Fix type compatibility issue with injuries
+        injuriesDescription: formData.injuriesDescription || "",
+        hasInjuries: formData.hasInjuries || false,
+        injuries: formData.injuries || [],
+        // Material damage information
+        hasMaterialDamage: formData.hasMaterialDamage || false,
+        materialDamageDescription: formData.materialDamageDescription || ""
       };
       
       // Generate the CERFA PDF with complete form data and scheme image
@@ -158,8 +155,8 @@ export const useCerfaGeneration = ({ formData, signatures }: UseCerfaGenerationP
       };
 
       const circumstances = {
-        vehicleA: formData.vehicleACircumstances,
-        vehicleB: formData.vehicleBCircumstances
+        vehicleA: formData.vehicleACircumstences,
+        vehicleB: formData.vehicleBCircumstences
       };
 
       const geolocation = {

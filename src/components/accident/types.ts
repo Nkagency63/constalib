@@ -1,4 +1,3 @@
-
 export interface Step {
   id: string;
   title: string;
@@ -90,6 +89,47 @@ export interface FormData {
   materialDamageDescription?: string;
   // Informations sur les blessés
   injuries?: {name: string, contact: string}[];
+  // Nouvelles propriétés pour les labels de véhicules et informations supplémentaires (CERFA)
+  vehicleLabels?: {
+    A: {
+      brand: string;
+      model: string;
+      licensePlate: string;
+    };
+    B: {
+      brand: string;
+      model: string;
+      licensePlate: string;
+    };
+  };
+  driverInfo?: {
+    A: {
+      name: string;
+      address: string;
+      licenseNumber: string;
+      phone: string;
+    };
+    B: {
+      name: string;
+      address: string;
+      licenseNumber: string;
+      phone: string;
+    };
+  };
+  insuredInfo?: {
+    A: {
+      name: string;
+      address: string;
+      phone: string;
+      email: string;
+    };
+    B: {
+      name: string;
+      address: string;
+      phone: string;
+      email: string;
+    };
+  };
 }
 
 export interface Vehicle {
