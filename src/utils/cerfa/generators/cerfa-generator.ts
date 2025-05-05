@@ -38,6 +38,18 @@ export const generateCerfaPDF = async (
     const reportId = uuidv4();
     console.log("Generated unique report ID:", reportId);
     
+    // If schemeImageDataUrl is null, try to capture it here as a fallback
+    if (!schemeImageDataUrl) {
+      console.log("Scheme image not provided, attempting fallback capture");
+      try {
+        const { captureSchemeAsDataUrl } = await import("@/components/accident/scheme/SchemeExport");
+        schemeImageDataUrl = await captureSchemeAsDataUrl();
+        console.log("Fallback scheme capture:", schemeImageDataUrl ? "successful" : "failed");
+      } catch (captureError) {
+        console.error("Failed to capture scheme in fallback:", captureError);
+      }
+    }
+    
     // Generate placeholder PDF instead of trying to fetch a template
     // This ensures we can always generate a PDF even if templates aren't available
     toast.info("Generating accident report document...");

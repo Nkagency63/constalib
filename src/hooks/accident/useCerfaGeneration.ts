@@ -30,6 +30,8 @@ export const useCerfaGeneration = ({ formData, signatures }: UseCerfaGenerationP
       
       if (imageDataUrl) {
         toast.success("Schéma capturé avec succès", { duration: 2000 });
+      } else {
+        toast.warning("Impossible de capturer le schéma, l'export PDF continuera sans schéma");
       }
       
       return imageDataUrl;
