@@ -26,7 +26,7 @@ const MapInitializer = ({ onMapReady }: MapInitializerProps) => {
         } catch (error) {
           console.error("Error in map initialization:", error);
         }
-      }, 300); // Increased delay to ensure rendering is complete
+      }, 500); // Further increased delay to ensure rendering is complete
     }
     
     return () => {
@@ -35,8 +35,8 @@ const MapInitializer = ({ onMapReady }: MapInitializerProps) => {
       if (map) {
         try {
           console.log("Map initializer: cleaning up");
-          // Instead of removing controls which can cause errors,
-          // just remove our custom event listeners
+          // Don't attempt to remove any controls, which can cause errors
+          // Just remove event listeners that we've added
           map.off(); // Remove all event listeners
         } catch (error) {
           console.error("Error cleaning up map:", error);

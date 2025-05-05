@@ -9,6 +9,7 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Info, HelpCircle } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from '@/hooks/use-toast';
+import { handleExportImage } from './scheme/SchemeExport';
 
 interface SchemeStepProps {
   formData: FormData;
@@ -39,13 +40,56 @@ const SchemeStep = ({ formData }: SchemeStepProps) => {
     }
   };
 
-  const handleExportImage = () => {
-    // This is a placeholder for the export image functionality
-    // In a real implementation, we would use leaflet's methods to capture the map as an image
+  const handleExportScheme = () => {
+    const mapRef = document.querySelector('.leaflet-container');
+    if (!mapRef) {
+      toast({
+        title: "Erreur",
+        description: "Impossible de trouver la carte",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Use the html2canvas library to capture the map as an image
     toast({
       title: "Exportation",
-      description: "Fonction d'exportation en cours de développement",
+      description: "Préparation de l'image en cours...",
+      variant: "default",
     });
+    
+    // Find the map from the DOM - we'll use this as a fallback
+    const mapElement = document.querySelector('.leaflet-container') as HTMLElement;
+    if (mapElement) {
+      import('html2canvas').then(({ default: html2canvas }) => {
+        html2canvas(mapElement, {
+          useCORS: true,
+          allowTaint: true,
+          backgroundColor: '#ffffff',
+          scale: 2,
+          logging: false,
+        }).then(canvas => {
+          const imageUrl = canvas.toDataURL('image/png');
+          const downloadLink = document.createElement('a');
+          downloadLink.href = imageUrl;
+          downloadLink.download = 'schema-accident.png';
+          downloadLink.click();
+          
+          toast({
+            title: "Exportation réussie",
+            description: "L'image du schéma a été téléchargée",
+            variant: "success",
+          });
+        }).catch(err => {
+          console.error("Error exporting image:", err);
+          toast({
+            title: "Erreur",
+            description: "Impossible d'exporter l'image",
+            variant: "destructive",
+          });
+        });
+      });
+    }
   };
   
   const toggleHelp = () => {
@@ -120,7 +164,7 @@ const SchemeStep = ({ formData }: SchemeStepProps) => {
               />
               
               <div className="mt-4 flex flex-wrap justify-between gap-2">
-                <Button variant="outline" onClick={handleExportImage}>
+                <Button variant="outline" onClick={handleExportScheme}>
                   Exporter en image
                 </Button>
                 <Button variant="outline" onClick={() => setActiveTab("location")}>
