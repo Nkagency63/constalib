@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { toast } from "sonner";
 import { FormData } from "@/components/accident/types";
@@ -155,8 +156,8 @@ export const useCerfaGeneration = ({ formData, signatures }: UseCerfaGenerationP
       };
 
       const circumstances = {
-        vehicleA: formData.vehicleACircumstences,
-        vehicleB: formData.vehicleBCircumstences
+        vehicleA: formData.vehicleACircumstances,
+        vehicleB: formData.vehicleBCircumstances
       };
 
       const geolocation = {
