@@ -2,6 +2,7 @@
 // Cet import n'est pas visible dans le code utilisateur mais doit être présent
 // pour que le generator fonctionne - ne pas supprimer!
 import { PDFDocument, rgb, StandardFonts } from 'pdf-lib';
+import { InjuryInfo } from '@/components/accident/types';
 
 /**
  * Génère un PDF de constat amiable de remplacement avec toutes les données du formulaire
@@ -53,29 +54,54 @@ export const generatePlaceholderPDF = async (
     });
   }
 
-  // Blessés - Nouvelle section
+  // Blessés - Section améliorée
   page.drawText('BLESSÉS ÉVENTUELS (même légers)', {
     x: 50, y: 480, size: 14, font: boldFont, color: rgb(0.8, 0, 0)
   });
 
   if (formData.hasInjuries) {
-    page.drawText('OUI - ' + (formData.injuriesDescription || 'Description non précisée'), {
-      x: 70, y: 460, size: 10, font: regularFont
-    });
+    let yPos = 460;
+    page.drawText('OUI', { x: 70, y: yPos, size: 10, font: boldFont });
+    
+    if (formData.injuriesDescription) {
+      page.drawText(`Description: ${formData.injuriesDescription}`, {
+        x: 110, y: yPos, size: 10, font: regularFont
+      });
+      yPos -= 15;
+    }
+    
+    // Afficher la liste des blessés si disponible
+    if (formData.injuries && formData.injuries.length > 0) {
+      page.drawText('Liste des blessés:', {
+        x: 70, y: yPos, size: 10, font: boldFont
+      });
+      yPos -= 15;
+      
+      formData.injuries.forEach((injury: InjuryInfo, index: number) => {
+        page.drawText(`${index + 1}. ${injury.name} - Contact: ${injury.contact}`, {
+          x: 90, y: yPos, size: 10, font: regularFont
+        });
+        yPos -= 15;
+      });
+    }
   } else {
     page.drawText('NON - Pas de blessés', {
       x: 70, y: 460, size: 10, font: regularFont
     });
   }
 
-  // Dégâts matériels autres qu'aux véhicules A et B - Nouvelle section
+  // Dégâts matériels autres qu'aux véhicules A et B - Section améliorée
   page.drawText('DÉGÂTS MATÉRIELS AUTRES QU\'AUX VÉHICULES A ET B', {
     x: 350, y: 480, size: 14, font: boldFont, color: rgb(0.8, 0, 0)
   });
 
   if (formData.hasMaterialDamage) {
-    page.drawText('OUI - ' + (formData.materialDamageDescription || 'Description non précisée'), {
-      x: 370, y: 460, size: 10, font: regularFont
+    page.drawText('OUI', {
+      x: 370, y: 460, size: 10, font: boldFont
+    });
+    
+    page.drawText(`Description: ${formData.materialDamageDescription || 'Non précisé'}`, {
+      x: 410, y: 460, size: 10, font: regularFont
     });
   } else {
     page.drawText('NON - Pas de dégâts matériels autres', {
@@ -125,22 +151,30 @@ export const generatePlaceholderPDF = async (
   page.drawText(`Permis de conduire n°: ${formData.driverLicense || 'Non renseigné'}`, {
     x: 70, y: 285, size: 10, font: regularFont
   });
+  
+  page.drawText(`Téléphone: ${formData.driverPhone || formData.insuredPhone || 'Non renseigné'}`, {
+    x: 70, y: 270, size: 10, font: regularFont
+  });
 
   // Véhicule A - informations
   page.drawText('VÉHICULE', {
-    x: 50, y: 265, size: 12, font: boldFont
+    x: 50, y: 250, size: 12, font: boldFont
   });
   
   page.drawText(`Marque: ${formData.vehicleBrand || 'Non renseigné'}`, {
-    x: 70, y: 245, size: 10, font: regularFont
-  });
-  
-  page.drawText(`Modèle: ${formData.vehicleModel || 'Non renseigné'}`, {
     x: 70, y: 230, size: 10, font: regularFont
   });
   
-  page.drawText(`N° d'immatriculation: ${formData.licensePlate || 'Non renseigné'}`, {
+  page.drawText(`Modèle: ${formData.vehicleModel || 'Non renseigné'}`, {
     x: 70, y: 215, size: 10, font: regularFont
+  });
+  
+  page.drawText(`N° d'immatriculation: ${formData.licensePlate || 'Non renseigné'}`, {
+    x: 70, y: 200, size: 10, font: regularFont
+  });
+  
+  page.drawText(`Assurance: ${formData.insuranceCompany || 'Non renseigné'} - Police n°: ${formData.insurancePolicy || 'Non renseigné'}`, {
+    x: 70, y: 185, size: 10, font: regularFont
   });
 
   // VEHICULE B
@@ -185,63 +219,75 @@ export const generatePlaceholderPDF = async (
   page.drawText(`Permis de conduire n°: ${formData.otherDriverLicense || 'Non renseigné'}`, {
     x: 470, y: 285, size: 10, font: regularFont
   });
+  
+  page.drawText(`Téléphone: ${formData.otherDriverPhone || 'Non renseigné'}`, {
+    x: 470, y: 270, size: 10, font: regularFont
+  });
 
   // Véhicule B - informations
   page.drawText('VÉHICULE', {
-    x: 450, y: 265, size: 12, font: boldFont
+    x: 450, y: 250, size: 12, font: boldFont
   });
   
   page.drawText(`Marque: ${formData.otherVehicle?.brand || 'Non renseigné'}`, {
-    x: 470, y: 245, size: 10, font: regularFont
-  });
-  
-  page.drawText(`Modèle: ${formData.otherVehicle?.model || 'Non renseigné'}`, {
     x: 470, y: 230, size: 10, font: regularFont
   });
   
-  page.drawText(`N° d'immatriculation: ${formData.otherVehicle?.licensePlate || 'Non renseigné'}`, {
+  page.drawText(`Modèle: ${formData.otherVehicle?.model || 'Non renseigné'}`, {
     x: 470, y: 215, size: 10, font: regularFont
+  });
+  
+  page.drawText(`N° d'immatriculation: ${formData.otherVehicle?.licensePlate || 'Non renseigné'}`, {
+    x: 470, y: 200, size: 10, font: regularFont
+  });
+  
+  page.drawText(`Assurance: ${formData.otherVehicle?.insuranceCompany || 'Non renseigné'} - Police n°: ${formData.otherVehicle?.insurancePolicy || 'Non renseigné'}`, {
+    x: 470, y: 185, size: 10, font: regularFont
   });
 
   // Circonstances
   page.drawText('CIRCONSTANCES', {
-    x: 300, y: 200, size: 14, font: boldFont
+    x: 300, y: 165, size: 14, font: boldFont
   });
   
   if (formData.vehicleACircumstances && formData.vehicleACircumstances.length > 0) {
     page.drawText('Véhicule A:', {
-      x: 50, y: 180, size: 12, font: boldFont
+      x: 50, y: 145, size: 12, font: boldFont
     });
     
     formData.vehicleACircumstances.forEach((circ: string, index: number) => {
-      page.drawText(`- ${circ}`, {
-        x: 70, y: 165 - (index * 15), size: 10, font: regularFont
-      });
+      if (index < 5) { // Limiter à 5 circonstances pour des raisons d'espace
+        page.drawText(`- ${circ}`, {
+          x: 70, y: 130 - (index * 15), size: 10, font: regularFont
+        });
+      }
     });
   }
   
   if (formData.vehicleBCircumstances && formData.vehicleBCircumstances.length > 0) {
     page.drawText('Véhicule B:', {
-      x: 450, y: 180, size: 12, font: boldFont
+      x: 450, y: 145, size: 12, font: boldFont
     });
     
     formData.vehicleBCircumstances.forEach((circ: string, index: number) => {
-      page.drawText(`- ${circ}`, {
-        x: 470, y: 165 - (index * 15), size: 10, font: regularFont
-      });
+      if (index < 5) { // Limiter à 5 circonstances pour des raisons d'espace
+        page.drawText(`- ${circ}`, {
+          x: 470, y: 130 - (index * 15), size: 10, font: regularFont
+        });
+      }
     });
   }
 
   // Description
   page.drawText('DESCRIPTION', {
-    x: 300, y: 80, size: 14, font: boldFont
+    x: 300, y: 60, size: 14, font: boldFont
   });
   
   // Description text with word wrap (simplified)
   const description = formData.description || 'Aucune description fournie';
   const words = description.split(' ');
   let line = '';
-  let y = 60;
+  let y = 40;
   
   for (const word of words) {
     if ((line + word).length > 70) {
@@ -386,6 +432,15 @@ export const generatePlaceholderPDF = async (
         console.error("Error embedding signature B:", error);
       }
     }
+    
+    // Informations sur les signataires
+    signaturesPage.drawText(`Conducteur A: ${formData.driverName || formData.insuredName || 'Non renseigné'}`, {
+      x: 100, y: 300, size: 10, font: regularFont
+    });
+    
+    signaturesPage.drawText(`Conducteur B: ${formData.otherDriverName || 'Non renseigné'}`, {
+      x: 500, y: 300, size: 10, font: regularFont
+    });
   }
 
   // Serialize the PDFDocument to bytes

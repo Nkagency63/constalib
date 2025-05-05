@@ -52,7 +52,7 @@ export const useCerfaGeneration = ({ formData, signatures }: UseCerfaGenerationP
       const schemeImageDataUrl = await captureSchemeImage();
       console.log("Schéma capturé:", schemeImageDataUrl ? "Oui" : "Non");
       
-      // Préparer les données supplémentaires pour le CERFA
+      // Préparer les données complètes pour le CERFA
       const completeFormData: FormData = {
         ...formData,
         vehicleLabels: {
@@ -67,7 +67,7 @@ export const useCerfaGeneration = ({ formData, signatures }: UseCerfaGenerationP
             licensePlate: formData.otherVehicle.licensePlate
           }
         },
-        // Ajouter les données pour les sections manquantes
+        // S'assurer que toutes les informations conducteur/assuré sont présentes
         driverInfo: {
           A: {
             name: formData.driverName || formData.insuredName || "Non renseigné",
@@ -96,11 +96,11 @@ export const useCerfaGeneration = ({ formData, signatures }: UseCerfaGenerationP
             email: formData.otherInsuredEmail || "Non renseigné",
           }
         },
-        // Fix type compatibility issue with injuries
+        // Informations sur les blessures
         injuriesDescription: formData.injuriesDescription || "",
         hasInjuries: formData.hasInjuries || false,
         injuries: formData.injuries || [],
-        // Material damage information
+        // Informations sur les dégâts matériels
         hasMaterialDamage: formData.hasMaterialDamage || false,
         materialDamageDescription: formData.materialDamageDescription || ""
       };
@@ -138,7 +138,12 @@ export const useCerfaGeneration = ({ formData, signatures }: UseCerfaGenerationP
         date: formData.date,
         time: formData.time,
         location: formData.location,
-        personalEmail: formData.personalEmail
+        personalEmail: formData.personalEmail,
+        // Ajouter les informations des dégâts matériels et blessés
+        hasInjuries: formData.hasInjuries,
+        injuriesDescription: formData.injuriesDescription,
+        hasMaterialDamage: formData.hasMaterialDamage,
+        materialDamageDescription: formData.materialDamageDescription
       };
 
       const vehicleA = {
@@ -156,6 +161,41 @@ export const useCerfaGeneration = ({ formData, signatures }: UseCerfaGenerationP
         insuranceCompany: formData.otherVehicle.insuranceCompany,
         insurancePolicy: formData.otherVehicle.insurancePolicy
       };
+
+      // Ajouter les informations des conducteurs
+      const driverData = {
+        A: {
+          name: formData.driverName,
+          address: formData.driverAddress,
+          phone: formData.driverPhone,
+          license: formData.driverLicense
+        },
+        B: {
+          name: formData.otherDriverName,
+          address: formData.otherDriverAddress,
+          phone: formData.otherDriverPhone,
+          license: formData.otherDriverLicense
+        }
+      };
+
+      // Ajouter les informations des assurés
+      const insuredData = {
+        A: {
+          name: formData.insuredName,
+          address: formData.insuredAddress,
+          phone: formData.insuredPhone,
+          email: formData.personalEmail
+        },
+        B: {
+          name: formData.otherInsuredName,
+          address: formData.otherInsuredAddress,
+          phone: formData.otherInsuredPhone,
+          email: formData.otherInsuredEmail
+        }
+      };
+
+      // Ajouter les informations des blessés
+      const injuriesData = formData.injuries || [];
 
       const circumstances = {
         vehicleA: formData.vehicleACircumstances,
@@ -175,14 +215,17 @@ export const useCerfaGeneration = ({ formData, signatures }: UseCerfaGenerationP
         timestamp: new Date().toISOString()
       };
 
-      // Call the official registration function
+      // Call the official registration function with all the new data
       const result = await registerOfficialReport(
         reportData, 
         vehicleA, 
         vehicleB, 
+        driverData,
+        insuredData,
         circumstances, 
         geolocation,
-        signatureData
+        signatureData,
+        injuriesData
       );
       
       if (result.success) {
