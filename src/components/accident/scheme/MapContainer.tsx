@@ -58,6 +58,10 @@ const MapContainer = ({
       dragging={!readOnly}
       touchZoom={!readOnly}
       scrollWheelZoom={!readOnly}
+      keyboard={false}
+      boxZoom={false}
+      tap={false}
+      preferCanvas={true}
     >
       <TileLayer
         attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
