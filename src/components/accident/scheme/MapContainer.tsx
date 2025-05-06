@@ -51,7 +51,7 @@ const MapContainer = ({
       zoom={zoom}
       style={{ height: '400px', width: '100%' }}
       className="z-0"
-      // Explicitly disable all controls to avoid issues
+      // Explicitement désactiver les contrôles pour éviter des problèmes
       zoomControl={false}
       attributionControl={false}
       doubleClickZoom={false}
@@ -60,7 +60,6 @@ const MapContainer = ({
       scrollWheelZoom={!readOnly}
       keyboard={false}
       boxZoom={false}
-      tap={false}
       preferCanvas={true}
     >
       <TileLayer

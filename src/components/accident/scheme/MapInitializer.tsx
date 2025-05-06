@@ -38,9 +38,9 @@ const MapInitializer = ({ onMapReady }: MapInitializerProps) => {
           // Only remove event listeners we've directly added
           // Don't try to remove any controls to avoid "s is undefined" errors
           if (map) {
-            // Using specific event removals instead of map.off() which can be problematic
-            // This prevents attempting to remove controls which can cause the error
-            map._events = {}; // Safer way to clear events without touching controls
+            // Utiliser une approche plus sûre pour nettoyer les événements
+            // On ne touche pas aux contrôles qui peuvent causer l'erreur "s is undefined"
+            map.off(); // Nettoyage des événements uniquement
           }
         } catch (error) {
           console.error("Error cleaning up map:", error);

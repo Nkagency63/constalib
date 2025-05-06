@@ -46,26 +46,36 @@ export const useSchemeMap = ({ readOnly, handleMapClick, onReady }: UseSchemeMap
     
     try {
       // Create a bounds object to contain all vehicle positions
-      const bounds = L.latLngBounds(vehicles.map(v => L.latLng(v.position)));
+      // S'assurer que chaque position est un objet LatLng valide
+      const bounds = L.latLngBounds(
+        vehicles
+          .filter(v => v.position && Array.isArray(v.position) && v.position.length === 2)
+          .map(v => L.latLng(v.position))
+      );
       
-      // Slightly pad the bounds for better visibility
-      bounds.pad(0.2);
-      
-      // Set a timeout to ensure the map is fully initialized
-      setTimeout(() => {
-        if (mapRef.current) {
-          // Use fitBounds instead of flyToBounds for more reliable behavior
-          mapRef.current.fitBounds(bounds, {
-            padding: [50, 50],
-            maxZoom: 18
-          });
-          
-          // Force a map refresh
-          mapRef.current.invalidateSize();
-        }
-      }, 300);
-      
-      console.log("Map centered on vehicles successfully");
+      // Vérifier si nous avons pu créer des limites valides
+      if (bounds.isValid()) {
+        // Slightly pad the bounds for better visibility
+        bounds.pad(0.2);
+        
+        // Set a timeout to ensure the map is fully initialized
+        setTimeout(() => {
+          if (mapRef.current) {
+            // Use fitBounds instead of flyToBounds for more reliable behavior
+            mapRef.current.fitBounds(bounds, {
+              padding: [50, 50],
+              maxZoom: 18
+            });
+            
+            // Force a map refresh
+            mapRef.current.invalidateSize();
+          }
+        }, 300);
+        
+        console.log("Map centered on vehicles successfully");
+      } else {
+        console.warn("Could not create valid bounds for vehicles");
+      }
     } catch (error) {
       console.error("Error centering on vehicles:", error);
     }
