@@ -18,8 +18,11 @@ type VehicleData = {
   licensePlate: string;
   brand: string;
   model: string;
+  year?: string;
+  first_registration?: string;
   insuranceCompany?: string;
   insurancePolicy?: string;
+  description?: string;
 };
 
 type CircumstancesData = {
@@ -67,6 +70,89 @@ type AdditionalData = {
     partyB: string | null;
     timestamp: string;
   };
+};
+
+// Function to save vehicle data
+export const saveVehicleData = async (vehicleData: VehicleData) => {
+  try {
+    console.log("Saving vehicle data:", vehicleData);
+    
+    // Generate a UUID for the vehicle
+    const vehicleId = uuidv4();
+    
+    // In a real implementation, this would save to a database
+    // For now we'll just simulate successful registration
+    await new Promise(resolve => setTimeout(resolve, 500));
+    
+    return vehicleId;
+  } catch (error: any) {
+    console.error("Error saving vehicle data:", error);
+    throw new Error("Failed to save vehicle data: " + error.message);
+  }
+};
+
+// Function to upload photos
+export const uploadPhotos = async (photos: File[], type: 'vehicle' | 'damage') => {
+  try {
+    console.log(`Uploading ${photos.length} ${type} photos`);
+    
+    // In a real implementation, this would upload to storage
+    // For now we'll just simulate successful upload
+    await new Promise(resolve => setTimeout(resolve, 500));
+    
+    // Return mock URLs for the uploaded photos
+    return photos.map((_, index) => `https://mock-url.com/${type}-photo-${index}.jpg`);
+  } catch (error: any) {
+    console.error("Error uploading photos:", error);
+    throw new Error("Failed to upload photos: " + error.message);
+  }
+};
+
+// Function to save the complete accident report
+export const saveAccidentReport = async (
+  formData: any,
+  vehicleId: string,
+  otherVehicleId: string,
+  vehiclePhotoUrls: string[],
+  damagePhotoUrls: string[]
+) => {
+  try {
+    console.log("Saving accident report:", formData);
+    
+    // In a real implementation, this would save to a database
+    // For now we'll just simulate successful registration
+    const reportId = uuidv4();
+    await new Promise(resolve => setTimeout(resolve, 700));
+    
+    // Return a mock report object
+    return [{
+      id: reportId,
+      vehicle_id: vehicleId,
+      other_vehicle_id: otherVehicleId,
+      created_at: new Date().toISOString(),
+      // More properties would be stored in a real implementation
+    }];
+  } catch (error: any) {
+    console.error("Error saving accident report:", error);
+    throw new Error("Failed to save accident report: " + error.message);
+  }
+};
+
+// Function to send email notifications
+export const sendEmails = async (reportId: string, formData: any) => {
+  try {
+    console.log("Sending emails for report:", reportId);
+    console.log("Recipients:", formData.personalEmail, formData.insuranceEmails, formData.involvedPartyEmails);
+    
+    // In a real implementation, this would send emails
+    // For now we'll just simulate successful sending
+    await new Promise(resolve => setTimeout(resolve, 600));
+    
+    return true;
+  } catch (error: any) {
+    console.error("Error sending emails:", error);
+    throw new Error("Failed to send emails: " + error.message);
+  }
 };
 
 /**

@@ -21,23 +21,21 @@ const MapInitializer = ({ onMapReady }: MapInitializerProps) => {
           map.invalidateSize();
           
           // Call the callback with the map object
-          // This is safer than trying to manipulate controls directly
           onMapReady(map);
         } catch (error) {
           console.error("Error in map initialization:", error);
         }
-      }, 500); // Further increased delay to ensure rendering is complete
+      }, 500); // Increased delay to ensure rendering is complete
     }
     
     return () => {
       // Clean up event listeners without trying to remove controls
-      // This avoids the "s is undefined" error
       if (map) {
         try {
           console.log("Map initializer: cleaning up");
-          // Don't attempt to remove any controls, which can cause errors
-          // Just remove event listeners that we've added
-          map.off(); // Remove all event listeners
+          // Don't attempt to remove controls, which can cause "s is undefined" errors
+          // Just remove event listeners we've added
+          map.off();
         } catch (error) {
           console.error("Error cleaning up map:", error);
         }
