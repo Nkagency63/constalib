@@ -1,6 +1,9 @@
 
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { Button } from "@/components/ui/button";
+import { Edit, Check } from "lucide-react";
+import { useState } from "react";
 
 interface VehicleInfoFieldsProps {
   vehicleBrand: string;
@@ -19,8 +22,38 @@ const VehicleInfoFields = ({
   handleInputChange,
   readOnly
 }: VehicleInfoFieldsProps) => {
+  const [isEditing, setIsEditing] = useState(!readOnly);
+
+  const handleEditToggle = () => {
+    setIsEditing(!isEditing);
+  };
+
   return (
     <>
+      <div className="flex justify-between items-center mb-4">
+        <h3 className="text-lg font-medium text-constalib-dark">Informations du véhicule</h3>
+        {readOnly && (
+          <Button 
+            variant="outline" 
+            size="sm" 
+            onClick={handleEditToggle} 
+            className="flex items-center gap-1"
+          >
+            {isEditing ? (
+              <>
+                <Check className="h-4 w-4" />
+                <span>Confirmer</span>
+              </>
+            ) : (
+              <>
+                <Edit className="h-4 w-4" />
+                <span>Modifier</span>
+              </>
+            )}
+          </Button>
+        )}
+      </div>
+
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <div className="space-y-2">
           <label htmlFor="vehicleBrand" className="block text-sm font-medium text-constalib-dark">
@@ -33,7 +66,7 @@ const VehicleInfoFields = ({
             value={vehicleBrand}
             onChange={handleInputChange}
             className="w-full"
-            readOnly={readOnly}
+            readOnly={readOnly && !isEditing}
           />
         </div>
         
@@ -48,7 +81,7 @@ const VehicleInfoFields = ({
             value={vehicleModel}
             onChange={handleInputChange}
             className="w-full"
-            readOnly={readOnly}
+            readOnly={readOnly && !isEditing}
           />
         </div>
         
@@ -63,7 +96,7 @@ const VehicleInfoFields = ({
             value={vehicleYear}
             onChange={handleInputChange}
             className="w-full"
-            readOnly={readOnly}
+            readOnly={readOnly && !isEditing}
           />
         </div>
       </div>
@@ -79,6 +112,7 @@ const VehicleInfoFields = ({
           onChange={handleInputChange}
           placeholder="Décrivez votre véhicule (couleur, caractéristiques particulières, etc.)"
           rows={3}
+          readOnly={readOnly && !isEditing}
         />
       </div>
     </>
