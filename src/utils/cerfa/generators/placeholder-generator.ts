@@ -1,4 +1,3 @@
-
 /**
  * This file generates a placeholder PDF for CERFA forms
  */
@@ -12,11 +11,11 @@ const circumstanceLabels = {
   'stationary': 'En stationnement',
   'parking': 'Quittait un stationnement',
   'entering_parking': 'Prenait un stationnement',
-  'exit_parking': 'Sortait d'un parking, d'un lieu privé, d'un chemin de terre',
-  'enter_parking': 'S'engageait dans un parking, un lieu privé, un chemin de terre',
-  'roundabout': 'S'engageait sur une place à sens giratoire',
+  'exit_parking': 'Sortait d\'un parking, d\'un lieu privé, d\'un chemin de terre',
+  'enter_parking': 'S\'engageait dans un parking, un lieu privé, un chemin de terre',
+  'roundabout': 'S\'engageait sur une place à sens giratoire',
   'circular_traffic': 'Roulait sur une place à sens giratoire',
-  'rear_collision': 'Heurtait à l'arrière en roulant dans le même sens et sur une même file',
+  'rear_collision': 'Heurtait à l\'arrière en roulant dans le même sens et sur une même file',
   'same_direction_diff_lane': 'Roulait dans le même sens et sur une file différente',
   'changing_lanes': 'Changeait de file',
   'overtaking': 'Dépassait',
@@ -25,7 +24,7 @@ const circumstanceLabels = {
   'reversing': 'Reculait',
   'encroaching': 'Empiétait sur une voie réservée à la circulation en sens inverse',
   'from_right': 'Venait de droite',
-  'ignored_yield': 'N'avait pas observé un signal de priorité ou un feu rouge',
+  'ignored_yield': 'N\'avait pas observé un signal de priorité ou un feu rouge',
   // Ajoutez d'autres circonstances selon vos besoins
 };
 
