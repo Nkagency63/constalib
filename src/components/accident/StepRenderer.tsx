@@ -62,7 +62,7 @@ const StepRenderer: React.FC<StepRendererProps> = ({
       return (
         <BasicInfoStep 
           handleInputChange={handleInputChange} 
-          setGeolocation={setGeolocation || (() => {})}
+          setGeolocation={setGeolocation}
           date={formData.date}
           time={formData.time}
           location={formData.location}
@@ -72,17 +72,15 @@ const StepRenderer: React.FC<StepRendererProps> = ({
     case 'vehicles':
       return (
         <MultiVehicleStep 
-          vehicleData={{
-            licensePlate: formData.licensePlate,
-            brand: formData.vehicleBrand,
-            model: formData.vehicleModel,
-            year: formData.vehicleYear,
-            description: formData.vehicleDescription || '',
-            firstRegistration: formData.firstRegistration,
-            insurancePolicy: formData.insurancePolicy,
-            insuranceCompany: formData.insuranceCompany
-          }}
-          otherVehicleData={formData.otherVehicle}
+          licensePlate={formData.licensePlate}
+          vehicleBrand={formData.vehicleBrand}
+          vehicleModel={formData.vehicleModel}
+          vehicleYear={formData.vehicleYear}
+          vehicleDescription={formData.vehicleDescription || ''}
+          firstRegistration={formData.firstRegistration}
+          insurancePolicy={formData.insurancePolicy}
+          insuranceCompany={formData.insuranceCompany}
+          otherVehicle={formData.otherVehicle}
           handleInputChange={handleInputChange}
           handleOtherVehicleChange={handleOtherVehicleChange || (() => {})}
           setVehicleInfo={setVehicleInfo || (() => {})}
@@ -119,7 +117,9 @@ const StepRenderer: React.FC<StepRendererProps> = ({
 
     case 'scheme':
       return (
-        <SchemeStep />
+        <SchemeStep 
+          formData={formData}
+        />
       );
 
     case 'circumstances':
@@ -128,14 +128,16 @@ const StepRenderer: React.FC<StepRendererProps> = ({
           vehicleACircumstances={formData.vehicleACircumstances}
           vehicleBCircumstances={formData.vehicleBCircumstances}
           handleCircumstanceChange={handleCircumstanceChange || (() => {})}
-          vehicleAInfo={{ brand: formData.vehicleBrand, model: formData.vehicleModel }}
-          vehicleBInfo={{ brand: formData.otherVehicle.brand, model: formData.otherVehicle.model }}
+          currentVehicleId={formData.currentVehicleId || 'A'} 
+          setCurrentVehicleId={setCurrentVehicleId || (() => {})}
+          circumstances={[]} // Ajouter le prop requis, même s'il n'est pas utilisé
         />
       );
 
     case 'details':
       return (
         <DetailsStep 
+          description={formData.description || ''}
           hasInjuries={formData.hasInjuries}
           injuriesDescription={formData.injuriesDescription || ''}
           hasWitnesses={formData.hasWitnesses}
