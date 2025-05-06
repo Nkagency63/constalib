@@ -141,38 +141,48 @@ export const generatePlaceholderPDF = async (
       font: font,
     });
     
+    // Ajout de la date d'obtention du permis
+    if (formData.driverLicenseDate) {
+      page.drawText('Date d\'obtention: ' + formData.driverLicenseDate, {
+        x: 50,
+        y: 350,
+        size: fontSize,
+        font: font,
+      });
+    }
+    
     // Insured information
     page.drawText('ASSURÉ', {
       x: 50,
-      y: 345,
+      y: 335,
       size: fontSize,
       font: boldFont,
     });
     
     page.drawText('Nom: ' + (formData.insuredName || 'Non renseigné'), {
       x: 50,
-      y: 330,
+      y: 320,
       size: fontSize,
       font: font,
     });
     
     page.drawText('Adresse: ' + (formData.insuredAddress || 'Non renseigné'), {
       x: 50,
-      y: 315,
+      y: 305,
       size: fontSize,
       font: font,
     });
     
-    page.drawText('Compagnie d\'assurance: ' + formData.insuranceCompany, {
+    page.drawText('Compagnie d\'assurance: ' + (formData.insuranceCompany || 'Non renseigné'), {
       x: 50,
-      y: 300,
+      y: 290,
       size: fontSize,
       font: font,
     });
     
-    page.drawText('N° de police: ' + formData.insurancePolicy, {
+    page.drawText('N° de police: ' + (formData.insurancePolicy || 'Non renseigné'), {
       x: 50,
-      y: 285,
+      y: 275,
       size: fontSize,
       font: font,
     });
@@ -186,21 +196,21 @@ export const generatePlaceholderPDF = async (
     });
     
     // Vehicle information
-    page.drawText('Marque: ' + formData.otherVehicle.brand, {
+    page.drawText('Marque: ' + (formData.otherVehicle.brand || 'Non renseigné'), {
       x: 500,
       y: 460,
       size: fontSize,
       font: font,
     });
     
-    page.drawText('Modèle: ' + formData.otherVehicle.model, {
+    page.drawText('Modèle: ' + (formData.otherVehicle.model || 'Non renseigné'), {
       x: 500,
       y: 445,
       size: fontSize,
       font: font,
     });
     
-    page.drawText('Immatriculation: ' + formData.otherVehicle.licensePlate, {
+    page.drawText('Immatriculation: ' + (formData.otherVehicle.licensePlate || 'Non renseigné'), {
       x: 500,
       y: 430,
       size: fontSize,
@@ -236,38 +246,48 @@ export const generatePlaceholderPDF = async (
       font: font,
     });
     
+    // Ajout de la date d'obtention du permis
+    if (formData.otherDriverLicenseDate) {
+      page.drawText('Date d\'obtention: ' + formData.otherDriverLicenseDate, {
+        x: 500,
+        y: 350,
+        size: fontSize,
+        font: font,
+      });
+    }
+    
     // Insured information
     page.drawText('ASSURÉ', {
       x: 500,
-      y: 345,
+      y: 335,
       size: fontSize,
       font: boldFont,
     });
     
     page.drawText('Nom: ' + (formData.otherInsuredName || 'Non renseigné'), {
       x: 500,
-      y: 330,
+      y: 320,
       size: fontSize,
       font: font,
     });
     
     page.drawText('Adresse: ' + (formData.otherInsuredAddress || 'Non renseigné'), {
       x: 500,
-      y: 315,
+      y: 305,
       size: fontSize,
       font: font,
     });
     
-    page.drawText('Compagnie d\'assurance: ' + formData.otherVehicle.insuranceCompany, {
+    page.drawText('Compagnie d\'assurance: ' + (formData.otherVehicle.insuranceCompany || 'Non renseigné'), {
       x: 500,
-      y: 300,
+      y: 290,
       size: fontSize,
       font: font,
     });
     
-    page.drawText('N° de police: ' + formData.otherVehicle.insurancePolicy, {
+    page.drawText('N° de police: ' + (formData.otherVehicle.insurancePolicy || 'Non renseigné'), {
       x: 500,
-      y: 285,
+      y: 275,
       size: fontSize,
       font: font,
     });

@@ -1,4 +1,3 @@
-
 export interface Step {
   id: string;
   title: string;
@@ -57,6 +56,7 @@ export interface FormData {
   description: string;
   vehiclePhotos: File[];
   damagePhotos: File[];
+  
   // Premier véhicule (le vôtre)
   licensePlate: string;
   vehicleBrand: string;
@@ -66,6 +66,7 @@ export interface FormData {
   firstRegistration?: string;
   insurancePolicy?: string;
   insuranceCompany?: string;
+  
   // Second véhicule (l'autre impliqué)
   otherVehicle: {
     licensePlate: string;
@@ -77,47 +78,67 @@ export interface FormData {
     insurancePolicy?: string;
     insuranceCompany?: string;
   };
+  
   geolocation: {
     lat: number | null;
     lng: number | null;
     address: string;
   };
+  
   emergencyContacted: boolean;
-  // Nouvelles propriétés pour les circonstances
+  
+  // Informations pour les circonstances
   vehicleACircumstances: string[];
   vehicleBCircumstances: string[];
+  
   // Informations d'email
   personalEmail: string;
   insuranceEmails: string[];
   involvedPartyEmails: string[];
+  
   // Propriété pour suivre le véhicule actuellement sélectionné
   currentVehicleId?: 'A' | 'B';
+  
+  // Propriétés pour les blessés et témoins
   hasInjuries: boolean;
   injuriesDescription?: string;
   hasWitnesses: boolean;
   witnesses: WitnessInfo[];
-  // Nouvelles propriétés pour les informations du conducteur et de l'assuré
+  
+  // Informations du conducteur du véhicule A
   driverName?: string;
   driverAddress?: string;
   driverPhone?: string;
   driverLicense?: string;
+  driverLicenseDate?: string; // Nouvelle propriété pour la date d'obtention du permis
+  
+  // Informations de l'assuré du véhicule A
   insuredName?: string;
   insuredAddress?: string;
   insuredPhone?: string;
+  insuredEmail?: string;
+  
+  // Informations du conducteur du véhicule B
   otherDriverName?: string;
   otherDriverAddress?: string;
   otherDriverPhone?: string;
   otherDriverLicense?: string;
+  otherDriverLicenseDate?: string; // Nouvelle propriété pour la date d'obtention du permis
+  
+  // Informations de l'assuré du véhicule B
   otherInsuredName?: string;
   otherInsuredAddress?: string;
   otherInsuredPhone?: string;
   otherInsuredEmail?: string;
-  // Nouvelles propriétés pour les dégâts matériels
+  
+  // Dégâts matériels
   hasMaterialDamage?: boolean;
   materialDamageDescription?: string;
-  // Informations sur les blessés
+  
+  // Liste des blessés
   injuries?: InjuryInfo[];
-  // Nouvelles propriétés pour les labels de véhicules et informations supplémentaires (CERFA)
+  
+  // Informations structurées des véhicules pour le CERFA
   vehicleLabels?: {
     A: {
       brand: string;
@@ -130,20 +151,26 @@ export interface FormData {
       licensePlate: string;
     };
   };
+  
+  // Informations structurées des conducteurs pour le CERFA
   driverInfo?: {
     A: {
       name: string;
       address: string;
       licenseNumber: string;
       phone: string;
+      licenseDate?: string; // Ajout de la date d'obtention du permis
     };
     B: {
       name: string;
       address: string;
       licenseNumber: string;
       phone: string;
+      licenseDate?: string; // Ajout de la date d'obtention du permis
     };
   };
+  
+  // Informations structurées des assurés pour le CERFA
   insuredInfo?: {
     A: {
       name: string;
@@ -169,7 +196,7 @@ export interface Vehicle {
   model?: string;
   rotation: number;
   isSelected: boolean;
-  vehicleType: 'car' | 'truck' | 'bike'; // nouveau type de véhicule
+  vehicleType: 'car' | 'truck' | 'bike';
 }
 
 export interface Path {
