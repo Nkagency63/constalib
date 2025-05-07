@@ -1,4 +1,3 @@
-
 import React from 'react';
 import BasicInfoStep from './BasicInfoStep';
 import LocationStep from './LocationStep';
@@ -98,6 +97,8 @@ const StepRenderer: React.FC<StepRendererProps> = ({
         <DriverAndInsuredStep 
           formData={formData}
           handleInputChange={handleInputChange}
+          vehicleId={formData.currentVehicleId || 'A'}
+          setVehicleId={setCurrentVehicleId || (() => {})}
         />
       );
 
