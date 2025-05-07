@@ -51,7 +51,7 @@ const MapContainer = ({
       zoom={zoom}
       style={{ height: '400px', width: '100%' }}
       className="z-0"
-      // Explicitement désactiver les contrôles pour éviter des problèmes
+      // Disable controls to avoid cleanup issues
       zoomControl={false}
       attributionControl={false}
       doubleClickZoom={false}
