@@ -1,3 +1,4 @@
+
 import React from 'react';
 import BasicInfoStep from './BasicInfoStep';
 import LocationStep from './LocationStep';
@@ -9,6 +10,7 @@ import EmailStep from './EmailStep';
 import PhotosStep from './PhotosStep';
 import ReviewStep from './ReviewStep';
 import SchemeStep from './SchemeStep';
+import DriverAndInsuredStep from './DriverAndInsuredStep';
 
 interface StepRendererProps {
   currentStepId: string;
@@ -59,7 +61,10 @@ const StepRenderer: React.FC<StepRendererProps> = ({
     case 'basics':
       return (
         <LocationStep
-          location={formData.location}
+          date={formData.date || ''}
+          time={formData.time || ''}
+          location={formData.location || ''}
+          geolocation={formData.geolocation}
           handleInputChange={handleInputChange}
           setGeolocation={(data) => setGeolocation && setGeolocation(data)}
         />
@@ -99,8 +104,8 @@ const StepRenderer: React.FC<StepRendererProps> = ({
     case 'photos':
       return (
         <PhotosStep 
-          vehiclePhotos={formData.vehiclePhotos}
-          damagePhotos={formData.damagePhotos}
+          vehiclePhotos={formData.vehiclePhotos || []}
+          damagePhotos={formData.damagePhotos || []}
           handlePhotoUpload={(type, file) => {
             if (handlePhotoUpload) {
               const fileList = new DataTransfer();
@@ -121,8 +126,8 @@ const StepRenderer: React.FC<StepRendererProps> = ({
     case 'circumstances':
       return (
         <CircumstancesStep 
-          vehicleACircumstances={formData.vehicleACircumstances}
-          vehicleBCircumstances={formData.vehicleBCircumstances}
+          vehicleACircumstances={formData.vehicleACircumstances || []}
+          vehicleBCircumstances={formData.vehicleBCircumstances || []}
           handleCircumstanceChange={handleCircumstanceChange || (() => {})}
           currentVehicleId={formData.currentVehicleId || 'A'} 
           setCurrentVehicleId={setCurrentVehicleId || (() => {})}
@@ -137,7 +142,7 @@ const StepRenderer: React.FC<StepRendererProps> = ({
           hasInjuries={formData.hasInjuries}
           injuriesDescription={formData.injuriesDescription || ''}
           hasWitnesses={formData.hasWitnesses}
-          witnesses={formData.witnesses}
+          witnesses={formData.witnesses || []}
           handleInputChange={handleInputChange}
           setHasInjuries={setHasInjuries || (() => {})}
           setInjuriesDescription={setInjuriesDescription || (() => {})}
@@ -151,9 +156,9 @@ const StepRenderer: React.FC<StepRendererProps> = ({
     case 'emails':
       return (
         <EmailStep 
-          personalEmail={formData.personalEmail}
-          insuranceEmails={formData.insuranceEmails}
-          involvedPartyEmails={formData.involvedPartyEmails}
+          personalEmail={formData.personalEmail || ''}
+          insuranceEmails={formData.insuranceEmails || []}
+          involvedPartyEmails={formData.involvedPartyEmails || []}
           setPersonalEmail={setPersonalEmail || (() => {})}
           setInsuranceEmails={setInsuranceEmails || (() => {})}
           setInvolvedPartyEmails={setInvolvedPartyEmails || (() => {})}
