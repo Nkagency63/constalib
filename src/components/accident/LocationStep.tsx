@@ -106,9 +106,9 @@ const LocationStep = ({
       {mapVisible && geolocation?.lat && geolocation?.lng && (
         <div className="mt-4 h-64 rounded-lg overflow-hidden border border-gray-200">
           <AccidentMap
-            center={[geolocation.lat, geolocation.lng]}
-            interactive={true}
-            zoom={15}
+            lat={geolocation.lat}
+            lng={geolocation.lng}
+            address={geolocation.address}
           />
         </div>
       )}
