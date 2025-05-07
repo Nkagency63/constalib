@@ -16,10 +16,10 @@ interface StepRendererProps {
   currentStepId: string;
   formData: any;
   handleInputChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
-  handleOtherVehicleChange?: (field: string, value: string) => void;
+  handleOtherVehicleChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
   handlePhotoUpload?: (type: string, file: FileList) => void;
-  setVehicleInfo?: (field: string, value: string) => void;
-  setOtherVehicleInfo?: (field: string, value: string) => void;
+  setVehicleInfo: (data: {brand: string, model: string, year: string, firstRegistration?: string}) => void;
+  setOtherVehicleInfo: (data: {brand: string, model: string, year: string, firstRegistration?: string}) => void;
   setGeolocation?: (data: {lat: number, lng: number, address: string}) => void;
   setInsuranceEmails?: (emails: string[]) => void;
   setInvolvedPartyEmails?: (emails: string[]) => void;
@@ -83,9 +83,9 @@ const StepRenderer: React.FC<StepRendererProps> = ({
           insuranceCompany={formData.insuranceCompany}
           otherVehicle={formData.otherVehicle}
           handleInputChange={handleInputChange}
-          handleOtherVehicleChange={handleOtherVehicleChange || (() => {})}
-          setVehicleInfo={setVehicleInfo || (() => {})}
-          setOtherVehicleInfo={setOtherVehicleInfo || (() => {})}
+          handleOtherVehicleChange={handleOtherVehicleChange}
+          setVehicleInfo={setVehicleInfo}
+          setOtherVehicleInfo={setOtherVehicleInfo}
           onEmergencyContacted={onEmergencyContacted || (() => {})}
           vehicleId={formData.currentVehicleId || 'A'}
           setVehicleId={setCurrentVehicleId || (() => {})}

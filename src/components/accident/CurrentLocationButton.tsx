@@ -6,15 +6,11 @@ import { toast } from 'sonner';
 import { Button } from "@/components/ui/button";
 
 interface CurrentLocationButtonProps {
-  onLocationSuccess: (data: {lat: number, lng: number, address: string}) => void;
-  onLocationError: () => void;
-  onLocationStart: () => void;
+  setGeolocation: (data: {lat: number, lng: number, address: string}) => void;
 }
 
 const CurrentLocationButton = ({
-  onLocationSuccess,
-  onLocationError,
-  onLocationStart
+  setGeolocation
 }: CurrentLocationButtonProps) => {
   const [isGettingCurrentLocation, setIsGettingCurrentLocation] = useState(false);
 
@@ -43,7 +39,6 @@ const CurrentLocationButton = ({
     }
 
     setIsGettingCurrentLocation(true);
-    onLocationStart();
     
     navigator.geolocation.getCurrentPosition(
       async position => {
@@ -52,7 +47,7 @@ const CurrentLocationButton = ({
         // Perform reverse geocoding to get address from coordinates
         const address = await reverseGeocode(latitude, longitude);
         
-        onLocationSuccess({
+        setGeolocation({
           lat: latitude,
           lng: longitude,
           address: address
@@ -74,7 +69,6 @@ const CurrentLocationButton = ({
         }
         
         toast.error(message);
-        onLocationError();
         setIsGettingCurrentLocation(false);
       },
       {

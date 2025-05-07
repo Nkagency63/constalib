@@ -7,19 +7,15 @@ import { Button } from "@/components/ui/button";
 
 interface GeocodingButtonProps {
   location: string;
-  onGeocodeSuccess: (data: {lat: number, lng: number, address: string}) => void;
-  onGeocodeError: () => void;
-  onGeocodeStart: () => void;
+  setGeolocation: (data: {lat: number, lng: number, address: string}) => void;
 }
 
 const GeocodingButton = ({
   location,
-  onGeocodeSuccess,
-  onGeocodeError,
-  onGeocodeStart
+  setGeolocation
 }: GeocodingButtonProps) => {
   const [isLoading, setIsLoading] = useState(false);
-
+  
   const geocodeAddress = async () => {
     if (!location) {
       toast.error("Veuillez saisir une adresse");
@@ -27,7 +23,6 @@ const GeocodingButton = ({
     }
 
     setIsLoading(true);
-    onGeocodeStart();
     
     try {
       const { data, error } = await supabase.functions.invoke('geocode-location', {
@@ -37,12 +32,11 @@ const GeocodingButton = ({
       if (error) {
         toast.error("Erreur lors de la géolocalisation");
         console.error('Error geocoding address:', error);
-        onGeocodeError();
         return;
       }
 
       if (data.success && data.data) {
-        onGeocodeSuccess({
+        setGeolocation({
           lat: data.data.lat,
           lng: data.data.lng,
           address: data.data.formatted_address
@@ -50,12 +44,10 @@ const GeocodingButton = ({
         toast.success("Adresse géolocalisée avec succès");
       } else {
         toast.error(data.message || "Impossible de géolocaliser cette adresse");
-        onGeocodeError();
       }
     } catch (err) {
       console.error('Error in geocoding:', err);
       toast.error("Une erreur est survenue");
-      onGeocodeError();
     } finally {
       setIsLoading(false);
     }

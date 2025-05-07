@@ -87,20 +87,28 @@ const LocationStep = ({
       </div>
 
       <div className="flex gap-2">
-        <GeocodingButton location={location} setGeolocation={setGeolocation} />
-        <CurrentLocationButton setGeolocation={setGeolocation} />
+        <GeocodingButton
+          location={location}
+          setGeolocation={setGeolocation}
+        />
+        <CurrentLocationButton
+          setGeolocation={setGeolocation}
+        />
       </div>
 
       {(geolocation?.lat && geolocation?.lng) ? (
-        <LocationDisplay geolocation={geolocation} setMapVisible={setMapVisible} />
+        <LocationDisplay
+          geolocation={geolocation}
+          setMapVisible={setMapVisible}
+        />
       ) : null}
 
       {mapVisible && geolocation?.lat && geolocation?.lng && (
         <div className="mt-4 h-64 rounded-lg overflow-hidden border border-gray-200">
           <AccidentMap
-            latitude={geolocation.lat}
-            longitude={geolocation.lng}
+            center={[geolocation.lat, geolocation.lng]}
             interactive={true}
+            zoom={15}
           />
         </div>
       )}
