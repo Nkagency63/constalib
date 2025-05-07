@@ -1,43 +1,41 @@
-
 import React from 'react';
 import BasicInfoStep from './BasicInfoStep';
 import LocationStep from './LocationStep';
+import VehicleIdentificationStep from './VehicleIdentificationStep';
 import MultiVehicleStep from './MultiVehicleStep';
-import DetailsStep from './DetailsStep';
-import PhotosStep from './PhotosStep';
-import EmailStep from './EmailStep';
-import ReviewStep from './ReviewStep';
 import CircumstancesStep from './CircumstancesStep';
+import DetailsStep from './DetailsStep';
+import EmailStep from './EmailStep';
+import PhotosStep from './PhotosStep';
+import ReviewStep from './ReviewStep';
 import SchemeStep from './SchemeStep';
-import DriverAndInsuredStep from './DriverAndInsuredStep';
-import { FormData } from './types';
 
 interface StepRendererProps {
   currentStepId: string;
-  formData: FormData;
+  formData: any;
   handleInputChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
-  handleOtherVehicleChange?: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
-  handlePhotoUpload?: (type: 'vehicle' | 'damage', files: FileList) => void;
-  setVehicleInfo?: (data: {brand: string, model: string, year: string, firstRegistration?: string}) => void;
-  setOtherVehicleInfo?: (data: {brand: string, model: string, year: string, firstRegistration?: string}) => void;
-  setGeolocation?: (lat: number, lng: number, address: string) => void;
+  handleOtherVehicleChange?: (field: string, value: string) => void;
+  handlePhotoUpload?: (type: string, file: FileList) => void;
+  setVehicleInfo?: (field: string, value: string) => void;
+  setOtherVehicleInfo?: (field: string, value: string) => void;
+  setGeolocation?: (data: {lat: number, lng: number, address: string}) => void;
   setInsuranceEmails?: (emails: string[]) => void;
   setInvolvedPartyEmails?: (emails: string[]) => void;
   setPersonalEmail?: (email: string) => void;
   onEmergencyContacted?: () => void;
-  handleCircumstanceChange?: (vehicleId: 'A' | 'B', circumstanceId: string, isChecked: boolean) => void;
-  setCurrentVehicleId?: (vehicleId: 'A' | 'B') => void;
-  setHasInjuries?: (value: boolean) => void;
+  handleCircumstanceChange?: (vehicleId: 'A' | 'B', circumstanceId: string, checked: boolean) => void;
+  setCurrentVehicleId?: (id: 'A' | 'B') => void;
+  setHasInjuries?: (hasInjuries: boolean) => void;
   setInjuriesDescription?: (description: string) => void;
-  setHasWitnesses?: (value: boolean) => void;
-  updateWitness?: (index: number, field: keyof any, value: string) => void;
+  setHasWitnesses?: (hasWitnesses: boolean) => void;
+  updateWitness?: (index: number, field: string, value: string) => void;
   addWitness?: () => void;
   removeWitness?: (index: number) => void;
 }
 
-const StepRenderer: React.FC<StepRendererProps> = ({
-  currentStepId,
-  formData,
+const StepRenderer: React.FC<StepRendererProps> = ({ 
+  currentStepId, 
+  formData, 
   handleInputChange,
   handleOtherVehicleChange,
   handlePhotoUpload,
@@ -60,12 +58,10 @@ const StepRenderer: React.FC<StepRendererProps> = ({
   switch (currentStepId) {
     case 'basics':
       return (
-        <BasicInfoStep 
-          handleInputChange={handleInputChange} 
-          setGeolocation={setGeolocation}
-          date={formData.date}
-          time={formData.time}
+        <LocationStep
           location={formData.location}
+          handleInputChange={handleInputChange}
+          setGeolocation={(data) => setGeolocation && setGeolocation(data)}
         />
       );
 
@@ -168,7 +164,7 @@ const StepRenderer: React.FC<StepRendererProps> = ({
       return <ReviewStep formData={formData} />;
 
     default:
-      return <div>Étape inconnue</div>;
+      return <div>Step not found</div>;
   }
 };
 
