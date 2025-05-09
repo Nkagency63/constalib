@@ -51,7 +51,10 @@ export const useVehicleLookup = ({
       lookupSuccess: false,
       searchError: null,
       fniLookupSuccess: false,
-      fniError: null
+      fniError: null,
+      fvaLookupSuccess: false,
+      fvaError: null,
+      showFvaDetails: false
     });
   };
 
@@ -69,7 +72,9 @@ export const useVehicleLookup = ({
       searchError: null,
       lookupSuccess: false,
       autoInsuranceFound: false,
-      hasAttemptedLookup: true
+      hasAttemptedLookup: true,
+      fvaLookupSuccess: false,
+      showFvaDetails: false
     });
     
     const result = await lookupVehicleFromSiv(licensePlate, setVehicleInfo, handleInputChange, setInsuranceInfo);
@@ -82,6 +87,7 @@ export const useVehicleLookup = ({
         autoInsuranceFound: result.autoInsuranceFound,
         insuranceLookupSuccess: result.autoInsuranceFound
       });
+      toast.success("Informations du véhicule récupérées (utilisez le FVA pour plus d'informations)");
     } else {
       updateState({
         searchError: result.error
@@ -108,7 +114,9 @@ export const useVehicleLookup = ({
       lookupSuccess: false,
       searchError: null,
       autoInsuranceFound: false,
-      hasAttemptedLookup: true
+      hasAttemptedLookup: true,
+      fvaLookupSuccess: false,
+      showFvaDetails: false
     });
     
     const result = await lookupVehicleFromFni(licensePlate, setVehicleInfo, handleInputChange, setInsuranceInfo);
@@ -122,6 +130,7 @@ export const useVehicleLookup = ({
         autoInsuranceFound: result.autoInsuranceFound,
         insuranceLookupSuccess: result.autoInsuranceFound
       });
+      toast.success("Informations du véhicule récupérées (utilisez le FVA pour des informations complètes)");
     } else {
       updateState({
         fniError: result.error
@@ -145,7 +154,8 @@ export const useVehicleLookup = ({
       isFvaLoading: true,
       fvaError: null,
       fvaLookupSuccess: false,
-      hasAttemptedLookup: true
+      hasAttemptedLookup: true,
+      showFvaDetails: false
     });
     
     const result = await lookupVehicleFromFva(licensePlate, setVehicleInfo, handleInputChange, setInsuranceInfo);
@@ -157,8 +167,10 @@ export const useVehicleLookup = ({
         fvaLookupSuccess: true,
         showFvaDetails: true,
         insuranceLookupSuccess: true,
-        autoInsuranceFound: true
+        autoInsuranceFound: true,
+        lookupSuccess: true
       });
+      toast.success("Informations complètes récupérées du Fichier des Véhicules Assurés");
     } else {
       updateState({
         fvaError: result.error

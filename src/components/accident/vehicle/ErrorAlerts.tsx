@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { AlertCircle } from 'lucide-react';
-import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 interface ErrorAlertsProps {
   searchError: string | null;
@@ -31,6 +31,7 @@ const ErrorAlerts = ({
       {fvaError && (
         <Alert variant="destructive" className="mt-2">
           <AlertCircle className="h-4 w-4" />
+          <AlertTitle>Erreur FVA</AlertTitle>
           <AlertDescription>{fvaError}</AlertDescription>
         </Alert>
       )}
