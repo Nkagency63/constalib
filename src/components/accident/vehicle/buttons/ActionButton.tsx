@@ -9,7 +9,7 @@ interface ActionButtonProps {
   disabled?: boolean;
   Icon: LucideIcon;
   label: string;
-  variant?: "default" | "outline";
+  variant?: "default" | "destructive" | "outline" | "secondary" | "ghost" | "link";
   tooltip?: string;
 }
 
@@ -19,23 +19,22 @@ const ActionButton = ({
   disabled = false,
   Icon,
   label,
-  variant = "outline",
+  variant = "default",
   tooltip
 }: ActionButtonProps) => {
   return (
-    <Button
-      type="button"
+    <Button 
+      type="button" 
       variant={variant}
+      className="whitespace-nowrap"
       onClick={onClick}
       disabled={isLoading || disabled}
-      className="shrink-0"
       title={tooltip}
     >
-      {isLoading ? (
-        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-      ) : (
+      {isLoading ? 
+        <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : 
         <Icon className="h-4 w-4 mr-2" />
-      )}
+      }
       {label}
     </Button>
   );

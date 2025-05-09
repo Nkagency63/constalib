@@ -16,19 +16,14 @@ const ErrorAlerts = ({
   fvaError,
   searchTab
 }: ErrorAlertsProps) => {
+  const currentError = searchTab === 'siv' ? searchError : fniError;
+  
   return (
     <>
-      {searchError && searchTab === 'siv' && (
+      {currentError && (
         <Alert variant="destructive" className="mt-2">
           <AlertCircle className="h-4 w-4" />
-          <AlertDescription>{searchError}</AlertDescription>
-        </Alert>
-      )}
-      
-      {fniError && searchTab === 'fni' && (
-        <Alert variant="destructive" className="mt-2">
-          <AlertCircle className="h-4 w-4" />
-          <AlertDescription>{fniError}</AlertDescription>
+          <AlertDescription>{currentError}</AlertDescription>
         </Alert>
       )}
       

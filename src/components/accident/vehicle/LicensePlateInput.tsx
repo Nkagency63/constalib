@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { Car, FileText } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -68,7 +69,16 @@ const LicensePlateInput = ({
       </label>
       
       <Tabs value={searchTab} onValueChange={handleTabChange} className="w-full">
-        
+        <TabsList className="grid w-full grid-cols-2 mb-4">
+          <TabsTrigger value="siv" className="flex items-center gap-2">
+            <Car className="h-4 w-4" />
+            <span>SIV (Après 2009)</span>
+          </TabsTrigger>
+          <TabsTrigger value="fni" className="flex items-center gap-2">
+            <FileText className="h-4 w-4" />
+            <span>FNI (Avant 2009)</span>
+          </TabsTrigger>
+        </TabsList>
         
         <TabsContent value="siv">
           <SivTabContent licensePlate={licensePlate} handleLicensePlateChange={handleLicensePlateChange} onLookupVehicle={onLookupVehicle} onLookupFva={onLookupFva} isLoading={isLoading} isFvaLoading={isFvaLoading} lookupSuccess={lookupSuccess} />
