@@ -2,6 +2,7 @@
 import React from 'react';
 import { Loader2, LucideIcon } from 'lucide-react';
 import { Button } from "@/components/ui/button";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 interface ActionButtonProps {
   isLoading: boolean;
@@ -22,14 +23,13 @@ const ActionButton = ({
   variant = "default",
   tooltip
 }: ActionButtonProps) => {
-  return (
+  const button = (
     <Button 
       type="button" 
       variant={variant}
       className="whitespace-nowrap"
       onClick={onClick}
       disabled={isLoading || disabled}
-      title={tooltip}
     >
       {isLoading ? 
         <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : 
@@ -38,6 +38,23 @@ const ActionButton = ({
       {label}
     </Button>
   );
+  
+  if (tooltip) {
+    return (
+      <TooltipProvider>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            {button}
+          </TooltipTrigger>
+          <TooltipContent>
+            <p className="text-xs">{tooltip}</p>
+          </TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
+    );
+  }
+  
+  return button;
 };
 
 export default ActionButton;

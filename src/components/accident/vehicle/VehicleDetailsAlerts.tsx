@@ -17,8 +17,10 @@ const VehicleDetailsAlerts = ({
   fvaLookupSuccess,
   vehicleDetails
 }: VehicleDetailsAlertsProps) => {
+  // Don't show anything if there's no vehicle data
   if (!vehicleDetails) return null;
   
+  // Show success alert for FVA lookup (highest priority)
   if (fvaLookupSuccess) {
     return (
       <Alert className="bg-green-50 border-green-200">
@@ -31,6 +33,7 @@ const VehicleDetailsAlerts = ({
     );
   }
   
+  // Show success alert for SIV lookup
   if (lookupSuccess) {
     return (
       <Alert className="bg-green-50 border-green-200">
@@ -43,6 +46,7 @@ const VehicleDetailsAlerts = ({
     );
   }
   
+  // Show success alert for FNI lookup
   if (fniLookupSuccess) {
     return (
       <Alert className="bg-green-50 border-green-200">

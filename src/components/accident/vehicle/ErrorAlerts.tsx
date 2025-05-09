@@ -16,6 +16,7 @@ const ErrorAlerts = ({
   fvaError,
   searchTab
 }: ErrorAlertsProps) => {
+  // Determine which error to show based on the active tab
   const currentError = searchTab === 'siv' ? searchError : fniError;
   
   return (
