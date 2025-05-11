@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useRef } from 'react';
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import { Icon } from 'leaflet';
@@ -33,6 +33,21 @@ interface AccidentMapProps {
 }
 
 const AccidentMap = ({ lat, lng, address, children }: AccidentMapProps) => {
+  const mapInstanceRef = useRef(null);
+  
+  const handleMapReady = (map) => {
+    if (mapInstanceRef.current) return;
+    mapInstanceRef.current = map;
+    
+    // Safely invalidate size
+    setTimeout(() => {
+      if (map) {
+        map.invalidateSize();
+        console.log("AccidentMap: Map size invalidated");
+      }
+    }, 100);
+  };
+  
   return (
     <div className="rounded-lg overflow-hidden shadow-lg">
       <MapContainer
@@ -41,6 +56,10 @@ const AccidentMap = ({ lat, lng, address, children }: AccidentMapProps) => {
         scrollWheelZoom={false}
         style={{ height: '300px', width: '100%' }}
         className="z-0"
+        // Disable controls to minimize cleanup issues
+        zoomControl={false}
+        attributionControl={false}
+        whenCreated={handleMapReady}
       >
         <TileLayer
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'

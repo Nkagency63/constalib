@@ -29,6 +29,9 @@ const LocationStep = ({
 }: LocationStepProps) => {
   const [mapVisible, setMapVisible] = useState(false);
 
+  // Only render the map if we have valid coordinates and it's set to visible
+  const shouldRenderMap = mapVisible && geolocation?.lat && geolocation?.lng;
+
   return (
     <div className="space-y-6">
       <div className="space-y-2">
@@ -103,7 +106,7 @@ const LocationStep = ({
         />
       ) : null}
 
-      {mapVisible && geolocation?.lat && geolocation?.lng && (
+      {shouldRenderMap && (
         <div className="mt-4 h-64 rounded-lg overflow-hidden border border-gray-200">
           <AccidentMap
             lat={geolocation.lat}

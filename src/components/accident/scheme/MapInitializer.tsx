@@ -32,18 +32,26 @@ const MapInitializer = ({ onMapReady }: MapInitializerProps) => {
         clearTimeout(timer);
         
         // Safe cleanup approach that avoids removing controls
-        // This prevents the "s is undefined" error
         try {
           console.log("Map initializer: safely cleaning up");
           
-          // Only remove event listeners without touching controls
           if (map) {
             // Stop any animations or ongoing operations
             map.stopLocate();
             map.stop();
             
-            // Only remove event listeners, not controls
-            map.off();
+            // Only remove event listeners without touching controls or DOM
+            const cleanupMap = () => {
+              try {
+                // Remove only our custom event handlers
+                map.off();
+              } catch (e) {
+                console.error("Error removing event handlers:", e);
+              }
+            };
+            
+            // Execute cleanup with small delay to avoid race conditions
+            setTimeout(cleanupMap, 10);
           }
         } catch (error) {
           console.error("Error cleaning up map:", error);
