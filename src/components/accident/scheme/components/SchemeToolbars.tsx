@@ -93,7 +93,10 @@ const SchemeToolbars: React.FC<SchemeToolbarsProps> = ({
       
       <SchemeToolbar 
         currentTool={currentTool}
-        setCurrentTool={setCurrentTool}
+        onSelect={() => setCurrentTool('select')}
+        onAddVehicle={() => setCurrentTool('vehicle')}
+        onAddPath={() => setCurrentTool('path')}
+        onAddAnnotation={() => setCurrentTool('annotation')}
       />
     </>
   );

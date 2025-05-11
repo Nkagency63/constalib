@@ -1,10 +1,9 @@
 
-import React, { useRef, useEffect } from 'react';
-import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
+import React, { useRef, useEffect, useState } from 'react';
+import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import { Icon } from 'leaflet';
-import { MapPin } from 'lucide-react';
-import MapInitializer from './scheme/MapInitializer';
+import MapInitializer from './MapInitializer';
 
 // Fix Leaflet marker icon issue
 import markerIcon2x from 'leaflet/dist/images/marker-icon-2x.png';
@@ -34,24 +33,48 @@ interface AccidentMapProps {
 }
 
 const AccidentMap = ({ lat, lng, address, children }: AccidentMapProps) => {
-  const mapInstanceRef = useRef(null);
-  
-  const handleMapReady = (map) => {
-    if (mapInstanceRef.current) return;
-    mapInstanceRef.current = map;
-    
-    // Safely invalidate size
-    setTimeout(() => {
-      if (map) {
-        map.invalidateSize();
-        console.log("AccidentMap: Map size invalidated");
+  const mapInstanceRef = useRef<any>(null);
+  const [mapKey, setMapKey] = useState(Date.now()); // Use a key to force re-render if needed
+
+  // Handle map ready event with error handling
+  const handleMapReady = (map: any) => {
+    try {
+      if (!mapInstanceRef.current) {
+        console.log("AccidentMap: Map instance stored");
+        mapInstanceRef.current = map;
       }
-    }, 100);
+      
+      // Ensure the map is properly sized
+      setTimeout(() => {
+        if (map && typeof map.invalidateSize === 'function') {
+          map.invalidateSize();
+          console.log("AccidentMap: Map size invalidated");
+        }
+      }, 300);
+    } catch (error) {
+      console.error("Error in AccidentMap handleMapReady:", error);
+    }
   };
   
+  // Reset map instance on unmount
+  useEffect(() => {
+    return () => {
+      console.log("AccidentMap: Component unmounting, cleaning up");
+      mapInstanceRef.current = null;
+    };
+  }, []);
+  
+  // Force map to redraw if lat/lng changes
+  useEffect(() => {
+    if (mapInstanceRef.current && typeof mapInstanceRef.current.invalidateSize === 'function') {
+      mapInstanceRef.current.invalidateSize();
+    }
+  }, [lat, lng]);
+
   return (
     <div className="rounded-lg overflow-hidden shadow-lg">
       <MapContainer
+        key={mapKey}
         center={[lat, lng] as [number, number]}
         zoom={16}
         scrollWheelZoom={false}
@@ -60,6 +83,7 @@ const AccidentMap = ({ lat, lng, address, children }: AccidentMapProps) => {
         // Disable controls to minimize cleanup issues
         zoomControl={false}
         attributionControl={false}
+        doubleClickZoom={false}
       >
         <TileLayer
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'

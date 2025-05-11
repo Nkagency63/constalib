@@ -7,27 +7,49 @@ import { useSchemeMap } from '../../hooks/useSchemeMap';
 import { handleMapClick } from '../SchemeMapHandlers';
 import { initializeVehicles } from '../SchemeVehicleInitializer';
 
-export const useSchemeMapHandlers = (
-  formData: any,
-  readOnly: boolean,
-  currentTool: 'select' | 'vehicle' | 'path' | 'annotation',
-  vehicles: any[],
-  paths: any[],
-  annotations: any[],
-  selectedVehicle: string | null,
-  isDrawing: boolean,
-  saveToHistory: (state: any) => void,
-  addVehicle: (latlng: L.LatLng) => any[] | null,
-  selectVehicle: (id: string | null) => void,
-  startPath: (point: [number, number], vehicleId?: string, color?: string | null) => void,
-  continuePath: (point: [number, number]) => void,
-  addAnnotation: (point: [number, number]) => any[],
-  setVehicles: (vehicles: any[]) => void,
-  setShowGuidesFirstTime: (show: boolean) => void,
-  setIsMapReady: (ready: boolean) => void,
-  setMapInitialized: (initialized: boolean) => void,
-  showGuidesFirstTime: boolean
-) => {
+interface UseSchemeMapHandlersProps {
+  formData: any;
+  readOnly: boolean;
+  currentTool: 'select' | 'vehicle' | 'path' | 'annotation';
+  vehicles: any[];
+  paths: any[];
+  annotations: any[];
+  selectedVehicle: string | null;
+  isDrawing: boolean;
+  saveToHistory: (state: any) => void;
+  addVehicle: (latlng: L.LatLng) => any[] | null;
+  selectVehicle: (id: string | null) => void;
+  startPath: (point: [number, number], vehicleId?: string, color?: string | null) => void;
+  continuePath: (point: [number, number]) => void;
+  addAnnotation: (point: [number, number]) => any[];
+  setVehicles: (vehicles: any[]) => void;
+  setShowGuidesFirstTime: (show: boolean) => void;
+  setIsMapReady: (ready: boolean) => void;
+  setMapInitialized: (initialized: boolean) => void;
+  showGuidesFirstTime: boolean;
+}
+
+export const useSchemeMapHandlers = ({
+  formData,
+  readOnly,
+  currentTool,
+  vehicles,
+  paths,
+  annotations,
+  selectedVehicle,
+  isDrawing,
+  saveToHistory,
+  addVehicle,
+  selectVehicle,
+  startPath,
+  continuePath,
+  addAnnotation,
+  setVehicles,
+  setShowGuidesFirstTime,
+  setIsMapReady,
+  setMapInitialized,
+  showGuidesFirstTime
+}: UseSchemeMapHandlersProps) => {
   const { toast: uiToast } = useToast();
   
   // Get default center coordinates from formData or use Paris as default

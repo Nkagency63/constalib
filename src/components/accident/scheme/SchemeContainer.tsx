@@ -5,7 +5,10 @@ import SchemeMapWrapper from './components/SchemeMapWrapper';
 import SchemeToolbars from './components/SchemeToolbars';
 import { useSchemeState } from './hooks/useSchemeState';
 import { useSchemeMapHandlers } from './hooks/useSchemeMapHandlers';
-import { createDefaultVehicle } from './SchemeVehicleInitializer';
+import { useVehicles } from '../hooks/useVehicles';
+import { usePaths } from '../hooks/usePaths';
+import { useAnnotations } from '../hooks/useAnnotations';
+import { useSchemeHistory } from '../hooks/useSchemeHistory';
 
 // Unique ID for the scheme to prevent duplicate instances
 const SCHEME_INSTANCE_ID = 'scheme-' + Math.random().toString(36).substring(2, 9);
@@ -27,40 +30,70 @@ const SchemeContainer = ({
   
   // Track if this is the first load
   const [showGuidesFirstTime, setShowGuidesFirstTime] = useState(true);
+  const [isEmpty, setIsEmpty] = useState(true);
+  const [currentTool, setCurrentTool] = useState<'select' | 'vehicle' | 'path' | 'annotation'>('select');
 
-  // Use our custom hooks
+  // Use our custom hooks for scheme management
   const {
     vehicles,
-    paths,
-    annotations,
-    currentPathPoints,
     selectedVehicle,
-    isDrawing,
-    currentTool,
-    history,
-    historyIndex,
+    currentVehicleType,
     addVehicle,
-    selectVehicle,
-    startPath,
-    continuePath,
-    endPath,
-    addAnnotation,
-    setVehicles,
-    setPaths,
-    setAnnotations,
-    setCurrentTool,
-    saveToHistory,
-    undo,
-    redo,
     removeVehicle,
-    updateVehiclePosition,
+    selectVehicle,
     rotateVehicle,
     changeVehicleType,
-    removeAnnotation,
+    setVehicles
+  } = useVehicles();
+
+  const {
+    paths,
+    setPaths,
+    currentPathPoints,
+    isDrawing,
+    startPath,
+    continuePath,
+    completePath: endPath,
+    resetPath
+  } = usePaths();
+
+  const {
+    annotations,
+    setAnnotations,
+    addAnnotation,
     updateAnnotation,
-    clearScheme,
-    isEmpty
-  } = useSchemeState();
+    removeAnnotation
+  } = useAnnotations();
+
+  const {
+    saveToHistory,
+    handleUndo: undo,
+    handleRedo: redo,
+    canUndo,
+    canRedo
+  } = useSchemeHistory();
+
+  // Check if the scheme is empty
+  useEffect(() => {
+    setIsEmpty(vehicles.length === 0 && paths.length === 0 && annotations.length === 0);
+  }, [vehicles, paths, annotations]);
+
+  // Clear the entire scheme
+  const clearScheme = useCallback(() => {
+    setVehicles([]);
+    setPaths([]);
+    setAnnotations([]);
+    selectVehicle(null);
+    saveToHistory({
+      vehicles: [],
+      paths: [],
+      annotations: [],
+      center: formData?.geolocation?.lat && formData?.geolocation?.lng
+        ? [formData.geolocation.lat, formData.geolocation.lng]
+        : [48.8566, 2.3522],
+      zoom: 17
+    });
+  }, [setVehicles, setPaths, setAnnotations, selectVehicle, saveToHistory, formData]);
 
   // Map handlers
   const {
@@ -70,7 +103,7 @@ const SchemeContainer = ({
     centerOnVehicles,
     center,
     handleToolbarAddVehicle
-  } = useSchemeMapHandlers(
+  } = useSchemeMapHandlers({
     formData,
     readOnly,
     currentTool,
@@ -90,7 +123,7 @@ const SchemeContainer = ({
     setIsMapReady,
     setMapInitialized,
     showGuidesFirstTime
-  );
+  });
 
   // Update parent component when scheme data changes
   useEffect(() => {
@@ -98,12 +131,17 @@ const SchemeContainer = ({
       const schemeData: SchemeData = {
         vehicles,
         paths,
-        annotations
+        annotations,
+        center: mapRef.current ? [
+          mapRef.current.getCenter().lat,
+          mapRef.current.getCenter().lng
+        ] : center,
+        zoom: mapRef.current ? mapRef.current.getZoom() : 17
       };
       
       onUpdateSchemeData(schemeData);
     }
-  }, [vehicles, paths, annotations, isMapReady, mapInitialized, onUpdateSchemeData]);
+  }, [vehicles, paths, annotations, isMapReady, mapInitialized, onUpdateSchemeData, mapRef, center]);
 
   // Function to add a default vehicle at the center of the map
   const handleAddVehicle = useCallback(() => {
@@ -115,24 +153,24 @@ const SchemeContainer = ({
     <div className="w-full flex flex-col" id={SCHEME_INSTANCE_ID}>
       {!readOnly && (
         <SchemeToolbars
-          onAddVehicle={handleAddVehicle}
-          onStartPath={() => setCurrentTool('path')}
-          onAddAnnotation={() => setCurrentTool('annotation')}
-          onSelect={() => {
-            setCurrentTool('select');
-            selectVehicle(null);  // Deselect any selected vehicle
-          }}
-          onClear={() => {
-            if (confirm("Êtes-vous sûr de vouloir effacer le schéma ?")) {
-              clearScheme();
-            }
-          }}
-          onUndo={undo}
-          onRedo={redo}
+          readOnly={readOnly}
           currentTool={currentTool}
-          canUndo={historyIndex > 0}
-          canRedo={historyIndex < history.length - 1}
-          isEmpty={isEmpty}
+          setCurrentTool={setCurrentTool}
+          onAddVehicle={handleAddVehicle}
+          canUndo={canUndo}
+          canRedo={canRedo}
+          vehicles={vehicles}
+          paths={paths}
+          annotations={annotations}
+          handleUndo={undo}
+          handleRedo={redo}
+          setVehicles={setVehicles}
+          setPaths={setPaths}
+          setAnnotations={setAnnotations}
+          centerOnVehicles={centerOnVehicles}
+          mapRef={mapRef}
+          currentVehicleType={currentVehicleType}
+          onChangeVehicleType={changeVehicleType}
         />
       )}
       

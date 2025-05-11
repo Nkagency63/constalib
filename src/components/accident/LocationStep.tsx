@@ -1,5 +1,5 @@
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { Map, MapPin, Calendar, Clock } from 'lucide-react';
 import AccidentMap from './AccidentMap';
 import GeocodingButton from './GeocodingButton';
@@ -28,7 +28,8 @@ const LocationStep = ({
   setGeolocation
 }: LocationStepProps) => {
   const [mapVisible, setMapVisible] = useState(false);
-
+  const [mapKey, setMapKey] = useState(Date.now()); // Use a key to force re-render
+  
   // Only render the map if we have valid coordinates and it's set to visible
   const shouldRenderMap = mapVisible && geolocation?.lat && geolocation?.lng;
   
@@ -36,6 +37,13 @@ const LocationStep = ({
   const handleShowMap = useCallback(() => {
     setMapVisible(true);
   }, []);
+
+  // Update map key when geolocation changes to force re-render of the map
+  useEffect(() => {
+    if (shouldRenderMap) {
+      setMapKey(Date.now());
+    }
+  }, [geolocation?.lat, geolocation?.lng, shouldRenderMap]);
 
   return (
     <div className="space-y-6">
@@ -114,6 +122,7 @@ const LocationStep = ({
       {shouldRenderMap && (
         <div className="mt-4 h-64 rounded-lg overflow-hidden border border-gray-200">
           <AccidentMap
+            key={mapKey}
             lat={geolocation.lat}
             lng={geolocation.lng}
             address={geolocation.address}
