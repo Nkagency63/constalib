@@ -40,7 +40,8 @@ const LocationStep = ({
 
   // Update map key when geolocation changes to force re-render of the map
   useEffect(() => {
-    if (shouldRenderMap) {
+    if (shouldRenderMap && geolocation?.lat && geolocation?.lng) {
+      console.log("Setting new map key due to geolocation change");
       setMapKey(Date.now());
     }
   }, [geolocation?.lat, geolocation?.lng, shouldRenderMap]);
@@ -122,7 +123,7 @@ const LocationStep = ({
       {shouldRenderMap && (
         <div className="mt-4 h-64 rounded-lg overflow-hidden border border-gray-200">
           <AccidentMap
-            key={mapKey}
+            key={mapKey} // This key forces a complete re-render when it changes
             lat={geolocation.lat}
             lng={geolocation.lng}
             address={geolocation.address}

@@ -43,14 +43,15 @@ const MapInitializer = ({ onMapReady }: MapInitializerProps) => {
             // Only remove custom event listeners without touching controls
             try {
               // Safely remove only event listeners we've added
-              // Using off without specific callbacks removes all handlers of that type
-              // which is safer than trying to remove controls
+              // Using off with specific callbacks where possible
               map.off('click');
               map.off('move');
               map.off('zoom');
               map.off('moveend');
               map.off('zoomend');
               map.off('dragend');
+              
+              // DO NOT try to remove controls here - that's what's causing the error
             } catch (e) {
               console.error("Error removing event handlers:", e);
             }

@@ -64,12 +64,33 @@ const AccidentMap = ({ lat, lng, address, children }: AccidentMapProps) => {
     };
   }, []);
   
-  // Force map to redraw if lat/lng changes
+  // Force map to redraw if lat/lng changes significantly
   useEffect(() => {
+    const forceRefresh = () => setMapKey(Date.now());
+    
     if (mapInstanceRef.current && typeof mapInstanceRef.current.invalidateSize === 'function') {
       mapInstanceRef.current.invalidateSize();
+      console.log("AccidentMap: Invalidating size due to lat/lng change");
     }
-  }, [lat, lng]);
+    
+    // If the map was already created but lat/lng changed significantly,
+    // we need to force a complete re-render
+    if (mapInstanceRef.current && mapKey) {
+      const currentCenter = mapInstanceRef.current.getCenter();
+      const newLatLng = [lat, lng];
+      
+      const distance = mapInstanceRef.current.distance(
+        currentCenter,
+        newLatLng
+      );
+      
+      // If the distance is more than 500 meters, force a re-render
+      if (distance > 500) {
+        console.log("AccidentMap: Significant location change, forcing re-render");
+        forceRefresh();
+      }
+    }
+  }, [lat, lng, mapKey]);
 
   return (
     <div className="rounded-lg overflow-hidden shadow-lg">
@@ -84,6 +105,8 @@ const AccidentMap = ({ lat, lng, address, children }: AccidentMapProps) => {
         zoomControl={false}
         attributionControl={false}
         doubleClickZoom={false}
+        dragging={true}
+        touchZoom={true}
       >
         <TileLayer
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'

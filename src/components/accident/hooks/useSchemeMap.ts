@@ -46,14 +46,16 @@ export const useSchemeMap = ({ readOnly, handleMapClick, onReady }: UseSchemeMap
     
     try {
       // Create a bounds object to contain all vehicle positions
-      // S'assurer que chaque position est un objet LatLng valide
-      const bounds = L.latLngBounds(
-        vehicles
-          .filter(v => v.position && Array.isArray(v.position) && v.position.length === 2)
-          .map(v => L.latLng(v.position))
+      const validVehicles = vehicles.filter(v => 
+        v.position && Array.isArray(v.position) && v.position.length === 2
       );
       
-      // Vérifier si nous avons pu créer des limites valides
+      if (validVehicles.length === 0) return;
+      
+      const bounds = L.latLngBounds(
+        validVehicles.map(v => L.latLng(v.position))
+      );
+      
       if (bounds.isValid()) {
         // Slightly pad the bounds for better visibility
         bounds.pad(0.2);
@@ -61,7 +63,7 @@ export const useSchemeMap = ({ readOnly, handleMapClick, onReady }: UseSchemeMap
         // Set a timeout to ensure the map is fully initialized
         setTimeout(() => {
           if (mapRef.current) {
-            // Use fitBounds instead of flyToBounds for more reliable behavior
+            // Use fitBounds for more reliable behavior
             mapRef.current.fitBounds(bounds, {
               padding: [50, 50],
               maxZoom: 18
