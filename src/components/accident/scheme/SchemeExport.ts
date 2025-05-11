@@ -78,6 +78,10 @@ export const captureSchemeAsDataUrl = async (): Promise<string | null> => {
           // Assurer que les tuiles sont complètement chargées
           const tiles = clonedContainer.querySelectorAll('.leaflet-tile');
           console.log(`Nombre de tuiles dans le schéma: ${tiles.length}`);
+          
+          // S'assurer que les véhicules sont visibles
+          const markers = clonedContainer.querySelectorAll('.leaflet-marker-icon');
+          console.log(`Nombre de marqueurs dans le schéma: ${markers.length}`);
         }
         return doc;
       }

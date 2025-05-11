@@ -24,16 +24,19 @@ export const useCerfaGeneration = ({ formData, signatures }: UseCerfaGenerationP
     try {
       toast.info("Capture du schéma d'accident en cours...", { duration: 2000 });
       
+      // Attendre un instant pour s'assurer que le DOM est prêt
+      await new Promise(resolve => setTimeout(resolve, 100));
+      
       // Utiliser la fonction dédiée pour capturer le schéma
       const imageDataUrl = await captureSchemeAsDataUrl();
       
       if (imageDataUrl) {
         toast.success("Schéma capturé avec succès", { duration: 2000 });
+        return imageDataUrl;
       } else {
         toast.warning("Impossible de capturer le schéma, l'export PDF continuera sans schéma");
+        return null;
       }
-      
-      return imageDataUrl;
     } catch (error) {
       console.error("Erreur lors de la capture du schéma:", error);
       toast.error("Impossible de capturer le schéma de l'accident");
@@ -226,7 +229,8 @@ export const useCerfaGeneration = ({ formData, signatures }: UseCerfaGenerationP
           geolocation,
           {
             participants,
-            signatureData
+            signatureData,
+            schemeImage: schemeImageDataUrl
           }
         );
         

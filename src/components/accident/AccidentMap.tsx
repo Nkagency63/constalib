@@ -1,5 +1,5 @@
 
-import React, { useRef, useEffect, useState } from 'react';
+import React, { useRef, useEffect, useState, useCallback } from 'react';
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import { Icon } from 'leaflet';
@@ -34,63 +34,66 @@ interface AccidentMapProps {
 
 const AccidentMap = ({ lat, lng, address, children }: AccidentMapProps) => {
   const mapInstanceRef = useRef<any>(null);
-  const [mapKey, setMapKey] = useState(Date.now()); // Use a key to force re-render if needed
+  const [mapKey, setMapKey] = useState(() => Date.now()); // Use a key to force re-render if needed
+  const [isMapReady, setIsMapReady] = useState(false);
 
   // Handle map ready event with error handling
-  const handleMapReady = (map: any) => {
+  const handleMapReady = useCallback((map: any) => {
     try {
-      if (!mapInstanceRef.current) {
-        console.log("AccidentMap: Map instance stored");
-        mapInstanceRef.current = map;
-      }
+      console.log("AccidentMap: Map instance stored");
+      mapInstanceRef.current = map;
       
       // Ensure the map is properly sized
       setTimeout(() => {
         if (map && typeof map.invalidateSize === 'function') {
           map.invalidateSize();
           console.log("AccidentMap: Map size invalidated");
+          setIsMapReady(true);
         }
       }, 300);
     } catch (error) {
       console.error("Error in AccidentMap handleMapReady:", error);
     }
-  };
+  }, []);
   
   // Reset map instance on unmount
   useEffect(() => {
     return () => {
       console.log("AccidentMap: Component unmounting, cleaning up");
       mapInstanceRef.current = null;
+      setIsMapReady(false);
     };
   }, []);
   
   // Force map to redraw if lat/lng changes significantly
   useEffect(() => {
-    const forceRefresh = () => setMapKey(Date.now());
-    
-    if (mapInstanceRef.current && typeof mapInstanceRef.current.invalidateSize === 'function') {
-      mapInstanceRef.current.invalidateSize();
-      console.log("AccidentMap: Invalidating size due to lat/lng change");
-    }
-    
-    // If the map was already created but lat/lng changed significantly,
+    // If the map was already created and lat/lng changed significantly,
     // we need to force a complete re-render
-    if (mapInstanceRef.current && mapKey) {
+    if (mapInstanceRef.current && isMapReady) {
       const currentCenter = mapInstanceRef.current.getCenter();
       const newLatLng = [lat, lng];
       
-      const distance = mapInstanceRef.current.distance(
-        currentCenter,
-        newLatLng
-      );
-      
-      // If the distance is more than 500 meters, force a re-render
-      if (distance > 500) {
-        console.log("AccidentMap: Significant location change, forcing re-render");
-        forceRefresh();
+      try {
+        const distance = mapInstanceRef.current.distance(
+          currentCenter,
+          newLatLng
+        );
+        
+        // If the distance is more than 500 meters, force a re-render
+        if (distance > 500) {
+          console.log("AccidentMap: Significant location change, forcing re-render");
+          setMapKey(Date.now());
+        } else {
+          // For smaller changes, just update the view
+          mapInstanceRef.current.setView(newLatLng, mapInstanceRef.current.getZoom());
+        }
+      } catch (error) {
+        console.error("Error calculating distance:", error);
+        // If there's an error, force re-render to be safe
+        setMapKey(Date.now());
       }
     }
-  }, [lat, lng, mapKey]);
+  }, [lat, lng, isMapReady]);
 
   return (
     <div className="rounded-lg overflow-hidden shadow-lg">

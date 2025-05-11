@@ -1,5 +1,5 @@
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { useMap } from 'react-leaflet';
 import { Map } from 'leaflet';
 
@@ -9,11 +9,12 @@ interface MapInitializerProps {
 
 const MapInitializer = ({ onMapReady }: MapInitializerProps) => {
   const map = useMap();
+  const timerRef = useRef<number | null>(null);
   
   useEffect(() => {
     if (map) {
       // Delay initialization to ensure DOM is ready
-      const timer = setTimeout(() => {
+      timerRef.current = window.setTimeout(() => {
         try {
           console.log("Map initializer: map object is ready");
           
@@ -29,7 +30,10 @@ const MapInitializer = ({ onMapReady }: MapInitializerProps) => {
       
       return () => {
         // Clear the timeout on unmount
-        clearTimeout(timer);
+        if (timerRef.current) {
+          window.clearTimeout(timerRef.current);
+          timerRef.current = null;
+        }
         
         // IMPORTANT: DO NOT try to remove controls here
         // This is what's causing the "s is undefined" error
