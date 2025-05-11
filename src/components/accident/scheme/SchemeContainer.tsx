@@ -1,15 +1,14 @@
 
-import React, { useState, useEffect } from 'react';
-import { SchemeData } from '../types';
-import { useVehicles } from '../hooks/useVehicles';
-import { usePaths } from '../hooks/usePaths';
-import { useAnnotations } from '../hooks/useAnnotations';
-import { useSchemeHistory } from '../hooks/useSchemeHistory';
-import { useKeyboardControls } from '../hooks/useKeyboardControls';
+import React, { useState, useCallback, useEffect } from 'react';
+import { SchemeData, Vehicle, Path, Annotation } from '../types';
 import SchemeMapWrapper from './components/SchemeMapWrapper';
 import SchemeToolbars from './components/SchemeToolbars';
+import { useSchemeState } from './hooks/useSchemeState';
 import { useSchemeMapHandlers } from './hooks/useSchemeMapHandlers';
-import { TooltipProvider } from '@/components/ui/tooltip';
+import { createDefaultVehicle } from './SchemeVehicleInitializer';
+
+// Unique ID for the scheme to prevent duplicate instances
+const SCHEME_INSTANCE_ID = 'scheme-' + Math.random().toString(36).substring(2, 9);
 
 interface SchemeContainerProps {
   formData: any;
@@ -19,37 +18,51 @@ interface SchemeContainerProps {
 
 const SchemeContainer = ({ 
   formData, 
-  onUpdateSchemeData, 
-  readOnly = false 
+  onUpdateSchemeData,
+  readOnly = false
 }: SchemeContainerProps) => {
-  // Custom hooks
-  const { 
-    vehicles, selectedVehicle, addVehicle, removeVehicle, 
-    selectVehicle, setVehicles, rotateVehicle, changeVehicleType,
-    currentVehicleType
-  } = useVehicles();
-  
-  const {
-    paths, setPaths, currentPathPoints, isDrawing,
-    startPath, continuePath, completePath, resetPath
-  } = usePaths();
-  
-  const {
-    annotations, setAnnotations, addAnnotation,
-    updateAnnotation, removeAnnotation
-  } = useAnnotations();
-  
-  const { 
-    saveToHistory, handleUndo, handleRedo, canUndo, canRedo 
-  } = useSchemeHistory();
-  
-  // Local state
-  const [currentTool, setCurrentTool] = useState<'select' | 'vehicle' | 'path' | 'annotation'>('select');
+  // State initialization
   const [isMapReady, setIsMapReady] = useState(false);
-  const [showGuidesFirstTime, setShowGuidesFirstTime] = useState(true);
-  const [lastUpdateTime, setLastUpdateTime] = useState(0); // Pour limiter la fréquence des mises à jour
   const [mapInitialized, setMapInitialized] = useState(false);
+  
+  // Track if this is the first load
+  const [showGuidesFirstTime, setShowGuidesFirstTime] = useState(true);
 
+  // Use our custom hooks
+  const {
+    vehicles,
+    paths,
+    annotations,
+    currentPathPoints,
+    selectedVehicle,
+    isDrawing,
+    currentTool,
+    history,
+    historyIndex,
+    addVehicle,
+    selectVehicle,
+    startPath,
+    continuePath,
+    endPath,
+    addAnnotation,
+    setVehicles,
+    setPaths,
+    setAnnotations,
+    setCurrentTool,
+    saveToHistory,
+    undo,
+    redo,
+    removeVehicle,
+    updateVehiclePosition,
+    rotateVehicle,
+    changeVehicleType,
+    removeAnnotation,
+    updateAnnotation,
+    clearScheme,
+    isEmpty
+  } = useSchemeState();
+
+  // Map handlers
   const {
     mapRef,
     drawingLayerRef,
@@ -79,83 +92,51 @@ const SchemeContainer = ({
     showGuidesFirstTime
   );
 
-  useKeyboardControls({
-    selectedVehicle,
-    readOnly,
-    onRotateVehicle: rotateVehicle,
-    onRemoveVehicle: removeVehicle
-  });
-
-  // Effet pour centrer sur les véhicules quand la carte est prête
+  // Update parent component when scheme data changes
   useEffect(() => {
-    if (isMapReady && mapRef.current && vehicles.length > 0) {
-      console.log("Centering on vehicles after map ready");
-      setTimeout(() => centerOnVehicles(vehicles), 300);
+    if (isMapReady && mapInitialized) {
+      const schemeData: SchemeData = {
+        vehicles,
+        paths,
+        annotations
+      };
+      
+      onUpdateSchemeData(schemeData);
     }
-  }, [isMapReady, vehicles.length, mapRef, centerOnVehicles]);
+  }, [vehicles, paths, annotations, isMapReady, mapInitialized, onUpdateSchemeData]);
 
-  // Effet pour rafraîchir la carte quand currentTool change
-  useEffect(() => {
-    if (mapRef.current && isMapReady) {
-      console.log("Tool changed, invalidating map size");
-      mapRef.current.invalidateSize();
-    }
-  }, [currentTool, isMapReady, mapRef]);
-
-  // Update scheme data when state changes - avec limitation de fréquence
-  useEffect(() => {
-    if (onUpdateSchemeData && mapRef.current) {
-      const now = Date.now();
-      // Limiter les mises à jour à une fois toutes les 2 secondes
-      if (now - lastUpdateTime > 2000) {
-        const schemeData: SchemeData = {
-          vehicles,
-          paths,
-          annotations,
-          center: mapRef.current ? [
-            mapRef.current.getCenter().lat,
-            mapRef.current.getCenter().lng
-          ] as [number, number] : center,
-          zoom: mapRef.current ? mapRef.current.getZoom() : 17
-        };
-        onUpdateSchemeData(schemeData);
-        setLastUpdateTime(now);
-      }
-    }
-  }, [vehicles, paths, annotations, onUpdateSchemeData, lastUpdateTime, mapRef, center]);
-
-  const isEmpty = vehicles.length === 0;
-
-  // Auto-switch to vehicle tool when clicking "Add Vehicle" button
-  const handleAddVehicle = () => {
-    setCurrentTool('vehicle');
-    setTimeout(handleToolbarAddVehicle, 100);
-  };
+  // Function to add a default vehicle at the center of the map
+  const handleAddVehicle = useCallback(() => {
+    if (vehicles.length >= 4) return; // Maximum 4 vehicles
+    handleToolbarAddVehicle();
+  }, [vehicles.length, handleToolbarAddVehicle]);
 
   return (
-    <TooltipProvider>
-      <div className="relative rounded-lg overflow-hidden shadow-md border border-gray-200">
+    <div className="w-full flex flex-col" id={SCHEME_INSTANCE_ID}>
+      {!readOnly && (
         <SchemeToolbars
-          readOnly={readOnly}
-          currentTool={currentTool}
-          setCurrentTool={setCurrentTool}
           onAddVehicle={handleAddVehicle}
-          canUndo={canUndo}
-          canRedo={canRedo}
-          vehicles={vehicles}
-          paths={paths}
-          annotations={annotations}
-          handleUndo={handleUndo}
-          handleRedo={handleRedo}
-          setVehicles={setVehicles}
-          setPaths={setPaths}
-          setAnnotations={setAnnotations}
-          centerOnVehicles={centerOnVehicles}
-          mapRef={mapRef}
-          currentVehicleType={currentVehicleType}
-          onChangeVehicleType={changeVehicleType}
+          onStartPath={() => setCurrentTool('path')}
+          onAddAnnotation={() => setCurrentTool('annotation')}
+          onSelect={() => {
+            setCurrentTool('select');
+            selectVehicle(null);  // Deselect any selected vehicle
+          }}
+          onClear={() => {
+            if (confirm("Êtes-vous sûr de vouloir effacer le schéma ?")) {
+              clearScheme();
+            }
+          }}
+          onUndo={undo}
+          onRedo={redo}
+          currentTool={currentTool}
+          canUndo={historyIndex > 0}
+          canRedo={historyIndex < history.length - 1}
+          isEmpty={isEmpty}
         />
-
+      )}
+      
+      <div className="mt-4">
         <SchemeMapWrapper
           center={center}
           vehicles={vehicles}
@@ -176,7 +157,7 @@ const SchemeContainer = ({
           onMapReady={handleMapReady}
         />
       </div>
-    </TooltipProvider>
+    </div>
   );
 };
 

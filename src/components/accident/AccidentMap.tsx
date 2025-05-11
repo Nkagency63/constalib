@@ -1,9 +1,10 @@
 
-import React, { useRef } from 'react';
-import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
+import React, { useRef, useEffect } from 'react';
+import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import { Icon } from 'leaflet';
 import { MapPin } from 'lucide-react';
+import MapInitializer from './scheme/MapInitializer';
 
 // Fix Leaflet marker icon issue
 import markerIcon2x from 'leaflet/dist/images/marker-icon-2x.png';
@@ -59,7 +60,6 @@ const AccidentMap = ({ lat, lng, address, children }: AccidentMapProps) => {
         // Disable controls to minimize cleanup issues
         zoomControl={false}
         attributionControl={false}
-        whenCreated={handleMapReady}
       >
         <TileLayer
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
@@ -76,6 +76,7 @@ const AccidentMap = ({ lat, lng, address, children }: AccidentMapProps) => {
           </Popup>
         </Marker>
         {children}
+        <MapInitializer onMapReady={handleMapReady} />
       </MapContainer>
     </div>
   );

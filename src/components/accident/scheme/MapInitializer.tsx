@@ -40,18 +40,16 @@ const MapInitializer = ({ onMapReady }: MapInitializerProps) => {
             map.stopLocate();
             map.stop();
             
-            // Only remove event listeners without touching controls or DOM
-            const cleanupMap = () => {
-              try {
-                // Remove only our custom event handlers
-                map.off();
-              } catch (e) {
-                console.error("Error removing event handlers:", e);
-              }
-            };
-            
-            // Execute cleanup with small delay to avoid race conditions
-            setTimeout(cleanupMap, 10);
+            // Only remove custom event listeners without touching controls
+            try {
+              // Safely remove only event listeners we've added
+              // This is a safer approach to avoid the "s is undefined" error
+              map.off('click');
+              map.off('move');
+              map.off('zoom');
+            } catch (e) {
+              console.error("Error removing event handlers:", e);
+            }
           }
         } catch (error) {
           console.error("Error cleaning up map:", error);
