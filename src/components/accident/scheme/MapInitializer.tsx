@@ -42,11 +42,8 @@ const MapInitializer = ({ onMapReady }: MapInitializerProps) => {
             map.stopLocate();
             map.stop();
             
-            // Only remove event listeners
+            // Only remove event listeners, not controls
             map.off();
-            
-            // Don't call map.remove() or any removeControl methods
-            // as these can cause the "s is undefined" error
           }
         } catch (error) {
           console.error("Error cleaning up map:", error);
