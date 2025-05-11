@@ -10,10 +10,19 @@ import { MapPin, Car, Flag } from 'lucide-react';
 
 interface SchemeToolbarProps {
   currentTool: 'select' | 'vehicle' | 'path' | 'annotation';
-  setCurrentTool: (tool: 'select' | 'vehicle' | 'path' | 'annotation') => void;
+  onSelect: () => void;
+  onAddVehicle: () => void;
+  onAddPath: () => void;
+  onAddAnnotation: () => void;
 }
 
-const SchemeToolbar = ({ currentTool, setCurrentTool }: SchemeToolbarProps) => {
+const SchemeToolbar = ({ 
+  currentTool, 
+  onSelect, 
+  onAddVehicle, 
+  onAddPath, 
+  onAddAnnotation 
+}: SchemeToolbarProps) => {
   // Définition des outils avec leurs icônes et descriptions
   const tools = [
     {
@@ -26,13 +35,15 @@ const SchemeToolbar = ({ currentTool, setCurrentTool }: SchemeToolbarProps) => {
           <path d="m3 7 9 4 9-4"/>
           <path d="M3 12h18"/>
         </svg>
-      )
+      ),
+      onClick: onSelect
     },
     {
       id: 'vehicle',
       label: 'Ajouter un véhicule',
       description: 'Placer un nouveau véhicule sur la carte',
-      icon: <Car className="w-4 h-4" />
+      icon: <Car className="w-4 h-4" />,
+      onClick: onAddVehicle
     },
     {
       id: 'path',
@@ -43,13 +54,15 @@ const SchemeToolbar = ({ currentTool, setCurrentTool }: SchemeToolbarProps) => {
           <path d="M3 3v18h18" />
           <path d="m7 17 4-4 4 4 6-6" />
         </svg>
-      )
+      ),
+      onClick: onAddPath
     },
     {
       id: 'annotation',
       label: 'Ajouter une annotation',
       description: 'Placer une note sur la carte',
-      icon: <Flag className="w-4 h-4" />
+      icon: <Flag className="w-4 h-4" />,
+      onClick: onAddAnnotation
     }
   ];
 
@@ -61,7 +74,7 @@ const SchemeToolbar = ({ currentTool, setCurrentTool }: SchemeToolbarProps) => {
             <Button
               size="sm"
               variant={currentTool === tool.id as any ? 'default' : 'outline'}
-              onClick={() => setCurrentTool(tool.id as any)}
+              onClick={tool.onClick}
               className="flex items-center justify-center"
               aria-label={tool.label}
             >
