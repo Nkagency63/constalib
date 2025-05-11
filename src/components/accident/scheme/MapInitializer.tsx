@@ -31,7 +31,8 @@ const MapInitializer = ({ onMapReady }: MapInitializerProps) => {
         // Clear the timeout on unmount
         clearTimeout(timer);
         
-        // Safe cleanup approach that avoids removing controls
+        // IMPORTANT: DO NOT try to remove controls here
+        // This is what's causing the "s is undefined" error
         try {
           console.log("Map initializer: safely cleaning up");
           
@@ -40,18 +41,14 @@ const MapInitializer = ({ onMapReady }: MapInitializerProps) => {
             map.stopLocate();
             map.stop();
             
-            // Only remove custom event listeners without touching controls
+            // Only remove event listeners we've added ourselves
             try {
-              // Safely remove only event listeners we've added
-              // Using off with specific callbacks where possible
               map.off('click');
               map.off('move');
               map.off('zoom');
               map.off('moveend');
               map.off('zoomend');
               map.off('dragend');
-              
-              // DO NOT try to remove controls here - that's what's causing the error
             } catch (e) {
               console.error("Error removing event handlers:", e);
             }

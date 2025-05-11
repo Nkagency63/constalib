@@ -101,7 +101,7 @@ const AccidentMap = ({ lat, lng, address, children }: AccidentMapProps) => {
         scrollWheelZoom={false}
         style={{ height: '300px', width: '100%' }}
         className="z-0"
-        // Disable controls to minimize cleanup issues
+        // IMPORTANT: Disable controls to minimize cleanup issues
         zoomControl={false}
         attributionControl={false}
         doubleClickZoom={false}
