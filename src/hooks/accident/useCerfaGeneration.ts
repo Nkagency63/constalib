@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { toast } from "sonner";
 import { FormData } from "@/components/accident/types";
@@ -230,8 +231,7 @@ export const useCerfaGeneration = ({ formData, signatures }: UseCerfaGenerationP
           {
             participants,
             signatureData,
-            // Utilisez le nom de propriété correct selon le type AdditionalData attendu
-            signedSchemeImage: schemeImageDataUrl
+            schemeImage: schemeImageDataUrl
           }
         );
         
