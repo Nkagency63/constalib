@@ -230,8 +230,8 @@ export const useCerfaGeneration = ({ formData, signatures }: UseCerfaGenerationP
           {
             participants,
             signatureData,
-            // Correction: utiliser la propriété correcte pour le type AdditionalData
-            schemeImage: schemeImageDataUrl // Utilisation du nom de propriété correct attendu par le type
+            // Utilisez le nom de propriété correct selon le type AdditionalData attendu
+            signedSchemeImage: schemeImageDataUrl
           }
         );
         
