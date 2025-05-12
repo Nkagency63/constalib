@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { toast } from "sonner";
 import { FormData } from "@/components/accident/types";
@@ -230,7 +231,8 @@ export const useCerfaGeneration = ({ formData, signatures }: UseCerfaGenerationP
           {
             participants,
             signatureData,
-            schemeImage: schemeImageDataUrl
+            // Nous passons l'image du schéma dans additionalData, mais avec la clé correcte selon la définition du type
+            signedSchemeImage: schemeImageDataUrl // Modification de schemeImage à signedSchemeImage pour correspondre au type
           }
         );
         
