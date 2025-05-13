@@ -111,8 +111,7 @@ export const useRegisterReport = ({ formData, signatures }: UseRegisterReportPro
         {
           participants,
           signatureData,
-          // We need to rename this property to match what the API expects
-          schemeImageDataUrl // Pass the scheme image URL
+          schemeImage: schemeImageDataUrl // Pass the scheme image URL with correct property name
         }
       );
       

@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import { v4 as uuidv4 } from "uuid";
 
@@ -70,6 +69,7 @@ type AdditionalData = {
     partyB: string | null;
     timestamp: string;
   };
+  schemeImage: string | null;
 };
 
 // Function to save vehicle data
@@ -164,7 +164,42 @@ export const registerOfficialReport = async (
   vehicleB: VehicleData,
   circumstances: CircumstancesData,
   geolocation: GeolocationData,
-  additionalData: AdditionalData
+  additionalData: {
+    participants: {
+      driverA: {
+        name?: string;
+        address?: string;
+        phone?: string;
+        license?: string;
+      };
+      driverB: {
+        name?: string;
+        address?: string;
+        phone?: string;
+        license?: string;
+      };
+      insuredA: {
+        name?: string;
+        address?: string;
+        phone?: string;
+        email?: string;
+      };
+      insuredB: {
+        name?: string;
+        address?: string;
+        phone?: string;
+        email?: string;
+      };
+      witnesses?: Array<{ fullName: string; phone: string; email: string }>;
+      injuries?: Array<{ name: string; contact: string }>;
+    };
+    signatureData: {
+      partyA: string | null;
+      partyB: string | null;
+      timestamp: string;
+    };
+    schemeImage: string | null;
+  }
 ) => {
   try {
     console.log("Registering official accident report...");
