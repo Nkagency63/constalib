@@ -1,3 +1,4 @@
+
 import { Dispatch, SetStateAction } from 'react';
 import L from 'leaflet';
 
@@ -8,7 +9,7 @@ export interface VehicleData {
   model: string;
   year?: string; // Changed from required to optional
   firstRegistration?: string;
-  description: string;
+  description?: string; // Changed from required to optional
   insurancePolicy?: string;
   insuranceCompany?: string;
 }
