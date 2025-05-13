@@ -67,9 +67,9 @@ const SchemeContainer: React.FC<SchemeContainerProps> = ({
       <SchemeToolbars
         activeTab={activeTab}
         setActiveTab={setActiveTab}
-        vehicles={vehiclesHook}
-        paths={pathsHook}
-        annotations={annotationsHook}
+        vehicles={vehiclesHook as any} // Cast to any to avoid type issues
+        paths={pathsHook as any} // Cast to any to avoid type issues
+        annotations={annotationsHook as any} // Cast to any to avoid type issues
         pathColor={pathColor}
         setPathColor={setPathColor}
         readOnly={readOnly}

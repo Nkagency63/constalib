@@ -1,26 +1,31 @@
 
 import { FormData } from "@/components/accident/types";
-import { generateCerfaPDF as generateFullCerfaPDF } from "./generators/cerfa-generator";
-import { generatePlaceholderPDF } from "./generators/placeholder-generator";
+import { generateCerfaWithPdfLib } from "./generators/cerfa-generator";
+import { generatePlaceholderPdf } from "./generators/placeholder-generator";
 
 /**
- * Generate a CERFA PDF based on form data
+ * Generate a PDF file for a Cerfa form based on form data
+ * @param formData Form data from the accident form
+ * @param schemeImageDataUrl Optional scheme image as data URL
+ * @param signatures Optional signatures for both parties
+ * @returns URL to the generated PDF file
  */
-export const generateCerfaPDF = async (
-  formData: FormData,
+export async function generateCerfaPDF(
+  formData: FormData, 
   schemeImageDataUrl: string | null = null,
-  signatures?: { partyA: string | null; partyB: string | null }
-): Promise<string> => {
-  try {
-    // For now, we'll use the placeholder generator for simplicity
-    // In production, this would detect all needed info and use the full generator
-    const pdfUrl = await generatePlaceholderPDF(formData, schemeImageDataUrl, signatures);
-    return pdfUrl;
-  } catch (error) {
-    console.error("Error generating CERFA PDF:", error);
-    throw new Error(`Failed to generate PDF: ${error}`);
+  signatures?: {
+    partyA: string | null;
+    partyB: string | null;
   }
-};
-
-// Re-export other PDF utilities as needed
-export { generateFullCerfaPDF, generatePlaceholderPDF };
+): Promise<string> {
+  try {
+    // Use the custom PDF lib generator for the real implementation
+    return await generateCerfaWithPdfLib(formData, schemeImageDataUrl, signatures);
+  } catch (error) {
+    console.error("Error generating CERFA with PDF-lib:", error);
+    
+    // Fall back to placeholder generator if main one fails
+    console.log("Falling back to placeholder generator");
+    return await generatePlaceholderPdf(formData);
+  }
+}

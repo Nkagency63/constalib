@@ -61,9 +61,9 @@ const StepRenderer: React.FC<StepRendererProps> = ({
   removeWitness
 }) => {
   // Helper function to ensure we have valid circumstance handler
-  const safeHandleCircumstanceChange = (vehicleId: "A" | "B", circumstance: Circumstance) => {
+  const safeHandleCircumstanceChange = (vehicleId: "A" | "B", circumstance: Circumstance, checked: boolean = true) => {
     if (handleCircumstanceChange) {
-      handleCircumstanceChange(vehicleId, circumstance, true);
+      handleCircumstanceChange(vehicleId, circumstance, checked);
     }
   };
 
@@ -175,7 +175,7 @@ const StepRenderer: React.FC<StepRendererProps> = ({
       return (
         <SchemeStep
           formData={formData}
-          onSchemeUpdate={(schemeData) => console.log('Scheme data saved:', schemeData)}
+          onSchemeUpdate={(schemeData: SchemeData) => console.log('Scheme data saved:', schemeData)}
         />
       );
 
@@ -184,20 +184,18 @@ const StepRenderer: React.FC<StepRendererProps> = ({
         <PhotosStep
           vehiclePhotos={(formData.vehiclePhotos || []) as File[]}
           damagePhotos={(formData.damagePhotos || []) as File[]}
-          handlePhotoUpload={(type, files) => {
-            if (files.length > 0) {
-              // Create FileList-compatible array
-              const fileListArray = Array.from(files);
-              handlePhotoUpload(type, {
-                length: files.length,
-                item: (index: number) => fileListArray[index],
-                [Symbol.iterator]: function* () {
-                  for (let i = 0; i < this.length; i++) {
-                    yield this.item(i);
-                  }
-                }
-              } as FileList);
-            }
+          handlePhotoUpload={(type: 'vehiclePhotos' | 'damagePhotos', file: File) => {
+            // Create a mock FileList with a single file
+            const fileList = {
+              0: file,
+              length: 1,
+              item: (index: number) => index === 0 ? file : null,
+              [Symbol.iterator]: function* () {
+                yield file;
+              }
+            } as unknown as FileList;
+            
+            handlePhotoUpload(type, fileList);
           }}
         />
       );

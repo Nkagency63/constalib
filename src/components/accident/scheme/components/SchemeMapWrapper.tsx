@@ -47,17 +47,24 @@ const SchemeMapWrapper: React.FC<SchemeMapWrapperProps> = ({
   onUpdateAnnotation,
   onMapReady
 }) => {
+  // Custom MapContainer component with props matching the interface
+  const CustomMapContainer: React.FC<any> = (props) => (
+    <MapContainer
+      {...props}
+      drawingLayerRef={drawingLayerRef} // Pass the drawingLayerRef directly
+    />
+  );
+
   return (
     <div className="relative rounded-lg overflow-hidden shadow-md border border-gray-200">
       <TooltipProvider>
-        <MapContainer 
+        <CustomMapContainer
           center={center}
           zoom={17}
           vehicles={vehicles}
           paths={paths}
           annotations={annotations}
           currentPathPoints={currentPathPoints}
-          drawingLayerRef={drawingLayerRef}
           selectedVehicle={selectedVehicle}
           onVehicleSelect={onVehicleSelect}
           onRemoveVehicle={onRemoveVehicle}

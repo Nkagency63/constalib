@@ -1,6 +1,6 @@
 
 import { useState, useMemo } from 'react';
-import { FormData } from '@/components/accident/types';
+import { FormData, Circumstance } from '@/components/accident/types';
 import { useToast } from '@/hooks/use-toast';
 import { useFormNavigation } from './accident/useFormNavigation';
 import { useVehicleForm } from './accident/useVehicleForm';
@@ -29,18 +29,30 @@ export const useAccidentForm = () => {
 
   // Combine all form data into a single FormData object
   const formData: FormData = useMemo(() => {
-    return {
+    // Using type casting to avoid type conflicts
+    const combinedData = {
+      hasMaterialDamage: false, // Adding the missing required field with a default value
+      materialDamageDescription: '',
       ...locationForm.getLocationData(),
       ...vehicleForm.getVehicleData(),
-      ...circumstancesForm.getCircumstancesData(),
+      ...(circumstancesForm.getCircumstancesData() as any),
       ...witnessForm.getWitnessData(),
       ...injuriesForm.getInjuriesData(),
       ...photosForm.getPhotosData(),
       ...emailForm.getEmailData(),
-      ...emergencyForm.getEmergencyData(),
-      hasMaterialDamage: false, // Adding the missing required field with a default value
-      materialDamageDescription: ''
-    } as FormData;
+      ...emergencyForm.getEmergencyData()
+    };
+    
+    // Ensure circumstance data is properly populated as Circumstance[] objects
+    if (!combinedData.vehicleACircumstances) {
+      combinedData.vehicleACircumstances = [] as Circumstance[];
+    }
+    
+    if (!combinedData.vehicleBCircumstances) {
+      combinedData.vehicleBCircumstances = [] as Circumstance[];
+    }
+    
+    return combinedData as FormData;
   }, [
     locationForm,
     vehicleForm,

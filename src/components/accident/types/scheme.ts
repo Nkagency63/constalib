@@ -1,7 +1,17 @@
 
-// Import base types instead of redeclaring them
-import { Vehicle, Path, Annotation, SchemeData as BaseSchemeData } from '../types';
+// Import base types from main types file instead of redeclaring them
+import { Vehicle as BaseVehicle, Path as BasePath, Annotation as BaseAnnotation, SchemeData as BaseSchemeData } from '../types';
 
-// Re-export the types to maintain backward compatibility without creating conflicts
-export type { Vehicle, Path, Annotation };
-export type SchemeData = BaseSchemeData;
+// Re-export types with different names to avoid conflicts
+export type SchemeVehicle = BaseVehicle;
+export type SchemePath = BasePath;
+export type SchemeAnnotation = BaseAnnotation;
+export type SchemeDataType = BaseSchemeData;
+
+// For backward compatibility - use type aliases instead of export declarations
+export { 
+  BaseVehicle as Vehicle, 
+  BasePath as Path, 
+  BaseAnnotation as Annotation,
+  BaseSchemeData as SchemeData
+};

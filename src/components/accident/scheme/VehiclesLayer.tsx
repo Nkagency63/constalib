@@ -11,6 +11,9 @@ interface VehiclesLayerProps {
   onVehicleSelect: (id: string) => void;
   onVehicleMove?: (id: string, position: [number, number]) => void;
   readOnly?: boolean;
+  onRemoveVehicle?: (id: string) => void;
+  onRotateVehicle?: (id: string, degrees: number) => void;
+  onChangeVehicleType?: (id: string, type: 'car' | 'truck' | 'bike') => void;
 }
 
 const VehiclesLayer: React.FC<VehiclesLayerProps> = ({
@@ -18,19 +21,24 @@ const VehiclesLayer: React.FC<VehiclesLayerProps> = ({
   selectedVehicleId,
   onVehicleSelect,
   onVehicleMove,
-  readOnly = false
+  readOnly = false,
+  onRemoveVehicle,
+  onRotateVehicle,
+  onChangeVehicleType
 }) => {
   const createVehicleIcon = (vehicle: Vehicle) => {
     // Create a custom icon for the vehicle
     const iconHtml = document.createElement('div');
+    const vehicleIconSvg = VehicleIcon({ 
+      type: vehicle.type, 
+      rotation: vehicle.rotation, 
+      color: vehicle.color,
+      selected: vehicle.id === selectedVehicleId
+    });
+    
     iconHtml.innerHTML = `
       <div class="vehicle-icon" style="transform: rotate(${vehicle.rotation}deg)">
-        ${VehicleIcon({ 
-          type: vehicle.type, 
-          rotation: vehicle.rotation, 
-          color: vehicle.color,
-          selected: vehicle.id === selectedVehicleId
-        })}
+        ${typeof vehicleIconSvg === 'string' ? vehicleIconSvg : ''}
       </div>
     `;
     

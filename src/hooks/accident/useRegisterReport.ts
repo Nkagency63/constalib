@@ -1,7 +1,7 @@
 
 import { useState } from 'react';
 import { toast } from "sonner";
-import { FormData, Circumstance, CircumstancesData } from "@/components/accident/types";
+import { FormData, Circumstance, CircumstancesData, InjuryInfo } from "@/components/accident/types";
 import { registerOfficialReport } from "@/services/accidentReportService";
 
 interface UseRegisterReportProps {
@@ -10,6 +10,14 @@ interface UseRegisterReportProps {
     partyA: string | null;
     partyB: string | null;
   };
+}
+
+// Interface to match expected service format for injuries
+interface ServiceInjuryInfo {
+  name: string;
+  contact: string;
+  severity?: string;
+  description?: string;
 }
 
 export const useRegisterReport = ({ formData, signatures }: UseRegisterReportProps) => {
@@ -53,6 +61,14 @@ export const useRegisterReport = ({ formData, signatures }: UseRegisterReportPro
         insurancePolicy: formData.otherVehicle.insurancePolicy
       };
 
+      // Adapt injuries to match expected service format
+      const adaptedInjuries: ServiceInjuryInfo[] = (formData.injuries || []).map((injury: InjuryInfo) => ({
+        name: injury.name,
+        contact: "N/A", // Add the required contact field with placeholder
+        severity: injury.severity,
+        description: injury.description
+      }));
+
       // Compile all participant information
       const participants = {
         driverA: {
@@ -84,13 +100,13 @@ export const useRegisterReport = ({ formData, signatures }: UseRegisterReportPro
           phone: witness.phone || "",
           email: witness.email || ""
         })) || [],
-        injuries: formData.injuries || []
+        injuries: adaptedInjuries
       };
 
-      // Format circumstances data properly - extracting IDs from Circumstance objects
+      // Format circumstances data - extract IDs from Circumstance objects
       const circumstancesData: CircumstancesData = {
-        vehicleA: (formData.vehicleACircumstances || []).map(circ => circ.id),
-        vehicleB: (formData.vehicleBCircumstances || []).map(circ => circ.id)
+        vehicleA: (formData.vehicleACircumstances || []).map((circ: Circumstance) => circ.id),
+        vehicleB: (formData.vehicleBCircumstances || []).map((circ: Circumstance) => circ.id)
       };
 
       const geolocation = {

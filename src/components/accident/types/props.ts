@@ -21,6 +21,7 @@ export interface OfficialRegistrationDialogProps {
 export interface SchemeStepProps {
   formData: FormData;
   onSchemeUpdate?: (schemeData: SchemeData) => void;
+  handleSchemeData?: (data: SchemeData) => void;
 }
 
 // Props for MapContainer in SchemeMapWrapper
@@ -51,6 +52,7 @@ export interface MapContainerProps {
   isDrawing: boolean;
   pathColor: string;
   isTilting: boolean;
+  drawingLayerRef?: React.MutableRefObject<any>; // Add missing prop
 }
 
 // Props for VehicleIcon
@@ -58,5 +60,17 @@ export interface VehicleIconProps {
   type: 'car' | 'truck' | 'bike';
   rotation: number;
   color: string;
-  selected?: boolean; // Changed from isSelected to selected
+  selected?: boolean;
+}
+
+// Props for VehiclesLayer
+export interface VehiclesLayerProps {
+  vehicles: Vehicle[];
+  selectedVehicleId?: string;
+  onVehicleSelect: (id: string) => void;
+  onVehicleMove?: (id: string, position: [number, number]) => void;
+  readOnly?: boolean;
+  onRemoveVehicle?: (id: string) => void; // Add missing prop
+  onRotateVehicle?: (id: string, degrees: number) => void; // Add missing prop
+  onChangeVehicleType?: (type: 'car' | 'truck' | 'bike') => void; // Add missing prop
 }
