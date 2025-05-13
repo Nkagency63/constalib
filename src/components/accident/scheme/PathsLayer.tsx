@@ -1,29 +1,35 @@
 
 import React from 'react';
 import { Polyline, LayerGroup } from 'react-leaflet';
-import { Path, Vehicle } from '../types';
+import { Path } from '../types/scheme';
 
 interface PathsLayerProps {
   paths: Path[];
-  drawingLayerRef: React.MutableRefObject<L.LayerGroup | null>;
   currentPathPoints: [number, number][];
-  selectedVehicle: string | null;
-  vehicles: Vehicle[];
+  isDrawing: boolean;
+  pathColor: string;
+  readOnly?: boolean;
+  drawingLayerRef?: React.MutableRefObject<L.LayerGroup | null>;
+  selectedVehicle?: string | null;
+  vehicles?: any[];
 }
 
 const PathsLayer = ({
   paths,
-  drawingLayerRef,
   currentPathPoints,
+  isDrawing,
+  pathColor,
+  readOnly = false,
+  drawingLayerRef,
   selectedVehicle,
-  vehicles
+  vehicles = []
 }: PathsLayerProps) => {
-  // Get color of selected vehicle
+  // Get color of selected vehicle if available
   const selectedVehicleColor = React.useMemo(() => {
-    if (!selectedVehicle) return '#3b82f6'; // Default blue
+    if (!selectedVehicle || !vehicles.length) return pathColor;
     const vehicle = vehicles.find(v => v.id === selectedVehicle);
-    return vehicle?.color || '#3b82f6';
-  }, [selectedVehicle, vehicles]);
+    return vehicle?.color || pathColor;
+  }, [selectedVehicle, vehicles, pathColor]);
   
   return (
     <>
@@ -34,9 +40,9 @@ const PathsLayer = ({
           positions={path.points}
           pathOptions={{
             color: path.color,
-            weight: 4,
+            weight: path.width || 4,
             opacity: 0.7,
-            dashArray: '10, 10',
+            dashArray: path.dashed ? '10, 10' : undefined,
           }}
         />
       ))}
@@ -55,7 +61,7 @@ const PathsLayer = ({
       )}
       
       {/* Layer group for dynamic drawing */}
-      <LayerGroup ref={drawingLayerRef} />
+      {drawingLayerRef && <LayerGroup ref={drawingLayerRef} />}
     </>
   );
 };

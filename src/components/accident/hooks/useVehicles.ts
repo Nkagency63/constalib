@@ -28,10 +28,10 @@ export const useVehicles = () => {
       id => !usedIds.includes(id)
     );
     
-    // Générer un ID unique pour le véhicule
+    // Generate a unique ID for the vehicle
     const uniqueId = uuidv4();
 
-    // Créer le nouveau véhicule avec une position précise
+    // Create the new vehicle with a precise position
     const newVehicle: Vehicle = {
       id: uniqueId,
       position: position,
@@ -43,13 +43,13 @@ export const useVehicles = () => {
 
     console.log("Creating new vehicle:", newVehicle);
 
-    // Mettre à jour la liste des véhicules et sélectionner le nouveau véhicule
+    // Update the vehicle list and select the new vehicle
     const updatedVehicles = [...vehicles, newVehicle];
     
-    // Nous devons d'abord mettre à jour les véhicules existants pour désélectionner les autres
+    // We must first update existing vehicles to deselect the others
     const deselectedVehicles = vehicles.map(v => ({...v, isSelected: false}));
     
-    // Puis ajouter le nouveau véhicule sélectionné
+    // Then add the new selected vehicle
     const finalUpdatedVehicles = [...deselectedVehicles, newVehicle];
     
     setVehicles(finalUpdatedVehicles);
@@ -109,7 +109,7 @@ export const useVehicles = () => {
     return vehicles;
   };
 
-  // Afficher dans la console les véhicules actuels pour déboguer
+  // Log current vehicles for debugging
   useEffect(() => {
     console.log("Current vehicles:", vehicles);
   }, [vehicles]);

@@ -1,13 +1,13 @@
 
 import React from 'react';
-import { Marker, useMap } from 'react-leaflet';
+import { Marker } from 'react-leaflet';
 import L from 'leaflet';
 import { Vehicle } from '../types/scheme';
 import VehicleIcon from './VehicleIcon';
 
 interface VehiclesLayerProps {
   vehicles: Vehicle[];
-  selectedVehicleId?: string;
+  selectedVehicleId?: string | null;
   readOnly?: boolean;
   onVehicleSelect: (id: string) => void;
   onRemoveVehicle: (id: string) => void;
@@ -24,8 +24,6 @@ const VehiclesLayer: React.FC<VehiclesLayerProps> = ({
   onRotateVehicle,
   onChangeVehicleType,
 }) => {
-  const map = useMap();
-
   const getVehicleIcon = (vehicle: Vehicle) => {
     return L.divIcon({
       className: 'custom-vehicle-icon',
@@ -33,7 +31,7 @@ const VehiclesLayer: React.FC<VehiclesLayerProps> = ({
         type: vehicle.type,
         color: vehicle.color,
         rotation: vehicle.rotation,
-        selected: vehicle.isSelected,
+        selected: vehicle.isSelected
       }),
       iconSize: [40, 40],
       iconAnchor: [20, 20],

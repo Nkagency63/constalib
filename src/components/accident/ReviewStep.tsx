@@ -30,34 +30,44 @@ const ReviewStep: React.FC<ReviewStepProps> = ({
       
       <div className="grid gap-6 md:grid-cols-2">
         <VehicleCard 
-          licensePlate={formData.licensePlate}
-          brand={formData.vehicleBrand}
-          model={formData.vehicleModel}
-          year={formData.vehicleYear}
-          insuredName={formData.insuredName}
+          vehicle={{
+            licensePlate: formData.licensePlate,
+            brand: formData.vehicleBrand,
+            model: formData.vehicleModel,
+            year: formData.vehicleYear,
+            description: "",
+            insurancePolicy: formData.insurancePolicy,
+            insuranceCompany: formData.insuranceCompany
+          }}
           driverName={formData.driverName}
-          insuranceCompany={formData.insuranceCompany}
-          insurancePolicy={formData.insurancePolicy}
+          insuredName={formData.insuredName}
         />
         
         <OtherVehicleCard 
-          licensePlate={formData.otherVehicle?.licensePlate}
-          brand={formData.otherVehicle?.brand}
-          model={formData.otherVehicle?.model}
-          year={formData.otherVehicle?.year}
-          insuredName={formData.otherInsuredName}
+          vehicle={{
+            licensePlate: formData.otherVehicle?.licensePlate,
+            brand: formData.otherVehicle?.brand,
+            model: formData.otherVehicle?.model,
+            year: formData.otherVehicle?.year,
+            description: "",
+            insurancePolicy: formData.otherVehicle?.insurancePolicy,
+            insuranceCompany: formData.otherVehicle?.insuranceCompany
+          }}
           driverName={formData.otherDriverName}
-          insuranceCompany={formData.otherVehicle?.insuranceCompany}
-          insurancePolicy={formData.otherVehicle?.insurancePolicy}
+          insuredName={formData.otherInsuredName}
         />
       </div>
       
       <div className="grid gap-6 md:grid-cols-2">
         <LocationCard 
-          location={formData.location}
-          address={formData.geolocation?.address}
-          latitude={formData.geolocation?.lat}
-          longitude={formData.geolocation?.lng}
+          location={{
+            address: formData.geolocation?.address,
+            coordinates: {
+              lat: formData.geolocation?.lat,
+              lng: formData.geolocation?.lng
+            },
+            locationText: formData.location
+          }}
         />
         
         <DateTimeCard 

@@ -1,4 +1,3 @@
-
 import React from 'react';
 import BasicInfoStep from './BasicInfoStep';
 import LocationStep from './LocationStep';
@@ -60,6 +59,13 @@ const StepRenderer: React.FC<StepRendererProps> = ({
   setInvolvedPartyEmails,
   onEmergencyContacted,
 }) => {
+  // Create a function that adapts the circumstance change handler to the expected format
+  const adaptedCircumstanceChangeHandler = (vehicleId: string, circumstance: Circumstance, checked: boolean) => {
+    if (handleCircumstanceChange) {
+      handleCircumstanceChange(vehicleId as 'A' | 'B', circumstance.id, checked);
+    }
+  };
+
   switch (currentStepId) {
     case "basics":
       return (
@@ -111,11 +117,7 @@ const StepRenderer: React.FC<StepRendererProps> = ({
         <CircumstancesStep 
           vehicleACircumstances={formData.vehicleACircumstances || []}
           vehicleBCircumstances={formData.vehicleBCircumstances || []}
-          handleCircumstanceChange={(vehicleId, circumstance, checked) => {
-            if (handleCircumstanceChange) {
-              handleCircumstanceChange(vehicleId, circumstance.id, checked);
-            }
-          }}
+          handleCircumstanceChange={adaptedCircumstanceChangeHandler}
           currentVehicleId={currentVehicleId || 'A'}
           setCurrentVehicleId={setCurrentVehicleId || (() => {})}
         />
@@ -158,6 +160,7 @@ const StepRenderer: React.FC<StepRendererProps> = ({
       return (
         <SchemeStep 
           formData={formData}
+          handleSchemeData={(data) => console.log("Scheme data updated:", data)}
         />
       );
 

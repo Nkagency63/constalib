@@ -9,12 +9,16 @@ import { useAnnotations } from '../hooks/useAnnotations';
 
 interface SchemeContainerProps {
   initialData?: SchemeData;
-  onSchemeUpdate?: (data: SchemeData) => void;
+  formData?: any; // Added formData prop
+  onUpdateSchemeData?: (data: SchemeData) => void;
+  onSchemeUpdate?: (data: SchemeData) => void; // For backward compatibility
   readOnly?: boolean;
 }
 
 const SchemeContainer: React.FC<SchemeContainerProps> = ({
   initialData,
+  formData,
+  onUpdateSchemeData,
   onSchemeUpdate,
   readOnly = false,
 }) => {
@@ -24,15 +28,15 @@ const SchemeContainer: React.FC<SchemeContainerProps> = ({
   const [pathColor, setPathColor] = useState<string>('#ff0000');
   const [isTilting, setIsTilting] = useState<boolean>(false);
 
-  const vehicles = useVehicles();
-  const paths = usePaths();
-  const annotations = useAnnotations();
+  const vehiclesHook = useVehicles();
+  const pathsHook = usePaths();
+  const annotationsHook = useAnnotations();
   
   // Initialize with initial data if provided
   useEffect(() => {
     if (initialData) {
       if (initialData.vehicles) {
-        vehicles.setVehicles(initialData.vehicles);
+        vehiclesHook.setVehicles(initialData.vehicles);
       }
       if (initialData.center) {
         setMapCenter(initialData.center);
@@ -45,26 +49,27 @@ const SchemeContainer: React.FC<SchemeContainerProps> = ({
 
   // Update parent with current scheme data
   useEffect(() => {
-    if (onSchemeUpdate) {
+    const updateCallback = onUpdateSchemeData || onSchemeUpdate;
+    if (updateCallback) {
       const currentData: SchemeData = {
-        vehicles: vehicles.vehicles,
-        paths: paths.paths,
-        annotations: annotations.annotations,
+        vehicles: vehiclesHook.vehicles,
+        paths: pathsHook.paths,
+        annotations: annotationsHook.annotations,
         center: mapCenter,
         zoom: mapZoom,
       };
-      onSchemeUpdate(currentData);
+      updateCallback(currentData);
     }
-  }, [vehicles.vehicles, paths.paths, annotations.annotations, mapCenter, mapZoom, onSchemeUpdate]);
+  }, [vehiclesHook.vehicles, pathsHook.paths, annotationsHook.annotations, mapCenter, mapZoom, onUpdateSchemeData, onSchemeUpdate]);
 
   return (
     <div className="scheme-container h-full flex flex-col">
       <SchemeToolbars
         activeTab={activeTab}
         setActiveTab={setActiveTab}
-        vehicles={vehicles}
-        paths={paths}
-        annotations={annotations}
+        vehicles={vehiclesHook}
+        paths={pathsHook}
+        annotations={annotationsHook}
         pathColor={pathColor}
         setPathColor={setPathColor}
         readOnly={readOnly}
@@ -75,26 +80,26 @@ const SchemeContainer: React.FC<SchemeContainerProps> = ({
           zoom={mapZoom}
           setCenter={setMapCenter}
           setZoom={setMapZoom}
-          vehicles={vehicles.vehicles}
-          selectedVehicle={vehicles.selectedVehicle}
-          paths={paths.paths}
-          annotations={annotations.annotations}
-          onVehicleSelect={vehicles.selectVehicle}
-          onRemoveVehicle={vehicles.removeVehicle}
-          onRotateVehicle={vehicles.rotateVehicle}
-          onChangeVehicleType={vehicles.changeVehicleType}
+          vehicles={vehiclesHook.vehicles}
+          selectedVehicleId={vehiclesHook.selectedVehicle}
+          paths={pathsHook.paths}
+          annotations={annotationsHook.annotations}
+          onVehicleSelect={vehiclesHook.selectVehicle}
+          onRemoveVehicle={vehiclesHook.removeVehicle}
+          onRotateVehicle={vehiclesHook.rotateVehicle}
+          onChangeVehicleType={vehiclesHook.changeVehicleType}
           onPathSelect={() => {}}
-          onPathRemove={paths.removePath}
-          onAnnotationSelect={annotations.selectAnnotation}
-          onAnnotationRemove={annotations.removeAnnotation}
-          onAnnotationUpdate={annotations.updateAnnotation}
+          onPathRemove={pathsHook.removePath}
+          onAnnotationSelect={(id) => annotationsHook.annotations.find(a => a.id === id)}
+          onAnnotationRemove={annotationsHook.removeAnnotation}
+          onAnnotationUpdate={annotationsHook.updateAnnotation}
           activeTab={activeTab}
           readOnly={readOnly}
-          onPathStart={paths.startPath}
-          onPathContinue={paths.continuePath}
-          onPathComplete={(color) => paths.completePath(color)}
-          currentPathPoints={paths.currentPathPoints}
-          isDrawing={paths.isDrawing}
+          onPathStart={pathsHook.startPath}
+          onPathContinue={pathsHook.continuePath}
+          onPathComplete={(color) => pathsHook.completePath(color)}
+          currentPathPoints={pathsHook.currentPathPoints}
+          isDrawing={pathsHook.isDrawing}
           pathColor={pathColor}
           isTilting={isTilting}
         />

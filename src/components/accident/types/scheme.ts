@@ -3,19 +3,20 @@ export interface Vehicle {
   id: string;
   position: [number, number];
   color: string;
-  brand?: string;
-  model?: string;
   rotation: number;
   isSelected: boolean;
   type: 'car' | 'truck' | 'bike';
+  // These props are optional to remain compatible with existing code
+  brand?: string;
+  model?: string;
 }
 
 export interface Path {
   id: string;
   points: [number, number][]; // Array of LatLng coordinates
   color: string;
-  width?: number;
-  dashed?: boolean;
+  width: number; // Changed from optional to required
+  dashed: boolean; // Changed from optional to required
   isSelected: boolean;
 }
 

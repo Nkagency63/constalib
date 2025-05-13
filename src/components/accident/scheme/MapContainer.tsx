@@ -14,7 +14,7 @@ interface MapContainerProps {
   setCenter: (center: [number, number]) => void;
   setZoom: (zoom: number) => void;
   vehicles: Vehicle[];
-  selectedVehicle: string | null;
+  selectedVehicleId: string | null;
   paths: Path[];
   annotations: Annotation[];
   onVehicleSelect: (id: string) => void;
@@ -43,7 +43,7 @@ const MapContainer: React.FC<MapContainerProps> = ({
   setCenter,
   setZoom,
   vehicles,
-  selectedVehicle,
+  selectedVehicleId,
   paths,
   annotations,
   onVehicleSelect,
@@ -110,7 +110,7 @@ const MapContainer: React.FC<MapContainerProps> = ({
 
       <VehiclesLayer
         vehicles={vehicles}
-        selectedVehicleId={selectedVehicle}
+        selectedVehicleId={selectedVehicleId}
         readOnly={readOnly}
         onVehicleSelect={onVehicleSelect}
         onRemoveVehicle={onRemoveVehicle}

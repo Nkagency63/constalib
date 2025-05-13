@@ -3,10 +3,22 @@ import React, { useEffect } from 'react';
 import { useMap } from 'react-leaflet';
 
 interface MapInitializerProps {
-  onMapReady: (map: L.Map) => void;
+  setCenter?: (center: [number, number]) => void;
+  setZoom?: (zoom: number) => void;
+  onMapClick?: (latlng: any) => void;
+  onMapDoubleClick?: () => void;
+  onMapMove?: (latlng: any) => void;
+  onMapReady?: (map: L.Map) => void;
 }
 
-const MapInitializer: React.FC<MapInitializerProps> = ({ onMapReady }) => {
+const MapInitializer: React.FC<MapInitializerProps> = ({ 
+  setCenter, 
+  setZoom, 
+  onMapClick, 
+  onMapDoubleClick, 
+  onMapMove,
+  onMapReady 
+}) => {
   const map = useMap();
   
   useEffect(() => {
@@ -14,18 +26,36 @@ const MapInitializer: React.FC<MapInitializerProps> = ({ onMapReady }) => {
       // S'assurer que la carte est correctement initialisée
       map.invalidateSize();
       
-      // Informer le parent que la carte est prête
-      onMapReady(map);
+      // Set up event listeners if provided
+      if (onMapClick) {
+        map.on('click', onMapClick);
+      }
+      
+      if (onMapDoubleClick) {
+        map.on('dblclick', onMapDoubleClick);
+      }
+      
+      if (onMapMove) {
+        map.on('mousemove', onMapMove);
+      }
+      
+      // Inform the parent that the map is ready
+      if (onMapReady) {
+        onMapReady(map);
+      }
     }
     
-    // Nettoyer lors du démontage
+    // Clean up event listeners when component unmounts
     return () => {
-      // Aucune action nécessaire pour le nettoyage ici
-      // car react-leaflet gère déjà le nettoyage de la carte
+      if (map) {
+        if (onMapClick) map.off('click', onMapClick);
+        if (onMapDoubleClick) map.off('dblclick', onMapDoubleClick);
+        if (onMapMove) map.off('mousemove', onMapMove);
+      }
     };
-  }, [map, onMapReady]);
+  }, [map, onMapClick, onMapDoubleClick, onMapMove, onMapReady]);
 
-  return null; // Ce composant ne rend rien visuellement
+  return null; // This component doesn't render anything
 };
 
 export default MapInitializer;
