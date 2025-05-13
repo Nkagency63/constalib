@@ -1,26 +1,47 @@
 
-import { Car, FileCheck } from 'lucide-react';
+import { Car } from 'lucide-react';
 import ReviewCard from './ReviewCard';
-import { FormData } from '../types';
 
-export interface VehicleCardProps {
-  formData: FormData;
+interface Vehicle {
+  licensePlate?: string;
+  brand?: string;
+  model?: string;
+  year?: string;
+  description?: string;
+  insurancePolicy?: string;
+  insuranceCompany?: string;
 }
 
-const VehicleCard = ({ formData }: VehicleCardProps) => {
+export interface VehicleCardProps {
+  vehicle: Vehicle;
+  driverName?: string;
+  insuredName?: string;
+}
+
+const VehicleCard = ({ vehicle, driverName, insuredName }: VehicleCardProps) => {
   return (
     <ReviewCard icon={<Car className="h-5 w-5 text-constalib-blue" />} title="Véhicule A (conducteur principal)">
       <div className="space-y-1">
         <p className="text-sm font-medium text-constalib-dark">
-          {formData.vehicleBrand} {formData.vehicleModel} ({formData.vehicleYear || 'Année inconnue'})
+          {vehicle.brand} {vehicle.model} ({vehicle.year || 'Année inconnue'})
         </p>
         <p className="text-sm text-constalib-dark-gray">
-          <span className="font-medium">Immatriculation:</span> {formData.licensePlate}
+          <span className="font-medium">Immatriculation:</span> {vehicle.licensePlate}
         </p>
-        {formData.insuranceCompany && (
+        {driverName && (
           <p className="text-sm text-constalib-dark-gray">
-            <span className="font-medium">Assurance:</span> {formData.insuranceCompany}
-            {formData.insurancePolicy && ` (Police n° ${formData.insurancePolicy})`}
+            <span className="font-medium">Conducteur:</span> {driverName}
+          </p>
+        )}
+        {insuredName && (
+          <p className="text-sm text-constalib-dark-gray">
+            <span className="font-medium">Assuré:</span> {insuredName}
+          </p>
+        )}
+        {vehicle.insuranceCompany && (
+          <p className="text-sm text-constalib-dark-gray">
+            <span className="font-medium">Assurance:</span> {vehicle.insuranceCompany}
+            {vehicle.insurancePolicy && ` (Police n° ${vehicle.insurancePolicy})`}
           </p>
         )}
       </div>

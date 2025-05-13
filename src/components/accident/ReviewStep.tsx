@@ -34,10 +34,10 @@ const ReviewStep: React.FC<ReviewStepProps> = ({
             licensePlate: formData.licensePlate,
             brand: formData.vehicleBrand,
             model: formData.vehicleModel,
-            year: formData.vehicleYear,
+            year: formData.vehicleYear || '',
             description: "",
-            insurancePolicy: formData.insurancePolicy,
-            insuranceCompany: formData.insuranceCompany
+            insurancePolicy: formData.insurancePolicy || '',
+            insuranceCompany: formData.insuranceCompany || ''
           }}
           driverName={formData.driverName}
           insuredName={formData.insuredName}
@@ -48,7 +48,7 @@ const ReviewStep: React.FC<ReviewStepProps> = ({
             licensePlate: formData.otherVehicle?.licensePlate,
             brand: formData.otherVehicle?.brand,
             model: formData.otherVehicle?.model,
-            year: formData.otherVehicle?.year,
+            year: formData.otherVehicle?.year || '',
             description: "",
             insurancePolicy: formData.otherVehicle?.insurancePolicy,
             insuranceCompany: formData.otherVehicle?.insuranceCompany
@@ -71,14 +71,14 @@ const ReviewStep: React.FC<ReviewStepProps> = ({
         />
         
         <DateTimeCard 
-          date={formData.date}
-          time={formData.time}
+          date={formData.date || ''}
+          time={formData.time || ''}
         />
       </div>
       
       <div className="grid gap-6 md:grid-cols-2">
         <EmailsCard 
-          personalEmail={formData.personalEmail}
+          personalEmail={formData.personalEmail || ''}
           insuranceEmails={formData.insuranceEmails || []}
           involvedPartyEmails={formData.involvedPartyEmails || []}
         />

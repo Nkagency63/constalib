@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { SchemeData } from '../types/scheme';
+import { SchemeData } from '../types';
 import MapContainer from './MapContainer';
 import SchemeToolbars from './components/SchemeToolbars';
 import { useVehicles } from '../hooks/useVehicles';
@@ -9,9 +9,9 @@ import { useAnnotations } from '../hooks/useAnnotations';
 
 interface SchemeContainerProps {
   initialData?: SchemeData;
-  formData?: any; // Added formData prop
+  formData?: any;
   onUpdateSchemeData?: (data: SchemeData) => void;
-  onSchemeUpdate?: (data: SchemeData) => void; // For backward compatibility
+  onSchemeUpdate?: (data: SchemeData) => void;
   readOnly?: boolean;
 }
 
@@ -90,7 +90,10 @@ const SchemeContainer: React.FC<SchemeContainerProps> = ({
           onChangeVehicleType={vehiclesHook.changeVehicleType}
           onPathSelect={() => {}}
           onPathRemove={pathsHook.removePath}
-          onAnnotationSelect={(id) => annotationsHook.annotations.find(a => a.id === id)}
+          onAnnotationSelect={(id) => {
+            const annotation = annotationsHook.annotations.find(a => a.id === id);
+            return annotation;
+          }}
           onAnnotationRemove={annotationsHook.removeAnnotation}
           onAnnotationUpdate={annotationsHook.updateAnnotation}
           activeTab={activeTab}

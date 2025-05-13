@@ -1,3 +1,4 @@
+
 import { Dispatch, SetStateAction } from 'react';
 import L from 'leaflet';
 
@@ -7,7 +8,7 @@ export interface VehicleData {
   brand: string;
   model: string;
   year: string;
-  firstRegistration?: string; // Added this property to fix errors
+  firstRegistration?: string;
   description: string;
   insurancePolicy?: string;
   insuranceCompany?: string;
@@ -16,8 +17,8 @@ export interface VehicleData {
 // Type for witness information
 export interface WitnessInfo {
   id: string;
-  name: string; // Required property
-  fullName?: string; // Added to maintain compatibility with existing code
+  name: string;
+  fullName?: string;
   address: string;
   phone: string;
   email: string;
@@ -27,7 +28,7 @@ export interface WitnessInfo {
 export interface Circumstance {
   id: string;
   text: string;
-  label: string; // Added this property to fix errors
+  label: string;
   image?: string;
 }
 
@@ -46,6 +47,8 @@ export interface Vehicle {
   rotation: number;
   color: string;
   label?: string;
+  width?: number;
+  isSelected?: boolean;
 }
 
 export interface Path {
@@ -54,6 +57,8 @@ export interface Path {
   color: string;
   width: number;
   dashed: boolean;
+  vehicleId?: string;
+  isSelected?: boolean;
 }
 
 export interface Annotation {
@@ -195,4 +200,7 @@ export interface FormData {
   
   // Scheme data
   schemeData?: SchemeData;
+  
+  // Current vehicle ID for forms
+  currentVehicleId?: string;
 }

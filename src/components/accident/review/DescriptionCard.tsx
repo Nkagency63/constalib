@@ -1,39 +1,26 @@
 
-import React from 'react';
-import { FormData } from '../types';
-import ReviewCard from './ReviewCard';
 import { FileText } from 'lucide-react';
+import ReviewCard from './ReviewCard';
+import { FormData } from '../types';
 
-interface DescriptionCardProps {
+export interface DescriptionCardProps {
   formData: FormData;
 }
 
-const DescriptionCard: React.FC<DescriptionCardProps> = ({ formData }) => {
+const DescriptionCard = ({ formData }: DescriptionCardProps) => {
   return (
-    <ReviewCard icon={<FileText className="h-5 w-5 text-constalib-blue" />} title="Description de l'accident">
+    <ReviewCard icon={<FileText className="h-5 w-5 text-constalib-blue" />} title="Descriptions">
       <div className="space-y-3">
         {formData.materialDamageDescription && (
           <div>
-            <span className="font-medium text-sm">Dégâts matériels:</span> 
+            <h5 className="text-sm font-medium text-constalib-dark">Dommages matériels :</h5>
             <p className="text-sm text-constalib-dark-gray">{formData.materialDamageDescription}</p>
           </div>
         )}
-        
         {formData.injuriesDescription && (
           <div>
-            <span className="font-medium text-sm">Blessures:</span> 
+            <h5 className="text-sm font-medium text-constalib-dark">Dommages corporels :</h5>
             <p className="text-sm text-constalib-dark-gray">{formData.injuriesDescription}</p>
-          </div>
-        )}
-        
-        {formData.witnesses?.length > 0 && (
-          <div>
-            <span className="font-medium text-sm">Témoins:</span>
-            {formData.witnesses.map((witness, index) => (
-              <div key={witness.id} className="text-sm text-constalib-dark-gray">
-                Témoin {index + 1}: {witness.name}
-              </div>
-            ))}
           </div>
         )}
       </div>
