@@ -1,6 +1,7 @@
+
 import { useState, useEffect, useCallback } from 'react';
 import { v4 as uuidv4 } from 'uuid';
-import { Vehicle } from '../types';
+import { Vehicle } from '../types/scheme';
 import { toast } from 'sonner';
 
 export const VEHICLE_COLORS: Record<'A' | 'B' | 'C' | 'D', string> = {
@@ -15,7 +16,7 @@ export const useVehicles = () => {
   const [selectedVehicle, setSelectedVehicle] = useState<string | null>(null);
   const [currentVehicleType, setCurrentVehicleType] = useState<'car' | 'truck' | 'bike'>('car');
 
-  const addVehicle = useCallback((position: [number, number], type: VehicleType = 'car') => {
+  const addVehicle = useCallback((position: [number, number], type: 'car' | 'truck' | 'bike' = 'car') => {
     if (vehicles.length >= Object.keys(VEHICLE_COLORS).length) {
       toast.warning(`Maximum de ${Object.keys(VEHICLE_COLORS).length} véhicules atteint`);
       return null;
@@ -37,7 +38,7 @@ export const useVehicles = () => {
       color: getRandomColor(),
       rotation: 0, // north is 0 degrees
       isSelected: true,
-      vehicleType: type
+      type: type
     };
 
     console.log("Creating new vehicle:", newVehicle);
@@ -98,7 +99,7 @@ export const useVehicles = () => {
     if (selectedVehicle) {
       const updatedVehicles = vehicles.map(vehicle => 
         vehicle.id === selectedVehicle 
-          ? { ...vehicle, vehicleType: type }
+          ? { ...vehicle, type: type }
           : vehicle
       );
       setVehicles(updatedVehicles);

@@ -7,17 +7,15 @@ export interface Vehicle {
   model?: string;
   rotation: number;
   isSelected: boolean;
-  vehicleId?: string;
-  vehicleType: 'car' | 'truck' | 'bike';
+  type: 'car' | 'truck' | 'bike';
 }
 
 export interface Path {
   id: string;
-  points: [number, number][];
+  points: [number, number][]; // Array of LatLng coordinates
   color: string;
   width?: number;
   dashed?: boolean;
-  vehicleId?: string;
   isSelected: boolean;
 }
 
@@ -32,6 +30,6 @@ export interface SchemeData {
   vehicles: Vehicle[];
   paths: Path[];
   annotations: Annotation[];
-  center: [number, number];
+  center: [number, number]; // LatLng for the map center
   zoom: number;
 }

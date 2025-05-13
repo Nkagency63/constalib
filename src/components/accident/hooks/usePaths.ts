@@ -1,9 +1,12 @@
+
 import { useState, useCallback } from 'react';
 import { v4 as uuidv4 } from 'uuid';
-import { Path } from '../types';
+import { Path } from '../types/scheme';
 
 export const usePaths = () => {
   const [paths, setPaths] = useState<Path[]>([]);
+  const [currentPathPoints, setCurrentPathPoints] = useState<[number, number][]>([]);
+  const [isDrawing, setIsDrawing] = useState(false);
 
   const addPath = useCallback((points: [number, number][], color: string, vehicleId?: string) => {
     const newPath: Path = {
@@ -12,12 +15,12 @@ export const usePaths = () => {
       color,
       width: 3,
       dashed: false,
-      vehicleId,
       isSelected: true,
     };
 
     setPaths(prevPaths => [...prevPaths, newPath]);
-  }, [paths]);
+    return newPath;
+  }, []);
 
   const updatePath = useCallback((id: string, updates: Partial<Path>) => {
     setPaths(prevPaths =>
@@ -29,10 +32,35 @@ export const usePaths = () => {
     setPaths(prevPaths => prevPaths.filter(path => path.id !== id));
   }, []);
 
+  const startPath = useCallback((point: [number, number]) => {
+    setCurrentPathPoints([point]);
+    setIsDrawing(true);
+  }, []);
+
+  const continuePath = useCallback((point: [number, number]) => {
+    if (isDrawing) {
+      setCurrentPathPoints(prev => [...prev, point]);
+    }
+  }, [isDrawing]);
+
+  const completePath = useCallback((color: string, vehicleId?: string) => {
+    if (currentPathPoints.length > 1) {
+      addPath(currentPathPoints, color, vehicleId);
+    }
+    setCurrentPathPoints([]);
+    setIsDrawing(false);
+  }, [currentPathPoints, addPath]);
+
   return {
     paths,
     addPath,
     updatePath,
     removePath,
+    setPaths,
+    currentPathPoints,
+    isDrawing,
+    startPath,
+    continuePath,
+    completePath
   };
 };

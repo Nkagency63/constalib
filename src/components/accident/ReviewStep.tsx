@@ -69,30 +69,27 @@ const ReviewStep: React.FC<ReviewStepProps> = ({
       <div className="grid gap-6 md:grid-cols-2">
         <EmailsCard 
           personalEmail={formData.personalEmail}
-          insuranceEmails={formData.insuranceEmails}
-          involvedPartyEmails={formData.involvedPartyEmails}
+          insuranceEmails={formData.insuranceEmails || []}
+          involvedPartyEmails={formData.involvedPartyEmails || []}
         />
         
         {formData.emergencyContacted && (
           <EmergencyCard 
             emergencyContacted={formData.emergencyContacted}
-            emergencyServices={formData.emergencyServices}
-            emergencyTime={formData.emergencyTime}
           />
         )}
       </div>
       
       {(formData.materialDamageDescription || formData.injuriesDescription) && (
         <DescriptionCard
-          materialDamageDescription={formData.materialDamageDescription}
-          injuriesDescription={formData.injuriesDescription}
+          formData={formData}
         />
       )}
       
       {(formData.vehiclePhotos?.length || formData.damagePhotos?.length) && (
         <PhotosCard
-          vehiclePhotos={formData.vehiclePhotos}
-          damagePhotos={formData.damagePhotos}
+          vehiclePhotos={formData.vehiclePhotos || []}
+          damagePhotos={formData.damagePhotos || []}
         />
       )}
       

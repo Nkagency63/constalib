@@ -1,98 +1,138 @@
 
-import React from 'react';
+import React, { useRef } from 'react';
 import { MapContainer as LeafletMapContainer, TileLayer } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
+import { Vehicle, Path, Annotation } from '../types/scheme';
 import VehiclesLayer from './VehiclesLayer';
 import PathsLayer from './PathsLayer';
 import AnnotationsLayer from './AnnotationsLayer';
 import MapInitializer from './MapInitializer';
-import { Vehicle, Path, Annotation } from '../types';
 
 interface MapContainerProps {
   center: [number, number];
   zoom: number;
+  setCenter: (center: [number, number]) => void;
+  setZoom: (zoom: number) => void;
   vehicles: Vehicle[];
+  selectedVehicle: string | null;
   paths: Path[];
   annotations: Annotation[];
-  currentPathPoints: [number, number][];
-  drawingLayerRef: React.MutableRefObject<L.LayerGroup | null>;
-  selectedVehicle: string | null;
-  onVehicleSelect: (id: string | null) => void;
+  onVehicleSelect: (id: string) => void;
   onRemoveVehicle: (id: string) => void;
-  onRotateVehicle?: (id: string, degrees: number) => void;
-  onChangeVehicleType?: (type: 'car' | 'truck' | 'bike') => void;
-  onRemoveAnnotation?: (id: string) => void;
-  onUpdateAnnotation?: (id: string, text: string) => void;
-  onMapReady: (map: L.Map) => void;
-  readOnly: boolean;
+  onRotateVehicle: (id: string, degrees: number) => void;
+  onChangeVehicleType: (type: 'car' | 'truck' | 'bike') => void;
+  onPathSelect: (id: string) => void;
+  onPathRemove: (id: string) => void;
+  onAnnotationSelect: (id: string) => void;
+  onAnnotationRemove: (id: string) => void;
+  onAnnotationUpdate: (id: string, text: string) => void;
+  activeTab: 'vehicles' | 'paths' | 'annotations';
+  readOnly?: boolean;
+  onPathStart: (point: [number, number]) => void;
+  onPathContinue: (point: [number, number]) => void;
+  onPathComplete: (color: string) => void;
+  currentPathPoints: [number, number][];
+  isDrawing: boolean;
+  pathColor: string;
+  isTilting: boolean;
 }
 
-const MapContainer = ({
+const MapContainer: React.FC<MapContainerProps> = ({
   center,
   zoom,
+  setCenter,
+  setZoom,
   vehicles,
+  selectedVehicle,
   paths,
   annotations,
-  currentPathPoints,
-  drawingLayerRef,
-  selectedVehicle,
   onVehicleSelect,
   onRemoveVehicle,
   onRotateVehicle,
   onChangeVehicleType,
-  onRemoveAnnotation,
-  onUpdateAnnotation,
-  onMapReady,
-  readOnly
-}: MapContainerProps) => {
+  onPathSelect,
+  onPathRemove,
+  onAnnotationSelect,
+  onAnnotationRemove,
+  onAnnotationUpdate,
+  activeTab,
+  readOnly = false,
+  onPathStart,
+  onPathContinue,
+  onPathComplete,
+  currentPathPoints,
+  isDrawing,
+  pathColor,
+  isTilting,
+}) => {
+  const mapRef = useRef(null);
+
   return (
     <LeafletMapContainer
       center={center}
       zoom={zoom}
-      style={{ height: '400px', width: '100%' }}
-      className="z-0"
-      // Disable controls to avoid cleanup issues
-      zoomControl={false}
+      style={{ height: '100%', width: '100%' }}
       attributionControl={false}
-      doubleClickZoom={false}
-      dragging={!readOnly}
-      touchZoom={!readOnly}
-      scrollWheelZoom={!readOnly}
-      keyboard={false}
-      boxZoom={false}
-      preferCanvas={true}
+      zoomControl={false}
     >
       <TileLayer
-        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
       />
-      
+
+      <MapInitializer
+        setCenter={setCenter}
+        setZoom={setZoom}
+        onMapClick={(latlng) => {
+          if (activeTab === 'vehicles' && !readOnly) {
+            // Add vehicle at clicked location
+          } else if (activeTab === 'paths' && !readOnly) {
+            if (!isDrawing) {
+              onPathStart([latlng.lat, latlng.lng]);
+            } else {
+              onPathContinue([latlng.lat, latlng.lng]);
+            }
+          } else if (activeTab === 'annotations' && !readOnly) {
+            // Add annotation at clicked location
+          }
+        }}
+        onMapDoubleClick={() => {
+          if (activeTab === 'paths' && isDrawing && !readOnly) {
+            onPathComplete(pathColor);
+          }
+        }}
+        onMapMove={(latlng) => {
+          if (activeTab === 'paths' && isDrawing && !readOnly) {
+            onPathContinue([latlng.lat, latlng.lng]);
+          }
+        }}
+      />
+
       <VehiclesLayer
         vehicles={vehicles}
-        selectedVehicle={selectedVehicle}
+        selectedVehicleId={selectedVehicle}
         readOnly={readOnly}
         onVehicleSelect={onVehicleSelect}
         onRemoveVehicle={onRemoveVehicle}
         onRotateVehicle={onRotateVehicle}
         onChangeVehicleType={onChangeVehicleType}
       />
-      
+
       <PathsLayer
         paths={paths}
-        drawingLayerRef={drawingLayerRef}
         currentPathPoints={currentPathPoints}
-        selectedVehicle={selectedVehicle}
-        vehicles={vehicles}
-      />
-      
-      <AnnotationsLayer 
-        annotations={annotations}
+        isDrawing={isDrawing}
+        pathColor={pathColor}
         readOnly={readOnly}
-        onRemoveAnnotation={onRemoveAnnotation}
-        onUpdateAnnotation={onUpdateAnnotation}
       />
-      
-      <MapInitializer onMapReady={onMapReady} />
+
+      <AnnotationsLayer
+        annotations={annotations}
+        onSelect={onAnnotationSelect}
+        onRemove={onAnnotationRemove}
+        onUpdate={onAnnotationUpdate}
+        readOnly={readOnly}
+      />
     </LeafletMapContainer>
   );
 };

@@ -4,20 +4,18 @@ import ReviewCard from './ReviewCard';
 
 interface LocationCardProps {
   location: string;
-  geolocation: {
-    address: string;
-    lat: number | null;
-    lng: number | null;
-  };
+  address?: string;
+  latitude?: number;
+  longitude?: number;
 }
 
-const LocationCard = ({ location, geolocation }: LocationCardProps) => {
+const LocationCard = ({ location, address, latitude, longitude }: LocationCardProps) => {
   return (
     <ReviewCard icon={<MapPin className="h-5 w-5 text-constalib-blue" />} title="Lieu de l'accident">
       <p className="text-sm text-constalib-dark-gray">{location}</p>
-      {geolocation.address && (
+      {address && (
         <p className="text-xs text-constalib-dark-gray mt-1">
-          Adresse géolocalisée: {geolocation.address}
+          Adresse géolocalisée: {address}
         </p>
       )}
     </ReviewCard>

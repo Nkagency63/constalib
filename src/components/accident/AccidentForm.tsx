@@ -7,6 +7,7 @@ import StepRenderer from './StepRenderer';
 import { accidentFormSteps } from './stepsConfig';
 import { useAccidentForm } from '@/hooks/useAccidentForm';
 import FormSubmissionHandler from './FormSubmissionHandler';
+import { WitnessInfo } from './types';
 
 interface AccidentFormProps {
   onEmergencyRequest?: () => void;
@@ -107,6 +108,7 @@ const AccidentForm = ({ onEmergencyRequest, onStepChange }: AccidentFormProps) =
           onEmergencyContacted={onEmergencyContacted}
           handleCircumstanceChange={handleCircumstanceChange}
           setCurrentVehicleId={setCurrentVehicleId}
+          currentVehicleId={currentVehicleId}
           setHasInjuries={setHasInjuries}
           setInjuriesDescription={setInjuriesDescription}
           setHasWitnesses={setHasWitnesses}

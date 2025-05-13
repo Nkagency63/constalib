@@ -1,3 +1,4 @@
+
 import React from 'react';
 import BasicInfoStep from './BasicInfoStep';
 import LocationStep from './LocationStep';
@@ -27,6 +28,7 @@ interface StepRendererProps {
   onEmergencyContacted?: () => void;
   handleCircumstanceChange?: (vehicleId: 'A' | 'B', circumstanceId: string, checked: boolean) => void;
   setCurrentVehicleId?: (id: 'A' | 'B') => void;
+  currentVehicleId?: 'A' | 'B';
   setHasInjuries?: (hasInjuries: boolean) => void;
   setInjuriesDescription?: (description: string) => void;
   setHasWitnesses?: (hasWitnesses: boolean) => void;
@@ -88,7 +90,7 @@ const StepRenderer: React.FC<StepRendererProps> = ({
           setVehicleInfo={setVehicleInfo}
           setOtherVehicleInfo={setOtherVehicleInfo}
           onEmergencyContacted={onEmergencyContacted || (() => {})}
-          vehicleId={formData.currentVehicleId || 'A'}
+          vehicleId={currentVehicleId || 'A'}
           setVehicleId={setCurrentVehicleId || (() => {})}
           emergencyContacted={formData.emergencyContacted || false}
         />
@@ -99,7 +101,7 @@ const StepRenderer: React.FC<StepRendererProps> = ({
         <DriverAndInsuredStep 
           formData={formData}
           handleInputChange={handleInputChange}
-          vehicleId={formData.currentVehicleId || 'A'}
+          vehicleId={currentVehicleId || 'A'}
           setVehicleId={setCurrentVehicleId || (() => {})}
         />
       );
@@ -109,11 +111,13 @@ const StepRenderer: React.FC<StepRendererProps> = ({
         <CircumstancesStep 
           vehicleACircumstances={formData.vehicleACircumstances || []}
           vehicleBCircumstances={formData.vehicleBCircumstances || []}
-          handleCircumstanceChange={(vehicleId, circumstanceId, checked) => {
-            handleCircumstanceChange?.(vehicleId, { id: circumstanceId.toString(), checked });
+          handleCircumstanceChange={(vehicleId, circumstance, checked) => {
+            if (handleCircumstanceChange) {
+              handleCircumstanceChange(vehicleId, circumstance.id, checked);
+            }
           }}
-          currentVehicleId={currentVehicleId}
-          setCurrentVehicleId={setCurrentVehicleId}
+          currentVehicleId={currentVehicleId || 'A'}
+          setCurrentVehicleId={setCurrentVehicleId || (() => {})}
         />
       );
 
