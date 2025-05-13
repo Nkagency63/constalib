@@ -1,235 +1,172 @@
-export interface Step {
+
+// Types pour le schéma d'accident
+export interface Vehicle {
   id: string;
-  title: string;
-  description?: string;
+  position: [number, number]; // Coordonnées [latitude, longitude]
+  color: string;
+  vehicleId: 'A' | 'B' | 'C' | 'D'; // Identifiant du véhicule (A, B, C, D)
+  rotation: number; // Rotation en degrés
+  isSelected: boolean;
+  vehicleType: 'car' | 'truck' | 'bike';
+  brand?: string; // Marque du véhicule
+  model?: string; // Modèle du véhicule
 }
 
-export interface VehicleData {
-  id?: 'A' | 'B';
-  licensePlate: string;
-  brand: string;
-  model: string;
-  year: string;
-  description: string;
-  firstRegistration?: string;
-  insurancePolicy?: string;
-  insuranceCompany?: string;
+// Type pour une trajectoire de véhicule
+export interface Path {
+  id: string;
+  points: [number, number][]; // Tableau de points [latitude, longitude]
+  color: string;
+  vehicleId?: string; // ID du véhicule associé à cette trajectoire
+  isSelected: boolean;
 }
 
-export interface WitnessInfo {
-  fullName: string;
-  phone: string;
-  email: string;
+// Type pour une annotation sur le schéma
+export interface Annotation {
+  id: string;
+  position: [number, number]; // Coordonnées [latitude, longitude]
+  text: string;
 }
 
-export interface InjuryInfo {
-  name: string;
-  contact: string;
+// Type pour les données du schéma complet
+export interface SchemeData {
+  vehicles: Vehicle[];
+  paths: Path[];
+  annotations: Annotation[];
+  center: [number, number]; // Centre de la vue [latitude, longitude]
+  zoom: number;
 }
 
-export interface MaterialDamage {
-  description: string;
-  value?: number;
-  photos?: File[];
-}
-
-export interface DriverInfo {
-  name: string;
-  address: string;
-  phone: string;
-  licenseNumber: string;
-  licenseDate?: string;
-}
-
-export interface InsuredInfo {
-  name: string;
-  address: string;
-  phone: string;
-  email?: string;
-  policyNumber?: string;
-}
-
+// Types pour les données du formulaire d'accident
 export interface FormData {
-  date: string;
-  time: string;
-  location: string;
-  description: string;
-  vehiclePhotos: File[];
-  damagePhotos: File[];
+  // Informations de base
+  date?: string;
+  time?: string;
+  location?: string;
+  description?: string;
   
-  // Premier véhicule (le vôtre)
-  licensePlate: string;
-  vehicleBrand: string;
-  vehicleModel: string;
-  vehicleYear: string;
-  vehicleDescription: string;
-  firstRegistration?: string;
-  insurancePolicy?: string;
-  insuranceCompany?: string;
-  
-  // Second véhicule (l'autre impliqué)
-  otherVehicle: {
-    licensePlate: string;
-    brand: string;
-    model: string;
-    year: string;
-    description: string;
-    firstRegistration?: string;
-    insurancePolicy?: string;
-    insuranceCompany?: string;
-  };
-  
-  geolocation: {
-    lat: number | null;
-    lng: number | null;
+  // Géolocalisation
+  geolocation?: {
+    lat: number;
+    lng: number;
     address: string;
   };
   
-  emergencyContacted: boolean;
+  // Informations sur le premier véhicule
+  vehicleBrand?: string;
+  vehicleModel?: string;
+  vehicleYear?: string;
+  licensePlate?: string;
+  firstRegistration?: string;
+  insurancePolicy?: string;
+  insuranceCompany?: string;
+  vehicleDescription?: string;
   
-  // Informations pour les circonstances
-  vehicleACircumstances: string[];
-  vehicleBCircumstances: string[];
+  // Informations sur l'autre véhicule
+  otherVehicle?: {
+    brand?: string;
+    model?: string;
+    year?: string;
+    licensePlate?: string;
+    firstRegistration?: string;
+    insurancePolicy?: string;
+    insuranceCompany?: string;
+    description?: string;
+  };
   
-  // Informations d'email
-  personalEmail: string;
-  insuranceEmails: string[];
-  involvedPartyEmails: string[];
-  
-  // Propriété pour suivre le véhicule actuellement sélectionné
-  currentVehicleId?: 'A' | 'B';
-  
-  // Propriétés pour les blessés et témoins
-  hasInjuries: boolean;
-  injuriesDescription?: string;
-  hasWitnesses: boolean;
-  witnesses: WitnessInfo[];
-  
-  // Informations du conducteur du véhicule A
+  // Informations sur les conducteurs et assurés
   driverName?: string;
   driverAddress?: string;
   driverPhone?: string;
   driverLicense?: string;
-  driverLicenseDate?: string; // Nouvelle propriété pour la date d'obtention du permis
-  
-  // Informations de l'assuré du véhicule A
   insuredName?: string;
   insuredAddress?: string;
   insuredPhone?: string;
-  insuredEmail?: string;
   
-  // Informations du conducteur du véhicule B
   otherDriverName?: string;
   otherDriverAddress?: string;
   otherDriverPhone?: string;
   otherDriverLicense?: string;
-  otherDriverLicenseDate?: string; // Nouvelle propriété pour la date d'obtention du permis
-  
-  // Informations de l'assuré du véhicule B
   otherInsuredName?: string;
   otherInsuredAddress?: string;
   otherInsuredPhone?: string;
   otherInsuredEmail?: string;
   
-  // Dégâts matériels
+  // Circonstances de l'accident
+  vehicleACircumstances?: string[];
+  vehicleBCircumstances?: string[];
+  
+  // Photos
+  vehiclePhotos?: File[] | string[];
+  damagePhotos?: File[] | string[];
+  
+  // Blessures et témoins
+  hasInjuries?: boolean;
+  injuriesDescription?: string;
+  injuries?: Array<{name: string, contact: string}>;
+  hasWitnesses?: boolean;
+  witnesses?: Array<{fullName: string, phone: string, email: string}>;
+  
+  // Dommages matériels
   hasMaterialDamage?: boolean;
   materialDamageDescription?: string;
   
-  // Liste des blessés
-  injuries?: InjuryInfo[];
+  // Emails
+  personalEmail?: string;
+  insuranceEmails?: string[];
+  involvedPartyEmails?: string[];
   
-  // Informations structurées des véhicules pour le CERFA
+  // Services d'urgence
+  emergencyContacted?: boolean;
+  
+  // État actuel de la navigation
+  currentVehicleId?: 'A' | 'B';
+  
+  // Données du schéma
+  schemeData?: SchemeData;
+  
+  // Données supplémentaires pour PDF
   vehicleLabels?: {
     A: {
       brand: string;
       model: string;
       licensePlate: string;
-    };
+    },
     B: {
       brand: string;
       model: string;
       licensePlate: string;
-    };
+    }
   };
   
-  // Informations structurées des conducteurs pour le CERFA
+  // Informations supplémentaires pour le PDF
   driverInfo?: {
     A: {
       name: string;
       address: string;
       licenseNumber: string;
       phone: string;
-      licenseDate?: string; // Ajout de la date d'obtention du permis
-    };
+    },
     B: {
       name: string;
       address: string;
       licenseNumber: string;
       phone: string;
-      licenseDate?: string; // Ajout de la date d'obtention du permis
-    };
+    }
   };
   
-  // Informations structurées des assurés pour le CERFA
   insuredInfo?: {
     A: {
       name: string;
       address: string;
       phone: string;
       email: string;
-    };
+    },
     B: {
       name: string;
       address: string;
       phone: string;
       email: string;
-    };
+    }
   };
-}
-
-export interface Vehicle {
-  id: string;
-  vehicleId: 'A' | 'B' | 'C' | 'D';
-  position: [number, number];
-  color: string;
-  brand?: string;
-  model?: string;
-  rotation: number;
-  isSelected: boolean;
-  vehicleType: 'car' | 'truck' | 'bike';
-}
-
-export interface Path {
-  id: string;
-  points: [number, number][];
-  color: string;
-  vehicleId?: string;
-  isSelected: boolean;
-}
-
-export interface Annotation {
-  id: string;
-  position: [number, number];
-  text: string;
-  type: 'obstacle' | 'sign' | 'note';
-}
-
-export interface SchemeData {
-  vehicles: Vehicle[];
-  paths: Path[];
-  annotations: Annotation[];
-  center: [number, number];
-  zoom: number;
-}
-
-export interface Circumstance {
-  id: string;
-  label: string;
-  description: string;
-}
-
-export interface CircumstanceCategory {
-  id: string;
-  title: string;
-  circumstances: Circumstance[];
 }

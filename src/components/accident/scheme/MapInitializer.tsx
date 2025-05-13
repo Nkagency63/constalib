@@ -1,70 +1,31 @@
 
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect } from 'react';
 import { useMap } from 'react-leaflet';
-import { Map } from 'leaflet';
 
 interface MapInitializerProps {
-  onMapReady: (map: Map) => void;
+  onMapReady: (map: L.Map) => void;
 }
 
-const MapInitializer = ({ onMapReady }: MapInitializerProps) => {
+const MapInitializer: React.FC<MapInitializerProps> = ({ onMapReady }) => {
   const map = useMap();
-  const timerRef = useRef<number | null>(null);
   
   useEffect(() => {
     if (map) {
-      // Delay initialization to ensure DOM is ready
-      timerRef.current = window.setTimeout(() => {
-        try {
-          console.log("Map initializer: map object is ready");
-          
-          // Force invalidate size to ensure proper rendering
-          map.invalidateSize();
-          
-          // Call the callback with the map object
-          onMapReady(map);
-        } catch (error) {
-          console.error("Error in map initialization:", error);
-        }
-      }, 500); // Increased delay to ensure rendering is complete
+      // S'assurer que la carte est correctement initialisée
+      map.invalidateSize();
       
-      return () => {
-        // Clear the timeout on unmount
-        if (timerRef.current) {
-          window.clearTimeout(timerRef.current);
-          timerRef.current = null;
-        }
-        
-        // IMPORTANT: DO NOT try to remove controls here
-        // This is what's causing the "s is undefined" error
-        try {
-          console.log("Map initializer: safely cleaning up");
-          
-          if (map) {
-            // Stop any animations or ongoing operations
-            map.stopLocate();
-            map.stop();
-            
-            // Only remove event listeners we've added ourselves
-            try {
-              map.off('click');
-              map.off('move');
-              map.off('zoom');
-              map.off('moveend');
-              map.off('zoomend');
-              map.off('dragend');
-            } catch (e) {
-              console.error("Error removing event handlers:", e);
-            }
-          }
-        } catch (error) {
-          console.error("Error cleaning up map:", error);
-        }
-      };
+      // Informer le parent que la carte est prête
+      onMapReady(map);
     }
+    
+    // Nettoyer lors du démontage
+    return () => {
+      // Aucune action nécessaire pour le nettoyage ici
+      // car react-leaflet gère déjà le nettoyage de la carte
+    };
   }, [map, onMapReady]);
-  
-  return null;
+
+  return null; // Ce composant ne rend rien visuellement
 };
 
 export default MapInitializer;
