@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { SchemeData } from '../types';
 import MapContainer from './MapContainer';
@@ -91,7 +90,7 @@ const SchemeContainer: React.FC<SchemeContainerProps> = ({
         centerOnVehicles={() => {}}
         mapRef={{ current: null }}
         currentVehicleType={vehiclesHook.currentVehicleType}
-        onChangeVehicleType={vehiclesHook.setCurrentVehicleType}
+        onChangeVehicleType={vehiclesHook.changeVehicleType}
         activeTab={activeTab}
         setActiveTab={setActiveTab}
         pathColor={pathColor}

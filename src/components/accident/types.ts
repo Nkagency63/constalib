@@ -1,4 +1,3 @@
-
 import { Dispatch, SetStateAction } from 'react';
 import L from 'leaflet';
 
@@ -7,7 +6,7 @@ export interface VehicleData {
   licensePlate: string;
   brand: string;
   model: string;
-  year: string;
+  year?: string; // Changed from required to optional
   firstRegistration?: string;
   description: string;
   insurancePolicy?: string;
