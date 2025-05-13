@@ -1,188 +1,182 @@
-
-import { AlertCircle, UserCheck, Bandage, XCircle } from 'lucide-react';
+import React from 'react';
 import { WitnessInfo } from './types';
-import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Button } from '@/components/ui/button';
+import { Textarea } from '@/components/ui/textarea';
+import { Switch } from '@/components/ui/switch';
+import { Card, CardContent } from '@/components/ui/card';
+import { PlusCircle, Trash2 } from 'lucide-react';
+import { v4 as uuidv4 } from 'uuid';
 
-interface DetailsStepProps {
-  description: string;
+export interface DetailsStepProps {
   hasInjuries: boolean;
   injuriesDescription: string;
   hasWitnesses: boolean;
   witnesses: WitnessInfo[];
-  handleInputChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
-  setHasInjuries: (value: boolean) => void;
-  setInjuriesDescription: (value: string) => void;
-  setHasWitnesses: (value: boolean) => void;
-  updateWitness: (index: number, field: string, value: string) => void;
-  addWitness: () => void;
-  removeWitness: (index: number) => void;
+  description: string;
+  handleInputChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  setHasInjuries?: (hasInjuries: boolean) => void;
+  setInjuriesDescription?: (description: string) => void;
+  setHasWitnesses?: (hasWitnesses: boolean) => void;
+  updateWitness?: (index: number, field: keyof WitnessInfo, value: string) => void;
+  addWitness?: () => void;
+  removeWitness?: (index: number) => void;
 }
 
-const DetailsStep = ({
-  description,
+const DetailsStep: React.FC<DetailsStepProps> = ({
   hasInjuries,
   injuriesDescription,
   hasWitnesses,
   witnesses,
+  description,
   handleInputChange,
-  setHasInjuries,
-  setInjuriesDescription,
-  setHasWitnesses,
-  updateWitness,
-  addWitness,
-  removeWitness
-}: DetailsStepProps) => {
+  setHasInjuries = () => {},
+  setInjuriesDescription = () => {},
+  setHasWitnesses = () => {},
+  updateWitness = () => {},
+  addWitness = () => {},
+  removeWitness = () => {},
+}) => {
+  const handleInjuriesToggle = (checked: boolean) => {
+    setHasInjuries(checked);
+  };
+
+  const handleWitnessesToggle = (checked: boolean) => {
+    setHasWitnesses(checked);
+  };
+
+  const handleInjuriesDescriptionChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    setInjuriesDescription(e.target.value);
+  };
+
+  const handleWitnessChange = (index: number, field: keyof WitnessInfo, value: string) => {
+    updateWitness(index, field, value);
+  };
+
   return (
     <div className="space-y-6">
-      <div className="space-y-2">
-        <label htmlFor="description" className="block text-sm font-medium text-constalib-dark">
-          Description de l'accident
-        </label>
-        <textarea
-          id="description"
-          name="description"
-          value={description}
-          onChange={handleInputChange}
-          rows={6}
-          placeholder="Décrivez les circonstances de l'accident..."
-          className="w-full px-4 py-2 border border-constalib-gray rounded-lg focus:ring-2 focus:ring-constalib-blue focus:border-constalib-blue resize-none"
-          required
-        />
-        <p className="text-sm text-constalib-dark-gray mt-1">
-          Soyez aussi précis que possible. Mentionnez les conditions météorologiques, l'état de la route, etc.
-        </p>
-      </div>
-
-      <div className="space-y-4 border rounded-lg p-4">
-        <div className="flex items-start gap-2">
-          <Bandage className="h-5 w-5 text-constalib-blue mt-0.5" />
-          <div className="space-y-2 flex-1">
-            <h4 className="font-medium text-constalib-dark">Y a-t-il des blessés ?</h4>
-            <RadioGroup
-              value={hasInjuries ? "yes" : "no"}
-              onValueChange={(value) => setHasInjuries(value === "yes")}
-              className="flex flex-col space-y-1"
-            >
-              <div className="flex items-center space-x-2">
-                <RadioGroupItem value="yes" id="injuries-yes" />
-                <Label htmlFor="injuries-yes">Oui</Label>
-              </div>
-              <div className="flex items-center space-x-2">
-                <RadioGroupItem value="no" id="injuries-no" />
-                <Label htmlFor="injuries-no">Non</Label>
-              </div>
-            </RadioGroup>
-
-            {hasInjuries && (
-              <div className="mt-2">
-                <textarea
-                  value={injuriesDescription}
-                  onChange={(e) => setInjuriesDescription(e.target.value)}
-                  placeholder="Décrivez les blessures..."
-                  className="w-full px-4 py-2 border border-constalib-gray rounded-lg focus:ring-2 focus:ring-constalib-blue focus:border-constalib-blue resize-none"
-                  rows={3}
-                />
-              </div>
-            )}
-          </div>
+      <div className="space-y-4">
+        <div className="flex items-center space-x-2">
+          <Switch
+            id="injuries"
+            checked={hasInjuries}
+            onCheckedChange={handleInjuriesToggle}
+          />
+          <Label htmlFor="injuries" className="font-medium">
+            Y a-t-il des blessés ?
+          </Label>
         </div>
+
+        {hasInjuries && (
+          <div className="pl-6 border-l-2 border-gray-200">
+            <Label htmlFor="injuries-description" className="block mb-2">
+              Description des blessures
+            </Label>
+            <Textarea
+              id="injuries-description"
+              value={injuriesDescription}
+              onChange={handleInjuriesDescriptionChange}
+              placeholder="Décrivez les blessures et les personnes concernées"
+              className="w-full"
+            />
+          </div>
+        )}
       </div>
 
-      <div className="space-y-4 border rounded-lg p-4">
-        <div className="flex items-start gap-2">
-          <UserCheck className="h-5 w-5 text-constalib-blue mt-0.5" />
-          <div className="space-y-2 flex-1">
-            <h4 className="font-medium text-constalib-dark">Y a-t-il des témoins ?</h4>
-            <RadioGroup
-              value={hasWitnesses ? "yes" : "no"}
-              onValueChange={(value) => setHasWitnesses(value === "yes")}
-              className="flex flex-col space-y-1"
-            >
-              <div className="flex items-center space-x-2">
-                <RadioGroupItem value="yes" id="witnesses-yes" />
-                <Label htmlFor="witnesses-yes">Oui</Label>
-              </div>
-              <div className="flex items-center space-x-2">
-                <RadioGroupItem value="no" id="witnesses-no" />
-                <Label htmlFor="witnesses-no">Non</Label>
-              </div>
-            </RadioGroup>
+      <div className="space-y-4">
+        <div className="flex items-center space-x-2">
+          <Switch
+            id="witnesses"
+            checked={hasWitnesses}
+            onCheckedChange={handleWitnessesToggle}
+          />
+          <Label htmlFor="witnesses" className="font-medium">
+            Y a-t-il des témoins ?
+          </Label>
+        </div>
 
-            {hasWitnesses && (
-              <div className="mt-4 space-y-4">
-                {witnesses.map((witness, idx) => (
-                  <div key={witness.id} className="bg-white p-4 rounded-lg border border-gray-200 mb-4">
-                    <div className="flex justify-between mb-2">
-                      <h3 className="font-medium">Témoin {idx + 1}</h3>
-                      <button 
-                        type="button"
-                        onClick={() => removeWitness(idx)}
-                        className="text-red-500 hover:text-red-700"
-                      >
-                        <XCircle size={18} />
-                      </button>
+        {hasWitnesses && (
+          <div className="pl-6 border-l-2 border-gray-200 space-y-4">
+            {witnesses.map((witness, index) => (
+              <Card key={witness.id || index} className="relative">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="absolute top-2 right-2 text-red-500 hover:text-red-700 hover:bg-red-50"
+                  onClick={() => removeWitness(index)}
+                >
+                  <Trash2 className="h-4 w-4" />
+                </Button>
+                <CardContent className="pt-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <Label htmlFor={`witness-${index}-name`}>Nom et prénom</Label>
+                      <Input
+                        id={`witness-${index}-name`}
+                        value={witness.name}
+                        onChange={(e) => handleWitnessChange(index, 'name', e.target.value)}
+                        placeholder="Nom et prénom du témoin"
+                      />
                     </div>
-                    
-                    <div className="space-y-4">
-                      <div>
-                        <Label htmlFor={`witness-name-${witness.id}`}>Nom complet</Label>
-                        <Input
-                          id={`witness-name-${witness.id}`}
-                          value={witness.name || ''}
-                          onChange={(e) => updateWitness(idx, 'name', e.target.value)}
-                          className="mt-1"
-                        />
-                      </div>
-                      
-                      <div>
-                        <Label htmlFor={`witness-phone-${witness.id}`}>Téléphone</Label>
-                        <Input
-                          id={`witness-phone-${witness.id}`}
-                          value={witness.phone}
-                          onChange={(e) => updateWitness(idx, 'phone', e.target.value)}
-                          placeholder="Numéro de téléphone"
-                          type="tel"
-                        />
-                      </div>
-                      
-                      <div>
-                        <Label htmlFor={`witness-email-${witness.id}`}>Email</Label>
-                        <Input
-                          id={`witness-email-${witness.id}`}
-                          value={witness.email}
-                          onChange={(e) => updateWitness(idx, 'email', e.target.value)}
-                          placeholder="Adresse email"
-                          type="email"
-                        />
-                      </div>
+                    <div>
+                      <Label htmlFor={`witness-${index}-phone`}>Téléphone</Label>
+                      <Input
+                        id={`witness-${index}-phone`}
+                        value={witness.phone}
+                        onChange={(e) => handleWitnessChange(index, 'phone', e.target.value)}
+                        placeholder="Numéro de téléphone"
+                      />
+                    </div>
+                    <div className="md:col-span-2">
+                      <Label htmlFor={`witness-${index}-address`}>Adresse</Label>
+                      <Input
+                        id={`witness-${index}-address`}
+                        value={witness.address}
+                        onChange={(e) => handleWitnessChange(index, 'address', e.target.value)}
+                        placeholder="Adresse complète"
+                      />
+                    </div>
+                    <div className="md:col-span-2">
+                      <Label htmlFor={`witness-${index}-email`}>Email</Label>
+                      <Input
+                        id={`witness-${index}-email`}
+                        value={witness.email}
+                        onChange={(e) => handleWitnessChange(index, 'email', e.target.value)}
+                        placeholder="Adresse email"
+                        type="email"
+                      />
                     </div>
                   </div>
-                ))}
-                <Button
-                  type="button"
-                  onClick={addWitness}
-                  variant="outline"
-                  className="w-full"
-                >
-                  Ajouter un témoin
-                </Button>
-              </div>
-            )}
+                </CardContent>
+              </Card>
+            ))}
+
+            <Button
+              variant="outline"
+              className="w-full flex items-center justify-center"
+              onClick={addWitness}
+            >
+              <PlusCircle className="mr-2 h-4 w-4" />
+              Ajouter un témoin
+            </Button>
           </div>
-        </div>
+        )}
       </div>
-      
-      <div className="bg-constalib-light-blue p-4 rounded-lg flex items-start space-x-3">
-        <AlertCircle className="text-constalib-blue flex-shrink-0 mt-1" size={20} />
-        <div>
-          <h4 className="text-constalib-blue font-medium">Conseil</h4>
-          <p className="text-sm text-constalib-dark-gray">
-            N'admettez pas de responsabilité dans votre description. Contentez-vous de décrire objectivement les faits.
-          </p>
-        </div>
+
+      <div className="space-y-2">
+        <Label htmlFor="accident-description" className="font-medium">
+          Description de l'accident
+        </Label>
+        <Textarea
+          id="accident-description"
+          name="description"
+          value={description}
+          onChange={(e) => handleInputChange(e as any)}
+          placeholder="Décrivez brièvement les circonstances de l'accident"
+          className="w-full"
+          rows={4}
+        />
       </div>
     </div>
   );

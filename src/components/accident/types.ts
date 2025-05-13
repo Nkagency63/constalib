@@ -87,6 +87,7 @@ export interface FormData {
   injuriesDescription?: string;
   injuries?: InjuryInfo[];
   materialDamageDescription?: string;
+  description?: string; // Added for DetailsStep
   
   // Vehicle information
   vehicleBrand: string;

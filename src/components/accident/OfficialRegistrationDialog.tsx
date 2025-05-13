@@ -1,196 +1,66 @@
 
-import { useState } from 'react';
+import React from 'react';
 import {
   Dialog,
   DialogContent,
   DialogDescription,
-  DialogFooter,
   DialogHeader,
   DialogTitle,
+  DialogFooter,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { FileCheck, FileText, CheckCircle, XCircle, BookOpen, Loader2 } from 'lucide-react';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { FormData } from './types';
+import { Loader2 } from 'lucide-react';
 
-interface OfficialRegistrationDialogProps {
+export interface OfficialRegistrationDialogProps {
   open: boolean;
-  onClose: () => void;
-  formData: FormData;
-  onConfirmRegistration: () => Promise<boolean>;
-  isSubmitting: boolean;
-  registrationComplete: boolean;
-  registrationError: string | null;
+  onOpenChange: (open: boolean) => void;
+  onRegister: () => Promise<void>;
+  isRegistering: boolean;
 }
 
-const OfficialRegistrationDialog = ({
+const OfficialRegistrationDialog: React.FC<OfficialRegistrationDialogProps> = ({
   open,
-  onClose,
-  formData,
-  onConfirmRegistration,
-  isSubmitting,
-  registrationComplete,
-  registrationError,
-}: OfficialRegistrationDialogProps) => {
-  const [showTerms, setShowTerms] = useState(false);
-
-  const handleRegistration = async () => {
-    await onConfirmRegistration();
-  };
-  
-  // Conditions for the official registration
-  const canRegister = formData.date && 
-                      formData.time && 
-                      formData.location && 
-                      formData.licensePlate && 
-                      formData.personalEmail;
-  
+  onOpenChange,
+  onRegister,
+  isRegistering,
+}) => {
   return (
-    <Dialog open={open} onOpenChange={onClose}>
+    <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle className="flex items-center">
-            <FileCheck className="h-5 w-5 mr-2" />
-            Enregistrement officiel du constat
-          </DialogTitle>
+          <DialogTitle>Enregistrement officiel</DialogTitle>
           <DialogDescription>
-            Votre constat sera transmis aux services d'assurance.
+            Votre constat sera enregistré officiellement et transmis aux assurances concernées
           </DialogDescription>
         </DialogHeader>
-        
-        {registrationComplete ? (
-          <div className="space-y-4 py-4">
-            <div className="flex flex-col items-center justify-center text-center p-4">
-              <CheckCircle className="h-12 w-12 text-green-500 mb-2" />
-              <h3 className="text-xl font-bold">Enregistrement réussi</h3>
-              <p className="text-gray-500 mt-2">
-                Votre constat a été enregistré avec succès et transmis aux services concernés.
-                Vous recevrez une confirmation par email.
-              </p>
-            </div>
-            
-            <div className="bg-gray-50 p-4 rounded-md border">
-              <h4 className="font-medium mb-1">Référence de votre dossier</h4>
-              <p className="font-mono text-sm bg-white p-2 border rounded">
-                CA-{Math.random().toString(36).substring(2, 10).toUpperCase()}-{new Date().getFullYear()}
-              </p>
-            </div>
-          </div>
-        ) : registrationError ? (
-          <div className="space-y-4 py-4">
-            <div className="flex flex-col items-center justify-center text-center p-4">
-              <XCircle className="h-12 w-12 text-red-500 mb-2" />
-              <h3 className="text-xl font-bold">Erreur lors de l'enregistrement</h3>
-              <p className="text-gray-500 mt-2">
-                {registrationError}
-              </p>
-            </div>
-            
-            <Alert variant="destructive">
-              <AlertDescription>
-                Veuillez réessayer ultérieurement ou contactez le support technique.
-              </AlertDescription>
-            </Alert>
-          </div>
-        ) : (
-          <div className="space-y-4 py-4">
-            {!canRegister && (
-              <Alert>
-                <AlertDescription className="text-amber-700">
-                  Des informations essentielles sont manquantes. Veuillez compléter au minimum la date, l'heure, le lieu, votre plaque d'immatriculation et votre email.
-                </AlertDescription>
-              </Alert>
-            )}
-            
-            <div>
-              <h4 className="font-medium mb-2">Informations à transmettre</h4>
-              <ul className="space-y-1 text-sm">
-                <li className="flex items-center">
-                  <div className="w-6 h-6 flex items-center justify-center mr-2">
-                    {formData.date ? <CheckCircle className="h-4 w-4 text-green-500" /> : <XCircle className="h-4 w-4 text-red-500" />}
-                  </div>
-                  <span>Date et heure de l'accident</span>
-                </li>
-                <li className="flex items-center">
-                  <div className="w-6 h-6 flex items-center justify-center mr-2">
-                    {formData.location ? <CheckCircle className="h-4 w-4 text-green-500" /> : <XCircle className="h-4 w-4 text-red-500" />}
-                  </div>
-                  <span>Lieu de l'accident</span>
-                </li>
-                <li className="flex items-center">
-                  <div className="w-6 h-6 flex items-center justify-center mr-2">
-                    {formData.licensePlate ? <CheckCircle className="h-4 w-4 text-green-500" /> : <XCircle className="h-4 w-4 text-red-500" />}
-                  </div>
-                  <span>Informations des véhicules impliqués</span>
-                </li>
-                <li className="flex items-center">
-                  <div className="w-6 h-6 flex items-center justify-center mr-2">
-                    {formData.personalEmail ? <CheckCircle className="h-4 w-4 text-green-500" /> : <XCircle className="h-4 w-4 text-red-500" />}
-                  </div>
-                  <span>Coordonnées de contact</span>
-                </li>
-              </ul>
-            </div>
-            
-            <div>
-              <Button 
-                variant="outline" 
-                size="sm" 
-                className="text-xs" 
-                onClick={() => setShowTerms(!showTerms)}
-              >
-                <BookOpen className="h-3 w-3 mr-1" />
-                {showTerms ? "Masquer" : "Afficher"} les conditions
-              </Button>
-              
-              {showTerms && (
-                <div className="mt-2 text-xs border rounded p-3 max-h-40 overflow-y-auto bg-gray-50">
-                  <p className="mb-2">En enregistrant ce constat d'accident, vous confirmez que :</p>
-                  <ol className="list-decimal pl-4 space-y-1">
-                    <li>Les informations fournies sont exactes et complètes à votre connaissance.</li>
-                    <li>Vous autorisez la transmission de ces informations à votre assureur et aux autres parties concernées.</li>
-                    <li>Vous comprenez que les informations seront utilisées dans le cadre du règlement de ce sinistre.</li>
-                    <li>L'enregistrement tient lieu de signature électronique.</li>
-                  </ol>
-                </div>
-              )}
-            </div>
-          </div>
-        )}
-
+        <div className="py-4">
+          <p className="mb-2">
+            En validant, vous acceptez que votre constat soit transmis au format électronique
+            aux parties suivantes :
+          </p>
+          <ul className="list-disc pl-5 space-y-1 text-sm">
+            <li>Votre compagnie d'assurance</li>
+            <li>La compagnie d'assurance de la partie adverse</li>
+            <li>La plateforme e-constat auto</li>
+          </ul>
+          <p className="mt-4 text-sm text-gray-500">
+            Un email de confirmation vous sera envoyé avec votre numéro de référence unique.
+          </p>
+        </div>
         <DialogFooter>
-          {!registrationComplete && !registrationError ? (
-            <>
-              <Button
-                variant="outline"
-                onClick={onClose}
-                disabled={isSubmitting}
-              >
-                Annuler
-              </Button>
-              <Button
-                variant="default"
-                onClick={handleRegistration}
-                disabled={!canRegister || isSubmitting}
-              >
-                {isSubmitting ? (
-                  <>
-                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                    En cours...
-                  </>
-                ) : (
-                  <>
-                    <FileText className="h-4 w-4 mr-2" />
-                    Enregistrer
-                  </>
-                )}
-              </Button>
-            </>
-          ) : (
-            <Button onClick={onClose}>
-              Fermer
-            </Button>
-          )}
+          <Button variant="outline" onClick={() => onOpenChange(false)} disabled={isRegistering}>
+            Annuler
+          </Button>
+          <Button onClick={onRegister} disabled={isRegistering}>
+            {isRegistering ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Enregistrement...
+              </>
+            ) : (
+              "Enregistrer"
+            )}
+          </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

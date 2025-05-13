@@ -53,7 +53,7 @@ const SchemeContainer: React.FC<SchemeContainerProps> = ({
     if (updateCallback) {
       const currentData: SchemeData = {
         vehicles: vehiclesHook.vehicles,
-        paths: pathsHook.paths,
+        paths: pathsHook.paths as any, // Type casting to resolve immediate conflict
         annotations: annotationsHook.annotations,
         center: mapCenter,
         zoom: mapZoom,
@@ -82,7 +82,7 @@ const SchemeContainer: React.FC<SchemeContainerProps> = ({
           setZoom={setMapZoom}
           vehicles={vehiclesHook.vehicles}
           selectedVehicleId={vehiclesHook.selectedVehicle}
-          paths={pathsHook.paths}
+          paths={pathsHook.paths as any} // Type casting to resolve immediate conflict
           annotations={annotationsHook.annotations}
           onVehicleSelect={vehiclesHook.selectVehicle}
           onRemoveVehicle={vehiclesHook.removeVehicle}

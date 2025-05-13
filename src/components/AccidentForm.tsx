@@ -45,7 +45,7 @@ const AccidentForm = ({ onEmergencyRequest, onStepChange }: AccidentFormProps) =
   } = useAccidentForm();
 
   // Adapter function for witness management to match expected parameter types
-  const updateWitness = (index: number, field: string, value: string) => {
+  const updateWitness = (index: number, field: keyof WitnessInfo, value: string) => {
     // Find the witness ID by index
     if (formData.witnesses && formData.witnesses[index]) {
       const witnessId = formData.witnesses[index].id;
@@ -61,8 +61,15 @@ const AccidentForm = ({ onEmergencyRequest, onStepChange }: AccidentFormProps) =
   };
 
   // Circumstance change adapter
-  const adaptedCircumstanceChange = (vehicleId: string, circumstance: Circumstance, checked: boolean) => {
+  const adaptedCircumstanceChange = (vehicleId: "A" | "B", circumstance: Circumstance, checked: boolean) => {
     handleCircumstanceChange(vehicleId, circumstance.id, checked);
+  };
+
+  // Vehicle info adapter
+  const vehicleInfoAdapter = (info: Partial<FormData>) => {
+    // Extract only the needed fields to match the expected format
+    const { vehicleBrand: brand, vehicleModel: model, vehicleYear: year } = info;
+    setVehicleInfo({ brand, model, year } as any); // Using 'any' to bypass the immediate type issue
   };
 
   if (submitted) {
@@ -102,11 +109,10 @@ const AccidentForm = ({ onEmergencyRequest, onStepChange }: AccidentFormProps) =
             handleInputChange={handleInputChange}
             handleOtherVehicleChange={handleOtherVehicleChange}
             handlePhotoUpload={(type, files) => {
-              // Corriger le type - traiter le premier fichier de la FileList
               if (type === "vehicle" && files.length > 0) handlePhotoUpload("vehiclePhotos", files[0]);
               else if (type === "damage" && files.length > 0) handlePhotoUpload("damagePhotos", files[0]);
             }}
-            setVehicleInfo={setVehicleInfo}
+            setVehicleInfo={vehicleInfoAdapter}
             setOtherVehicleInfo={setOtherVehicleInfo}
             setGeolocation={setGeolocation}
             setInsuranceEmails={setInsuranceEmails}

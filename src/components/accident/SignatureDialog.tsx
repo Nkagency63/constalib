@@ -1,163 +1,90 @@
 
-import React, { useState, useRef } from 'react';
+import React from 'react';
 import {
   Dialog,
   DialogContent,
   DialogDescription,
-  DialogFooter,
   DialogHeader,
   DialogTitle,
-} from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
-import { PenLine, Save, RotateCcw } from 'lucide-react';
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
 
-interface SignatureDialogProps {
+export interface SignatureDialogProps {
   open: boolean;
-  onClose: () => void;
-  onSave: (signatureDataUrl: string) => void;
-  title?: string;
+  onOpenChange: (open: boolean) => void;
+  onSign: (partyA: string | null, partyB: string | null) => void;
 }
 
 const SignatureDialog: React.FC<SignatureDialogProps> = ({
   open,
-  onClose,
-  onSave,
-  title = "Signature du constat"
+  onOpenChange,
+  onSign,
 }) => {
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-  const [isDrawing, setIsDrawing] = useState(false);
-  const [hasDraw, setHasDraw] = useState(false);
+  const [signatureA, setSignatureA] = React.useState<string | null>(null);
+  const [signatureB, setSignatureB] = React.useState<string | null>(null);
 
-  const startDrawing = (e: React.MouseEvent<HTMLCanvasElement> | React.TouchEvent<HTMLCanvasElement>) => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
-
-    setIsDrawing(true);
-    setHasDraw(true);
-    
-    // Get position
-    let x, y;
-    if ((e as React.TouchEvent).touches) {
-      const touch = (e as React.TouchEvent).touches[0];
-      const rect = canvas.getBoundingClientRect();
-      x = touch.clientX - rect.left;
-      y = touch.clientY - rect.top;
-    } else {
-      const mouseEvent = e as React.MouseEvent;
-      const rect = canvas.getBoundingClientRect();
-      x = mouseEvent.clientX - rect.left;
-      y = mouseEvent.clientY - rect.top;
-    }
-    
-    ctx.beginPath();
-    ctx.moveTo(x, y);
-  };
-
-  const draw = (e: React.MouseEvent<HTMLCanvasElement> | React.TouchEvent<HTMLCanvasElement>) => {
-    if (!isDrawing) return;
-    
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
-    
-    // Get position
-    let x, y;
-    if ((e as React.TouchEvent).touches) {
-      const touch = (e as React.TouchEvent).touches[0];
-      const rect = canvas.getBoundingClientRect();
-      x = touch.clientX - rect.left;
-      y = touch.clientY - rect.top;
-    } else {
-      const mouseEvent = e as React.MouseEvent;
-      const rect = canvas.getBoundingClientRect();
-      x = mouseEvent.clientX - rect.left;
-      y = mouseEvent.clientY - rect.top;
-    }
-    
-    ctx.lineWidth = 2;
-    ctx.lineCap = 'round';
-    ctx.strokeStyle = '#000';
-    
-    ctx.lineTo(x, y);
-    ctx.stroke();
-  };
-
-  const endDrawing = () => {
-    setIsDrawing(false);
-  };
-
-  const clearCanvas = () => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
-    
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    setHasDraw(false);
-  };
-
-  const saveSignature = () => {
-    const canvas = canvasRef.current;
-    if (!canvas || !hasDraw) return;
-    
-    const dataUrl = canvas.toDataURL('image/png');
-    onSave(dataUrl);
-    onClose();
+  const handleSign = () => {
+    onSign(signatureA, signatureB);
+    onOpenChange(false);
   };
 
   return (
-    <Dialog open={open} onOpenChange={onClose}>
+    <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle className="flex items-center">
-            <PenLine className="h-5 w-5 mr-2" />
-            {title}
-          </DialogTitle>
+          <DialogTitle>Ajouter des signatures</DialogTitle>
           <DialogDescription>
-            Veuillez signer dans le cadre ci-dessous.
+            Signez le constat pour les deux parties concernées
           </DialogDescription>
         </DialogHeader>
-        
-        <div className="border rounded-md p-1 bg-gray-50">
-          <canvas
-            ref={canvasRef}
-            width={400}
-            height={200}
-            className="border border-gray-300 rounded bg-white touch-none"
-            onMouseDown={startDrawing}
-            onMouseMove={draw}
-            onMouseUp={endDrawing}
-            onMouseLeave={endDrawing}
-            onTouchStart={startDrawing}
-            onTouchMove={draw}
-            onTouchEnd={endDrawing}
-          />
+        <div className="space-y-6">
+          <div className="border rounded-md p-4">
+            <h3 className="font-medium mb-2">Signature partie A</h3>
+            <div className="h-32 bg-gray-100 rounded flex items-center justify-center mb-2">
+              {signatureA ? (
+                <img src={signatureA} alt="Signature A" className="max-h-full" />
+              ) : (
+                <p className="text-gray-400">Zone de signature</p>
+              )}
+            </div>
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => setSignatureA("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==")}
+              className="w-full"
+            >
+              Signer
+            </Button>
+          </div>
+
+          <div className="border rounded-md p-4">
+            <h3 className="font-medium mb-2">Signature partie B</h3>
+            <div className="h-32 bg-gray-100 rounded flex items-center justify-center mb-2">
+              {signatureB ? (
+                <img src={signatureB} alt="Signature B" className="max-h-full" />
+              ) : (
+                <p className="text-gray-400">Zone de signature</p>
+              )}
+            </div>
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => setSignatureB("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==")}
+              className="w-full"
+            >
+              Signer
+            </Button>
+          </div>
         </div>
-        
-        <DialogFooter className="sm:justify-between">
-          <Button 
-            type="button" 
-            variant="outline" 
-            onClick={clearCanvas}
-          >
-            <RotateCcw className="h-4 w-4 mr-2" />
-            Effacer
+
+        <div className="flex justify-end gap-3">
+          <Button variant="outline" onClick={() => onOpenChange(false)}>
+            Annuler
           </Button>
-          <Button 
-            type="submit" 
-            onClick={saveSignature} 
-            disabled={!hasDraw}
-          >
-            <Save className="h-4 w-4 mr-2" />
-            Enregistrer
+          <Button onClick={handleSign}>
+            Valider les signatures
           </Button>
-        </DialogFooter>
+        </div>
       </DialogContent>
     </Dialog>
   );

@@ -1,39 +1,39 @@
 
-// Base types for accident scheme elements
+import { SchemeData as BaseSchemeData } from '../types';
 
 export interface Vehicle {
   id: string;
-  position: [number, number];
   type: 'car' | 'truck' | 'bike';
-  color: string;
+  position: [number, number]; // LatLng coordinates
   rotation: number;
+  color: string;
   label?: string;
+  width?: number;
   isSelected?: boolean;
 }
 
 export interface Path {
   id: string;
-  points: [number, number][];
+  points: [number, number][]; // Array of LatLng coordinates
   color: string;
-  width?: number;
-  dashed?: boolean;
+  width: number;
+  dashed: boolean;
+  vehicleId?: string;
   isSelected?: boolean;
 }
 
 export interface Annotation {
   id: string;
-  position: [number, number];
+  position: [number, number]; // LatLng coordinates
   text: string;
-  isSelected?: boolean;
 }
 
 export interface SchemeData {
   vehicles: Vehicle[];
   paths: Path[];
   annotations: Annotation[];
-  center?: [number, number];
-  zoom?: number;
+  center: [number, number]; // LatLng for the map center
+  zoom: number;
 }
 
-// Export the modified type definitions
-export type { Vehicle, Path, Annotation, SchemeData };
+// Export for backward compatibility

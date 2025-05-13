@@ -26,13 +26,13 @@ interface StepRendererProps {
   setInvolvedPartyEmails: (emails: string[]) => void;
   setPersonalEmail: (email: string) => void;
   onEmergencyContacted: () => void;
-  handleCircumstanceChange?: (vehicleId: string, circumstance: Circumstance, checked: boolean) => void;
+  handleCircumstanceChange?: (vehicleId: "A" | "B", circumstance: Circumstance, checked: boolean) => void;
   setCurrentVehicleId?: (id: string) => void;
   currentVehicleId?: string;
   setHasInjuries?: (hasInjuries: boolean) => void;
   setInjuriesDescription?: (description: string) => void;
   setHasWitnesses?: (hasWitnesses: boolean) => void;
-  updateWitness?: (index: number, field: string, value: string) => void;
+  updateWitness?: (index: number, field: keyof WitnessInfo, value: string) => void;
   addWitness?: () => void;
   removeWitness?: (index: number) => void;
 }
@@ -61,9 +61,9 @@ const StepRenderer: React.FC<StepRendererProps> = ({
   removeWitness
 }) => {
   // Helper function to ensure we have valid circumstance handler
-  const safeHandleCircumstanceChange = (vehicleId: string, circumstance: Circumstance, checked: boolean) => {
+  const safeHandleCircumstanceChange = (vehicleId: string, circumstance: Circumstance) => {
     if (handleCircumstanceChange) {
-      handleCircumstanceChange(vehicleId, circumstance, checked);
+      handleCircumstanceChange(vehicleId as "A" | "B", circumstance, true);
     }
   };
 
@@ -73,8 +73,6 @@ const StepRenderer: React.FC<StepRendererProps> = ({
         date={formData.date}
         time={formData.time}
         location={formData.location}
-        hasMaterialDamage={formData.hasMaterialDamage}
-        materialDamageDescription={formData.materialDamageDescription}
         handleInputChange={handleInputChange}
         onEmergencyContacted={onEmergencyContacted}
       />;
@@ -85,11 +83,14 @@ const StepRenderer: React.FC<StepRendererProps> = ({
           formData={formData}
           handleInputChange={handleInputChange}
           handleOtherVehicleChange={handleOtherVehicleChange}
-          setVehicleInfo={(data) => setVehicleInfo({
-            vehicleBrand: data.brand,
-            vehicleModel: data.model,
-            vehicleYear: data.year,
-          })}
+          setVehicleInfo={(data) => {
+            // Create an adapter that maps to the FormData structure
+            setVehicleInfo({
+              vehicleBrand: data.brand,
+              vehicleModel: data.model,
+              vehicleYear: data.year,
+            });
+          }}
           setOtherVehicleInfo={setOtherVehicleInfo}
           onEmergencyContacted={onEmergencyContacted}
           vehicleId="A"
@@ -108,20 +109,28 @@ const StepRenderer: React.FC<StepRendererProps> = ({
     case 'drivers':
       return (
         <DriverAndInsuredStep
-          driverName={formData.driverName}
-          driverAddress={formData.driverAddress}
-          driverPhone={formData.driverPhone}
-          driverLicense={formData.driverLicense}
-          insuredName={formData.insuredName}
-          insuredAddress={formData.insuredAddress}
-          insuredPhone={formData.insuredPhone}
-          otherDriverName={formData.otherDriverName}
-          otherDriverAddress={formData.otherDriverAddress}
-          otherDriverPhone={formData.otherDriverPhone}
-          otherDriverLicense={formData.otherDriverLicense}
-          otherInsuredName={formData.otherInsuredName}
-          otherInsuredAddress={formData.otherInsuredAddress}
-          otherInsuredPhone={formData.otherInsuredPhone}
+          driver={{
+            name: formData.driverName || '',
+            address: formData.driverAddress || '',
+            phone: formData.driverPhone || '',
+            license: formData.driverLicense || ''
+          }}
+          insured={{
+            name: formData.insuredName || '',
+            address: formData.insuredAddress || '',
+            phone: formData.insuredPhone || ''
+          }}
+          otherDriver={{
+            name: formData.otherDriverName || '',
+            address: formData.otherDriverAddress || '',
+            phone: formData.otherDriverPhone || '',
+            license: formData.otherDriverLicense || ''
+          }}
+          otherInsured={{
+            name: formData.otherInsuredName || '',
+            address: formData.otherInsuredAddress || '',
+            phone: formData.otherInsuredPhone || ''
+          }}
           handleInputChange={handleInputChange}
         />
       );
@@ -129,6 +138,8 @@ const StepRenderer: React.FC<StepRendererProps> = ({
     case 'location':
       return (
         <LocationStep
+          date={formData.date}
+          time={formData.time}
           location={formData.location}
           geolocation={formData.geolocation}
           handleInputChange={handleInputChange}
@@ -139,10 +150,11 @@ const StepRenderer: React.FC<StepRendererProps> = ({
     case 'details':
       return (
         <DetailsStep
-          hasInjuries={formData.hasInjuries}
-          injuriesDescription={formData.injuriesDescription}
-          hasWitnesses={formData.hasWitnesses}
+          hasInjuries={formData.hasInjuries || false}
+          injuriesDescription={formData.injuriesDescription || ''}
+          hasWitnesses={formData.hasWitnesses || false}
           witnesses={formData.witnesses || []}
+          description={formData.description || ''}
           handleInputChange={handleInputChange}
           setHasInjuries={setHasInjuries}
           setInjuriesDescription={setInjuriesDescription}
@@ -168,19 +180,17 @@ const StepRenderer: React.FC<StepRendererProps> = ({
       return (
         <SchemeStep
           formData={formData}
-          handleSchemeData={(schemeData) => console.log('Scheme data saved:', schemeData)}
+          onUpdateSchemeData={(schemeData) => console.log('Scheme data saved:', schemeData)}
         />
       );
 
     case 'photos':
       return (
         <PhotosStep
-          vehiclePhotos={formData.vehiclePhotos || []}
-          damagePhotos={formData.damagePhotos || []}
+          vehiclePhotos={(formData.vehiclePhotos || []) as File[]}
+          damagePhotos={(formData.damagePhotos || []) as File[]}
           handlePhotoUpload={(type, files) => {
-            if (files.length > 0) {
-              handlePhotoUpload(type, files);
-            }
+            handlePhotoUpload(type, files);
           }}
         />
       );

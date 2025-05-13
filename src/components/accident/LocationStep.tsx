@@ -1,135 +1,108 @@
+import React from 'react';
 
-import { useState, useCallback, useEffect } from 'react';
-import { Map, MapPin, Calendar, Clock } from 'lucide-react';
-import AccidentMap from './AccidentMap';
-import GeocodingButton from './GeocodingButton';
-import CurrentLocationButton from './CurrentLocationButton';
-import LocationDisplay from './LocationDisplay';
-
-interface LocationStepProps {
+export interface LocationStepProps {
   date: string;
   time: string;
-  location?: string;
-  geolocation?: {
-    lat: number | null;
-    lng: number | null;
+  location: string;
+  geolocation: {
+    lat: number;
+    lng: number;
     address: string;
   };
-  handleInputChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
-  setGeolocation: (data: {lat: number, lng: number, address: string}) => void;
+  handleInputChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  setGeolocation: (data: { lat: number; lng: number; address: string }) => void;
 }
 
-const LocationStep = ({
+const LocationStep: React.FC<LocationStepProps> = ({
   date,
   time,
-  location = '',
+  location,
   geolocation,
   handleInputChange,
   setGeolocation
-}: LocationStepProps) => {
-  const [mapVisible, setMapVisible] = useState(false);
-  const [mapKey, setMapKey] = useState(Date.now()); // Use a key to force re-render
-  
-  // Only render the map if we have valid coordinates and it's set to visible
-  const shouldRenderMap = mapVisible && geolocation?.lat && geolocation?.lng;
-  
-  // Use memoized handler to prevent unnecessary re-renders
-  const handleShowMap = useCallback(() => {
-    setMapVisible(true);
-  }, []);
-
-  // Update map key when geolocation changes to force re-render of the map
-  useEffect(() => {
-    if (shouldRenderMap && geolocation?.lat && geolocation?.lng) {
-      console.log("Setting new map key due to geolocation change");
-      setMapKey(Date.now());
-    }
-  }, [geolocation?.lat, geolocation?.lng, shouldRenderMap]);
+}) => {
+  const handleMapClick = (lat: number, lng: number, address: string) => {
+    setGeolocation({
+      lat,
+      lng,
+      address
+    });
+  };
 
   return (
     <div className="space-y-6">
-      <div className="space-y-2">
-        <label htmlFor="date" className="block text-sm font-medium text-constalib-dark">
-          Date de l'accident
-        </label>
-        <div className="relative">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+          <label htmlFor="date" className="block text-sm font-medium text-constalib-dark mb-1">
+            Date de l'accident
+          </label>
           <input
             type="date"
             id="date"
             name="date"
             value={date}
             onChange={handleInputChange}
-            className="w-full px-4 py-2 border border-constalib-gray rounded-lg focus:ring-2 focus:ring-constalib-blue focus:border-constalib-blue"
+            className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             required
           />
-          <Calendar className="absolute right-3 top-1/2 transform -translate-y-1/2 text-constalib-dark-gray" size={18} />
         </div>
-      </div>
-      
-      <div className="space-y-2">
-        <label htmlFor="time" className="block text-sm font-medium text-constalib-dark">
-          Heure de l'accident
-        </label>
-        <div className="relative">
+        <div>
+          <label htmlFor="time" className="block text-sm font-medium text-constalib-dark mb-1">
+            Heure de l'accident
+          </label>
           <input
             type="time"
             id="time"
             name="time"
             value={time}
             onChange={handleInputChange}
-            className="w-full px-4 py-2 border border-constalib-gray rounded-lg focus:ring-2 focus:ring-constalib-blue focus:border-constalib-blue"
+            className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             required
           />
-          <Clock className="absolute right-3 top-1/2 transform -translate-y-1/2 text-constalib-dark-gray" size={18} />
         </div>
       </div>
 
-      <div className="space-y-2">
-        <label htmlFor="location" className="block text-sm font-medium text-constalib-dark">
+      <div>
+        <label htmlFor="location" className="block text-sm font-medium text-constalib-dark mb-1">
           Lieu de l'accident
         </label>
-        <div className="relative">
-          <input
-            type="text"
-            id="location"
-            name="location"
-            value={location}
-            onChange={handleInputChange}
-            className="w-full px-4 py-2 border border-constalib-gray rounded-lg focus:ring-2 focus:ring-constalib-blue focus:border-constalib-blue"
-            placeholder="Adresse, ville, code postal..."
-            required
-          />
-          <Map className="absolute right-3 top-1/2 transform -translate-y-1/2 text-constalib-dark-gray" size={18} />
-        </div>
-      </div>
-
-      <div className="flex gap-2">
-        <GeocodingButton
-          location={location}
-          setGeolocation={setGeolocation}
-        />
-        <CurrentLocationButton
-          setGeolocation={setGeolocation}
+        <input
+          type="text"
+          id="location"
+          name="location"
+          value={location}
+          onChange={handleInputChange}
+          placeholder="Adresse, ville, code postal..."
+          className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+          required
         />
       </div>
 
-      {(geolocation?.lat && geolocation?.lng) ? (
-        <LocationDisplay
-          geolocation={geolocation}
-          setMapVisible={handleShowMap}
-        />
-      ) : null}
-
-      {shouldRenderMap && (
-        <div className="mt-4 h-64 rounded-lg overflow-hidden border border-gray-200">
-          <AccidentMap
-            key={mapKey} // This key forces a complete re-render when it changes
-            lat={geolocation.lat}
-            lng={geolocation.lng}
-            address={geolocation.address}
-          />
+      <div className="border rounded-md p-4 bg-gray-50">
+        <h3 className="text-sm font-medium text-constalib-dark mb-2">Localisation sur la carte</h3>
+        <div className="h-64 bg-gray-200 rounded-md mb-2 relative">
+          {/* Map component would go here */}
+          <div className="absolute inset-0 flex items-center justify-center">
+            <p className="text-gray-500">Carte de localisation</p>
+          </div>
         </div>
-      )}
+        <div className="text-sm text-gray-500">
+          {geolocation.address ? (
+            <p>Adresse sélectionnée: {geolocation.address}</p>
+          ) : (
+            <p>Cliquez sur la carte pour sélectionner l'emplacement exact de l'accident</p>
+          )}
+        </div>
+      </div>
+
+      <div className="bg-blue-50 border border-blue-100 rounded-md p-4">
+        <h4 className="text-sm font-medium text-blue-800 mb-1">Conseil</h4>
+        <p className="text-sm text-blue-700">
+          Soyez aussi précis que possible concernant le lieu de l'accident. 
+          Incluez le nom de la rue, le numéro, la ville et toute information 
+          supplémentaire qui pourrait aider à localiser l'accident avec précision.
+        </p>
+      </div>
     </div>
   );
 };

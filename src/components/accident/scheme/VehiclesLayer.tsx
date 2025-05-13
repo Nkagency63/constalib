@@ -34,7 +34,7 @@ const VehiclesLayer: React.FC<VehiclesLayerProps> = ({
             type: vehicle.type,
             color: vehicle.color,
             rotation: vehicle.rotation,
-            isSelected: vehicle.id === selectedVehicleId,
+            selected: vehicle.id === selectedVehicleId,
             label: vehicle.label || ''
           })}
           eventHandlers={{
