@@ -44,16 +44,7 @@ export const useCerfaGeneration = ({ formData, signatures }: UseCerfaGenerationP
     showOfficialDialog,
     setShowOfficialDialog,
     referenceId,
-    handleGenerateCerfa: async () => {
-      const result = await handleGenerateCerfa();
-      
-      // Set referenceId if signatures were provided (official document)
-      if (result && signatures?.partyA && signatures?.partyB) {
-        setReferenceId("CR-" + Math.random().toString(36).substring(2, 9));
-      }
-      
-      return result;
-    },
+    handleGenerateCerfa,
     handleRegisterOfficial: async () => {
       if (!signatures?.partyA || !signatures?.partyB) {
         return;

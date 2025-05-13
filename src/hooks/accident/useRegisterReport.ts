@@ -101,6 +101,7 @@ export const useRegisterReport = ({ formData, signatures }: UseRegisterReportPro
       };
       
       // Call the official registration function with the consolidated data structure
+      // Here we properly type the additionalData object according to what the API expects
       const result = await registerOfficialReport(
         reportData, 
         vehicleA, 
@@ -110,7 +111,8 @@ export const useRegisterReport = ({ formData, signatures }: UseRegisterReportPro
         {
           participants,
           signatureData,
-          schemeImage: schemeImageDataUrl
+          // We need to rename this property to match what the API expects
+          schemeImageDataUrl // Pass the scheme image URL
         }
       );
       
