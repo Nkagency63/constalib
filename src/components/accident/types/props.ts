@@ -1,6 +1,6 @@
 
 import { FormData, SchemeData, WitnessInfo, Circumstance } from "../types";
-import { Vehicle as SchemeVehicle } from "../types/scheme";
+import { Vehicle, Path, Annotation } from "../types/scheme";
 
 // Props for SignatureDialog
 export interface SignatureDialogProps {
@@ -31,10 +31,10 @@ export interface MapContainerProps {
   zoom: number;
   setCenter: (center: [number, number]) => void;
   setZoom: (zoom: number) => void;
-  vehicles: any[];
+  vehicles: Vehicle[];
   selectedVehicleId?: string;
-  paths: any[];
-  annotations: any[];
+  paths: Path[];
+  annotations: Annotation[];
   onVehicleSelect: (id: string) => void;
   onRemoveVehicle: (id: string) => void;
   onRotateVehicle: (id: string, angle: number) => void;
@@ -66,7 +66,7 @@ export interface VehicleIconProps {
 
 // Props for VehiclesLayer
 export interface VehiclesLayerProps {
-  vehicles: SchemeVehicle[];
+  vehicles: Vehicle[];
   selectedVehicleId?: string;
   onVehicleSelect: (id: string) => void;
   onVehicleMove?: (id: string, position: [number, number]) => void;
@@ -78,12 +78,26 @@ export interface VehiclesLayerProps {
 
 // Props for SchemeToolbars component
 export interface SchemeToolbarsProps {
-  activeTab: 'vehicles' | 'paths' | 'annotations';
-  setActiveTab: (tab: 'vehicles' | 'paths' | 'annotations') => void;
+  activeTab?: 'vehicles' | 'paths' | 'annotations';
+  setActiveTab?: (tab: 'vehicles' | 'paths' | 'annotations') => void;
   vehicles: any;
   paths: any;
   annotations: any;
-  pathColor: string;
-  setPathColor: (color: string) => void;
+  pathColor?: string;
+  setPathColor?: (color: string) => void;
   readOnly: boolean;
+  currentTool: 'select' | 'vehicle' | 'path' | 'annotation';
+  setCurrentTool: (tool: 'select' | 'vehicle' | 'path' | 'annotation') => void;
+  onAddVehicle: () => void;
+  canUndo: boolean;
+  canRedo: boolean;
+  handleUndo: (currentState: any) => any;
+  handleRedo: (currentState: any) => any;
+  setVehicles: (vehicles: Vehicle[]) => void;
+  setPaths: (paths: Path[]) => void;
+  setAnnotations: (annotations: Annotation[]) => void;
+  centerOnVehicles: (vehicles: Vehicle[]) => void;
+  mapRef: React.MutableRefObject<L.Map | null>;
+  currentVehicleType: 'car' | 'truck' | 'bike';
+  onChangeVehicleType: (type: 'car' | 'truck' | 'bike') => void;
 }

@@ -26,6 +26,7 @@ const SchemeContainer: React.FC<SchemeContainerProps> = ({
   const [mapCenter, setMapCenter] = useState<[number, number]>([48.8566, 2.3522]);
   const [mapZoom, setMapZoom] = useState<number>(13);
   const [activeTab, setActiveTab] = useState<'vehicles' | 'paths' | 'annotations'>('vehicles');
+  const [currentTool, setCurrentTool] = useState<'select' | 'vehicle' | 'path' | 'annotation'>('select');
   const [pathColor, setPathColor] = useState<string>('#ff0000');
   const [isTilting, setIsTilting] = useState<boolean>(false);
 
@@ -63,21 +64,39 @@ const SchemeContainer: React.FC<SchemeContainerProps> = ({
     }
   }, [vehiclesHook.vehicles, pathsHook.paths, annotationsHook.annotations, mapCenter, mapZoom, onUpdateSchemeData, onSchemeUpdate]);
 
-  // Prepare toolbars props
-  const toolbarsProps: SchemeToolbarsProps = {
-    activeTab,
-    setActiveTab,
-    vehicles: vehiclesHook,
-    paths: pathsHook,
-    annotations: annotationsHook,
-    pathColor,
-    setPathColor,
-    readOnly
+  // Handler for adding a vehicle
+  const handleAddVehicle = () => {
+    // Default center of the map
+    const position: [number, number] = [mapCenter[0], mapCenter[1]];
+    vehiclesHook.addVehicle(position, vehiclesHook.currentVehicleType);
   };
 
   return (
     <div className="scheme-container h-full flex flex-col">
-      <SchemeToolbars {...toolbarsProps} />
+      <SchemeToolbars 
+        readOnly={readOnly}
+        currentTool={currentTool}
+        setCurrentTool={setCurrentTool}
+        onAddVehicle={handleAddVehicle}
+        canUndo={false}
+        canRedo={false}
+        vehicles={vehiclesHook.vehicles}
+        paths={pathsHook.paths}
+        annotations={annotationsHook.annotations}
+        handleUndo={() => {}}
+        handleRedo={() => {}}
+        setVehicles={vehiclesHook.setVehicles}
+        setPaths={pathsHook.setPaths}
+        setAnnotations={annotationsHook.setAnnotations}
+        centerOnVehicles={() => {}}
+        mapRef={{ current: null }}
+        currentVehicleType={vehiclesHook.currentVehicleType}
+        onChangeVehicleType={vehiclesHook.setCurrentVehicleType}
+        activeTab={activeTab}
+        setActiveTab={setActiveTab}
+        pathColor={pathColor}
+        setPathColor={setPathColor}
+      />
       <div className="flex-1 relative">
         <MapContainer
           center={mapCenter}
