@@ -6,6 +6,7 @@ import SchemeToolbars from './components/SchemeToolbars';
 import { useVehicles } from '../hooks/useVehicles';
 import { usePaths } from '../hooks/usePaths';
 import { useAnnotations } from '../hooks/useAnnotations';
+import { SchemeToolbarsProps } from '../types/props';
 
 interface SchemeContainerProps {
   initialData?: SchemeData;
@@ -62,18 +63,21 @@ const SchemeContainer: React.FC<SchemeContainerProps> = ({
     }
   }, [vehiclesHook.vehicles, pathsHook.paths, annotationsHook.annotations, mapCenter, mapZoom, onUpdateSchemeData, onSchemeUpdate]);
 
+  // Prepare toolbars props
+  const toolbarsProps: SchemeToolbarsProps = {
+    activeTab,
+    setActiveTab,
+    vehicles: vehiclesHook,
+    paths: pathsHook,
+    annotations: annotationsHook,
+    pathColor,
+    setPathColor,
+    readOnly
+  };
+
   return (
     <div className="scheme-container h-full flex flex-col">
-      <SchemeToolbars
-        activeTab={activeTab}
-        setActiveTab={setActiveTab}
-        vehicles={vehiclesHook as any} // Cast to any to avoid type issues
-        paths={pathsHook as any} // Cast to any to avoid type issues
-        annotations={annotationsHook as any} // Cast to any to avoid type issues
-        pathColor={pathColor}
-        setPathColor={setPathColor}
-        readOnly={readOnly}
-      />
+      <SchemeToolbars {...toolbarsProps} />
       <div className="flex-1 relative">
         <MapContainer
           center={mapCenter}

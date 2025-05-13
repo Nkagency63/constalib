@@ -9,7 +9,7 @@ export type SchemeAnnotation = BaseAnnotation;
 export type SchemeDataType = BaseSchemeData;
 
 // For backward compatibility - use type aliases instead of export declarations
-export { 
+export type { 
   BaseVehicle as Vehicle, 
   BasePath as Path, 
   BaseAnnotation as Annotation,

@@ -6,16 +6,18 @@ import { useToast } from '@/hooks/use-toast';
 
 interface SchemeStepProps {
   formData: FormData;
-  handleSchemeData?: (data: SchemeData) => void;
+  onSchemeUpdate?: (schemeData: SchemeData) => void;
 }
 
-const SchemeStep: React.FC<SchemeStepProps> = ({ formData }) => {
+const SchemeStep: React.FC<SchemeStepProps> = ({ formData, onSchemeUpdate }) => {
   const { toast } = useToast();
   
   const handleSchemeUpdate = (schemeData: SchemeData) => {
     console.log('Scheme data saved:', schemeData);
     // If a handler was provided, call it with the updated scheme data
-    // This is optional since we're not requiring it in the props
+    if (onSchemeUpdate) {
+      onSchemeUpdate(schemeData);
+    }
   };
   
   return (
@@ -23,7 +25,7 @@ const SchemeStep: React.FC<SchemeStepProps> = ({ formData }) => {
       <div className="bg-white p-4 rounded-lg border border-gray-200">
         <SchemeContainer
           formData={formData}
-          onUpdateSchemeData={handleSchemeUpdate}
+          onSchemeUpdate={handleSchemeUpdate}
         />
       </div>
     </div>

@@ -185,7 +185,7 @@ const StepRenderer: React.FC<StepRendererProps> = ({
           vehiclePhotos={(formData.vehiclePhotos || []) as File[]}
           damagePhotos={(formData.damagePhotos || []) as File[]}
           handlePhotoUpload={(type: 'vehiclePhotos' | 'damagePhotos', file: File) => {
-            // Create a mock FileList with a single file
+            // Create a FileList-like object
             const fileList = {
               0: file,
               length: 1,

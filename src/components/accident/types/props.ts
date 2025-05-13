@@ -1,5 +1,6 @@
 
 import { FormData, SchemeData, WitnessInfo, Circumstance } from "../types";
+import { Vehicle as SchemeVehicle } from "../types/scheme";
 
 // Props for SignatureDialog
 export interface SignatureDialogProps {
@@ -52,7 +53,7 @@ export interface MapContainerProps {
   isDrawing: boolean;
   pathColor: string;
   isTilting: boolean;
-  drawingLayerRef?: React.MutableRefObject<any>; // Add missing prop
+  drawingLayerRef?: React.MutableRefObject<any>;
 }
 
 // Props for VehicleIcon
@@ -65,12 +66,24 @@ export interface VehicleIconProps {
 
 // Props for VehiclesLayer
 export interface VehiclesLayerProps {
-  vehicles: Vehicle[];
+  vehicles: SchemeVehicle[];
   selectedVehicleId?: string;
   onVehicleSelect: (id: string) => void;
   onVehicleMove?: (id: string, position: [number, number]) => void;
   readOnly?: boolean;
-  onRemoveVehicle?: (id: string) => void; // Add missing prop
-  onRotateVehicle?: (id: string, degrees: number) => void; // Add missing prop
-  onChangeVehicleType?: (type: 'car' | 'truck' | 'bike') => void; // Add missing prop
+  onRemoveVehicle?: (id: string) => void;
+  onRotateVehicle?: (id: string, degrees: number) => void;
+  onChangeVehicleType?: (id: string, type: 'car' | 'truck' | 'bike') => void;
+}
+
+// Props for SchemeToolbars component
+export interface SchemeToolbarsProps {
+  activeTab: 'vehicles' | 'paths' | 'annotations';
+  setActiveTab: (tab: 'vehicles' | 'paths' | 'annotations') => void;
+  vehicles: any;
+  paths: any;
+  annotations: any;
+  pathColor: string;
+  setPathColor: (color: string) => void;
+  readOnly: boolean;
 }
