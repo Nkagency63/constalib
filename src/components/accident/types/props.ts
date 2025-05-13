@@ -25,6 +25,27 @@ export interface SchemeStepProps {
   handleSchemeData?: (data: SchemeData) => void;
 }
 
+// Props for MultiVehicleStep
+export interface MultiVehicleStepProps {
+  licensePlate: string;
+  vehicleBrand: string;
+  vehicleModel: string;
+  vehicleYear: string;
+  vehicleDescription: string;
+  firstRegistration?: string;
+  insurancePolicy?: string;
+  insuranceCompany?: string;
+  otherVehicle: FormData['otherVehicle'];
+  handleInputChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
+  handleOtherVehicleChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
+  setVehicleInfo: (data: {brand: string, model: string, year: string, firstRegistration?: string}) => void;
+  setOtherVehicleInfo: (data: Partial<FormData['otherVehicle']>) => void;
+  onEmergencyContacted: () => void;
+  vehicleId: 'A' | 'B';
+  setVehicleId: (vehicleId: 'A' | 'B') => void;
+  emergencyContacted: boolean;
+}
+
 // Props for MapContainer in SchemeMapWrapper
 export interface MapContainerProps {
   center: [number, number];

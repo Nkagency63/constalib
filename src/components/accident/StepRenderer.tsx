@@ -1,4 +1,3 @@
-
 import React from 'react';
 import BasicInfoStep from './BasicInfoStep';
 import VehicleIdentificationStep from './VehicleIdentificationStep';
@@ -95,9 +94,23 @@ const StepRenderer: React.FC<StepRendererProps> = ({
     case 'multivehicle':
       return (
         <MultiVehicleStep
+          licensePlate={formData.licensePlate}
+          vehicleBrand={formData.vehicleBrand}
+          vehicleModel={formData.vehicleModel}
+          vehicleYear={formData.vehicleYear || ''}
+          vehicleDescription={formData.vehicleDescription || ''}
+          firstRegistration={formData.otherVehicle.firstRegistration}
+          insurancePolicy={formData.insurancePolicy}
+          insuranceCompany={formData.insuranceCompany}
           otherVehicle={formData.otherVehicle}
+          handleInputChange={handleInputChange}
           handleOtherVehicleChange={handleOtherVehicleChange}
+          setVehicleInfo={setVehicleInfo}
           setOtherVehicleInfo={setOtherVehicleInfo}
+          onEmergencyContacted={onEmergencyContacted}
+          vehicleId={currentVehicleId as 'A' | 'B' || 'A'}
+          setVehicleId={setCurrentVehicleId as (id: 'A' | 'B') => void}
+          emergencyContacted={formData.emergencyContacted || false}
         />
       );
       

@@ -1,5 +1,5 @@
 import React from 'react';
-import { VehicleData } from './types';
+import { MultiVehicleStepProps } from './types/props';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -7,26 +7,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { AlertCircle, Car, Truck, AlertTriangle } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-
-interface MultiVehicleStepProps {
-  licensePlate: string;
-  vehicleBrand: string;
-  vehicleModel: string;
-  vehicleYear: string;
-  vehicleDescription: string;
-  firstRegistration?: string;
-  insurancePolicy?: string;
-  insuranceCompany?: string;
-  otherVehicle: VehicleData;
-  handleInputChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
-  handleOtherVehicleChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
-  setVehicleInfo: (data: {brand: string, model: string, year: string, firstRegistration?: string}) => void;
-  setOtherVehicleInfo: (data: {brand: string, model: string, year: string, firstRegistration?: string}) => void;
-  onEmergencyContacted: () => void;
-  vehicleId: 'A' | 'B';
-  setVehicleId: (vehicleId: 'A' | 'B') => void;
-  emergencyContacted: boolean;
-}
 
 const MultiVehicleStep: React.FC<MultiVehicleStepProps> = ({
   licensePlate,
