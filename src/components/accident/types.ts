@@ -75,6 +75,12 @@ export interface SchemeData {
   zoom: number;
 }
 
+// Type for circumstance data passed to the registration service
+export interface CircumstancesData {
+  vehicleA: string[];
+  vehicleB: string[];
+}
+
 // Main form data type for the accident report
 export interface FormData {
   // Basic information
@@ -146,6 +152,10 @@ export interface FormData {
   // Circumstance selections
   vehicleACircumstances?: Circumstance[];
   vehicleBCircumstances?: Circumstance[];
+  circumstances?: {
+    vehicleA: Circumstance[];
+    vehicleB: Circumstance[];
+  };
   
   // Driver info for CERFA
   driverInfo?: {

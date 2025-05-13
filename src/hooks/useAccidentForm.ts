@@ -1,3 +1,4 @@
+
 import { useState, useMemo } from 'react';
 import { FormData } from '@/components/accident/types';
 import { useToast } from '@/hooks/use-toast';
@@ -36,7 +37,9 @@ export const useAccidentForm = () => {
       ...injuriesForm.getInjuriesData(),
       ...photosForm.getPhotosData(),
       ...emailForm.getEmailData(),
-      ...emergencyForm.getEmergencyData()
+      ...emergencyForm.getEmergencyData(),
+      hasMaterialDamage: false, // Adding the missing required field with a default value
+      materialDamageDescription: ''
     } as FormData;
   }, [
     locationForm,

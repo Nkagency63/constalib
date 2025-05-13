@@ -1,6 +1,7 @@
+
 import { useState } from 'react';
 import { toast } from "sonner";
-import { FormData } from "@/components/accident/types";
+import { FormData, Circumstance, CircumstancesData } from "@/components/accident/types";
 import { registerOfficialReport } from "@/services/accidentReportService";
 
 interface UseRegisterReportProps {
@@ -86,10 +87,10 @@ export const useRegisterReport = ({ formData, signatures }: UseRegisterReportPro
         injuries: formData.injuries || []
       };
 
-      // Format circumstances data properly
-      const circumstancesData = {
-        vehicleA: formData.vehicleACircumstances || [],
-        vehicleB: formData.vehicleBCircumstances || []
+      // Format circumstances data properly - extracting IDs from Circumstance objects
+      const circumstancesData: CircumstancesData = {
+        vehicleA: (formData.vehicleACircumstances || []).map(circ => circ.id),
+        vehicleB: (formData.vehicleBCircumstances || []).map(circ => circ.id)
       };
 
       const geolocation = {
@@ -125,7 +126,7 @@ export const useRegisterReport = ({ formData, signatures }: UseRegisterReportPro
       } else {
         throw new Error(result.error || "Failed to register official report");
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error registering official report:", error);
       toast.error(error.message || "Error registering official report");
     } finally {

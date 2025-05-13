@@ -19,7 +19,7 @@ interface StepRendererProps {
   handleInputChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   handleOtherVehicleChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   handlePhotoUpload: (type: string, files: FileList) => void;
-  setVehicleInfo: (info: Partial<FormData>) => void;
+  setVehicleInfo: (data: { brand: string, model: string, year?: string, firstRegistration?: string }) => void;
   setOtherVehicleInfo: (info: Partial<FormData['otherVehicle']>) => void;
   setGeolocation: (data: { lat: number; lng: number; address: string }) => void;
   setInsuranceEmails: (emails: string[]) => void;
@@ -61,21 +61,23 @@ const StepRenderer: React.FC<StepRendererProps> = ({
   removeWitness
 }) => {
   // Helper function to ensure we have valid circumstance handler
-  const safeHandleCircumstanceChange = (vehicleId: string, circumstance: Circumstance) => {
+  const safeHandleCircumstanceChange = (vehicleId: "A" | "B", circumstance: Circumstance) => {
     if (handleCircumstanceChange) {
-      handleCircumstanceChange(vehicleId as "A" | "B", circumstance, true);
+      handleCircumstanceChange(vehicleId, circumstance, true);
     }
   };
 
   switch (currentStepId) {
     case 'basics':
-      return <BasicInfoStep 
-        date={formData.date}
-        time={formData.time}
-        location={formData.location}
-        handleInputChange={handleInputChange}
-        onEmergencyContacted={onEmergencyContacted}
-      />;
+      return (
+        <BasicInfoStep 
+          date={formData.date}
+          time={formData.time}
+          location={formData.location}
+          handleInputChange={handleInputChange}
+          onEmergencyContacted={onEmergencyContacted}
+        />
+      );
       
     case 'vehicles':
       return (
@@ -83,14 +85,7 @@ const StepRenderer: React.FC<StepRendererProps> = ({
           formData={formData}
           handleInputChange={handleInputChange}
           handleOtherVehicleChange={handleOtherVehicleChange}
-          setVehicleInfo={(data) => {
-            // Create an adapter that maps to the FormData structure
-            setVehicleInfo({
-              vehicleBrand: data.brand,
-              vehicleModel: data.model,
-              vehicleYear: data.year,
-            });
-          }}
+          setVehicleInfo={setVehicleInfo}
           setOtherVehicleInfo={setOtherVehicleInfo}
           onEmergencyContacted={onEmergencyContacted}
           vehicleId="A"
@@ -170,7 +165,7 @@ const StepRenderer: React.FC<StepRendererProps> = ({
         <CircumstancesStep
           vehicleACircumstances={formData.vehicleACircumstances || []}
           vehicleBCircumstances={formData.vehicleBCircumstances || []}
-          handleCircumstanceChange={safeHandleCircumstanceChange}
+          handleCircumstanceChange={handleCircumstanceChange}
           currentVehicleId={currentVehicleId || "A"}
           setCurrentVehicleId={setCurrentVehicleId}
         />
@@ -180,7 +175,7 @@ const StepRenderer: React.FC<StepRendererProps> = ({
       return (
         <SchemeStep
           formData={formData}
-          onUpdateSchemeData={(schemeData) => console.log('Scheme data saved:', schemeData)}
+          onSchemeUpdate={(schemeData) => console.log('Scheme data saved:', schemeData)}
         />
       );
 
@@ -190,7 +185,19 @@ const StepRenderer: React.FC<StepRendererProps> = ({
           vehiclePhotos={(formData.vehiclePhotos || []) as File[]}
           damagePhotos={(formData.damagePhotos || []) as File[]}
           handlePhotoUpload={(type, files) => {
-            handlePhotoUpload(type, files);
+            if (files.length > 0) {
+              // Create FileList-compatible array
+              const fileListArray = Array.from(files);
+              handlePhotoUpload(type, {
+                length: files.length,
+                item: (index: number) => fileListArray[index],
+                [Symbol.iterator]: function* () {
+                  for (let i = 0; i < this.length; i++) {
+                    yield this.item(i);
+                  }
+                }
+              } as FileList);
+            }
           }}
         />
       );

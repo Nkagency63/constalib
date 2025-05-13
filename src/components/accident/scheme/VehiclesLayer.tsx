@@ -1,70 +1,69 @@
 
 import React from 'react';
-import { Marker, Popup } from 'react-leaflet';
-import { Vehicle } from '../types/scheme';
+import { Marker, LayerGroup } from 'react-leaflet';
+import L, { Icon, DivIcon } from 'leaflet';
+import { Vehicle } from '../types';
 import VehicleIcon from './VehicleIcon';
 
 interface VehiclesLayerProps {
   vehicles: Vehicle[];
-  selectedVehicleId: string | null;
+  selectedVehicleId?: string;
+  onVehicleSelect: (id: string) => void;
+  onVehicleMove?: (id: string, position: [number, number]) => void;
   readOnly?: boolean;
-  onVehicleSelect?: (id: string) => void;
-  onRemoveVehicle?: (id: string) => void;
-  onRotateVehicle?: (id: string, degrees: number) => void;
-  onChangeVehicleType?: (type: 'car' | 'truck' | 'bike') => void;
 }
 
 const VehiclesLayer: React.FC<VehiclesLayerProps> = ({
   vehicles,
   selectedVehicleId,
-  readOnly = false,
-  onVehicleSelect = () => {},
-  onRemoveVehicle = () => {},
-  onRotateVehicle = () => {},
-  onChangeVehicleType = () => {},
+  onVehicleSelect,
+  onVehicleMove,
+  readOnly = false
 }) => {
+  const createVehicleIcon = (vehicle: Vehicle) => {
+    // Create a custom icon for the vehicle
+    const iconHtml = document.createElement('div');
+    iconHtml.innerHTML = `
+      <div class="vehicle-icon" style="transform: rotate(${vehicle.rotation}deg)">
+        ${VehicleIcon({ 
+          type: vehicle.type, 
+          rotation: vehicle.rotation, 
+          color: vehicle.color,
+          selected: vehicle.id === selectedVehicleId
+        })}
+      </div>
+    `;
+    
+    return new DivIcon({
+      html: iconHtml.innerHTML,
+      className: `vehicle-marker ${vehicle.id === selectedVehicleId ? 'selected' : ''}`,
+      iconSize: [30, 30],
+      iconAnchor: [15, 15]
+    });
+  };
+
   return (
-    <>
+    <LayerGroup>
       {vehicles.map((vehicle) => (
         <Marker
           key={vehicle.id}
           position={vehicle.position}
-          draggable={!readOnly}
-          icon={VehicleIcon({
-            type: vehicle.type,
-            color: vehicle.color,
-            rotation: vehicle.rotation,
-            selected: vehicle.id === selectedVehicleId,
-            label: vehicle.label || ''
-          })}
+          icon={createVehicleIcon(vehicle)}
           eventHandlers={{
             click: () => onVehicleSelect(vehicle.id),
+            // Handle dragging for editable vehicles
+            drag: (e) => {
+              if (onVehicleMove && !readOnly) {
+                const marker = e.target;
+                const position = marker.getLatLng();
+                onVehicleMove(vehicle.id, [position.lat, position.lng]);
+              }
+            }
           }}
-        >
-          {!readOnly && (
-            <Popup>
-              <div className="p-1 text-sm">
-                <strong>Véhicule {vehicle.label}</strong>
-                <div className="mt-2 space-y-2">
-                  <button
-                    onClick={() => onRotateVehicle(vehicle.id, 15)}
-                    className="px-2 py-1 bg-blue-100 text-blue-600 rounded text-xs block w-full"
-                  >
-                    Tourner
-                  </button>
-                  <button
-                    onClick={() => onRemoveVehicle(vehicle.id)}
-                    className="px-2 py-1 bg-red-100 text-red-600 rounded text-xs block w-full"
-                  >
-                    Supprimer
-                  </button>
-                </div>
-              </div>
-            </Popup>
-          )}
-        </Marker>
+          draggable={!readOnly}
+        />
       ))}
-    </>
+    </LayerGroup>
   );
 };
 

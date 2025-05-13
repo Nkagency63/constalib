@@ -65,11 +65,16 @@ const AccidentForm = ({ onEmergencyRequest, onStepChange }: AccidentFormProps) =
     handleCircumstanceChange(vehicleId, circumstance.id, checked);
   };
 
-  // Vehicle info adapter
-  const vehicleInfoAdapter = (info: Partial<FormData>) => {
-    // Extract only the needed fields to match the expected format
-    const { vehicleBrand: brand, vehicleModel: model, vehicleYear: year } = info;
-    setVehicleInfo({ brand, model, year } as any); // Using 'any' to bypass the immediate type issue
+  // Vehicle info adapter with explicit typing
+  const vehicleInfoAdapter = (data: { brand: string, model: string, year?: string, firstRegistration?: string }) => {
+    // Cast data to match the expected structure in setVehicleInfo
+    const vehicleData = {
+      vehicleBrand: data.brand,
+      vehicleModel: data.model,
+      vehicleYear: data.year
+    };
+    
+    setVehicleInfo(vehicleData as any);
   };
 
   if (submitted) {
