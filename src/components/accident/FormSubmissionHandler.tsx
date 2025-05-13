@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { FormData } from './types';
 import { useToast } from '@/hooks/use-toast';
@@ -48,8 +47,8 @@ const FormSubmissionHandler = ({
         insuranceCompany: formData.otherVehicle.insuranceCompany
       });
       
-      const vehiclePhotoUrls = await uploadPhotos(formData.vehiclePhotos, 'vehicle');
-      const damagePhotoUrls = await uploadPhotos(formData.damagePhotos, 'damage');
+      const vehiclePhotoUrls = await uploadPhotos(formData.vehiclePhotos as File[], 'vehicles');
+      const damagePhotoUrls = await uploadPhotos(formData.damagePhotos as File[], 'damage');
       
       const data = await saveAccidentReport(
         formData,

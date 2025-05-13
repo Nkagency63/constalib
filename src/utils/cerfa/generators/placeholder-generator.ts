@@ -142,8 +142,8 @@ export const generatePlaceholderPDF = async (
     });
     
     // Ajout de la date d'obtention du permis
-    if (formData.driverLicenseDate) {
-      page.drawText('Date d\'obtention: ' + formData.driverLicenseDate, {
+    if (formData.driverLicense) {
+      page.drawText('Date d\'obtention: ' + formData.driverLicense, {
         x: 50,
         y: 350,
         size: fontSize,
@@ -247,8 +247,8 @@ export const generatePlaceholderPDF = async (
     });
     
     // Ajout de la date d'obtention du permis
-    if (formData.otherDriverLicenseDate) {
-      page.drawText('Date d\'obtention: ' + formData.otherDriverLicenseDate, {
+    if (formData.otherDriverLicense) {
+      page.drawText('Date d\'obtention: ' + formData.otherDriverLicense, {
         x: 500,
         y: 350,
         size: fontSize,

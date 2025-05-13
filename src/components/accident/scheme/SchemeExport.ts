@@ -1,9 +1,15 @@
 
 import { saveAs } from 'file-saver';
 import html2canvas from 'html2canvas';
+import L from 'leaflet';
+
+// Type definition for the mapRef parameter
+interface MapRefProps {
+  mapRef: React.MutableRefObject<L.Map | null>;
+}
 
 // Fonction pour exporter l'image de la carte
-export const handleExportImage = async ({ mapRef }: { mapRef: React.MutableRefObject<L.Map | null> }) => {
+export const handleExportImage = async ({ mapRef }: MapRefProps) => {
   if (!mapRef.current) {
     console.error("Map reference not available for export");
     return;

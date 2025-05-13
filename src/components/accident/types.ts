@@ -1,4 +1,3 @@
-
 // Types pour le schéma d'accident
 export interface Vehicle {
   id: string;
@@ -105,7 +104,7 @@ export interface FormData {
   injuriesDescription?: string;
   injuries?: Array<{name: string, contact: string}>;
   hasWitnesses?: boolean;
-  witnesses?: Array<{fullName: string, phone: string, email: string}>;
+  witnesses?: Array<WitnessInfo>;
   
   // Dommages matériels
   hasMaterialDamage?: boolean;
@@ -169,4 +168,36 @@ export interface FormData {
       email: string;
     }
   };
+}
+
+// Add missing type definitions
+export interface CircumstanceCategory {
+  id: string;
+  title: string;
+  circumstances: Circumstance[];
+}
+
+export interface Circumstance {
+  id: string;
+  description: string;
+  icon?: string;
+  selected?: boolean;
+}
+
+export interface WitnessInfo {
+  id: string;
+  name: string;
+  phone: string;
+  email: string;
+  address: string;
+}
+
+export interface VehicleData {
+  licensePlate: string;
+  brand: string;
+  model: string;
+  year: string;
+  description: string;
+  insurancePolicy?: string;
+  insuranceCompany?: string;
 }

@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Separator } from '@/components/ui/separator';
 import { FormData } from './types';
@@ -67,8 +66,8 @@ const ReviewStep = ({ formData }: ReviewStepProps) => {
       <Separator className="my-6" />
       
       <PhotosCard 
-        vehiclePhotos={formData.vehiclePhotos} 
-        damagePhotos={formData.damagePhotos} 
+        vehiclePhotos={formData.vehiclePhotos as string[]} 
+        damagePhotos={formData.damagePhotos as string[]} 
       />
       
       <Separator className="my-6" />
