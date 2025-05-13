@@ -1,3 +1,4 @@
+
 import { AlertCircle, UserCheck, Bandage, XCircle } from 'lucide-react';
 import { WitnessInfo } from './types';
 import { Button } from '@/components/ui/button';
@@ -15,7 +16,7 @@ interface DetailsStepProps {
   setHasInjuries: (value: boolean) => void;
   setInjuriesDescription: (value: string) => void;
   setHasWitnesses: (value: boolean) => void;
-  updateWitness: (index: number, field: keyof WitnessInfo, value: string) => void;
+  updateWitness: (index: number, field: string, value: string) => void;
   addWitness: () => void;
   removeWitness: (index: number) => void;
 }
@@ -112,13 +113,13 @@ const DetailsStep = ({
 
             {hasWitnesses && (
               <div className="mt-4 space-y-4">
-                {witnesses.map((witness) => (
+                {witnesses.map((witness, idx) => (
                   <div key={witness.id} className="bg-white p-4 rounded-lg border border-gray-200 mb-4">
                     <div className="flex justify-between mb-2">
-                      <h3 className="font-medium">Témoin {index + 1}</h3>
+                      <h3 className="font-medium">Témoin {idx + 1}</h3>
                       <button 
                         type="button"
-                        onClick={() => removeWitness(witness.id)}
+                        onClick={() => removeWitness(idx)}
                         className="text-red-500 hover:text-red-700"
                       >
                         <XCircle size={18} />
@@ -131,7 +132,7 @@ const DetailsStep = ({
                         <Input
                           id={`witness-name-${witness.id}`}
                           value={witness.name || ''}
-                          onChange={(e) => updateWitness(witness.id, 'name', e.target.value)}
+                          onChange={(e) => updateWitness(idx, 'name', e.target.value)}
                           className="mt-1"
                         />
                       </div>
@@ -141,7 +142,7 @@ const DetailsStep = ({
                         <Input
                           id={`witness-phone-${witness.id}`}
                           value={witness.phone}
-                          onChange={(e) => updateWitness(witness.id, 'phone', e.target.value)}
+                          onChange={(e) => updateWitness(idx, 'phone', e.target.value)}
                           placeholder="Numéro de téléphone"
                           type="tel"
                         />
@@ -152,7 +153,7 @@ const DetailsStep = ({
                         <Input
                           id={`witness-email-${witness.id}`}
                           value={witness.email}
-                          onChange={(e) => updateWitness(witness.id, 'email', e.target.value)}
+                          onChange={(e) => updateWitness(idx, 'email', e.target.value)}
                           placeholder="Adresse email"
                           type="email"
                         />

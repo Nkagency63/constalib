@@ -11,6 +11,7 @@ import PhotosStep from './PhotosStep';
 import ReviewStep from './ReviewStep';
 import SchemeStep from './SchemeStep';
 import DriverAndInsuredStep from './DriverAndInsuredStep';
+import { Circumstance } from './types';
 
 interface StepRendererProps {
   currentStepId: string;
@@ -130,10 +131,14 @@ const StepRenderer: React.FC<StepRendererProps> = ({
         <CircumstancesStep 
           vehicleACircumstances={formData.vehicleACircumstances || []}
           vehicleBCircumstances={formData.vehicleBCircumstances || []}
-          handleCircumstanceChange={handleCircumstanceChange || (() => {})}
+          handleCircumstanceChange={(vehicleId, circumstance) => {
+            if (handleCircumstanceChange) {
+              handleCircumstanceChange(vehicleId as 'A' | 'B', circumstance.id, true);
+            }
+          }}
           currentVehicleId={formData.currentVehicleId || 'A'} 
           setCurrentVehicleId={setCurrentVehicleId || (() => {})}
-          circumstances={[]} // Ajouter le prop requis, même s'il n'est pas utilisé
+          circumstances={[]} 
         />
       );
 
@@ -168,7 +173,11 @@ const StepRenderer: React.FC<StepRendererProps> = ({
       );
 
     case 'review':
-      return <ReviewStep formData={formData} />;
+      return <ReviewStep 
+        formData={formData} 
+        handleInputChange={handleInputChange} 
+        handlePhotoUpload={handlePhotoUpload || (() => {})}
+      />;
 
     default:
       return <div>Step not found</div>;

@@ -37,10 +37,26 @@ const AccidentForm = ({ onEmergencyRequest, onStepChange }: AccidentFormProps) =
     setHasInjuries,
     setInjuriesDescription,
     setHasWitnesses,
-    updateWitness,
+    updateWitness: originalUpdateWitness,
     addWitness,
-    removeWitness
+    removeWitness: originalRemoveWitness
   } = useAccidentForm();
+
+  // Adapter function for witness management to match expected parameter types
+  const updateWitness = (index: number, field: string, value: string) => {
+    // Find the witness ID by index
+    if (formData.witnesses && formData.witnesses[index]) {
+      const witnessId = formData.witnesses[index].id;
+      originalUpdateWitness(witnessId, field as keyof WitnessInfo, value);
+    }
+  };
+
+  const removeWitness = (index: number) => {
+    if (formData.witnesses && formData.witnesses[index]) {
+      const witnessId = formData.witnesses[index].id;
+      originalRemoveWitness(witnessId);
+    }
+  };
 
   if (submitted) {
     return <SuccessMessage />;

@@ -15,6 +15,8 @@ export interface Path {
   id: string;
   points: [number, number][];
   color: string;
+  width?: number;
+  dashed?: boolean;
   vehicleId?: string;
   isSelected: boolean;
 }
@@ -23,7 +25,7 @@ export interface Annotation {
   id: string;
   position: [number, number];
   text: string;
-  type: 'obstacle' | 'sign' | 'note';
+  type?: 'obstacle' | 'sign' | 'note';
 }
 
 export interface SchemeData {

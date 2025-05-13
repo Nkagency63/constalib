@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
@@ -95,7 +96,7 @@ const FormSubmissionHandler: React.FC<FormSubmissionHandlerProps> = ({ formData,
   return (
     <div className="flex justify-end">
       <Button
-        variant="primary"
+        variant="default"
         onClick={handleSubmit}
         disabled={isSubmitting}
       >

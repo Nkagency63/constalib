@@ -29,7 +29,8 @@ export const usePaths = () => {
         id: uuidv4(),
         points: currentPathPoints,
         color: currentPathColor || vehicleColor || 'black',
-        vehicleId: currentVehicleId || selectedVehicle || undefined,
+        width: 2,
+        dashed: false,
         isSelected: false
       };
 

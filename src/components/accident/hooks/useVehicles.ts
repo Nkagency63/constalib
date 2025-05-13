@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import { Vehicle } from '../types';
@@ -22,13 +23,11 @@ export const useVehicles = () => {
     }
 
     // Determine vehicle ID based on existing vehicles
-    const usedIds = vehicles.map(v => v.vehicleId);
+    const usedIds = vehicles.map(v => v.id);
     const availableIds = (Object.keys(VEHICLE_COLORS) as Array<'A' | 'B' | 'C' | 'D'>).filter(
       id => !usedIds.includes(id)
     );
-    const vehicleId = availableIds[0];
-    const color = VEHICLE_COLORS[vehicleId];
-
+    
     // Générer un ID unique pour le véhicule
     const uniqueId = uuidv4();
 
@@ -36,8 +35,7 @@ export const useVehicles = () => {
     const newVehicle: Vehicle = {
       id: uniqueId,
       position: [location.lat, location.lng],
-      color,
-      vehicleId,
+      color: VEHICLE_COLORS['A'],
       rotation: 0,
       isSelected: true,
       vehicleType: currentVehicleType
