@@ -1,36 +1,39 @@
 
+// Base types for accident scheme elements
+
 export interface Vehicle {
   id: string;
   position: [number, number];
+  type: 'car' | 'truck' | 'bike';
   color: string;
   rotation: number;
-  isSelected: boolean;
-  type: 'car' | 'truck' | 'bike';
-  // These props are optional to remain compatible with existing code
-  brand?: string;
-  model?: string;
+  label?: string;
+  isSelected?: boolean;
 }
 
 export interface Path {
   id: string;
-  points: [number, number][]; // Array of LatLng coordinates
+  points: [number, number][];
   color: string;
-  width: number; // Changed from optional to required
-  dashed: boolean; // Changed from optional to required
-  isSelected: boolean;
+  width?: number;
+  dashed?: boolean;
+  isSelected?: boolean;
 }
 
 export interface Annotation {
   id: string;
   position: [number, number];
   text: string;
-  type?: 'obstacle' | 'sign' | 'note';
+  isSelected?: boolean;
 }
 
 export interface SchemeData {
   vehicles: Vehicle[];
   paths: Path[];
   annotations: Annotation[];
-  center: [number, number]; // LatLng for the map center
-  zoom: number;
+  center?: [number, number];
+  zoom?: number;
 }
+
+// Export the modified type definitions
+export type { Vehicle, Path, Annotation, SchemeData };

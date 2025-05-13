@@ -1,216 +1,243 @@
-import { PDFDocument, PDFPage, rgb, StandardFonts } from 'pdf-lib';
-import { FormData } from '@/components/accident/types';
 
-// Mapping function to convert circumstance IDs to their respective types
-const mapCircumstanceIdToType = (id: string): string => {
-  switch (id) {
-    case '1': return 'Stationnement';
-    case '2': return 'Quittait un stationnement';
-    case '3': return 'Prenait un stationnement';
-    case '4': return 'Sortait d\'un parking, d\'un lieu privé, d\'un chemin de terre';
-    case '5': return 'S\'engageait sur un rond-point';
-    case '6': return 'Circulait sur un rond-point';
-    case '7': return 'N\'avait pas observé un signal de priorité';
-    case '8': return 'Franchissait une ligne continue';
-    case '9': return 'Venait de droite';
-    case '10': return 'Reculait';
-    case '11': return 'Changeait de file';
-    case '12': return 'Dépassait';
-    case '13': return 'Tournait à droite';
-    case '14': return 'Tournait à gauche';
-    case '15': return 'Freinait';
-    case '16': return 'Heurtait à l\'arrière en circulant';
-    case '17': return 'Empiétait sur une voie réservée';
-    default: return 'Non spécifié';
-  }
-};
+import { FormData } from "@/components/accident/types";
+import { PDFDocument, StandardFonts } from "pdf-lib";
+import { addTextToPdf } from "../pdf-utils";
 
-const addCircumstancesToPdf = async (pdfDoc: PDFDocument, page: PDFPage, formData: FormData) => {
-  const helveticaFont = await pdfDoc.embedFont(StandardFonts.Helvetica);
-  const helveticaBold = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
-  const { height } = page.getSize();
-
-  // Add circumstances for vehicle A
-  if (formData.vehicleACircumstances?.length) {
-    formData.vehicleACircumstances.forEach(circ => {
-      try {
-        // Handle both string and Circumstance object
-        const circId = typeof circ === 'string' ? circ : circ.id;
-        const circumstanceType = mapCircumstanceIdToType(circId);
-        
-        // Find the index of the circumstance and draw 'X' at the appropriate position
-        const circIndex = parseInt(circId);
-        if (!isNaN(circIndex) && circIndex >= 1 && circIndex <= 17) {
-          const y = height - 430 - (circIndex - 1) * 15;
-          page.drawText('X', {
-            x: 115,
-            y,
-            size: 10,
-            font: helveticaBold,
-          });
+/**
+ * Generates a placeholder PDF for testing or when full CERFA generation is not available
+ */
+export const generatePlaceholderPDF = async (
+  formData: FormData, 
+  schemeImageDataUrl: string | null = null,
+  signatures?: { partyA: string | null; partyB: string | null }
+): Promise<string> => {
+  try {
+    // Create a new PDF document
+    const pdfDoc = await PDFDocument.create();
+    
+    // Add a page to the document
+    const page = pdfDoc.addPage([595.28, 841.89]); // A4 size
+    
+    // Get a font to use for text
+    const helveticaFont = await pdfDoc.embedFont(StandardFonts.Helvetica);
+    const helveticaBold = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
+    
+    // Add title
+    page.drawText("CONSTAT AMIABLE AUTOMOBILE", {
+      x: 150,
+      y: 800,
+      size: 16,
+      font: helveticaBold
+    });
+    
+    // Add document information
+    page.drawText("Document de simulation - NON OFFICIEL", {
+      x: 150,
+      y: 780,
+      size: 12,
+      font: helveticaFont,
+      color: { r: 0.8, g: 0.2, b: 0.2 }
+    });
+    
+    // Add accident date and time
+    addTextToPdf(page, "Date de l'accident:", 50, 730, helveticaBold, 10);
+    addTextToPdf(page, formData.date || "Non spécifié", 200, 730, helveticaFont, 10);
+    
+    addTextToPdf(page, "Heure:", 50, 710, helveticaBold, 10);
+    addTextToPdf(page, formData.time || "Non spécifié", 200, 710, helveticaFont, 10);
+    
+    // Add location information
+    addTextToPdf(page, "Lieu:", 50, 690, helveticaBold, 10);
+    addTextToPdf(page, formData.geolocation?.address || "Non spécifié", 200, 690, helveticaFont, 10);
+    
+    // Add vehicle A information
+    addTextToPdf(page, "VÉHICULE A", 50, 650, helveticaBold, 12);
+    addTextToPdf(page, "Marque:", 50, 630, helveticaBold, 10);
+    addTextToPdf(page, formData.vehicleBrand || "Non spécifié", 150, 630, helveticaFont, 10);
+    
+    addTextToPdf(page, "Modèle:", 50, 610, helveticaBold, 10);
+    addTextToPdf(page, formData.vehicleModel || "Non spécifié", 150, 610, helveticaFont, 10);
+    
+    addTextToPdf(page, "Immatriculation:", 50, 590, helveticaBold, 10);
+    addTextToPdf(page, formData.licensePlate || "Non spécifié", 150, 590, helveticaFont, 10);
+    
+    // Add vehicle B information
+    addTextToPdf(page, "VÉHICULE B", 300, 650, helveticaBold, 12);
+    addTextToPdf(page, "Marque:", 300, 630, helveticaBold, 10);
+    addTextToPdf(page, formData.otherVehicle?.brand || "Non spécifié", 400, 630, helveticaFont, 10);
+    
+    addTextToPdf(page, "Modèle:", 300, 610, helveticaBold, 10);
+    addTextToPdf(page, formData.otherVehicle?.model || "Non spécifié", 400, 610, helveticaFont, 10);
+    
+    addTextToPdf(page, "Immatriculation:", 300, 590, helveticaBold, 10);
+    addTextToPdf(page, formData.otherVehicle?.licensePlate || "Non spécifié", 400, 590, helveticaFont, 10);
+    
+    // Add driver information for vehicle A
+    addTextToPdf(page, "CONDUCTEUR A", 50, 550, helveticaBold, 12);
+    addTextToPdf(page, "Nom:", 50, 530, helveticaBold, 10);
+    addTextToPdf(page, formData.driverName || "Non spécifié", 150, 530, helveticaFont, 10);
+    
+    addTextToPdf(page, "Téléphone:", 50, 510, helveticaBold, 10);
+    addTextToPdf(page, formData.driverPhone || "Non spécifié", 150, 510, helveticaFont, 10);
+    
+    // Add driver information for vehicle B
+    addTextToPdf(page, "CONDUCTEUR B", 300, 550, helveticaBold, 12);
+    addTextToPdf(page, "Nom:", 300, 530, helveticaBold, 10);
+    addTextToPdf(page, formData.otherDriverName || "Non spécifié", 400, 530, helveticaFont, 10);
+    
+    addTextToPdf(page, "Téléphone:", 300, 510, helveticaBold, 10);
+    addTextToPdf(page, formData.otherDriverPhone || "Non spécifié", 400, 510, helveticaFont, 10);
+    
+    // Add circumstances section
+    addTextToPdf(page, "CIRCONSTANCES", 50, 470, helveticaBold, 12);
+    
+    // Add circumstance descriptions if available
+    if (formData.circumstances && formData.circumstances.vehicleA) {
+      let y = 450;
+      addTextToPdf(page, "Véhicule A:", 50, y, helveticaBold, 10);
+      y -= 20;
+      
+      formData.circumstances.vehicleA.forEach((circ, index) => {
+        if (index < 5) { // Limit to 5 entries to prevent overflow
+          addTextToPdf(page, `- ${circ.text || circ.id || "Circonstance"}`, 70, y, helveticaFont, 8);
+          y -= 15;
         }
-      } catch (error) {
-        console.error('Error adding vehicle A circumstance:', error);
-      }
-    });
-  }
-
-  // Add circumstances for vehicle B
-  if (formData.vehicleBCircumstances?.length) {
-    formData.vehicleBCircumstances.forEach(circ => {
-      try {
-        // Handle both string and Circumstance object
-        const circId = typeof circ === 'string' ? circ : circ.id;
-        const circumstanceType = mapCircumstanceIdToType(circId);
-        
-        // Find the index of the circumstance and draw 'X' at the appropriate position
-        const circIndex = parseInt(circId);
-        if (!isNaN(circIndex) && circIndex >= 1 && circIndex <= 17) {
-          const y = height - 430 - (circIndex - 1) * 15;
-          page.drawText('X', {
-            x: 475,
-            y,
-            size: 10,
-            font: helveticaBold,
-          });
+      });
+    }
+    
+    if (formData.circumstances && formData.circumstances.vehicleB) {
+      let y = 450;
+      addTextToPdf(page, "Véhicule B:", 300, y, helveticaBold, 10);
+      y -= 20;
+      
+      formData.circumstances.vehicleB.forEach((circ, index) => {
+        if (index < 5) { // Limit to 5 entries to prevent overflow
+          addTextToPdf(page, `- ${circ.text || circ.id || "Circonstance"}`, 320, y, helveticaFont, 8);
+          y -= 15;
         }
+      });
+    }
+    
+    // Add description of damages
+    addTextToPdf(page, "DESCRIPTION DES DOMMAGES", 50, 350, helveticaBold, 12);
+    if (formData.materialDamageDescription) {
+      const descriptionLines = formData.materialDamageDescription.split('\n');
+      let y = 330;
+      descriptionLines.forEach((line, index) => {
+        if (index < 8) { // Limit number of lines
+          addTextToPdf(page, line, 70, y, helveticaFont, 8);
+          y -= 15;
+        }
+      });
+    }
+    
+    // Add space for scheme image
+    if (schemeImageDataUrl) {
+      try {
+        // Remove the data prefix
+        const base64Data = schemeImageDataUrl.replace(/^data:image\/(png|jpg|jpeg|gif);base64,/, '');
+        // Convert base64 to bytes
+        const imageBytes = Uint8Array.from(atob(base64Data), c => c.charCodeAt(0));
+        
+        let embeddedImage;
+        if (schemeImageDataUrl.includes('png')) {
+          embeddedImage = await pdfDoc.embedPng(imageBytes);
+        } else {
+          embeddedImage = await pdfDoc.embedJpg(imageBytes);
+        }
+        
+        // Calculate dimensions to fit within the available space
+        const imageWidth = embeddedImage.width;
+        const imageHeight = embeddedImage.height;
+        const maxWidth = 400;
+        const maxHeight = 200;
+        
+        let width = imageWidth;
+        let height = imageHeight;
+        
+        if (width > maxWidth) {
+          height = (maxWidth / width) * height;
+          width = maxWidth;
+        }
+        
+        if (height > maxHeight) {
+          width = (maxHeight / height) * width;
+          height = maxHeight;
+        }
+        
+        // Draw the scheme image
+        page.drawImage(embeddedImage, {
+          x: 100,
+          y: 120,
+          width,
+          height,
+        });
+        
+        addTextToPdf(page, "Schéma de l'accident", 50, 100, helveticaBold, 10);
       } catch (error) {
-        console.error('Error adding vehicle B circumstance:', error);
+        console.error("Error embedding scheme image:", error);
+        addTextToPdf(page, "Error embedding scheme image", 100, 150, helveticaFont, 10);
       }
-    });
+    } else {
+      addTextToPdf(page, "Aucun schéma disponible", 100, 150, helveticaFont, 10);
+    }
+    
+    // Add signatures if available
+    if (signatures) {
+      addTextToPdf(page, "SIGNATURES", 50, 80, helveticaBold, 12);
+      
+      addTextToPdf(page, "Signature A:", 50, 60, helveticaBold, 10);
+      if (signatures.partyA) {
+        try {
+          const signatureBytes = Uint8Array.from(
+            atob(signatures.partyA.replace(/^data:image\/(png|jpg|jpeg|gif);base64,/, '')),
+            c => c.charCodeAt(0)
+          );
+          const embeddedSignature = await pdfDoc.embedPng(signatureBytes);
+          page.drawImage(embeddedSignature, {
+            x: 120,
+            y: 40,
+            width: 100,
+            height: 40,
+          });
+        } catch (error) {
+          console.error("Error embedding signature A:", error);
+          addTextToPdf(page, "Signature électronique", 120, 50, helveticaFont, 8);
+        }
+      } else {
+        addTextToPdf(page, "Non signé", 120, 50, helveticaFont, 8);
+      }
+      
+      addTextToPdf(page, "Signature B:", 300, 60, helveticaBold, 10);
+      if (signatures.partyB) {
+        try {
+          const signatureBytes = Uint8Array.from(
+            atob(signatures.partyB.replace(/^data:image\/(png|jpg|jpeg|gif);base64,/, '')),
+            c => c.charCodeAt(0)
+          );
+          const embeddedSignature = await pdfDoc.embedPng(signatureBytes);
+          page.drawImage(embeddedSignature, {
+            x: 370,
+            y: 40,
+            width: 100,
+            height: 40,
+          });
+        } catch (error) {
+          console.error("Error embedding signature B:", error);
+          addTextToPdf(page, "Signature électronique", 370, 50, helveticaFont, 8);
+        }
+      } else {
+        addTextToPdf(page, "Non signé", 370, 50, helveticaFont, 8);
+      }
+    }
+    
+    // Save the PDF as a data URL
+    const pdfBytes = await pdfDoc.save();
+    const pdfBase64 = Buffer.from(pdfBytes).toString('base64');
+    return `data:application/pdf;base64,${pdfBase64}`;
+    
+  } catch (error) {
+    console.error("Error generating placeholder PDF:", error);
+    throw new Error(`Failed to generate placeholder PDF: ${error}`);
   }
-};
-
-export const addPlaceholderDataToPdf = async (pdfDoc: PDFDocument, formData: FormData) => {
-  const page = pdfDoc.getPages()[0];
-  const { width, height } = page.getSize();
-  const helveticaFont = await pdfDoc.embedFont(StandardFonts.Helvetica);
-  const helveticaBold = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
-
-  // Add accident details
-  page.drawText(formData.date || 'Date inconnue', {
-    x: 140,
-    y: height - 125,
-    size: 10,
-    font: helveticaFont,
-    color: rgb(0.98, 0.25, 0.27),
-  });
-
-  page.drawText(formData.time || 'Heure inconnue', {
-    x: 140,
-    y: height - 140,
-    size: 10,
-    font: helveticaFont,
-    color: rgb(0.98, 0.25, 0.27),
-  });
-
-  page.drawText(formData.location || 'Lieu inconnu', {
-    x: 140,
-    y: height - 155,
-    size: 9,
-    font: helveticaFont,
-    maxWidth: 200,
-    color: rgb(0.98, 0.25, 0.27),
-  });
-
-  // Add driver A details
-  const driverA = formData.driverInfo?.A;
-  if (driverA) {
-    page.drawText(driverA.name || 'Nom inconnu', {
-      x: 70,
-      y: height - 250,
-      size: 8,
-      font: helveticaFont,
-      color: rgb(0.98, 0.25, 0.27),
-    });
-
-    page.drawText(driverA.address || 'Adresse inconnue', {
-      x: 70,
-      y: height - 270,
-      size: 8,
-      font: helveticaFont,
-      maxWidth: 150,
-      color: rgb(0.98, 0.25, 0.27),
-    });
-
-    page.drawText(driverA.licenseNumber || 'Numéro de permis inconnu', {
-      x: 70,
-      y: height - 290,
-      size: 8,
-      font: helveticaFont,
-      color: rgb(0.98, 0.25, 0.27),
-    });
-  }
-
-  // Add driver B details
-  const driverB = formData.driverInfo?.B;
-  if (driverB) {
-    page.drawText(driverB.name || 'Nom inconnu', {
-      x: 430,
-      y: height - 250,
-      size: 8,
-      font: helveticaFont,
-      color: rgb(0.98, 0.25, 0.27),
-    });
-
-    page.drawText(driverB.address || 'Adresse inconnue', {
-      x: 430,
-      y: height - 270,
-      size: 8,
-      font: helveticaFont,
-      maxWidth: 150,
-      color: rgb(0.98, 0.25, 0.27),
-    });
-
-    page.drawText(driverB.licenseNumber || 'Numéro de permis inconnu', {
-      x: 430,
-      y: height - 290,
-      size: 8,
-      font: helveticaFont,
-      color: rgb(0.98, 0.25, 0.27),
-    });
-  }
-
-  // Add vehicle A details
-  const vehicleA = formData.vehicleLabels?.A;
-  if (vehicleA) {
-    page.drawText(`${vehicleA.brand || 'Marque inconnue'} ${vehicleA.model || 'Modèle inconnu'}`, {
-      x: 70,
-      y: height - 350,
-      size: 8,
-      font: helveticaFont,
-      color: rgb(0.98, 0.25, 0.27),
-    });
-
-    page.drawText(vehicleA.licensePlate || 'Plaque d\'immatriculation inconnue', {
-      x: 70,
-      y: height - 370,
-      size: 8,
-      font: helveticaFont,
-      color: rgb(0.98, 0.25, 0.27),
-    });
-  }
-
-  // Add vehicle B details
-  const vehicleB = formData.vehicleLabels?.B;
-  if (vehicleB) {
-    page.drawText(`${vehicleB.brand || 'Marque inconnue'} ${vehicleB.model || 'Modèle inconnu'}`, {
-      x: 430,
-      y: height - 350,
-      size: 8,
-      font: helveticaFont,
-      color: rgb(0.98, 0.25, 0.27),
-    });
-
-    page.drawText(vehicleB.licensePlate || 'Plaque d\'immatriculation inconnue', {
-      x: 430,
-      y: height - 370,
-      size: 8,
-      font: helveticaFont,
-      color: rgb(0.98, 0.25, 0.27),
-    });
-  }
-
-  // Add circumstances
-  await addCircumstancesToPdf(pdfDoc, page, formData);
 };

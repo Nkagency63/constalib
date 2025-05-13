@@ -2,88 +2,88 @@
 import { Vehicle } from '../types/scheme';
 import { v4 as uuidv4 } from 'uuid';
 
-// Helper function to generate random colors for vehicles
-function getRandomColor(): string {
-  const colors = [
-    '#3498db', // blue
-    '#e74c3c', // red
-    '#2ecc71', // green
-    '#f39c12', // orange
-    '#9b59b6', // purple
-    '#1abc9c', // teal
-  ];
-  return colors[Math.floor(Math.random() * colors.length)];
-}
+const DEFAULT_CAR_SCALE = 1.0;
+const DEFAULT_TRUCK_SCALE = 1.2;
+const DEFAULT_BIKE_SCALE = 0.7;
 
-interface InitializeVehiclesProps {
-  formData: any;
-  vehiclesLength: number;
-  setVehicles: (vehicles: Vehicle[]) => void;
-  saveToHistory?: (state: any) => void;
-}
-
-export const initializeVehicles = ({ 
-  formData, 
-  vehiclesLength, 
-  setVehicles, 
-  saveToHistory 
-}: InitializeVehiclesProps): boolean => {
-  // Only initialize if no vehicles exist
-  if (vehiclesLength === 0) {
-    const vehicles = initializeVehiclesFromFormData(formData);
-    setVehicles(vehicles);
-    
-    if (saveToHistory) {
-      saveToHistory({
-        vehicles,
-        paths: [],
-        annotations: [],
-        center: formData?.geolocation?.lat && formData?.geolocation?.lng
-          ? [formData.geolocation.lat, formData.geolocation.lng]
-          : [48.8566, 2.3522],
-        zoom: 17
-      });
-    }
-    
-    return true;
-  }
-  
-  return false;
+// Define a record of available vehicle colors
+export const VEHICLE_COLORS: Record<string, string> = {
+  A: '#007bff', // Blue for vehicle A
+  B: '#dc3545', // Red for vehicle B
+  C: '#28a745', // Green for vehicle C
+  D: '#ffc107', // Yellow for vehicle D
+  E: '#6f42c1', // Purple for vehicle E
+  F: '#fd7e14', // Orange for vehicle F
 };
 
 /**
- * Initializes default vehicles based on form data
+ * Initialize vehicles based on form data
+ * @param formData The form data containing vehicle info
+ * @param mapCenter The center coordinates of the map
+ * @returns Array of initialized vehicles
  */
-export const initializeVehiclesFromFormData = (formData: any): Vehicle[] => {
+export const initializeVehicles = (
+  formData: any,
+  mapCenter: [number, number] = [48.8566, 2.3522]
+): Vehicle[] => {
   const vehicles: Vehicle[] = [];
   
-  // Center coordinates from form data or default
-  const center: [number, number] = formData?.geolocation?.lat && formData?.geolocation?.lng
-    ? [formData.geolocation.lat, formData.geolocation.lng]
-    : [48.8566, 2.3522]; // Paris coordinates
-  
-  // Vehicle A - slightly to the left of center
-  const vehicleA: Vehicle = {
+  // Initialize Vehicle A (shifted slightly left from center)
+  vehicles.push({
     id: uuidv4(),
-    position: [center[0] - 0.0002, center[1] - 0.0002],
-    color: '#3498db', // blue
-    rotation: 45, // 45 degrees
-    isSelected: false,
-    type: 'car'
-  };
+    position: [mapCenter[0] - 0.0002, mapCenter[1] - 0.0002],
+    type: 'car',
+    color: VEHICLE_COLORS.A,
+    rotation: 0,
+    label: 'A',
+    isSelected: false
+  });
   
-  // Vehicle B - slightly to the right of center
-  const vehicleB: Vehicle = {
-    id: uuidv4(),
-    position: [center[0] + 0.0002, center[1] + 0.0002],
-    color: '#e74c3c', // red
-    rotation: 225, // 225 degrees (opposite direction)
-    isSelected: false,
-    type: 'car'
-  };
-  
-  vehicles.push(vehicleA);
-  vehicles.push(vehicleB);
+  // Initialize Vehicle B if we have otherVehicle data (shifted slightly right)
+  if (formData?.otherVehicle?.brand) {
+    vehicles.push({
+      id: uuidv4(),
+      position: [mapCenter[0] + 0.0002, mapCenter[1] + 0.0002],
+      type: 'car',
+      color: VEHICLE_COLORS.B,
+      rotation: 180, // Facing the opposite direction
+      label: 'B',
+      isSelected: false
+    });
+  }
   
   return vehicles;
+};
+
+/**
+ * Create a new vehicle with default properties
+ * @param position Position on the map [lat, lng]
+ * @param type The type of vehicle to create
+ * @param label Optional label for the vehicle
+ * @returns New vehicle object
+ */
+export const createVehicle = (
+  position: [number, number], 
+  type: 'car' | 'truck' | 'bike' = 'car',
+  label?: string
+): Vehicle => {
+  // Get the next letter for labeling if not provided
+  if (!label) {
+    label = String.fromCharCode(65 + Math.floor(Math.random() * 6)); // A-F
+  }
+  
+  return {
+    id: uuidv4(),
+    position,
+    type,
+    color: VEHICLE_COLORS[label] || '#999999',
+    rotation: 0,
+    label,
+    isSelected: false
+  };
+};
+
+export default {
+  initializeVehicles,
+  createVehicle
 };
