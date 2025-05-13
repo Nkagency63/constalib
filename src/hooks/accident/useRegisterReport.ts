@@ -56,36 +56,40 @@ export const useRegisterReport = ({ formData, signatures }: UseRegisterReportPro
       // Compile all participant information
       const participants = {
         driverA: {
-          name: formData.driverName,
-          address: formData.driverAddress,
-          phone: formData.driverPhone,
-          license: formData.driverLicense
+          name: formData.driverName || "",
+          address: formData.driverAddress || "",
+          phone: formData.driverPhone || "",
+          license: formData.driverLicense || ""
         },
         driverB: {
-          name: formData.otherDriverName,
-          address: formData.otherDriverAddress,
-          phone: formData.otherDriverPhone,
-          license: formData.otherDriverLicense
+          name: formData.otherDriverName || "",
+          address: formData.otherDriverAddress || "",
+          phone: formData.otherDriverPhone || "",
+          license: formData.otherDriverLicense || ""
         },
         insuredA: {
-          name: formData.insuredName,
-          address: formData.insuredAddress,
-          phone: formData.insuredPhone,
-          email: formData.personalEmail
+          name: formData.insuredName || "",
+          address: formData.insuredAddress || "",
+          phone: formData.insuredPhone || "",
+          email: formData.personalEmail || ""
         },
         insuredB: {
-          name: formData.otherInsuredName,
-          address: formData.otherInsuredAddress,
-          phone: formData.otherInsuredPhone,
-          email: formData.otherInsuredEmail
+          name: formData.otherInsuredName || "",
+          address: formData.otherInsuredAddress || "",
+          phone: formData.otherInsuredPhone || "",
+          email: formData.otherInsuredEmail || ""
         },
-        witnesses: formData.witnesses || [],
+        witnesses: formData.witnesses?.map(witness => ({
+          fullName: witness.name || witness.fullName || "",
+          phone: witness.phone || "",
+          email: witness.email || ""
+        })) || [],
         injuries: formData.injuries || []
       };
 
       const circumstances = {
-        vehicleA: formData.vehicleACircumstances,
-        vehicleB: formData.vehicleBCircumstances
+        vehicleA: formData.vehicleACircumstances || [],
+        vehicleB: formData.vehicleBCircumstances || []
       };
 
       const geolocation = {
@@ -101,7 +105,6 @@ export const useRegisterReport = ({ formData, signatures }: UseRegisterReportPro
       };
       
       // Call the official registration function with the consolidated data structure
-      // Here we properly type the additionalData object according to what the API expects
       const result = await registerOfficialReport(
         reportData, 
         vehicleA, 
@@ -111,7 +114,7 @@ export const useRegisterReport = ({ formData, signatures }: UseRegisterReportPro
         {
           participants,
           signatureData,
-          schemeImage: schemeImageDataUrl // Pass the scheme image URL with correct property name
+          schemeImage: schemeImageDataUrl // Properly named parameter
         }
       );
       

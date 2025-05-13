@@ -1,51 +1,56 @@
-
-import { FileText } from 'lucide-react';
-import ReviewCard from './ReviewCard';
-import { WitnessInfo } from '../types';
+import React from 'react';
+import { FormData } from '../types';
 
 interface DescriptionCardProps {
-  description: string;
-  hasInjuries?: boolean;
-  injuriesDescription?: string;
-  hasWitnesses?: boolean;
-  witnesses?: WitnessInfo[];
+  formData: FormData;
 }
 
-const DescriptionCard = ({ 
-  description, 
-  hasInjuries, 
-  injuriesDescription,
-  hasWitnesses,
-  witnesses
-}: DescriptionCardProps) => {
+const DescriptionCard: React.FC<DescriptionCardProps> = ({ formData }) => {
   return (
-    <ReviewCard icon={<FileText className="h-5 w-5 text-constalib-blue" />} title="Description de l'accident">
+    <div className="bg-white p-4 rounded-lg border border-gray-200">
+      <h3 className="font-medium mb-4">Description de l'accident</h3>
+      
       <div className="space-y-3">
         <div>
-          <p className="text-sm text-constalib-dark-gray">{description || "Aucune description fournie"}</p>
+          <span className="font-medium">Date:</span> {formData.date}
+        </div>
+        <div>
+          <span className="font-medium">Heure:</span> {formData.time}
+        </div>
+        <div>
+          <span className="font-medium">Lieu:</span> {formData.location}
         </div>
         
-        {hasInjuries && (
-          <div className="mt-2">
-            <h4 className="text-sm font-medium text-constalib-dark">Blessés</h4>
-            <p className="text-sm text-constalib-dark-gray">{injuriesDescription || "Des blessés ont été signalés"}</p>
+        {formData.hasInjuries && (
+          <div>
+            <span className="font-medium">Blessés:</span> Oui
+            {formData.injuriesDescription && (
+              <div>
+                <span className="font-medium">Description des blessures:</span> {formData.injuriesDescription}
+              </div>
+            )}
           </div>
         )}
         
-        {hasWitnesses && witnesses && witnesses.length > 0 && (
-          <div className="mt-2">
-            <h4 className="text-sm font-medium text-constalib-dark">Témoins</h4>
-            <ul className="text-sm text-constalib-dark-gray">
-              {witnesses.map((witness, index) => (
-                <li key={index}>
-                  {witness.fullName} {witness.phone && `- ${witness.phone}`} {witness.email && `- ${witness.email}`}
-                </li>
-              ))}
-            </ul>
+        {formData.hasMaterialDamage && (
+          <div>
+            <span className="font-medium">Dégâts matériels:</span> Oui
+            {formData.materialDamageDescription && (
+              <div>
+                <span className="font-medium">Description des dégâts:</span> {formData.materialDamageDescription}
+              </div>
+            )}
           </div>
         )}
+
+        {formData.witnesses?.map((witness, index) => (
+          <div key={index} className="mb-2">
+            <span className="font-medium">Témoin {index + 1}:</span> {witness.name}
+            {witness.phone && <>, Tél: {witness.phone}</>}
+          </div>
+        ))}
       </div>
-    </ReviewCard>
+    </div>
   );
 };
 

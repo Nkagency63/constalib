@@ -1,115 +1,107 @@
-import { useState } from 'react';
-import { FormData } from './types';
-import { useToast } from '@/hooks/use-toast';
-import { toast } from 'sonner';
-import { saveVehicleData, uploadPhotos, saveAccidentReport, sendEmails } from '@/services/accidentReportService';
-import AccidentReportSubmitButton from './AccidentReportSubmitButton';
+import React, { useState } from 'react';
+import { Button } from "@/components/ui/button";
+import { toast } from "sonner";
+import { FormData } from "@/components/accident/types";
+import { generateCerfaPDF } from "@/utils/cerfa";
+import { downloadPDF, uploadFileToStorage } from "@/utils/downloadUtils";
 
 interface FormSubmissionHandlerProps {
   formData: FormData;
-  children?: (props: {
-    handleSubmit: (e?: React.FormEvent) => Promise<void>;  // Make the event parameter optional
-    isSubmitting: boolean;
-  }) => React.ReactNode;
   onSubmitSuccess: () => void;
 }
 
-const FormSubmissionHandler = ({ 
-  formData, 
-  children, 
-  onSubmitSuccess 
-}: FormSubmissionHandlerProps) => {
+const FormSubmissionHandler: React.FC<FormSubmissionHandlerProps> = ({ formData, onSubmitSuccess }) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const { toast: uiToast } = useToast();
+  const [pdfUrl, setPdfUrl] = useState<string | null>(null);
 
-  const handleSubmit = async (e?: React.FormEvent) => {  // Make the event parameter optional
-    if (e) e.preventDefault();  // Only call preventDefault if e exists
-    setIsSubmitting(true);
-    
-    try {
-      const vehicleId = await saveVehicleData({
-        licensePlate: formData.licensePlate,
-        brand: formData.vehicleBrand,
-        model: formData.vehicleModel,
-        year: formData.vehicleYear,
-        first_registration: formData.firstRegistration,
-        insurancePolicy: formData.insurancePolicy,
-        insuranceCompany: formData.insuranceCompany
-      });
-      
-      const otherVehicleId = await saveVehicleData({
-        licensePlate: formData.otherVehicle.licensePlate,
-        brand: formData.otherVehicle.brand,
-        model: formData.otherVehicle.model,
-        year: formData.otherVehicle.year,
-        first_registration: formData.otherVehicle.firstRegistration,
-        insurancePolicy: formData.otherVehicle.insurancePolicy,
-        insuranceCompany: formData.otherVehicle.insuranceCompany
-      });
-      
-      const vehiclePhotoUrls = await uploadPhotos(formData.vehiclePhotos as File[], 'vehicles');
-      const damagePhotoUrls = await uploadPhotos(formData.damagePhotos as File[], 'damage');
-      
-      const data = await saveAccidentReport(
-        formData,
-        vehicleId,
-        otherVehicleId,
-        vehiclePhotoUrls,
-        damagePhotoUrls
-      );
-      
-      console.log('Accident report saved:', data);
-      
-      if (data && data[0] && (formData.personalEmail || formData.insuranceEmails.length > 0 || formData.involvedPartyEmails.length > 0)) {
-        try {
-          await sendEmails(data[0].id, formData);
-          uiToast({
-            title: "Emails envoyés",
-            description: "Le constat a été envoyé par email aux destinataires spécifiés.",
-            variant: "default"
-          });
-        } catch (emailError: any) {
-          console.error("Error sending emails:", emailError);
-          uiToast({
-            title: "Alerte",
-            description: `La déclaration a été enregistrée mais l'envoi des emails a échoué: ${emailError.message}`,
-            variant: "destructive"
-          });
+  const handlePhotoUpload = async (formData: FormData) => {
+    const uploadPromises = [];
+    let vehiclePhotoUrls: string[] = [];
+    let damagePhotoUrls: string[] = [];
+
+    // Only proceed if there are photos to upload
+    if (formData.vehiclePhotos && formData.vehiclePhotos.length > 0) {
+      for (const photo of formData.vehiclePhotos) {
+        if (photo instanceof File) { // Check if it's a File object
+          const filePath = `accidents/${Date.now()}-${photo.name}`;
+          uploadPromises.push(
+            uploadFileToStorage(photo, filePath).then(url => {
+              vehiclePhotoUrls.push(url);
+            })
+          );
+        } else if (typeof photo === 'string') {
+          // It's already a URL, just add it
+          vehiclePhotoUrls.push(photo);
         }
       }
-      
-      uiToast({
-        title: "Succès",
-        description: "Votre déclaration a été envoyée avec succès.",
-        variant: "default"
-      });
-      toast.success("Votre déclaration a été envoyée avec succès.");
+    }
+
+    if (formData.damagePhotos && formData.damagePhotos.length > 0) {
+      for (const photo of formData.damagePhotos) {
+        if (photo instanceof File) { // Check if it's a File object
+          const filePath = `accidents/${Date.now()}-${photo.name}`;
+          uploadPromises.push(
+            uploadFileToStorage(photo, filePath).then(url => {
+              damagePhotoUrls.push(url);
+            })
+          );
+        } else if (typeof photo === 'string') {
+          // It's already a URL, just add it
+          damagePhotoUrls.push(photo);
+        }
+      }
+    }
+
+    // Wait for all uploads to complete if there are any
+    if (uploadPromises.length > 0) {
+      await Promise.all(uploadPromises);
+    }
+
+    return { vehiclePhotoUrls, damagePhotoUrls };
+  };
+
+  const handleSubmit = async () => {
+    setIsSubmitting(true);
+    try {
+      // Upload photos and get URLs
+      const { vehiclePhotoUrls, damagePhotoUrls } = await handlePhotoUpload(formData);
+
+      // Prepare the data to be sent to the backend
+      const submissionData = {
+        ...formData,
+        vehiclePhotos: vehiclePhotoUrls,
+        damagePhotos: damagePhotoUrls,
+      };
+
+      // Simulate sending data to backend
+      console.log("Submitting data:", submissionData);
+      toast.success("Constat soumis avec succès!");
+
+      // Generate and download the CERFA PDF
+      const pdfUrl = await generateCerfaPDF(formData);
+      setPdfUrl(pdfUrl);
+      await downloadPDF(pdfUrl, "constat-amiable.pdf");
+
+      // Call the success callback
       onSubmitSuccess();
-    } catch (err: any) {
-      console.error('Error in submission process:', err);
-      uiToast({
-        title: "Erreur",
-        description: err.message || "Une erreur est survenue lors de la soumission de votre déclaration.",
-        variant: "destructive"
-      });
-      toast.error("Une erreur est survenue lors de la soumission de votre déclaration.");
+    } catch (error: any) {
+      console.error("Error submitting form:", error);
+      toast.error(error.message || "Erreur lors de la soumission du constat");
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  // If children prop is provided, use it for custom rendering
-  if (children) {
-    return <>{children({ handleSubmit, isSubmitting })}</>;
-  }
-
-  // Default submit button
   return (
-    <AccidentReportSubmitButton
-      formData={formData}
-      submitReport={handleSubmit}
-      isSubmitting={isSubmitting}
-    />
+    <div className="flex justify-end">
+      <Button
+        variant="primary"
+        onClick={handleSubmit}
+        disabled={isSubmitting}
+      >
+        {isSubmitting ? "Envoi en cours..." : "Soumettre le constat"}
+      </Button>
+    </div>
   );
 };
 

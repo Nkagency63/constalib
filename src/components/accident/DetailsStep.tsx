@@ -1,5 +1,4 @@
-
-import { AlertCircle, UserCheck, Bandage } from 'lucide-react';
+import { AlertCircle, UserCheck, Bandage, XCircle } from 'lucide-react';
 import { WitnessInfo } from './types';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -113,45 +112,47 @@ const DetailsStep = ({
 
             {hasWitnesses && (
               <div className="mt-4 space-y-4">
-                {witnesses.map((witness, index) => (
-                  <div key={index} className="space-y-2 border-b pb-4">
-                    <div className="flex justify-between items-center">
-                      <h5 className="font-medium">Témoin {index + 1}</h5>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => removeWitness(index)}
+                {witnesses.map((witness) => (
+                  <div key={witness.id} className="bg-white p-4 rounded-lg border border-gray-200 mb-4">
+                    <div className="flex justify-between mb-2">
+                      <h3 className="font-medium">Témoin {index + 1}</h3>
+                      <button 
+                        type="button"
+                        onClick={() => removeWitness(witness.id)}
                         className="text-red-500 hover:text-red-700"
                       >
-                        Supprimer
-                      </Button>
+                        <XCircle size={18} />
+                      </button>
                     </div>
-                    <div className="grid gap-2">
+                    
+                    <div className="space-y-4">
                       <div>
-                        <Label htmlFor={`witness-name-${index}`}>Nom complet</Label>
+                        <Label htmlFor={`witness-name-${witness.id}`}>Nom complet</Label>
                         <Input
-                          id={`witness-name-${index}`}
-                          value={witness.fullName}
-                          onChange={(e) => updateWitness(index, 'fullName', e.target.value)}
-                          placeholder="Nom et prénom"
+                          id={`witness-name-${witness.id}`}
+                          value={witness.name || ''}
+                          onChange={(e) => updateWitness(witness.id, 'name', e.target.value)}
+                          className="mt-1"
                         />
                       </div>
+                      
                       <div>
-                        <Label htmlFor={`witness-phone-${index}`}>Téléphone</Label>
+                        <Label htmlFor={`witness-phone-${witness.id}`}>Téléphone</Label>
                         <Input
-                          id={`witness-phone-${index}`}
+                          id={`witness-phone-${witness.id}`}
                           value={witness.phone}
-                          onChange={(e) => updateWitness(index, 'phone', e.target.value)}
+                          onChange={(e) => updateWitness(witness.id, 'phone', e.target.value)}
                           placeholder="Numéro de téléphone"
                           type="tel"
                         />
                       </div>
+                      
                       <div>
-                        <Label htmlFor={`witness-email-${index}`}>Email</Label>
+                        <Label htmlFor={`witness-email-${witness.id}`}>Email</Label>
                         <Input
-                          id={`witness-email-${index}`}
+                          id={`witness-email-${witness.id}`}
                           value={witness.email}
-                          onChange={(e) => updateWitness(index, 'email', e.target.value)}
+                          onChange={(e) => updateWitness(witness.id, 'email', e.target.value)}
                           placeholder="Adresse email"
                           type="email"
                         />

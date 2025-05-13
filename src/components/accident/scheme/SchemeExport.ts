@@ -54,7 +54,7 @@ export const captureSchemeAsDataUrl = async (): Promise<string | null> => {
 };
 
 // Fonction pour convertir une URL de données en Blob
-function dataURItoBlob(dataURI: string) {
+function dataURItoBlob(dataURI: string): Blob {
   // Séparer le type MIME de la donnée
   const byteString = atob(dataURI.split(',')[1]);
   const mimeString = dataURI.split(',')[0].split(':')[1].split(';')[0];
