@@ -7,6 +7,7 @@ import StepRenderer from './accident/StepRenderer';
 import { accidentFormSteps } from './accident/stepsConfig';
 import { useAccidentForm } from '@/hooks/useAccidentForm';
 import FormSubmissionHandler from './accident/FormSubmissionHandler';
+import { WitnessInfo } from './accident/types';
 
 interface AccidentFormProps {
   onEmergencyRequest?: () => void;

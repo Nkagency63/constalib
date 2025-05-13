@@ -1,83 +1,59 @@
 
 import { Vehicle } from '../types';
-import { VEHICLE_COLORS } from '../hooks/useVehicles';
 import { v4 as uuidv4 } from 'uuid';
-import { toast } from 'sonner';
 
-interface InitializeVehiclesProps {
-  formData: any;
-  vehiclesLength: number;
-  setVehicles: (vehicles: Vehicle[]) => void;
-  saveToHistory: (state: any) => void;
+// Helper function to generate random colors for vehicles
+function getRandomColor(): string {
+  const colors = [
+    '#3498db', // blue
+    '#e74c3c', // red
+    '#2ecc71', // green
+    '#f39c12', // orange
+    '#9b59b6', // purple
+    '#1abc9c', // teal
+  ];
+  return colors[Math.floor(Math.random() * colors.length)];
 }
 
-// Fonction pour initialiser les véhicules à partir des données de formulaire
-export const initializeVehicles = ({
-  formData,
-  vehiclesLength,
-  setVehicles,
-  saveToHistory
-}: InitializeVehiclesProps): boolean => {
-  // Si des véhicules existent déjà, ne pas initialiser
-  if (vehiclesLength > 0) {
-    return false;
-  }
+/**
+ * Initializes default vehicles based on form data
+ */
+export const initializeVehiclesFromFormData = (formData: any): Vehicle[] => {
+  const vehicles: Vehicle[] = [];
   
-  try {
-    // Vérifier si nous avons des informations sur les véhicules
-    if (formData?.vehicleBrand && formData?.otherVehicle?.brand) {
-      console.log("Initializing vehicles from form data:", formData.vehicleBrand, formData.otherVehicle.brand);
-      
-      // Coordonnées par défaut basées sur la géolocalisation ou Paris si non disponible
-      const lat = formData.geolocation?.lat || 48.8566;
-      const lng = formData.geolocation?.lng || 2.3522;
-      
-      // Créer le premier véhicule (A)
-      const vehicleA: Vehicle = {
-        id: uuidv4(),
-        position: [lat, lng - 0.0003],
-        color: VEHICLE_COLORS.A,
-        vehicleId: 'A',
-        rotation: 0,
-        isSelected: true,
-        vehicleType: 'car',
-        brand: formData.vehicleBrand,
-        model: formData.vehicleModel
-      };
-      
-      // Créer le second véhicule (B)
-      const vehicleB: Vehicle = {
-        id: uuidv4(),
-        position: [lat, lng + 0.0003],
-        color: VEHICLE_COLORS.B,
-        vehicleId: 'B',
-        rotation: 180, // Orienté dans l'autre sens
-        isSelected: false,
-        vehicleType: 'car',
-        brand: formData.otherVehicle.brand,
-        model: formData.otherVehicle.model
-      };
-      
-      // Mettre à jour l'état des véhicules
-      const newVehicles = [vehicleA, vehicleB];
-      setVehicles(newVehicles);
-      
-      // Sauvegarder dans l'historique
-      saveToHistory({
-        vehicles: newVehicles,
-        paths: [],
-        annotations: [],
-        center: [lat, lng],
-        zoom: 18
-      });
-      
-      toast.success('Véhicules initialisés à partir des données du formulaire');
-      return true;
-    }
-    return false;
-  } catch (error) {
-    console.error("Error initializing vehicles:", error);
-    toast.error("Erreur lors de l'initialisation des véhicules");
-    return false;
-  }
+  // Center coordinates from form data or default
+  const center: [number, number] = formData?.geolocation?.lat && formData?.geolocation?.lng
+    ? [formData.geolocation.lat, formData.geolocation.lng]
+    : [48.8566, 2.3522]; // Paris coordinates
+  
+  // Vehicle A - slightly to the left of center
+  const vehicleA: Vehicle = {
+    id: uuidv4(),
+    position: [center[0] - 0.0002, center[1] - 0.0002],
+    color: '#3498db', // blue
+    brand: formData.vehicleBrand || undefined,
+    model: formData.vehicleModel || undefined,
+    rotation: 45, // 45 degrees
+    isSelected: false,
+    vehicleId: 'A',
+    vehicleType: 'car'
+  };
+  
+  // Vehicle B - slightly to the right of center
+  const vehicleB: Vehicle = {
+    id: uuidv4(),
+    position: [center[0] + 0.0002, center[1] + 0.0002],
+    color: '#e74c3c', // red
+    brand: formData.otherVehicle?.brand || undefined,
+    model: formData.otherVehicle?.model || undefined,
+    rotation: 225, // 225 degrees (opposite direction)
+    isSelected: false,
+    vehicleId: 'B',
+    vehicleType: 'car'
+  };
+  
+  vehicles.push(vehicleA);
+  vehicles.push(vehicleB);
+  
+  return vehicles;
 };

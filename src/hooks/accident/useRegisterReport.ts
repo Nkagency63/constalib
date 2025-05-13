@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { toast } from "sonner";
 import { FormData } from "@/components/accident/types";
@@ -17,7 +16,7 @@ export const useRegisterReport = ({ formData, signatures }: UseRegisterReportPro
   const [showOfficialDialog, setShowOfficialDialog] = useState(false);
   const [referenceId, setReferenceId] = useState<string | null>(null);
 
-  const handleRegisterOfficial = async (schemeImageDataUrl: string | null) => {
+  const handleRegisterOfficial = async (schemeImageDataUrl: string | null = null) => {
     if (!signatures?.partyA || !signatures?.partyB) {
       toast.error("Les deux signatures sont nécessaires pour l'enregistrement officiel");
       return;
@@ -87,7 +86,8 @@ export const useRegisterReport = ({ formData, signatures }: UseRegisterReportPro
         injuries: formData.injuries || []
       };
 
-      const circumstances = {
+      // Format circumstances data properly
+      const circumstancesData = {
         vehicleA: formData.vehicleACircumstances || [],
         vehicleB: formData.vehicleBCircumstances || []
       };
@@ -109,7 +109,7 @@ export const useRegisterReport = ({ formData, signatures }: UseRegisterReportPro
         reportData, 
         vehicleA, 
         vehicleB, 
-        circumstances, 
+        circumstancesData, 
         geolocation,
         {
           participants,
@@ -125,7 +125,7 @@ export const useRegisterReport = ({ formData, signatures }: UseRegisterReportPro
       } else {
         throw new Error(result.error || "Failed to register official report");
       }
-    } catch (error: any) {
+    } catch (error) {
       console.error("Error registering official report:", error);
       toast.error(error.message || "Error registering official report");
     } finally {

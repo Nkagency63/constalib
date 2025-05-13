@@ -1,4 +1,3 @@
-
 import React from 'react';
 import BasicInfoStep from './BasicInfoStep';
 import LocationStep from './LocationStep';
@@ -36,30 +35,31 @@ interface StepRendererProps {
   removeWitness?: (index: number) => void;
 }
 
-const StepRenderer: React.FC<StepRendererProps> = ({ 
-  currentStepId, 
-  formData, 
+const StepRenderer: React.FC<StepRendererProps> = ({
+  currentStepId,
+  formData,
   handleInputChange,
   handleOtherVehicleChange,
-  handlePhotoUpload,
   setVehicleInfo,
   setOtherVehicleInfo,
   setGeolocation,
-  setInsuranceEmails,
-  setInvolvedPartyEmails,
-  setPersonalEmail,
-  onEmergencyContacted,
   handleCircumstanceChange,
   setCurrentVehicleId,
+  currentVehicleId,
   setHasInjuries,
   setInjuriesDescription,
   setHasWitnesses,
   updateWitness,
   addWitness,
-  removeWitness
+  removeWitness,
+  handlePhotoUpload,
+  setPersonalEmail,
+  setInsuranceEmails,
+  setInvolvedPartyEmails,
+  onEmergencyContacted,
 }) => {
   switch (currentStepId) {
-    case 'basics':
+    case "basics":
       return (
         <LocationStep
           date={formData.date || ''}
@@ -71,7 +71,7 @@ const StepRenderer: React.FC<StepRendererProps> = ({
         />
       );
 
-    case 'vehicles':
+    case "vehicles":
       return (
         <MultiVehicleStep 
           licensePlate={formData.licensePlate}
@@ -94,7 +94,7 @@ const StepRenderer: React.FC<StepRendererProps> = ({
         />
       );
 
-    case 'persons':
+    case "driver-insured":
       return (
         <DriverAndInsuredStep 
           formData={formData}
@@ -104,45 +104,20 @@ const StepRenderer: React.FC<StepRendererProps> = ({
         />
       );
 
-    case 'photos':
-      return (
-        <PhotosStep 
-          vehiclePhotos={formData.vehiclePhotos || []}
-          damagePhotos={formData.damagePhotos || []}
-          handlePhotoUpload={(type, file) => {
-            if (handlePhotoUpload) {
-              const fileList = new DataTransfer();
-              fileList.items.add(file);
-              handlePhotoUpload(type === 'vehiclePhotos' ? 'vehicle' : 'damage', fileList.files);
-            }
-          }}
-        />
-      );
-
-    case 'scheme':
-      return (
-        <SchemeStep 
-          formData={formData}
-        />
-      );
-
-    case 'circumstances':
+    case "circumstances":
       return (
         <CircumstancesStep 
           vehicleACircumstances={formData.vehicleACircumstances || []}
           vehicleBCircumstances={formData.vehicleBCircumstances || []}
-          handleCircumstanceChange={(vehicleId, circumstance) => {
-            if (handleCircumstanceChange) {
-              handleCircumstanceChange(vehicleId as 'A' | 'B', circumstance.id, true);
-            }
+          handleCircumstanceChange={(vehicleId, circumstanceId, checked) => {
+            handleCircumstanceChange?.(vehicleId, { id: circumstanceId.toString(), checked });
           }}
-          currentVehicleId={formData.currentVehicleId || 'A'} 
-          setCurrentVehicleId={setCurrentVehicleId || (() => {})}
-          circumstances={[]} 
+          currentVehicleId={currentVehicleId}
+          setCurrentVehicleId={setCurrentVehicleId}
         />
       );
 
-    case 'details':
+    case "details":
       return (
         <DetailsStep 
           description={formData.description || ''}
@@ -160,7 +135,29 @@ const StepRenderer: React.FC<StepRendererProps> = ({
         />
       );
 
-    case 'emails':
+    case "photos":
+      return (
+        <PhotosStep 
+          vehiclePhotos={formData.vehiclePhotos || []}
+          damagePhotos={formData.damagePhotos || []}
+          handlePhotoUpload={(type, file) => {
+            if (handlePhotoUpload) {
+              const fileList = new DataTransfer();
+              fileList.items.add(file);
+              handlePhotoUpload(type === 'vehiclePhotos' ? 'vehicle' : 'damage', fileList.files);
+            }
+          }}
+        />
+      );
+
+    case "scheme":
+      return (
+        <SchemeStep 
+          formData={formData}
+        />
+      );
+
+    case "email":
       return (
         <EmailStep 
           personalEmail={formData.personalEmail || ''}
@@ -172,12 +169,14 @@ const StepRenderer: React.FC<StepRendererProps> = ({
         />
       );
 
-    case 'review':
-      return <ReviewStep 
-        formData={formData} 
-        handleInputChange={handleInputChange} 
-        handlePhotoUpload={handlePhotoUpload || (() => {})}
-      />;
+    case "review":
+      return (
+        <ReviewStep 
+          formData={formData}
+          handleInputChange={handleInputChange}
+          handlePhotoUpload={handlePhotoUpload}
+        />
+      );
 
     default:
       return <div>Step not found</div>;

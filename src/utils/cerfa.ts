@@ -1,4 +1,3 @@
-
 import { FormData } from "@/components/accident/types";
 import { PDFDocument, rgb, StandardFonts } from "pdf-lib";
 
@@ -140,7 +139,9 @@ export async function generateCerfaPDF(
     // Ajouter les circonstances si disponibles
     if (formData.vehicleACircumstances?.length) {
       formData.vehicleACircumstances.forEach(circId => {
-        const circIndex = parseInt(circId);
+        // Convert to string if it's a Circumstance object
+        const circIdStr = typeof circId === 'string' ? circId : circId.id;
+        const circIndex = parseInt(circIdStr);
         if (!isNaN(circIndex) && circIndex >= 1 && circIndex <= 17) {
           const y = height - 430 - (circIndex - 1) * 15;
           page.drawText('X', {
@@ -155,7 +156,9 @@ export async function generateCerfaPDF(
     
     if (formData.vehicleBCircumstances?.length) {
       formData.vehicleBCircumstances.forEach(circId => {
-        const circIndex = parseInt(circId);
+        // Convert to string if it's a Circumstance object
+        const circIdStr = typeof circId === 'string' ? circId : circId.id;
+        const circIndex = parseInt(circIdStr);
         if (!isNaN(circIndex) && circIndex >= 1 && circIndex <= 17) {
           const y = height - 430 - (circIndex - 1) * 15;
           page.drawText('X', {

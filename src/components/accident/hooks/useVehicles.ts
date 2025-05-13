@@ -1,5 +1,4 @@
-
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import { Vehicle } from '../types';
 import { toast } from 'sonner';
@@ -16,7 +15,7 @@ export const useVehicles = () => {
   const [selectedVehicle, setSelectedVehicle] = useState<string | null>(null);
   const [currentVehicleType, setCurrentVehicleType] = useState<'car' | 'truck' | 'bike'>('car');
 
-  const addVehicle = (location: L.LatLng) => {
+  const addVehicle = useCallback((position: [number, number], type: VehicleType = 'car') => {
     if (vehicles.length >= Object.keys(VEHICLE_COLORS).length) {
       toast.warning(`Maximum de ${Object.keys(VEHICLE_COLORS).length} véhicules atteint`);
       return null;
@@ -34,11 +33,11 @@ export const useVehicles = () => {
     // Créer le nouveau véhicule avec une position précise
     const newVehicle: Vehicle = {
       id: uniqueId,
-      position: [location.lat, location.lng],
-      color: VEHICLE_COLORS['A'],
-      rotation: 0,
+      position: position,
+      color: getRandomColor(),
+      rotation: 0, // north is 0 degrees
       isSelected: true,
-      vehicleType: currentVehicleType
+      vehicleType: type
     };
 
     console.log("Creating new vehicle:", newVehicle);
@@ -58,7 +57,7 @@ export const useVehicles = () => {
     console.log("Updated vehicles list:", finalUpdatedVehicles);
     
     return finalUpdatedVehicles;
-  };
+  }, [vehicles]);
 
   const removeVehicle = (id: string) => {
     const vehicleToRemove = vehicles.find(v => v.id === id);
@@ -127,3 +126,8 @@ export const useVehicles = () => {
     VEHICLE_COLORS
   };
 };
+
+function getRandomColor(): string {
+  const colors = Object.values(VEHICLE_COLORS);
+  return colors[Math.floor(Math.random() * colors.length)];
+}

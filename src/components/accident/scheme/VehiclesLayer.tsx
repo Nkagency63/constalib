@@ -1,53 +1,80 @@
-
-import React, { useEffect } from 'react';
-import { Marker, useMap } from 'react-leaflet';
-import { createCarIcon } from '@/utils/mapIcons';
+import React from 'react';
+import { Marker, Popup, useMap } from 'react-leaflet';
+import L from 'leaflet';
 import { Vehicle } from '../types';
-import { ArrowLeft, ArrowRight, ArrowUp, ArrowDown, Trash2, Car, Truck, Bike } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { RotateCcw, RotateCw, Trash2 } from 'lucide-react';
 
 interface VehiclesLayerProps {
   vehicles: Vehicle[];
-  selectedVehicle: string | null;
-  readOnly: boolean;
-  onVehicleSelect: (id: string | null) => void;
-  onRemoveVehicle: (id: string) => void;
-  onRotateVehicle?: (id: string, degrees: number) => void;
-  onChangeVehicleType?: (type: 'car' | 'truck' | 'bike') => void;
+  selectedVehicleId: string | null;
+  onSelectVehicle: (vehicleId: string) => void;
+  onMoveVehicle: (vehicleId: string, position: [number, number]) => void;
+  onRotateVehicle: (vehicleId: string, rotation: number) => void;
+  onDeleteVehicle: (vehicleId: string) => void;
+  readOnly?: boolean;
 }
 
-const VehiclesLayer = ({
+// Helper function to create a vehicle icon
+const createVehicleIcon = (color: string, rotation: number, isSelected: boolean, vehicleType: string = 'car') => {
+  const svg = `
+    <svg
+      width="32"
+      height="32"
+      viewBox="0 0 32 32"
+      version="1.1"
+      xmlns="http://www.w3.org/2000/svg"
+      style="transform: rotate(${rotation}deg)"
+    >
+      <defs>
+        <filter id="shadow" x="-50%" y="-50%" width="200%" height="200%">
+          <feDropShadow dx="1" dy="1" stdDeviation="2" floodColor="#000000" floodOpacity="0.3"/>
+        </filter>
+      </defs>
+      ${isSelected ? '<circle cx="16" cy="16" r="15" fill="white" stroke="black" stroke-width="2" filter="url(#shadow)"/>' : ''}
+      <g transform="translate(16, 16) rotate(${rotation}) translate(-16, -16)">
+        ${vehicleType === 'car' ? `
+          <rect x="8" y="12" width="16" height="8" fill="${color}" stroke="black" stroke-width="1" stroke-linejoin="round"/>
+          <circle cx="12" cy="22" r="2" fill="black"/>
+          <circle cx="20" cy="22" r="2" fill="black"/>
+        ` : vehicleType === 'truck' ? `
+          <rect x="6" y="10" width="20" height="10" fill="${color}" stroke="black" stroke-width="1" stroke-linejoin="round"/>
+          <rect x="6" y="6" width="8" height="4" fill="${color}" stroke="black" stroke-width="1" stroke-linejoin="round"/>
+          <circle cx="12" cy="22" r="2" fill="black"/>
+          <circle cx="20" cy="22" r="2" fill="black"/>
+        ` : `
+          <path d="M16 4 L24 12 L8 12 Z" fill="${color}" stroke="black" stroke-width="1" stroke-linejoin="round"/>
+          <circle cx="16" cy="22" r="6" fill="${color}" stroke="black" stroke-width="1" stroke-linejoin="round"/>
+        `}
+      </g>
+    </svg>
+  `;
+
+  return L.divIcon({
+    html: svg,
+    className: 'vehicle-icon',
+    iconSize: [32, 32],
+    iconAnchor: [16, 16],
+  });
+};
+
+// Helper function to extract latlng from drag event
+const getLatLngFromEvent = (e: L.DragEndEvent): [number, number] => {
+  const marker = e.target;
+  const position = marker.getLatLng();
+  return [position.lat, position.lng];
+};
+
+const VehiclesLayer: React.FC<VehiclesLayerProps> = ({
   vehicles,
-  selectedVehicle,
-  readOnly,
-  onVehicleSelect,
-  onRemoveVehicle,
+  selectedVehicleId,
+  onSelectVehicle,
+  onMoveVehicle,
   onRotateVehicle,
-  onChangeVehicleType
-}: VehiclesLayerProps) => {
+  onDeleteVehicle,
+  readOnly = false,
+}) => {
   const map = useMap();
-  
-  const handleRotate = (id: string, degrees: number) => {
-    if (onRotateVehicle) {
-      onRotateVehicle(id, degrees);
-    }
-  };
-
-  const handleChangeVehicleType = (type: 'car' | 'truck' | 'bike') => {
-    if (onChangeVehicleType) {
-      onChangeVehicleType(type);
-    }
-  };
-
-  const selectedVehicleData = vehicles.find(v => v.id === selectedVehicle);
-  
-  // Forcer un rafraîchissement de la carte lorsque les véhicules changent
-  useEffect(() => {
-    if (vehicles.length > 0) {
-      setTimeout(() => {
-        map.invalidateSize();
-      }, 100);
-    }
-  }, [vehicles, map]);
 
   return (
     <>
@@ -55,89 +82,56 @@ const VehiclesLayer = ({
         <Marker
           key={vehicle.id}
           position={vehicle.position}
-          icon={createCarIcon(vehicle.color, vehicle.rotation, selectedVehicle === vehicle.id, vehicle.vehicleType)}
-          eventHandlers={{
-            click: () => !readOnly && onVehicleSelect(vehicle.id),
-          }}
+          icon={
+            createVehicleIcon(
+              vehicle.color,
+              vehicle.rotation,
+              vehicle.id === selectedVehicleId,
+              vehicle.vehicleType || 'car'
+            )
+          }
           draggable={!readOnly}
+          eventHandlers={{
+            click: () => !readOnly && onSelectVehicle(vehicle.id),
+            dragend: (e) => !readOnly && onMoveVehicle(vehicle.id, getLatLngFromEvent(e)),
+          }}
         >
-          {/* Information du véhicule accessible par les lecteurs d'écran */}
-          {vehicle.vehicleId && (
-            <div className="sr-only">
-              Véhicule {vehicle.vehicleId}
-              {vehicle.brand && vehicle.model && ` (${vehicle.brand} ${vehicle.model})`}
-            </div>
+          {vehicle.id === selectedVehicleId && !readOnly && (
+            <Popup closeButton={false} className="vehicle-popup">
+              <div className="flex flex-col space-y-2 p-1">
+                <div className="text-sm font-medium">
+                  {vehicle.vehicleId === 'A' ? 'Véhicule A' : vehicle.vehicleId === 'B' ? 'Véhicule B' : 'Véhicule'}
+                  {vehicle.brand && vehicle.model ? ` - ${vehicle.brand} ${vehicle.model}` : vehicle.brand || vehicle.model ? ` - ${vehicle.brand || vehicle.model}` : ''}
+                </div>
+                <div className="flex space-x-2">
+                  <Button
+                    size="sm"
+                    className="flex-1 p-1"
+                    onClick={() => onRotateVehicle(vehicle.id, -15)}
+                  >
+                    <RotateCcw className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    size="sm"
+                    className="flex-1 p-1"
+                    onClick={() => onDeleteVehicle(vehicle.id)}
+                    variant="destructive"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    size="sm"
+                    className="flex-1 p-1"
+                    onClick={() => onRotateVehicle(vehicle.id, 15)}
+                  >
+                    <RotateCw className="h-4 w-4" />
+                  </Button>
+                </div>
+              </div>
+            </Popup>
           )}
         </Marker>
       ))}
-
-      {selectedVehicle && !readOnly && (
-        <div className="absolute top-16 left-1/2 transform -translate-x-1/2 z-50 bg-white rounded-lg shadow-lg p-2">
-          <div className="flex flex-col space-y-2">
-            <div className="flex items-center justify-center space-x-2 border-b pb-2">
-              <button
-                onClick={() => handleChangeVehicleType('car')}
-                className={`p-1 rounded-full hover:bg-gray-100 ${selectedVehicleData?.vehicleType === 'car' ? 'bg-blue-100 text-blue-700' : ''}`}
-                title="Voiture"
-              >
-                <Car size={16} />
-              </button>
-              <button
-                onClick={() => handleChangeVehicleType('truck')}
-                className={`p-1 rounded-full hover:bg-gray-100 ${selectedVehicleData?.vehicleType === 'truck' ? 'bg-blue-100 text-blue-700' : ''}`}
-                title="Camion"
-              >
-                <Truck size={16} />
-              </button>
-              <button
-                onClick={() => handleChangeVehicleType('bike')}
-                className={`p-1 rounded-full hover:bg-gray-100 ${selectedVehicleData?.vehicleType === 'bike' ? 'bg-blue-100 text-blue-700' : ''}`}
-                title="Moto"
-              >
-                <Bike size={16} />
-              </button>
-            </div>
-            
-            <div className="flex items-center space-x-2">
-              <button
-                onClick={() => handleRotate(selectedVehicle, -45)}
-                className="p-1 rounded-full hover:bg-gray-100"
-                title="Tourner à gauche"
-              >
-                <ArrowLeft size={16} />
-              </button>
-              <button
-                onClick={() => handleRotate(selectedVehicle, -90)}
-                className="p-1 rounded-full hover:bg-gray-100"
-                title="Tourner vers le haut"
-              >
-                <ArrowUp size={16} />
-              </button>
-              <button
-                onClick={() => handleRotate(selectedVehicle, 90)}
-                className="p-1 rounded-full hover:bg-gray-100"
-                title="Tourner vers le bas"
-              >
-                <ArrowDown size={16} />
-              </button>
-              <button
-                onClick={() => handleRotate(selectedVehicle, 45)}
-                className="p-1 rounded-full hover:bg-gray-100"
-                title="Tourner à droite"
-              >
-                <ArrowRight size={16} />
-              </button>
-              <button
-                onClick={() => onRemoveVehicle(selectedVehicle)}
-                className="p-1 rounded-full hover:bg-red-100 text-red-500"
-                title="Supprimer le véhicule"
-              >
-                <Trash2 size={16} />
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </>
   );
 };

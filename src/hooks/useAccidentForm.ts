@@ -1,4 +1,3 @@
-
 import { useState, useMemo } from 'react';
 import { FormData } from '@/components/accident/types';
 import { useToast } from '@/hooks/use-toast';
@@ -97,7 +96,7 @@ export const useAccidentForm = () => {
     // Email form methods
     setPersonalEmail: emailForm.setPersonalEmail,
     setInsuranceEmails: emailForm.setInsuranceEmails,
-    setInvolvedPartyEmails: emailForm.setInvolvedPartyEmails,
+    setInvolvedPartyEmails: emailForm.setInsuranceEmails,
     
     // Emergency methods
     onEmergencyContacted: emergencyForm.onEmergencyContacted,
