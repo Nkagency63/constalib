@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import ProgressBar from './ProgressBar';
 import StepNavigation from './StepNavigation';

@@ -38,7 +38,7 @@ export interface MultiVehicleStepProps {
   otherVehicle: FormData['otherVehicle'];
   handleInputChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
   handleOtherVehicleChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
-  setVehicleInfo: (data: {brand: string, model: string, year: string, firstRegistration?: string}) => void;
+  setVehicleInfo: (data: { brand: string, model: string, year?: string, firstRegistration?: string }) => void;
   setOtherVehicleInfo: (data: Partial<FormData['otherVehicle']>) => void;
   onEmergencyContacted: () => void;
   vehicleId: 'A' | 'B';
