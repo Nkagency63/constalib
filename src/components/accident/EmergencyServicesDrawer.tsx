@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import {
@@ -11,7 +10,7 @@ import {
   DrawerTitle,
 } from '@/components/ui/drawer';
 import { Phone, Ambulance, AlertCircle, ShieldAlert } from 'lucide-react';
-import { toast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 
 interface EmergencyServicesDrawerProps {
   open: boolean;
