@@ -34,8 +34,7 @@ const CurrentLocationButton = ({
 
   const getCurrentLocation = () => {
     if (!navigator.geolocation) {
-      toast({
-        title: "Non supporté",
+      toast("Non supporté", {
         description: "La géolocalisation n'est pas supportée par votre navigateur",
         variant: "destructive",
       });
@@ -57,8 +56,7 @@ const CurrentLocationButton = ({
           address: address
         });
         
-        toast({
-          title: "Succès",
+        toast("Succès", {
           description: "Position actuelle récupérée",
         });
         setIsGettingCurrentLocation(false);
@@ -75,8 +73,7 @@ const CurrentLocationButton = ({
           message = "La demande a expiré";
         }
         
-        toast({
-          title: "Erreur",
+        toast("Erreur", {
           description: message,
           variant: "destructive",
         });
