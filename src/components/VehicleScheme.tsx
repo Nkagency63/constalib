@@ -1,8 +1,8 @@
 
 import { toast } from 'sonner';
-import InteractiveScheme from './accident/InteractiveScheme';
-import { SchemeData } from './accident/types';
 import { useState } from 'react';
+import SchemeContainer from './accident/scheme/SchemeContainer';
+import { SchemeData } from './accident/types';
 
 const VehicleScheme = () => {
   // Données par défaut (Paris)
@@ -21,12 +21,24 @@ const VehicleScheme = () => {
   };
 
   const [hasShownSaveToast, setHasShownSaveToast] = useState(false);
+  const [schemeData, setSchemeData] = useState<SchemeData>({
+    vehicles: [],
+    paths: [],
+    annotations: [],
+    center: [48.8566, 2.3522],
+    zoom: 17
+  });
 
-  const handleSchemeUpdate = (schemeData: SchemeData) => {
-    console.log('Scheme data updated:', schemeData);
+  const handleSchemeUpdate = (updatedSchemeData: SchemeData) => {
+    console.log('Scheme data updated:', updatedSchemeData);
+    setSchemeData(updatedSchemeData);
     
     // N'afficher le toast que lors de la première modification
-    if (!hasShownSaveToast) {
+    if (!hasShownSaveToast && (
+      updatedSchemeData.vehicles.length > 0 || 
+      updatedSchemeData.paths.length > 0 || 
+      updatedSchemeData.annotations.length > 0
+    )) {
       toast("Schéma enregistré", {
         description: "Les modifications sont sauvegardées automatiquement"
       });
@@ -36,10 +48,13 @@ const VehicleScheme = () => {
 
   return (
     <div className="w-full">
-      <InteractiveScheme 
-        formData={demoFormData}
-        onUpdateSchemeData={handleSchemeUpdate}
-      />
+      <div className="bg-white p-4 rounded-lg border border-gray-200 mb-4">
+        <SchemeContainer 
+          formData={demoFormData}
+          onSchemeUpdate={handleSchemeUpdate}
+          initialData={schemeData}
+        />
+      </div>
       
       <div className="text-sm text-constalib-dark-gray mt-4">
         <p>Glissez les véhicules pour les positionner. Utilisez les outils pour les faire pivoter ou les supprimer.</p>

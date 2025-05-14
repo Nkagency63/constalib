@@ -1,70 +1,59 @@
 
 import React from 'react';
 import { Marker, LayerGroup } from 'react-leaflet';
-import L, { Icon, DivIcon } from 'leaflet';
+import L from 'leaflet';
 import { Vehicle } from '../types';
-import VehicleIcon from './VehicleIcon';
+import { createCarIcon } from '@/utils/mapIcons';
+import { toast } from 'sonner';
 
 interface VehiclesLayerProps {
   vehicles: Vehicle[];
-  selectedVehicleId?: string;
+  selectedVehicleId?: string | null;
   onVehicleSelect: (id: string) => void;
-  onVehicleMove?: (id: string, position: [number, number]) => void;
-  readOnly?: boolean;
   onRemoveVehicle?: (id: string) => void;
   onRotateVehicle?: (id: string, degrees: number) => void;
-  onChangeVehicleType?: (id: string, type: 'car' | 'truck' | 'bike') => void;
+  onChangeVehicleType?: (type: 'car' | 'truck' | 'bike') => void;
+  readOnly?: boolean;
+  onVehicleMove?: (id: string, position: [number, number]) => void;
 }
 
 const VehiclesLayer: React.FC<VehiclesLayerProps> = ({
   vehicles,
   selectedVehicleId,
   onVehicleSelect,
-  onVehicleMove,
-  readOnly = false,
   onRemoveVehicle,
   onRotateVehicle,
-  onChangeVehicleType
+  readOnly = false
 }) => {
-  const createVehicleIcon = (vehicle: Vehicle) => {
-    // Create a custom icon for the vehicle
-    const iconHtml = document.createElement('div');
-    const vehicleIconSvg = VehicleIcon({ 
-      type: vehicle.type, 
-      rotation: vehicle.rotation, 
-      color: vehicle.color,
-      selected: vehicle.id === selectedVehicleId
-    });
-    
-    iconHtml.innerHTML = `
-      <div class="vehicle-icon" style="transform: rotate(${vehicle.rotation}deg)">
-        ${typeof vehicleIconSvg === 'string' ? vehicleIconSvg : ''}
-      </div>
-    `;
-    
-    return new DivIcon({
-      html: iconHtml.innerHTML,
-      className: `vehicle-marker ${vehicle.id === selectedVehicleId ? 'selected' : ''}`,
-      iconSize: [30, 30],
-      iconAnchor: [15, 15]
-    });
-  };
-
   return (
     <LayerGroup>
       {vehicles.map((vehicle) => (
         <Marker
           key={vehicle.id}
           position={vehicle.position}
-          icon={createVehicleIcon(vehicle)}
+          icon={createCarIcon(
+            vehicle.color, 
+            vehicle.rotation, 
+            vehicle.id === selectedVehicleId,
+            vehicle.type
+          )}
           eventHandlers={{
-            click: () => onVehicleSelect(vehicle.id),
-            // Handle dragging for editable vehicles
-            drag: (e) => {
-              if (onVehicleMove && !readOnly) {
+            click: () => {
+              onVehicleSelect(vehicle.id);
+              console.log("Vehicle selected:", vehicle.id);
+            },
+            dragend: (e) => {
+              if (!readOnly && e.target) {
                 const marker = e.target;
-                const position = marker.getLatLng();
-                onVehicleMove(vehicle.id, [position.lat, position.lng]);
+                const latLng = marker.getLatLng();
+                // Update vehicle position in parent component if needed
+                console.log("Vehicle moved to:", [latLng.lat, latLng.lng]);
+                toast("Position du véhicule mise à jour");
+              }
+            },
+            dragstart: () => {
+              if (!readOnly) {
+                onVehicleSelect(vehicle.id);
               }
             }
           }}

@@ -1,6 +1,7 @@
 
 import { useRef, useCallback } from 'react';
 import L from 'leaflet';
+import { toast } from 'sonner';
 import { Vehicle } from '../types';
 
 interface UseSchemeMapProps {
@@ -12,8 +13,12 @@ interface UseSchemeMapProps {
 export const useSchemeMap = ({ readOnly, handleMapClick, onReady }: UseSchemeMapProps) => {
   const mapRef = useRef<L.Map | null>(null);
   const drawingLayerRef = useRef<L.LayerGroup | null>(null);
+  const mapReadyCalledRef = useRef<boolean>(false);
 
   const handleMapReady = useCallback((map: L.Map) => {
+    if (mapReadyCalledRef.current) return;
+    mapReadyCalledRef.current = true;
+    
     console.log("Map initialization started");
     mapRef.current = map;
     
@@ -50,36 +55,39 @@ export const useSchemeMap = ({ readOnly, handleMapClick, onReady }: UseSchemeMap
         v.position && Array.isArray(v.position) && v.position.length === 2
       );
       
-      if (validVehicles.length === 0) return;
+      if (validVehicles.length === 0) {
+        toast("Pas de véhicules à centrer sur la carte", {
+          description: "Ajoutez des véhicules pour utiliser cette fonction"
+        });
+        return;
+      }
       
+      // Create a bounds object from all vehicle positions
       const bounds = L.latLngBounds(
         validVehicles.map(v => L.latLng(v.position))
       );
       
       if (bounds.isValid()) {
-        // Slightly pad the bounds for better visibility
+        // Add some padding to the bounds
         bounds.pad(0.2);
         
-        // Set a timeout to ensure the map is fully initialized
-        setTimeout(() => {
-          if (mapRef.current) {
-            // Use fitBounds for more reliable behavior
-            mapRef.current.fitBounds(bounds, {
-              padding: [50, 50],
-              maxZoom: 18
-            });
-            
-            // Force a map refresh
-            mapRef.current.invalidateSize();
-          }
-        }, 300);
+        // Fit the map to the bounds with animation
+        mapRef.current.fitBounds(bounds, {
+          padding: [50, 50],
+          maxZoom: 18,
+          animate: true,
+          duration: 0.5
+        });
+        
+        toast("Carte centrée sur les véhicules", {
+          description: `${validVehicles.length} véhicule(s) visible(s)`
+        });
         
         console.log("Map centered on vehicles successfully");
-      } else {
-        console.warn("Could not create valid bounds for vehicles");
       }
     } catch (error) {
       console.error("Error centering on vehicles:", error);
+      toast.error("Erreur lors du centrage de la carte");
     }
   }, []);
 
