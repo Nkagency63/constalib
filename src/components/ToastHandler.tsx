@@ -1,15 +1,9 @@
 
 import React from 'react';
-import { Toaster as SonnerToaster } from 'sonner';
-import { Toaster } from "@/components/ui/toaster";
+import { Toaster } from 'sonner';
 
 const ToastHandler = () => {
-  return (
-    <>
-      <SonnerToaster position="top-right" />
-      <Toaster />
-    </>
-  );
+  return <Toaster position="top-right" />;
 };
 
 export default ToastHandler;

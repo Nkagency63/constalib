@@ -2,7 +2,7 @@
 import React from 'react';
 import { FormData, SchemeData } from './types';
 import SchemeContainer from './scheme/SchemeContainer';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 
 interface SchemeStepProps {
   formData: FormData;
@@ -10,7 +10,6 @@ interface SchemeStepProps {
 }
 
 const SchemeStep: React.FC<SchemeStepProps> = ({ formData, onSchemeUpdate }) => {
-  const { toast } = useToast();
   
   const handleSchemeUpdate = (schemeData: SchemeData) => {
     console.log('Scheme data saved:', schemeData);

@@ -1,5 +1,5 @@
 
-import { useToast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 import InteractiveScheme from './accident/InteractiveScheme';
 import { SchemeData } from './accident/types';
 import { useState } from 'react';
@@ -20,7 +20,6 @@ const VehicleScheme = () => {
     }
   };
 
-  const { toast } = useToast();
   const [hasShownSaveToast, setHasShownSaveToast] = useState(false);
 
   const handleSchemeUpdate = (schemeData: SchemeData) => {
@@ -28,8 +27,7 @@ const VehicleScheme = () => {
     
     // N'afficher le toast que lors de la première modification
     if (!hasShownSaveToast) {
-      toast({
-        title: "Schéma enregistré",
+      toast("Schéma enregistré", {
         description: "Les modifications sont sauvegardées automatiquement"
       });
       setHasShownSaveToast(true);
