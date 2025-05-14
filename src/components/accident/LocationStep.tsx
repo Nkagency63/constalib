@@ -1,12 +1,19 @@
-import React from 'react';
+
+import React, { useState } from 'react';
+import { MapPin } from 'lucide-react';
+import CurrentLocationButton from './CurrentLocationButton';
+import GeocodingButton from './GeocodingButton';
+import LocationDisplay from './LocationDisplay';
+import AccidentMap from './AccidentMap';
+import { Dialog, DialogContent } from "@/components/ui/dialog";
 
 export interface LocationStepProps {
   date: string;
   time: string;
   location: string;
   geolocation: {
-    lat: number;
-    lng: number;
+    lat: number | null;
+    lng: number | null;
     address: string;
   };
   handleInputChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
@@ -21,13 +28,7 @@ const LocationStep: React.FC<LocationStepProps> = ({
   handleInputChange,
   setGeolocation
 }) => {
-  const handleMapClick = (lat: number, lng: number, address: string) => {
-    setGeolocation({
-      lat,
-      lng,
-      address
-    });
-  };
+  const [isMapVisible, setIsMapVisible] = useState(false);
 
   return (
     <div className="space-y-6">
@@ -63,9 +64,12 @@ const LocationStep: React.FC<LocationStepProps> = ({
       </div>
 
       <div>
-        <label htmlFor="location" className="block text-sm font-medium text-constalib-dark mb-1">
-          Lieu de l'accident
-        </label>
+        <div className="flex justify-between items-center">
+          <label htmlFor="location" className="block text-sm font-medium text-constalib-dark mb-1">
+            Lieu de l'accident
+          </label>
+          <GeocodingButton location={location} setGeolocation={setGeolocation} />
+        </div>
         <input
           type="text"
           id="location"
@@ -78,29 +82,33 @@ const LocationStep: React.FC<LocationStepProps> = ({
         />
       </div>
 
-      <div className="border rounded-md p-4 bg-gray-50">
-        <h3 className="text-sm font-medium text-constalib-dark mb-2">Localisation sur la carte</h3>
-        <div className="h-64 bg-gray-200 rounded-md mb-2 relative">
-          {/* Map component would go here */}
-          <div className="absolute inset-0 flex items-center justify-center">
-            <p className="text-gray-500">Carte de localisation</p>
+      <CurrentLocationButton setGeolocation={setGeolocation} />
+      
+      {geolocation.lat && geolocation.lng && (
+        <LocationDisplay geolocation={geolocation} setMapVisible={setIsMapVisible} />
+      )}
+
+      <Dialog open={isMapVisible} onOpenChange={setIsMapVisible}>
+        <DialogContent className="sm:max-w-[700px] sm:max-h-[80vh] overflow-y-auto">
+          <div className="p-2">
+            <h2 className="text-xl font-semibold mb-4">Localisation de l'accident</h2>
+            {geolocation.lat && geolocation.lng && (
+              <AccidentMap 
+                lat={geolocation.lat} 
+                lng={geolocation.lng}
+                address={geolocation.address}
+              />
+            )}
           </div>
-        </div>
-        <div className="text-sm text-gray-500">
-          {geolocation.address ? (
-            <p>Adresse sélectionnée: {geolocation.address}</p>
-          ) : (
-            <p>Cliquez sur la carte pour sélectionner l'emplacement exact de l'accident</p>
-          )}
-        </div>
-      </div>
+        </DialogContent>
+      </Dialog>
 
       <div className="bg-blue-50 border border-blue-100 rounded-md p-4">
         <h4 className="text-sm font-medium text-blue-800 mb-1">Conseil</h4>
         <p className="text-sm text-blue-700">
           Soyez aussi précis que possible concernant le lieu de l'accident. 
-          Incluez le nom de la rue, le numéro, la ville et toute information 
-          supplémentaire qui pourrait aider à localiser l'accident avec précision.
+          Utilisez le bouton "Utiliser ma position actuelle" pour localiser automatiquement votre position.
+          Vous pouvez également saisir manuellement une adresse et la géolocaliser.
         </p>
       </div>
     </div>

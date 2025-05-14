@@ -2,7 +2,7 @@
 import { useState } from 'react';
 import { MapPin, Loader2 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
-import { toast } from 'sonner';
+import { toast } from '@/components/ui/use-toast';
 import { Button } from "@/components/ui/button";
 
 interface CurrentLocationButtonProps {
@@ -34,7 +34,11 @@ const CurrentLocationButton = ({
 
   const getCurrentLocation = () => {
     if (!navigator.geolocation) {
-      toast.error("La géolocalisation n'est pas supportée par votre navigateur");
+      toast({
+        title: "Non supporté",
+        description: "La géolocalisation n'est pas supportée par votre navigateur",
+        variant: "destructive",
+      });
       return;
     }
 
@@ -53,7 +57,10 @@ const CurrentLocationButton = ({
           address: address
         });
         
-        toast.success("Position actuelle récupérée");
+        toast({
+          title: "Succès",
+          description: "Position actuelle récupérée",
+        });
         setIsGettingCurrentLocation(false);
       },
       error => {
@@ -68,7 +75,11 @@ const CurrentLocationButton = ({
           message = "La demande a expiré";
         }
         
-        toast.error(message);
+        toast({
+          title: "Erreur",
+          description: message,
+          variant: "destructive",
+        });
         setIsGettingCurrentLocation(false);
       },
       {

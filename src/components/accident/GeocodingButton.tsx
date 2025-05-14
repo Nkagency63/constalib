@@ -2,7 +2,7 @@
 import { useState } from 'react';
 import { Search, Loader2 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
-import { toast } from 'sonner';
+import { toast } from '@/components/ui/use-toast';
 import { Button } from "@/components/ui/button";
 
 interface GeocodingButtonProps {
@@ -18,7 +18,11 @@ const GeocodingButton = ({
   
   const geocodeAddress = async () => {
     if (!location) {
-      toast.error("Veuillez saisir une adresse");
+      toast({
+        title: "Adresse requise",
+        description: "Veuillez saisir une adresse",
+        variant: "destructive",
+      });
       return;
     }
 
@@ -30,7 +34,11 @@ const GeocodingButton = ({
       });
 
       if (error) {
-        toast.error("Erreur lors de la géolocalisation");
+        toast({
+          title: "Erreur",
+          description: "Erreur lors de la géolocalisation",
+          variant: "destructive",
+        });
         console.error('Error geocoding address:', error);
         return;
       }
@@ -41,13 +49,24 @@ const GeocodingButton = ({
           lng: data.data.lng,
           address: data.data.formatted_address
         });
-        toast.success("Adresse géolocalisée avec succès");
+        toast({
+          title: "Succès",
+          description: "Adresse géolocalisée avec succès",
+        });
       } else {
-        toast.error(data.message || "Impossible de géolocaliser cette adresse");
+        toast({
+          title: "Erreur",
+          description: data.message || "Impossible de géolocaliser cette adresse",
+          variant: "destructive",
+        });
       }
     } catch (err) {
       console.error('Error in geocoding:', err);
-      toast.error("Une erreur est survenue");
+      toast({
+        title: "Erreur",
+        description: "Une erreur est survenue",
+        variant: "destructive",
+      });
     } finally {
       setIsLoading(false);
     }
