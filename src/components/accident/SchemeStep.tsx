@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { FormData, SchemeData } from './types';
 import SchemeContainer from './scheme/SchemeContainer';
-import { toast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 
 interface SchemeStepProps {
   formData: FormData;
@@ -21,9 +21,7 @@ const SchemeStep: React.FC<SchemeStepProps> = ({ formData, onSchemeUpdate }) => 
       schemeData.paths.length > 0 || 
       schemeData.annotations.length > 0
     )) {
-      toast({
-        description: "Les modifications sont enregistrées automatiquement"
-      });
+      toast("Les modifications sont enregistrées automatiquement");
       setHasShownUpdateToast(true);
     }
     

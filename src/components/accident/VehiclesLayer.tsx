@@ -2,9 +2,9 @@
 import React from 'react';
 import { Marker, LayerGroup } from 'react-leaflet';
 import L from 'leaflet';
-import { Vehicle } from '../types';
+import { Vehicle } from './types';
 import { createCarIcon } from '@/utils/mapIcons';
-import { toast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 
 interface VehiclesLayerProps {
   vehicles: Vehicle[];
@@ -48,9 +48,7 @@ const VehiclesLayer: React.FC<VehiclesLayerProps> = ({
                 const latLng = marker.getLatLng();
                 // Update vehicle position in parent component if needed
                 console.log("Vehicle moved to:", [latLng.lat, latLng.lng]);
-                toast({
-                  description: "Position du véhicule mise à jour"
-                });
+                toast("Position du véhicule mise à jour");
               }
             },
             dragstart: () => {

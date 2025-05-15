@@ -67,10 +67,6 @@ const SchemeMapWrapper: React.FC<SchemeMapWrapperProps> = ({
             style={{ height: '100%', width: '100%', minHeight: '350px' }}
             attributionControl={false}
             zoomControl={true}
-            whenReady={(e) => {
-              console.log("Map created");
-              return e.target;
-            }}
           >
             <TileLayer
               url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
