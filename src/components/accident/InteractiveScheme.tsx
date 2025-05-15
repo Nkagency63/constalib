@@ -1,6 +1,5 @@
 
 import React from 'react';
-import 'leaflet/dist/leaflet.css';
 import 'leaflet';
 import L from 'leaflet';
 import SchemeContainer from './scheme/SchemeContainer';
