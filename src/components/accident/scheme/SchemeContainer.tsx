@@ -90,11 +90,15 @@ const SchemeContainer: React.FC<SchemeContainerProps> = ({
   };
   
   // Map ready handler
-  const handleMapReady = () => {
+  const handleMapReady = (map: L.Map) => {
     // Initialize the drawing layer if needed
-    if (!drawingLayerRef.current && vehiclesHook.vehicles.length > 0) {
+    if (!drawingLayerRef.current) {
+      drawingLayerRef.current = L.layerGroup().addTo(map);
+      
       // Center map on vehicles when ready
-      centerOnVehicles(vehiclesHook.vehicles);
+      if (vehiclesHook.vehicles.length > 0) {
+        centerOnVehicles(vehiclesHook.vehicles);
+      }
     }
   };
   
@@ -127,25 +131,12 @@ const SchemeContainer: React.FC<SchemeContainerProps> = ({
     }
   };
   
-  // Map initialization function used with useSchemeMap hook
-  const onMapReadyInit = (map: L.Map) => {
-    console.log("Map ready, initializing components");
-    
-    // Set the drawing layer ref
-    if (!drawingLayerRef.current) {
-      drawingLayerRef.current = L.layerGroup().addTo(map);
-    }
-    
-    // Execute the handleMapReady function
-    handleMapReady();
-  };
-  
-  // Integration with useSchemeMap hook - Fix the type mismatch here
+  // Integration with useSchemeMap hook
   const { handleMapReady: handleMapReadyFromHook, centerOnVehicles: centerOnVehiclesFromHook } = 
     useSchemeMap({ 
       readOnly, 
       handleMapClick, 
-      onReady: onMapReadyInit // This is where the type mismatch was happening
+      onReady: handleMapReady
     });
 
   // Update parent with current scheme data
