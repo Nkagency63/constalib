@@ -16,7 +16,11 @@ export const useSchemeMap = ({ readOnly, handleMapClick, onReady }: UseSchemeMap
   const mapReadyCalledRef = useRef<boolean>(false);
 
   const handleMapReady = useCallback((map: L.Map) => {
-    if (mapReadyCalledRef.current) return;
+    if (mapReadyCalledRef.current) {
+      console.log("Map ready has already been called, ignoring");
+      return;
+    }
+    
     mapReadyCalledRef.current = true;
     
     console.log("Map initialization started");
@@ -24,24 +28,36 @@ export const useSchemeMap = ({ readOnly, handleMapClick, onReady }: UseSchemeMap
     
     // Configure event handlers if not readonly
     if (!readOnly && mapRef.current) {
-      // Make sure to remove any previous click handlers first
-      mapRef.current.off('click');
-      // Then add our new click handler
-      mapRef.current.on('click', handleMapClick);
-      console.log("Map click handler registered");
+      try {
+        // Make sure to remove any previous click handlers first
+        mapRef.current.off('click');
+        // Then add our new click handler
+        mapRef.current.on('click', handleMapClick);
+        console.log("Map click handler registered");
+      } catch (error) {
+        console.error("Error setting up map click handler:", error);
+      }
     }
     
     // Ensure map is properly sized
-    setTimeout(() => {
-      if (mapRef.current) {
-        mapRef.current.invalidateSize();
-        console.log("Map size invalidated");
-      }
-    }, 300);
+    try {
+      setTimeout(() => {
+        if (mapRef.current) {
+          mapRef.current.invalidateSize();
+          console.log("Map size invalidated");
+        }
+      }, 300);
+    } catch (error) {
+      console.error("Error invalidating map size:", error);
+    }
     
     // Call the onReady callback to initialize the map with the map object
-    onReady(map);
-    console.log("Map initialization completed");
+    try {
+      onReady(map);
+      console.log("Map initialization completed");
+    } catch (error) {
+      console.error("Error calling onReady callback:", error);
+    }
   }, [readOnly, handleMapClick, onReady]);
 
   const centerOnVehicles = useCallback((vehicles: Vehicle[]) => {

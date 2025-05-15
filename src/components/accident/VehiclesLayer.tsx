@@ -2,7 +2,7 @@
 import React from 'react';
 import { Marker, LayerGroup } from 'react-leaflet';
 import L from 'leaflet';
-import { Vehicle } from '../types';
+import { Vehicle } from './types/scheme';
 import { createCarIcon } from '@/utils/mapIcons';
 import { toast } from '@/hooks/use-toast';
 

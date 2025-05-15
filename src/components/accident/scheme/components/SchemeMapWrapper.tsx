@@ -6,8 +6,8 @@ import SchemeInfo from '../SchemeInfo';
 import SchemeGuide from '../SchemeGuide';
 import StepByStepGuide from '../StepByStepGuide';
 import KeyboardShortcuts from '../KeyboardShortcuts';
-import { Vehicle, Path, Annotation } from '../../types';
-import VehiclesLayer from '../VehiclesLayer';
+import { Vehicle, Path, Annotation } from '../../types/scheme';
+import VehiclesLayer from '../../VehiclesLayer';
 import PathsLayer from '../PathsLayer';
 import AnnotationsLayer from '../AnnotationsLayer';
 import MapInitializer from '../../MapInitializer';
@@ -59,6 +59,7 @@ const SchemeMapWrapper: React.FC<SchemeMapWrapperProps> = ({
       <TooltipProvider>
         <div className="h-full w-full">
           <MapContainer
+            key={`map-${center[0]}-${center[1]}`} // Ajout d'une clé unique pour forcer la réinitialisation
             center={center}
             zoom={17}
             style={{ height: '100%', width: '100%', minHeight: '400px' }}

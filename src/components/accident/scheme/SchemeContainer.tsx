@@ -1,4 +1,3 @@
-
 import React, { useEffect } from 'react';
 import { SchemeData } from '../types';
 import { useSchemeContainer } from './hooks/useSchemeContainer';
@@ -32,33 +31,35 @@ const SchemeContainer: React.FC<SchemeContainerProps> = ({
   
   // Log formData to debug geolocation issues
   useEffect(() => {
-    if (formData?.geolocation) {
-      console.log("SchemeContainer received geolocation:", formData.geolocation);
-    }
+    console.log("SchemeContainer formData:", formData);
     
-    // If we have geolocation but the map isn't centered on it yet
+    // Si nous avons des données de géolocalisation mais que la carte n'est pas encore centrée dessus
     if (formData?.geolocation?.lat && 
-        formData?.geolocation?.lng && 
-        schemeState.mapRef.current) {
-          
+        formData?.geolocation?.lng) {
+      
       const targetLat = formData.geolocation.lat;
       const targetLng = formData.geolocation.lng;
       
-      console.log("Attempting to center map on:", [targetLat, targetLng]);
+      console.log("Geolocation data available:", [targetLat, targetLng]);
       
-      // Force update map center with a slight delay to ensure map is initialized
+      // Mettre à jour le centre de la carte avec un léger délai
       setTimeout(() => {
-        if (schemeState.mapRef.current) {
-          console.log("Setting map center to:", [targetLat, targetLng]);
-          schemeState.mapRef.current.setView([targetLat, targetLng], 17);
-          toast({
-            title: "Carte mise à jour",
-            description: "La carte a été centrée sur la position indiquée"
-          });
-        } else {
-          console.error("Map reference not available when trying to center");
+        try {
+          if (schemeState.mapRef.current) {
+            console.log("Setting map view to geolocation:", [targetLat, targetLng]);
+            schemeState.mapRef.current.setView([targetLat, targetLng], 17);
+            
+            toast({
+              title: "Carte mise à jour",
+              description: "La carte a été centrée sur la position indiquée"
+            });
+          } else {
+            console.warn("Map reference not available yet");
+          }
+        } catch (error) {
+          console.error("Error setting map view:", error);
         }
-      }, 800); // Increased delay for better initialization
+      }, 800);
     }
   }, [formData?.geolocation, schemeState.mapRef]);
   

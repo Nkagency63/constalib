@@ -1,7 +1,6 @@
-
 import {
   type ToastActionElement,
-  ToastProps as UIToastProps,
+  type ToastProps,
 } from "@/components/ui/toast";
 
 import {
@@ -18,8 +17,7 @@ type ToasterToastProps = {
   action?: ToastActionElement;
 };
 
-// Use the type from ui/toast.tsx but rename it to avoid the conflict
-type ToasterToast = UIToastProps & ToasterToastProps;
+type ToasterToast = ToastProps & ToasterToastProps;
 
 const actionTypes = {
   ADD_TOAST: "ADD_TOAST",
@@ -141,9 +139,8 @@ function dispatch(action: Action) {
   });
 }
 
-// Use our custom type for toast props
 interface ToastOptions {
-  title?: React.ReactNode;
+  title?: string;
   description?: React.ReactNode;
   action?: ToastActionElement;
   variant?: "default" | "destructive";
@@ -169,7 +166,7 @@ function toast(props: ToastOptions) {
       onOpenChange: (open) => {
         if (!open) dismiss();
       },
-    },
+    } as ToasterToast,
   });
 
   return {
