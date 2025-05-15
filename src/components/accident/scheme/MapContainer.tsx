@@ -51,13 +51,9 @@ const MapContainer = ({
       zoom={zoom}
       style={{ height: '400px', width: '100%' }}
       className="z-0"
-      // Explicitly disable all controls to avoid issues
+      // Disable zoom controls at initialization time
       zoomControl={false}
       attributionControl={false}
-      doubleClickZoom={false}
-      dragging={!readOnly}
-      touchZoom={!readOnly}
-      scrollWheelZoom={!readOnly}
     >
       <TileLayer
         attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'

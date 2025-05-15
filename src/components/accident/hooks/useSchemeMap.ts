@@ -17,16 +17,13 @@ export const useSchemeMap = ({ readOnly, handleMapClick, onReady }: UseSchemeMap
     console.log("Map initialization started");
     mapRef.current = map;
     
-    // Configure event handlers if not readonly
+    // Configurer les gestionnaires d'événements si non en lecture seule
     if (!readOnly && mapRef.current) {
-      // Make sure to remove any previous click handlers first
-      mapRef.current.off('click');
-      // Then add our new click handler
       mapRef.current.on('click', handleMapClick);
       console.log("Map click handler registered");
     }
     
-    // Ensure map is properly sized
+    // S'assurer que la carte est correctement dimensionnée
     setTimeout(() => {
       if (mapRef.current) {
         mapRef.current.invalidateSize();
@@ -34,7 +31,7 @@ export const useSchemeMap = ({ readOnly, handleMapClick, onReady }: UseSchemeMap
       }
     }, 100);
     
-    // Call the onReady callback to initialize the map
+    // Appeler le callback onReady pour initialiser la carte
     onReady();
     console.log("Map initialization completed");
   }, [readOnly, handleMapClick, onReady]);
@@ -45,20 +42,20 @@ export const useSchemeMap = ({ readOnly, handleMapClick, onReady }: UseSchemeMap
     console.log("Centering on vehicles:", vehicles.length);
     
     try {
-      // Create a bounds object to contain all vehicle positions
+      // Créer un objet bounds pour contenir toutes les positions des véhicules
       const bounds = L.latLngBounds(vehicles.map(v => v.position));
       
-      // Slightly pad the bounds for better visibility
+      // Légèrement agrandir les limites pour une meilleure visibilité
       bounds.pad(0.2);
       
-      // Adjust the map to these bounds with animation
+      // Ajuster la carte à ces limites avec animation
       mapRef.current.flyToBounds(bounds, {
         padding: [50, 50],
         duration: 0.5,
         maxZoom: 18
       });
       
-      // Force a map refresh
+      // Forcer un rafraîchissement de la carte
       setTimeout(() => {
         if (mapRef.current) {
           mapRef.current.invalidateSize();
