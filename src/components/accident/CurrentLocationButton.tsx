@@ -14,9 +14,7 @@ const CurrentLocationButton = ({ setGeolocation }: CurrentLocationButtonProps) =
 
   const handleGetCurrentLocation = () => {
     if (!navigator.geolocation) {
-      toast("Erreur", {
-        description: "La géolocalisation n'est pas supportée par votre navigateur"
-      });
+      toast.error("La géolocalisation n'est pas supportée par votre navigateur");
       return;
     }
 
@@ -34,25 +32,36 @@ const CurrentLocationButton = ({ setGeolocation }: CurrentLocationButtonProps) =
           });
 
           if (error) {
-            toast("Erreur", {
-              description: "Impossible d'obtenir l'adresse pour votre position"
-            });
+            toast.error("Impossible d'obtenir l'adresse pour votre position");
             console.error('Error reverse geocoding:', error);
+            
+            // Still set the geolocation with coordinates even if address lookup fails
+            setGeolocation({
+              lat,
+              lng,
+              address: `${lat.toFixed(6)}, ${lng.toFixed(6)}`
+            });
           } else if (data?.success && data?.data) {
             setGeolocation({
               lat,
               lng,
               address: data.data.formatted_address
             });
-            toast("Position localisée", {
+            toast.success("Position localisée", {
               description: "Votre position actuelle a été détectée"
             });
           }
         } catch (err) {
           console.error('Error in reverse geocoding:', err);
-          toast("Erreur", {
-            description: "Une erreur est survenue lors de la géolocalisation"
+          
+          // Fallback to just coordinates if error occurs
+          setGeolocation({
+            lat,
+            lng,
+            address: `${lat.toFixed(6)}, ${lng.toFixed(6)}`
           });
+          
+          toast.error("Une erreur est survenue mais les coordonnées ont été enregistrées");
         } finally {
           setIsLoading(false);
         }
@@ -61,24 +70,16 @@ const CurrentLocationButton = ({ setGeolocation }: CurrentLocationButtonProps) =
         setIsLoading(false);
         switch(error.code) {
           case error.PERMISSION_DENIED:
-            toast("Accès refusé", {
-              description: "Vous avez refusé l'accès à votre position"
-            });
+            toast.error("Vous avez refusé l'accès à votre position");
             break;
           case error.POSITION_UNAVAILABLE:
-            toast("Position indisponible", {
-              description: "Les informations de position ne sont pas disponibles"
-            });
+            toast.error("Les informations de position ne sont pas disponibles");
             break;
           case error.TIMEOUT:
-            toast("Délai expiré", {
-              description: "La demande de position a expiré"
-            });
+            toast.error("La demande de position a expiré");
             break;
           default:
-            toast("Erreur", {
-              description: "Une erreur inconnue s'est produite"
-            });
+            toast.error("Une erreur inconnue s'est produite");
         }
       },
       { 

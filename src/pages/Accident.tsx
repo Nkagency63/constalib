@@ -158,6 +158,7 @@ const Accident = () => {
         onEmergencyContacted={handleEmergencyContacted}
       />
 
+      {/* Toast handler for notifications */}
       <ToastHandler />
     </div>
   );

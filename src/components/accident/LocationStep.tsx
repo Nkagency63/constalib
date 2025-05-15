@@ -6,6 +6,7 @@ import GeocodingButton from './GeocodingButton';
 import LocationDisplay from './LocationDisplay';
 import AccidentMap from './AccidentMap';
 import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { toast } from 'sonner';
 
 export interface LocationStepProps {
   date: string;
@@ -31,6 +32,13 @@ const LocationStep: React.FC<LocationStepProps> = ({
   setGeolocation
 }) => {
   const [isMapVisible, setIsMapVisible] = useState(false);
+
+  const handleGeolocationSuccess = (data: { lat: number; lng: number; address: string }) => {
+    setGeolocation(data);
+    toast.success('Position localisée', {
+      description: 'La position a été correctement géolocalisée'
+    });
+  };
 
   return (
     <div className="space-y-6">
@@ -70,7 +78,7 @@ const LocationStep: React.FC<LocationStepProps> = ({
           <label htmlFor="location" className="block text-sm font-medium text-constalib-dark mb-1">
             Lieu de l'accident
           </label>
-          <GeocodingButton location={location} setGeolocation={setGeolocation} />
+          <GeocodingButton location={location} setGeolocation={handleGeolocationSuccess} />
         </div>
         <input
           type="text"
@@ -84,7 +92,7 @@ const LocationStep: React.FC<LocationStepProps> = ({
         />
       </div>
 
-      <CurrentLocationButton setGeolocation={setGeolocation} />
+      <CurrentLocationButton setGeolocation={handleGeolocationSuccess} />
       
       {geolocation.lat && geolocation.lng && (
         <LocationDisplay geolocation={geolocation} setMapVisible={setIsMapVisible} />
