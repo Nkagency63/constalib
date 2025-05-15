@@ -21,16 +21,18 @@ const MapInitializer: React.FC<MapInitializerProps> = ({
   onMapMove
 }) => {
   const map = useMap();
-  const timerRef = useRef<number | null>(null);
+  const initDoneRef = useRef(false);
   
   useEffect(() => {
-    if (map) {
-      // Retarder l'initialisation pour s'assurer que le DOM est prêt
-      timerRef.current = window.setTimeout(() => {
-        try {
-          console.log("Map initializer: map object is ready");
-          
-          // Forcer invalidateSize pour assurer un rendu correct
+    if (map && !initDoneRef.current) {
+      // Marquer l'initialisation comme terminée pour éviter les appels dupliqués
+      initDoneRef.current = true;
+      
+      try {
+        console.log("Map initializer: map object is ready");
+        
+        // Forcer invalidateSize pour assurer un rendu correct
+        setTimeout(() => {
           map.invalidateSize();
           
           // Configurer les gestionnaires d'événements
@@ -51,9 +53,9 @@ const MapInitializer: React.FC<MapInitializerProps> = ({
           }
           
           if (setCenter) {
-            map.on('moveend', () => setCenter(
-              [map.getCenter().lat, map.getCenter().lng] as [number, number]
-            ));
+            map.on('moveend', () => {
+              setCenter([map.getCenter().lat, map.getCenter().lng] as [number, number]);
+            });
           }
           
           if (setZoom) {
@@ -64,35 +66,31 @@ const MapInitializer: React.FC<MapInitializerProps> = ({
           if (onMapReady) {
             onMapReady(map);
           }
-        } catch (error) {
-          console.error("Error in map initialization:", error);
-        }
-      }, 200); // Délai réduit pour une meilleure réactivité
-      
-      return () => {
-        // Effacer le timeout lors du démontage
-        if (timerRef.current) {
-          window.clearTimeout(timerRef.current);
-          timerRef.current = null;
-        }
-        
-        try {
-          console.log("Map initializer: safely cleaning up");
           
-          // Nettoyer les écouteurs d'événements que nous avons ajoutés, mais de manière sécurisée
-          if (map) {
-            // Nettoyage sécurisé sans accéder à des propriétés potentiellement inexistantes
-            if (onMapClick) map.off('click');
-            if (onMapDoubleClick) map.off('dblclick');
-            if (onMapMove) map.off('mousemove');
-            if (setCenter) map.off('moveend');
-            if (setZoom) map.off('zoomend');
-          }
-        } catch (error) {
-          console.error("Error cleaning up map:", error);
-        }
-      };
+        }, 300); // Délai pour une meilleure réactivité
+        
+      } catch (error) {
+        console.error("Error in map initialization:", error);
+      }
     }
+    
+    return () => {
+      try {
+        console.log("Map initializer: safely cleaning up");
+        
+        // Nettoyage sécurisé sans accéder à des propriétés potentiellement inexistantes
+        if (map) {
+          // Supprimer tous les écouteurs d'événements que nous avons ajoutés
+          if (onMapClick) map.off('click');
+          if (onMapDoubleClick) map.off('dblclick');
+          if (onMapMove) map.off('mousemove');
+          if (setCenter) map.off('moveend');
+          if (setZoom) map.off('zoomend');
+        }
+      } catch (error) {
+        console.error("Error cleaning up map:", error);
+      }
+    };
   }, [map, onMapReady, setCenter, setZoom, onMapClick, onMapDoubleClick, onMapMove]);
   
   return null;

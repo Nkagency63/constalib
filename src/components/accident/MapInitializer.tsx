@@ -4,10 +4,22 @@ import { useMap } from 'react-leaflet';
 import L from 'leaflet';
 
 interface MapInitializerProps {
-  onMapReady: (map: L.Map) => void;
+  onMapReady?: (map: L.Map) => void;
+  setCenter?: (center: [number, number]) => void;
+  setZoom?: (zoom: number) => void;
+  onMapClick?: (latlng: L.LatLng) => void;
+  onMapDoubleClick?: () => void;
+  onMapMove?: (latlng: L.LatLng) => void;
 }
 
-const MapInitializer: React.FC<MapInitializerProps> = ({ onMapReady }) => {
+const MapInitializer: React.FC<MapInitializerProps> = ({
+  onMapReady,
+  setCenter,
+  setZoom,
+  onMapClick,
+  onMapDoubleClick,
+  onMapMove
+}) => {
   const map = useMap();
   const initDoneRef = useRef(false);
   
@@ -23,9 +35,40 @@ const MapInitializer: React.FC<MapInitializerProps> = ({ onMapReady }) => {
         setTimeout(() => {
           map.invalidateSize();
           
-          // Appeler le callback avec l'objet map
-          onMapReady(map);
-        }, 100); // Délai réduit pour une meilleure réactivité
+          // Configurer les gestionnaires d'événements
+          if (onMapClick) {
+            map.on('click', (e) => onMapClick(e.latlng));
+          }
+          
+          if (onMapDoubleClick) {
+            map.on('dblclick', (e) => {
+              // Empêcher le comportement de zoom par défaut
+              L.DomEvent.stopPropagation(e);
+              onMapDoubleClick();
+            });
+          }
+          
+          if (onMapMove) {
+            map.on('mousemove', (e) => onMapMove(e.latlng));
+          }
+          
+          if (setCenter) {
+            map.on('moveend', () => {
+              setCenter([map.getCenter().lat, map.getCenter().lng] as [number, number]);
+            });
+          }
+          
+          if (setZoom) {
+            map.on('zoomend', () => setZoom(map.getZoom()));
+          }
+          
+          // Appeler le callback onMapReady s'il est fourni
+          if (onMapReady) {
+            onMapReady(map);
+          }
+          
+        }, 300); // Délai pour une meilleure réactivité
+        
       } catch (error) {
         console.error("Error in map initialization:", error);
       }
@@ -38,13 +81,17 @@ const MapInitializer: React.FC<MapInitializerProps> = ({ onMapReady }) => {
         // Nettoyage sécurisé sans accéder à des propriétés potentiellement inexistantes
         if (map) {
           // Supprimer tous les écouteurs d'événements que nous avons ajoutés
-          map.off();
+          if (onMapClick) map.off('click');
+          if (onMapDoubleClick) map.off('dblclick');
+          if (onMapMove) map.off('mousemove');
+          if (setCenter) map.off('moveend');
+          if (setZoom) map.off('zoomend');
         }
       } catch (error) {
         console.error("Error cleaning up map:", error);
       }
     };
-  }, [map, onMapReady]);
+  }, [map, onMapReady, setCenter, setZoom, onMapClick, onMapDoubleClick, onMapMove]);
   
   return null;
 };

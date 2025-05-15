@@ -56,13 +56,13 @@ const SchemeMapWrapper: React.FC<SchemeMapWrapperProps> = ({
   return (
     <div className="relative rounded-lg overflow-hidden shadow-md border border-gray-200 h-full">
       <TooltipProvider>
-        <AspectRatio ratio={16/9} className="h-full">
+        <div className="h-full w-full">
           <MapContainer
             center={center}
             zoom={17}
-            style={{ height: '100%', width: '100%' }}
+            style={{ height: '100%', width: '100%', minHeight: '350px' }}
             attributionControl={false}
-            zoomControl={false}
+            zoomControl={true}
           >
             <TileLayer
               url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
@@ -98,7 +98,7 @@ const SchemeMapWrapper: React.FC<SchemeMapWrapperProps> = ({
               onUpdate={onUpdateAnnotation}
             />
           </MapContainer>
-        </AspectRatio>
+        </div>
 
         {/* Guidance components */}
         {!readOnly && (

@@ -39,7 +39,7 @@ const VehicleScheme = () => {
       updatedSchemeData.paths.length > 0 || 
       updatedSchemeData.annotations.length > 0
     )) {
-      toast("Schéma enregistré", {
+      toast({
         description: "Les modifications sont sauvegardées automatiquement"
       });
       setHasShownSaveToast(true);
@@ -48,7 +48,7 @@ const VehicleScheme = () => {
 
   return (
     <div className="w-full">
-      <div className="bg-white p-4 rounded-lg border border-gray-200 mb-4">
+      <div className="bg-white p-4 rounded-lg border border-gray-200 mb-4 h-[500px]">
         <SchemeContainer 
           formData={demoFormData}
           onSchemeUpdate={handleSchemeUpdate}
