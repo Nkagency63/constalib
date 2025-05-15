@@ -45,8 +45,12 @@ const MapContainer = ({
   onMapReady,
   readOnly
 }: MapContainerProps) => {
+  // Generate a unique key for the map container to force re-mounting when needed
+  const mapKey = `map-${center[0]}-${center[1]}-${zoom}-${vehicles.length}-${paths.length}-${annotations.length}`;
+  
   return (
     <LeafletMapContainer
+      key={mapKey}
       center={center}
       zoom={zoom}
       style={{ height: '400px', width: '100%' }}

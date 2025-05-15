@@ -12,22 +12,44 @@ interface UseSchemeMapProps {
 export const useSchemeMap = ({ readOnly, handleMapClick, onReady }: UseSchemeMapProps) => {
   const mapRef = useRef<L.Map | null>(null);
   const drawingLayerRef = useRef<L.LayerGroup | null>(null);
+  const hasInitialized = useRef(false);
 
   const handleMapReady = useCallback((map: L.Map) => {
     console.log("Map initialization started");
+    
+    // Store the map reference
     mapRef.current = map;
+    
+    // Prevent double initialization
+    if (hasInitialized.current) {
+      console.log("Map already initialized, skipping");
+      return;
+    }
+    
+    hasInitialized.current = true;
     
     // Configurer les gestionnaires d'événements si non en lecture seule
     if (!readOnly && mapRef.current) {
-      mapRef.current.on('click', handleMapClick);
-      console.log("Map click handler registered");
+      try {
+        // Only add click handler if map is valid
+        if (mapRef.current && typeof mapRef.current.on === 'function') {
+          mapRef.current.on('click', handleMapClick);
+          console.log("Map click handler registered");
+        }
+      } catch (error) {
+        console.error("Error registering map click handler:", error);
+      }
     }
     
     // S'assurer que la carte est correctement dimensionnée
     setTimeout(() => {
       if (mapRef.current) {
-        mapRef.current.invalidateSize();
-        console.log("Map size invalidated");
+        try {
+          mapRef.current.invalidateSize();
+          console.log("Map size invalidated");
+        } catch (error) {
+          console.error("Error invalidating map size:", error);
+        }
       }
     }, 100);
     
@@ -58,7 +80,11 @@ export const useSchemeMap = ({ readOnly, handleMapClick, onReady }: UseSchemeMap
       // Forcer un rafraîchissement de la carte
       setTimeout(() => {
         if (mapRef.current) {
-          mapRef.current.invalidateSize();
+          try {
+            mapRef.current.invalidateSize();
+          } catch (error) {
+            console.error("Error invalidating map size during center:", error);
+          }
         }
       }, 100);
       
