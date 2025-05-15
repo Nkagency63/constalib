@@ -1,9 +1,9 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { SchemeData } from '../../types';
-import { useVehicles } from '../../hooks/useVehicles';
-import { usePaths } from '../../hooks/usePaths';
-import { useAnnotations } from '../../hooks/useAnnotations';
+import { SchemeData } from '../types';
+import { useVehicles } from './useVehicles';
+import { usePaths } from './usePaths';
+import { useAnnotations } from './useAnnotations';
 import { useSchemeMap } from '@/hooks/accident/useSchemeMap';
 import L from 'leaflet';
 import { toast } from 'sonner';

@@ -2,7 +2,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import { Vehicle } from '../types/scheme';
-import { toast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 
 export const VEHICLE_COLORS: Record<'A' | 'B' | 'C' | 'D', string> = {
   'A': '#1e40af', // Bleu plus vif
@@ -18,8 +18,7 @@ export const useVehicles = () => {
 
   const addVehicle = useCallback((position: [number, number], type: 'car' | 'truck' | 'bike' = 'car') => {
     if (vehicles.length >= Object.keys(VEHICLE_COLORS).length) {
-      toast({
-        title: "Limite atteinte",
+      toast.error("Limite atteinte", {
         description: "Maximum de 4 véhicules atteint"
       });
       return null;

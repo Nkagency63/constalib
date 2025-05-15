@@ -2,7 +2,7 @@
 import { useRef, useCallback } from 'react';
 import L from 'leaflet';
 import { toast } from 'sonner';
-import { Vehicle } from '../accident/types/scheme';
+import { Vehicle } from '@/components/accident/types/scheme';
 
 interface UseSchemeMapProps {
   readOnly: boolean;
