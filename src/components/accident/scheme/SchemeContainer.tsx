@@ -44,6 +44,8 @@ const SchemeContainer: React.FC<SchemeContainerProps> = ({
       const targetLat = formData.geolocation.lat;
       const targetLng = formData.geolocation.lng;
       
+      console.log("Attempting to center map on:", [targetLat, targetLng]);
+      
       // Force update map center with a slight delay to ensure map is initialized
       setTimeout(() => {
         if (schemeState.mapRef.current) {
@@ -53,10 +55,12 @@ const SchemeContainer: React.FC<SchemeContainerProps> = ({
             title: "Carte mise à jour",
             description: "La carte a été centrée sur la position indiquée"
           });
+        } else {
+          console.error("Map reference not available when trying to center");
         }
-      }, 500);
+      }, 800); // Increased delay for better initialization
     }
-  }, [formData?.geolocation, schemeState.mapRef.current]);
+  }, [formData?.geolocation, schemeState.mapRef]);
   
   return (
     <TooltipProvider>

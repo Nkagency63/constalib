@@ -21,15 +21,17 @@ const CurrentLocationButton = ({ setGeolocation }: CurrentLocationButtonProps) =
     }
 
     setIsLoading(true);
+    console.log("Requesting geolocation...");
 
     navigator.geolocation.getCurrentPosition(
       async (position) => {
         const lat = position.coords.latitude;
         const lng = position.coords.longitude;
         
+        console.log("Geolocation obtained:", { lat, lng });
+        
         try {
-          // Pour simplifier, nous allons juste utiliser les coordonnées directement
-          // au lieu de faire un appel à l'API de geocoding qui pourrait ne pas fonctionner
+          // Set the geolocation directly
           setGeolocation({
             lat,
             lng,
@@ -41,6 +43,7 @@ const CurrentLocationButton = ({ setGeolocation }: CurrentLocationButtonProps) =
             description: "Votre position actuelle a été détectée"
           });
           
+          console.log("Geolocation set successfully");
         } catch (err) {
           console.error('Error in geolocation:', err);
           
@@ -61,6 +64,8 @@ const CurrentLocationButton = ({ setGeolocation }: CurrentLocationButtonProps) =
       },
       (error) => {
         setIsLoading(false);
+        console.error("Geolocation error:", error);
+        
         switch(error.code) {
           case error.PERMISSION_DENIED:
             toast({

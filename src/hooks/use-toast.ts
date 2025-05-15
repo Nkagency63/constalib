@@ -1,7 +1,7 @@
 
 import {
-  ToastActionElement,
-  ToastProps,
+  type ToastActionElement,
+  ToastProps as UIToastProps,
 } from "@/components/ui/toast";
 
 import {
@@ -18,8 +18,8 @@ type ToasterToastProps = {
   action?: ToastActionElement;
 };
 
-// Use the type from ui/toast.tsx and extend it instead of referencing itself
-type ToasterToast = ToastProps & ToasterToastProps;
+// Use the type from ui/toast.tsx but rename it to avoid the conflict
+type ToasterToast = UIToastProps & ToasterToastProps;
 
 const actionTypes = {
   ADD_TOAST: "ADD_TOAST",
@@ -141,16 +141,16 @@ function dispatch(action: Action) {
   });
 }
 
-// Use a simple type without circular reference
-type ToastProps = {
+// Use our custom type for toast props
+interface ToastOptions {
   title?: React.ReactNode;
   description?: React.ReactNode;
   action?: ToastActionElement;
-  open?: boolean;
-  onOpenChange?: (open: boolean) => void;
-};
+  variant?: "default" | "destructive";
+  duration?: number;
+}
 
-function toast(props: ToastProps) {
+function toast(props: ToastOptions) {
   const id = generateId();
 
   const update = (props: ToasterToast) =>

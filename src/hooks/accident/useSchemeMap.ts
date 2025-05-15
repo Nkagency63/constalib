@@ -91,8 +91,7 @@ export const useSchemeMap = ({ readOnly, handleMapClick, onReady }: UseSchemeMap
       console.error("Error centering on vehicles:", error);
       toast({
         title: "Erreur",
-        description: "Erreur lors du centrage de la carte",
-        variant: "destructive"
+        description: "Erreur lors du centrage de la carte"
       });
     }
   }, []);
