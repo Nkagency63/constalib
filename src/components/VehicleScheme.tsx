@@ -1,5 +1,5 @@
 
-import { toast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 import { useState } from 'react';
 import SchemeContainer from './accident/scheme/SchemeContainer';
 import { SchemeData } from './accident/types';
@@ -39,9 +39,7 @@ const VehicleScheme = () => {
       updatedSchemeData.paths.length > 0 || 
       updatedSchemeData.annotations.length > 0
     )) {
-      toast({
-        description: "Les modifications sont sauvegardées automatiquement"
-      });
+      toast("Les modifications sont sauvegardées automatiquement");
       setHasShownSaveToast(true);
     }
   };

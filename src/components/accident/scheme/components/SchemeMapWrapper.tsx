@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { MapContainer, TileLayer, useMap } from 'react-leaflet';
+import { MapContainer, TileLayer } from 'react-leaflet';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import SchemeInfo from '../SchemeInfo';
 import SchemeGuide from '../SchemeGuide';
@@ -11,7 +11,6 @@ import VehiclesLayer from '../VehiclesLayer';
 import PathsLayer from '../PathsLayer';
 import AnnotationsLayer from '../AnnotationsLayer';
 import MapInitializer from '../../MapInitializer';
-import { AspectRatio } from '@/components/ui/aspect-ratio';
 import 'leaflet/dist/leaflet.css';
 
 interface SchemeMapWrapperProps {
@@ -68,9 +67,9 @@ const SchemeMapWrapper: React.FC<SchemeMapWrapperProps> = ({
             style={{ height: '100%', width: '100%', minHeight: '350px' }}
             attributionControl={false}
             zoomControl={true}
-            whenCreated={(map) => {
+            whenReady={(e) => {
               console.log("Map created");
-              return map;
+              return e.target;
             }}
           >
             <TileLayer
