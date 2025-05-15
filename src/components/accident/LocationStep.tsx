@@ -11,12 +11,13 @@ export interface LocationStepProps {
   date: string;
   time: string;
   location: string;
+  description?: string;
   geolocation: {
     lat: number | null;
     lng: number | null;
     address: string;
   };
-  handleInputChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  handleInputChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
   setGeolocation: (data: { lat: number; lng: number; address: string }) => void;
 }
 
@@ -24,6 +25,7 @@ const LocationStep: React.FC<LocationStepProps> = ({
   date,
   time,
   location,
+  description,
   geolocation,
   handleInputChange,
   setGeolocation
@@ -87,6 +89,20 @@ const LocationStep: React.FC<LocationStepProps> = ({
       {geolocation.lat && geolocation.lng && (
         <LocationDisplay geolocation={geolocation} setMapVisible={setIsMapVisible} />
       )}
+
+      <div>
+        <label htmlFor="description" className="block text-sm font-medium text-constalib-dark mb-1">
+          Description de l'accident (optionnel)
+        </label>
+        <textarea
+          id="description"
+          name="description"
+          value={description || ''}
+          onChange={handleInputChange}
+          placeholder="Décrivez les circonstances de l'accident..."
+          className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 h-24"
+        />
+      </div>
 
       <Dialog open={isMapVisible} onOpenChange={setIsMapVisible}>
         <DialogContent className="sm:max-w-[700px] sm:max-h-[80vh] overflow-y-auto">

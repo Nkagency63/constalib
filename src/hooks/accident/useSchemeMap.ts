@@ -7,7 +7,7 @@ import { Vehicle } from '@/components/accident/types';
 interface UseSchemeMapProps {
   readOnly: boolean;
   handleMapClick: (e: L.LeafletMouseEvent) => void;
-  onReady: (map: L.Map) => void; // Cette signature doit accepter un paramètre map
+  onReady: (map: L.Map) => void;
 }
 
 export const useSchemeMap = ({ readOnly, handleMapClick, onReady }: UseSchemeMapProps) => {
@@ -39,7 +39,7 @@ export const useSchemeMap = ({ readOnly, handleMapClick, onReady }: UseSchemeMap
       }
     }, 200);
     
-    // Call the onReady callback with the map object
+    // Call the onReady callback to initialize the map with the map object
     onReady(map);
     console.log("Map initialization completed");
   }, [readOnly, handleMapClick, onReady]);
