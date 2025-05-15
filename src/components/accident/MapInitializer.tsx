@@ -13,19 +13,19 @@ const MapInitializer: React.FC<MapInitializerProps> = ({ onMapReady }) => {
   
   useEffect(() => {
     if (map && !initDoneRef.current) {
-      // Mark initialization as done to prevent duplicate calls
+      // Marquer l'initialisation comme terminée pour éviter les appels dupliqués
       initDoneRef.current = true;
       
       try {
         console.log("Map initializer: map object is ready");
         
-        // Force invalidate size to ensure proper rendering
+        // Forcer invalidateSize pour assurer un rendu correct
         setTimeout(() => {
           map.invalidateSize();
-        }, 200);
-        
-        // Call the callback with the map object
-        onMapReady(map);
+          
+          // Appeler le callback avec l'objet map
+          onMapReady(map);
+        }, 100); // Délai réduit pour une meilleure réactivité
       } catch (error) {
         console.error("Error in map initialization:", error);
       }
@@ -35,9 +35,9 @@ const MapInitializer: React.FC<MapInitializerProps> = ({ onMapReady }) => {
       try {
         console.log("Map initializer: safely cleaning up");
         
-        // Safe cleanup without accessing potentially non-existent properties
+        // Nettoyage sécurisé sans accéder à des propriétés potentiellement inexistantes
         if (map) {
-          // Remove any event listeners we might have added
+          // Supprimer tous les écouteurs d'événements que nous avons ajoutés
           map.off();
         }
       } catch (error) {

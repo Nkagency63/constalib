@@ -25,22 +25,22 @@ const MapInitializer: React.FC<MapInitializerProps> = ({
   
   useEffect(() => {
     if (map) {
-      // Delay initialization to ensure DOM is ready
+      // Retarder l'initialisation pour s'assurer que le DOM est prêt
       timerRef.current = window.setTimeout(() => {
         try {
           console.log("Map initializer: map object is ready");
           
-          // Force invalidate size to ensure proper rendering
+          // Forcer invalidateSize pour assurer un rendu correct
           map.invalidateSize();
           
-          // Set up event handlers
+          // Configurer les gestionnaires d'événements
           if (onMapClick) {
             map.on('click', (e) => onMapClick(e.latlng));
           }
           
           if (onMapDoubleClick) {
             map.on('dblclick', (e) => {
-              // Prevent default zoom behavior
+              // Empêcher le comportement de zoom par défaut
               L.DomEvent.stopPropagation(e);
               onMapDoubleClick();
             });
@@ -60,17 +60,17 @@ const MapInitializer: React.FC<MapInitializerProps> = ({
             map.on('zoomend', () => setZoom(map.getZoom()));
           }
           
-          // Call the onMapReady callback if provided
+          // Appeler le callback onMapReady s'il est fourni
           if (onMapReady) {
             onMapReady(map);
           }
         } catch (error) {
           console.error("Error in map initialization:", error);
         }
-      }, 500); // Increased delay to ensure rendering is complete
+      }, 200); // Délai réduit pour une meilleure réactivité
       
       return () => {
-        // Clear the timeout on unmount
+        // Effacer le timeout lors du démontage
         if (timerRef.current) {
           window.clearTimeout(timerRef.current);
           timerRef.current = null;
@@ -79,9 +79,9 @@ const MapInitializer: React.FC<MapInitializerProps> = ({
         try {
           console.log("Map initializer: safely cleaning up");
           
-          // Clean up event listeners we've added, but safely
+          // Nettoyer les écouteurs d'événements que nous avons ajoutés, mais de manière sécurisée
           if (map) {
-            // Safe cleanup without accessing potentially non-existent properties
+            // Nettoyage sécurisé sans accéder à des propriétés potentiellement inexistantes
             if (onMapClick) map.off('click');
             if (onMapDoubleClick) map.off('dblclick');
             if (onMapMove) map.off('mousemove');

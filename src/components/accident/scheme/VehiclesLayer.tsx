@@ -48,9 +48,7 @@ const VehiclesLayer: React.FC<VehiclesLayerProps> = ({
                 const latLng = marker.getLatLng();
                 // Update vehicle position in parent component if needed
                 console.log("Vehicle moved to:", [latLng.lat, latLng.lng]);
-                toast({
-                  title: "Position du véhicule mise à jour"
-                });
+                toast("Position du véhicule mise à jour");
               }
             },
             dragstart: () => {

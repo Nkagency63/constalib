@@ -21,8 +21,7 @@ const SchemeStep: React.FC<SchemeStepProps> = ({ formData, onSchemeUpdate }) => 
       schemeData.paths.length > 0 || 
       schemeData.annotations.length > 0
     )) {
-      toast({
-        title: "Schéma mis à jour",
+      toast("Schéma mis à jour", {
         description: "Les modifications sont enregistrées automatiquement"
       });
       setHasShownUpdateToast(true);
