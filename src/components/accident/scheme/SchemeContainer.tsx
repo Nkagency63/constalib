@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from 'react';
 import { SchemeData } from '../types';
 import { useVehicles } from '../hooks/useVehicles';
@@ -89,7 +88,7 @@ const SchemeContainer: React.FC<SchemeContainerProps> = ({
     }
   };
   
-  // Map ready handler
+  // Map ready handler - modifié pour accepter un paramètre map
   const handleMapReady = (map: L.Map) => {
     // Initialize the drawing layer if needed
     if (!drawingLayerRef.current) {
@@ -131,12 +130,12 @@ const SchemeContainer: React.FC<SchemeContainerProps> = ({
     }
   };
   
-  // Integration with useSchemeMap hook
+  // Integration with useSchemeMap hook - assurons-nous que la fonction onReady transmet le paramètre map
   const { handleMapReady: handleMapReadyFromHook, centerOnVehicles: centerOnVehiclesFromHook } = 
     useSchemeMap({ 
       readOnly, 
       handleMapClick, 
-      onReady: handleMapReady
+      onReady: handleMapReady // Cette fonction va maintenant recevoir le paramètre map correctement
     });
 
   // Update parent with current scheme data

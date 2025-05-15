@@ -2,12 +2,12 @@
 import { useRef, useCallback } from 'react';
 import L from 'leaflet';
 import { toast } from 'sonner';
-import { Vehicle } from '../types';
+import { Vehicle } from '@/components/accident/types';
 
 interface UseSchemeMapProps {
   readOnly: boolean;
   handleMapClick: (e: L.LeafletMouseEvent) => void;
-  onReady: (map: L.Map) => void; // Updated to accept a map parameter
+  onReady: (map: L.Map) => void; // Cette signature doit accepter un paramètre map
 }
 
 export const useSchemeMap = ({ readOnly, handleMapClick, onReady }: UseSchemeMapProps) => {
