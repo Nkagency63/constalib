@@ -20,7 +20,9 @@ const MapInitializer: React.FC<MapInitializerProps> = ({ onMapReady }) => {
         console.log("Map initializer: map object is ready");
         
         // Force invalidate size to ensure proper rendering
-        map.invalidateSize();
+        setTimeout(() => {
+          map.invalidateSize();
+        }, 200);
         
         // Call the callback with the map object
         onMapReady(map);
@@ -33,18 +35,10 @@ const MapInitializer: React.FC<MapInitializerProps> = ({ onMapReady }) => {
       try {
         console.log("Map initializer: safely cleaning up");
         
-        if (map) {
-          // Only stop ongoing operations
-          map.stopLocate();
-          map.stop();
-          
-          // Safely remove our event listeners without trying to access controls
-          map.off('click');
-          map.off('move');
-          map.off('zoom');
-          map.off('moveend');
-          map.off('zoomend');
-          map.off('dragend');
+        // No need to try removing controls or stopping events that might not exist
+        // Just make sure we don't attempt to access the map after it's disposed
+        if (map && !map._isDestroyed) {
+          map.off();
         }
       } catch (error) {
         console.error("Error cleaning up map:", error);

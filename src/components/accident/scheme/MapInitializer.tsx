@@ -79,12 +79,8 @@ const MapInitializer: React.FC<MapInitializerProps> = ({
         try {
           console.log("Map initializer: safely cleaning up");
           
-          if (map) {
-            // Stop any animations or ongoing operations
-            map.stopLocate();
-            map.stop();
-            
-            // Remove event listeners we've added
+          if (map && !map._isDestroyed) {
+            // Remove event listeners we've added, but safely
             if (onMapClick) map.off('click');
             if (onMapDoubleClick) map.off('dblclick');
             if (onMapMove) map.off('mousemove');
