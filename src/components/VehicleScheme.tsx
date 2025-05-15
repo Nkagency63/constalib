@@ -39,9 +39,7 @@ const VehicleScheme = () => {
       updatedSchemeData.paths.length > 0 || 
       updatedSchemeData.annotations.length > 0
     )) {
-      toast({
-        description: "Les modifications sont sauvegardées automatiquement"
-      });
+      toast("Les modifications sont sauvegardées automatiquement");
       setHasShownSaveToast(true);
     }
   };

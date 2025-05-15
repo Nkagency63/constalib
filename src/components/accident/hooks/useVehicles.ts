@@ -18,9 +18,7 @@ export const useVehicles = () => {
 
   const addVehicle = useCallback((position: [number, number], type: 'car' | 'truck' | 'bike' = 'car') => {
     if (vehicles.length >= Object.keys(VEHICLE_COLORS).length) {
-      toast({
-        description: "Maximum de 4 véhicules atteint"
-      });
+      toast("Maximum de 4 véhicules atteint");
       return null;
     }
 

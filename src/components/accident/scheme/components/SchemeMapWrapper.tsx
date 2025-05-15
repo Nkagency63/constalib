@@ -1,17 +1,16 @@
 
 import React from 'react';
-import { MapContainer, TileLayer, useMap } from 'react-leaflet';
+import { MapContainer, TileLayer } from 'react-leaflet';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import SchemeInfo from '../SchemeInfo';
 import SchemeGuide from '../SchemeGuide';
 import StepByStepGuide from '../StepByStepGuide';
 import KeyboardShortcuts from '../KeyboardShortcuts';
-import { Vehicle, Path, Annotation } from '../../types';
+import { Vehicle, Path, Annotation } from '../../types/scheme';
 import VehiclesLayer from '../VehiclesLayer';
 import PathsLayer from '../PathsLayer';
 import AnnotationsLayer from '../AnnotationsLayer';
 import MapInitializer from '../../MapInitializer';
-import { AspectRatio } from '@/components/ui/aspect-ratio';
 import 'leaflet/dist/leaflet.css';
 
 interface SchemeMapWrapperProps {
@@ -53,6 +52,8 @@ const SchemeMapWrapper: React.FC<SchemeMapWrapperProps> = ({
   onUpdateAnnotation,
   onMapReady
 }) => {
+  console.log("Rendering SchemeMapWrapper with center:", center);
+  
   return (
     <div className="relative rounded-lg overflow-hidden shadow-md border border-gray-200 h-full">
       <TooltipProvider>
@@ -60,16 +61,22 @@ const SchemeMapWrapper: React.FC<SchemeMapWrapperProps> = ({
           <MapContainer
             center={center}
             zoom={17}
-            style={{ height: '100%', width: '100%', minHeight: '350px' }}
+            style={{ height: '100%', width: '100%', minHeight: '400px' }}
             attributionControl={false}
             zoomControl={true}
+            whenCreated={(map) => {
+              console.log("MapContainer created");
+              // This is just logging, actual initialization happens in MapInitializer
+            }}
           >
             <TileLayer
               url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
               attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
             />
             
-            <MapInitializer onMapReady={onMapReady} />
+            <MapInitializer 
+              onMapReady={onMapReady} 
+            />
             
             <VehiclesLayer
               vehicles={vehicles}

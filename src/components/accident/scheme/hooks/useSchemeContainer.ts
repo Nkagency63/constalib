@@ -6,7 +6,7 @@ import { usePaths } from '../../hooks/usePaths';
 import { useAnnotations } from '../../hooks/useAnnotations';
 import { useSchemeMap } from '../../hooks/useSchemeMap';
 import L from 'leaflet';
-import { toast } from 'sonner';
+import { toast } from '@/hooks/use-toast';
 
 interface UseSchemeContainerProps {
   initialData?: SchemeData;
@@ -28,6 +28,7 @@ export const useSchemeContainer = ({
   const [mapZoom, setMapZoom] = useState<number>(13);
   const [currentTool, setCurrentTool] = useState<'select' | 'vehicle' | 'path' | 'annotation'>('select');
   const [pathColor, setPathColor] = useState<string>('#ff0000');
+  const [isMapInitialized, setIsMapInitialized] = useState<boolean>(false);
   
   // Refs
   const drawingLayerRef = useRef<L.LayerGroup | null>(null);
@@ -64,7 +65,7 @@ export const useSchemeContainer = ({
   }, [formData, initialData]);
 
   // Map click handler
-  const handleMapClick = (e: L.LeafletMouseEvent) => {
+  const handleMapClick = useCallback((e: L.LeafletMouseEvent) => {
     if (readOnly) return;
     
     const latlng = e.latlng;
@@ -85,10 +86,10 @@ export const useSchemeContainer = ({
         annotationsHook.addAnnotation(coords, 'Double-click to edit');
         break;
     }
-  };
+  }, [currentTool, readOnly, vehiclesHook, pathsHook, annotationsHook]);
   
-  // Corrigeons l'intégration avec useSchemeMap
-  const { mapRef, drawingLayerRef: mapDrawingLayerRef, handleMapReady: handleMapReadyFromHook, centerOnVehicles } = 
+  // Integrate with useSchemeMap
+  const { mapRef, handleMapReady: handleMapReadyFromHook, centerOnVehicles } = 
     useSchemeMap({ 
       readOnly, 
       handleMapClick,
@@ -100,18 +101,31 @@ export const useSchemeContainer = ({
     centerOnVehicles(vehiclesHook.vehicles);
   }, [centerOnVehicles, vehiclesHook.vehicles]);
 
-  // Map ready handler - pour recevoir le paramètre map
+  // Map ready handler
   const handleMapReady = useCallback((map: L.Map) => {
-    // Initialize the drawing layer if needed
-    if (!drawingLayerRef.current) {
-      drawingLayerRef.current = L.layerGroup().addTo(map);
+    console.log("Map is ready in SchemeContainer");
+    
+    // Initialize the drawing layer if needed, but only once
+    if (!isMapInitialized) {
+      setIsMapInitialized(true);
       
-      // Center map on vehicles when ready
+      if (!drawingLayerRef.current) {
+        try {
+          drawingLayerRef.current = L.layerGroup();
+          drawingLayerRef.current.addTo(map);
+          console.log("Drawing layer created and added to map");
+        } catch (error) {
+          console.error("Error creating drawing layer:", error);
+        }
+      }
+      
+      // Center map on vehicles when ready, but only if we have some
       if (vehiclesHook.vehicles.length > 0) {
-        centerOnVehicles(vehiclesHook.vehicles);
+        console.log("Centering map on vehicles initially");
+        setTimeout(() => centerOnVehicles(vehiclesHook.vehicles), 500);
       }
     }
-  }, [centerOnVehicles, vehiclesHook.vehicles]);
+  }, [centerOnVehicles, vehiclesHook.vehicles, isMapInitialized]);
 
   // Update parent with current scheme data
   useEffect(() => {
@@ -174,7 +188,8 @@ export const useSchemeContainer = ({
     // Read-only state
     readOnly,
     
-    // Map refs from useSchemeMap
-    mapRef
+    // Map refs
+    mapRef,
+    isMapInitialized
   };
 };

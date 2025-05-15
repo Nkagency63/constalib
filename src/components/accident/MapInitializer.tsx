@@ -68,7 +68,6 @@ const MapInitializer: React.FC<MapInitializerProps> = ({
           }
           
         }, 300); // Délai pour une meilleure réactivité
-        
       } catch (error) {
         console.error("Error in map initialization:", error);
       }
@@ -78,9 +77,8 @@ const MapInitializer: React.FC<MapInitializerProps> = ({
       try {
         console.log("Map initializer: safely cleaning up");
         
-        // Nettoyage sécurisé sans accéder à des propriétés potentiellement inexistantes
+        // Nettoyage des événements sans supprimer les contrôles
         if (map) {
-          // Supprimer tous les écouteurs d'événements que nous avons ajoutés
           if (onMapClick) map.off('click');
           if (onMapDoubleClick) map.off('dblclick');
           if (onMapMove) map.off('mousemove');
