@@ -6,7 +6,7 @@ import SchemeInfo from '../SchemeInfo';
 import SchemeGuide from '../SchemeGuide';
 import StepByStepGuide from '../StepByStepGuide';
 import KeyboardShortcuts from '../KeyboardShortcuts';
-import { Vehicle, Path, Annotation } from '../../types/scheme';
+import { Vehicle, Path, Annotation } from '../../types';
 import VehiclesLayer from '../VehiclesLayer';
 import PathsLayer from '../PathsLayer';
 import AnnotationsLayer from '../AnnotationsLayer';

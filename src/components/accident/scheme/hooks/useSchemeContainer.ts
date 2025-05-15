@@ -40,10 +40,15 @@ export const useSchemeContainer = ({
   
   // Initialize map with geolocation from formData if available
   useEffect(() => {
+    // Log the formData to help with debugging
+    console.log("useSchemeContainer received formData:", formData);
+    
     if (formData?.geolocation?.lat && formData?.geolocation?.lng) {
+      console.log("Setting map center from formData geolocation:", [formData.geolocation.lat, formData.geolocation.lng]);
       setMapCenter([formData.geolocation.lat, formData.geolocation.lng]);
       setMapZoom(17);
     } else if (initialData?.center) {
+      console.log("Setting map center from initialData:", initialData.center);
       setMapCenter(initialData.center);
       setMapZoom(initialData.zoom || 17);
     }
@@ -119,13 +124,27 @@ export const useSchemeContainer = ({
         }
       }
       
+      // Apply geolocation from formData if available
+      if (formData?.geolocation?.lat && formData?.geolocation?.lng) {
+        const targetLat = formData.geolocation.lat;
+        const targetLng = formData.geolocation.lng;
+        
+        console.log("Setting initial map view to:", [targetLat, targetLng]);
+        map.setView([targetLat, targetLng], 17);
+        
+        // Notify the user that the map has been centered on their location
+        toast({
+          title: "Localisation réussie",
+          description: "La carte a été centrée sur votre position"
+        });
+      }
       // Center map on vehicles when ready, but only if we have some
-      if (vehiclesHook.vehicles.length > 0) {
+      else if (vehiclesHook.vehicles.length > 0) {
         console.log("Centering map on vehicles initially");
         setTimeout(() => centerOnVehicles(vehiclesHook.vehicles), 500);
       }
     }
-  }, [centerOnVehicles, vehiclesHook.vehicles, isMapInitialized]);
+  }, [centerOnVehicles, vehiclesHook.vehicles, isMapInitialized, formData]);
 
   // Update parent with current scheme data
   useEffect(() => {

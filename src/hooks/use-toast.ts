@@ -1,6 +1,5 @@
 
 import {
-  Toast,
   ToastActionElement,
   ToastProps,
 } from "@/components/ui/toast";
@@ -12,12 +11,15 @@ import {
 const TOAST_LIMIT = 5;
 const TOAST_REMOVE_DELAY = 1000000;
 
-type ToasterToast = Toast & {
+type ToasterToastProps = {
   id: string;
   title?: React.ReactNode;
   description?: React.ReactNode;
   action?: ToastActionElement;
 };
+
+// Use the type from ui/toast.tsx and extend it instead of referencing itself
+type ToasterToast = ToastProps & ToasterToastProps;
 
 const actionTypes = {
   ADD_TOAST: "ADD_TOAST",
@@ -139,9 +141,16 @@ function dispatch(action: Action) {
   });
 }
 
-type Toast = Omit<ToasterToast, "id">;
+// Use a simple type without circular reference
+type ToastProps = {
+  title?: React.ReactNode;
+  description?: React.ReactNode;
+  action?: ToastActionElement;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
+};
 
-function toast({ ...props }: Toast) {
+function toast(props: ToastProps) {
   const id = generateId();
 
   const update = (props: ToasterToast) =>

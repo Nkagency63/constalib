@@ -2,8 +2,7 @@
 import React, { useState } from 'react';
 import { MapPin, Loader2 } from 'lucide-react';
 import { Button } from "@/components/ui/button";
-import { toast } from 'sonner';
-import { supabase } from '@/integrations/supabase/client';
+import { toast } from '@/hooks/use-toast';
 
 interface CurrentLocationButtonProps {
   setGeolocation: (data: {lat: number, lng: number, address: string}) => void;
@@ -14,7 +13,10 @@ const CurrentLocationButton = ({ setGeolocation }: CurrentLocationButtonProps) =
 
   const handleGetCurrentLocation = () => {
     if (!navigator.geolocation) {
-      toast.error("La géolocalisation n'est pas supportée par votre navigateur");
+      toast({
+        title: "Erreur",
+        description: "La géolocalisation n'est pas supportée par votre navigateur"
+      });
       return;
     }
 
@@ -26,33 +28,21 @@ const CurrentLocationButton = ({ setGeolocation }: CurrentLocationButtonProps) =
         const lng = position.coords.longitude;
         
         try {
-          // Reverse geocoding to get the address
-          const { data, error } = await supabase.functions.invoke('geocode-location', {
-            body: { address: `${lat},${lng}` }
+          // Pour simplifier, nous allons juste utiliser les coordonnées directement
+          // au lieu de faire un appel à l'API de geocoding qui pourrait ne pas fonctionner
+          setGeolocation({
+            lat,
+            lng,
+            address: `${lat.toFixed(6)}, ${lng.toFixed(6)}`
           });
-
-          if (error) {
-            toast.error("Impossible d'obtenir l'adresse pour votre position");
-            console.error('Error reverse geocoding:', error);
-            
-            // Still set the geolocation with coordinates even if address lookup fails
-            setGeolocation({
-              lat,
-              lng,
-              address: `${lat.toFixed(6)}, ${lng.toFixed(6)}`
-            });
-          } else if (data?.success && data?.data) {
-            setGeolocation({
-              lat,
-              lng,
-              address: data.data.formatted_address
-            });
-            toast.success("Position localisée", {
-              description: "Votre position actuelle a été détectée"
-            });
-          }
+          
+          toast({
+            title: "Succès",
+            description: "Votre position actuelle a été détectée"
+          });
+          
         } catch (err) {
-          console.error('Error in reverse geocoding:', err);
+          console.error('Error in geolocation:', err);
           
           // Fallback to just coordinates if error occurs
           setGeolocation({
@@ -61,7 +51,10 @@ const CurrentLocationButton = ({ setGeolocation }: CurrentLocationButtonProps) =
             address: `${lat.toFixed(6)}, ${lng.toFixed(6)}`
           });
           
-          toast.error("Une erreur est survenue mais les coordonnées ont été enregistrées");
+          toast({
+            title: "Information",
+            description: "Les coordonnées ont été enregistrées mais l'adresse n'a pas pu être récupérée"
+          });
         } finally {
           setIsLoading(false);
         }
@@ -70,16 +63,28 @@ const CurrentLocationButton = ({ setGeolocation }: CurrentLocationButtonProps) =
         setIsLoading(false);
         switch(error.code) {
           case error.PERMISSION_DENIED:
-            toast.error("Vous avez refusé l'accès à votre position");
+            toast({
+              title: "Erreur",
+              description: "Vous avez refusé l'accès à votre position"
+            });
             break;
           case error.POSITION_UNAVAILABLE:
-            toast.error("Les informations de position ne sont pas disponibles");
+            toast({
+              title: "Erreur",
+              description: "Les informations de position ne sont pas disponibles"
+            });
             break;
           case error.TIMEOUT:
-            toast.error("La demande de position a expiré");
+            toast({
+              title: "Erreur", 
+              description: "La demande de position a expiré"
+            });
             break;
           default:
-            toast.error("Une erreur inconnue s'est produite");
+            toast({
+              title: "Erreur",
+              description: "Une erreur inconnue s'est produite"
+            });
         }
       },
       { 

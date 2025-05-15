@@ -34,16 +34,18 @@ const MapInitializer: React.FC<MapInitializerProps> = ({
         // Forcer invalidateSize pour assurer un rendu correct
         setTimeout(() => {
           if (map) {
-            map.invalidateSize();
+            console.log("Invalidating map size");
+            map.invalidateSize(true);
             
             // Configurer les gestionnaires d'événements
             if (onMapClick) {
-              map.off('click'); // Remove any existing handlers first
+              console.log("Setting up map click handler");
+              map.off('click'); // Supprimer les gestionnaires existants
               map.on('click', (e) => onMapClick(e.latlng));
             }
             
             if (onMapDoubleClick) {
-              map.off('dblclick'); // Remove any existing handlers first
+              map.off('dblclick'); // Supprimer les gestionnaires existants
               map.on('dblclick', (e) => {
                 // Empêcher le comportement de zoom par défaut
                 L.DomEvent.stopPropagation(e);
@@ -52,24 +54,29 @@ const MapInitializer: React.FC<MapInitializerProps> = ({
             }
             
             if (onMapMove) {
-              map.off('mousemove'); // Remove any existing handlers first
+              map.off('mousemove'); // Supprimer les gestionnaires existants
               map.on('mousemove', (e) => onMapMove(e.latlng));
             }
             
             if (setCenter) {
-              map.off('moveend'); // Remove any existing handlers first
+              map.off('moveend'); // Supprimer les gestionnaires existants
               map.on('moveend', () => {
-                setCenter([map.getCenter().lat, map.getCenter().lng] as [number, number]);
+                const center: [number, number] = [
+                  map.getCenter().lat,
+                  map.getCenter().lng
+                ];
+                setCenter(center);
               });
             }
             
             if (setZoom) {
-              map.off('zoomend'); // Remove any existing handlers first
+              map.off('zoomend'); // Supprimer les gestionnaires existants
               map.on('zoomend', () => setZoom(map.getZoom()));
             }
             
             // Call onMapReady callback if provided
             if (onMapReady) {
+              console.log("Calling onMapReady callback");
               onMapReady(map);
             }
           }
