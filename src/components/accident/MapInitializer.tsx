@@ -35,9 +35,9 @@ const MapInitializer: React.FC<MapInitializerProps> = ({ onMapReady }) => {
       try {
         console.log("Map initializer: safely cleaning up");
         
-        // No need to try removing controls or stopping events that might not exist
-        // Just make sure we don't attempt to access the map after it's disposed
-        if (map && !map._isDestroyed) {
+        // Safe cleanup without accessing potentially non-existent properties
+        if (map) {
+          // Remove any event listeners we might have added
           map.off();
         }
       } catch (error) {

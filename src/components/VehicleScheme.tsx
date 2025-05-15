@@ -1,5 +1,5 @@
 
-import { toast } from 'sonner';
+import { toast } from '@/hooks/use-toast';
 import { useState } from 'react';
 import SchemeContainer from './accident/scheme/SchemeContainer';
 import { SchemeData } from './accident/types';
@@ -39,7 +39,8 @@ const VehicleScheme = () => {
       updatedSchemeData.paths.length > 0 || 
       updatedSchemeData.annotations.length > 0
     )) {
-      toast("Schéma enregistré", {
+      toast({
+        title: "Schéma enregistré",
         description: "Les modifications sont sauvegardées automatiquement"
       });
       setHasShownSaveToast(true);

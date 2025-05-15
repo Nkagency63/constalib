@@ -79,8 +79,9 @@ const MapInitializer: React.FC<MapInitializerProps> = ({
         try {
           console.log("Map initializer: safely cleaning up");
           
-          if (map && !map._isDestroyed) {
-            // Remove event listeners we've added, but safely
+          // Clean up event listeners we've added, but safely
+          if (map) {
+            // Safe cleanup without accessing potentially non-existent properties
             if (onMapClick) map.off('click');
             if (onMapDoubleClick) map.off('dblclick');
             if (onMapMove) map.off('mousemove');
