@@ -27,20 +27,20 @@ const MapInitializer: React.FC<MapInitializerProps> = ({
   useEffect(() => {
     if (!map || initDoneRef.current) return;
     
-    // Marquer l'initialisation comme terminée pour éviter les appels dupliqués
+    // Mark initialization as done to avoid duplicate calls
     initDoneRef.current = true;
     
     try {
       console.log("Map initializer: map object is ready");
       
-      // Forcer invalidateSize pour assurer un rendu correct
+      // Force invalidateSize to ensure proper rendering
       setTimeout(() => {
         try {
           if (map) {
             console.log("Invalidating map size");
             map.invalidateSize(true);
             
-            // Configurer les gestionnaires d'événements seulement s'ils n'ont pas déjà été configurés
+            // Set up event handlers only if they haven't been set up already
             if (!eventHandlersSetRef.current) {
               eventHandlersSetRef.current = true;
               
@@ -51,7 +51,7 @@ const MapInitializer: React.FC<MapInitializerProps> = ({
               
               if (onMapDoubleClick) {
                 map.on('dblclick', (e) => {
-                  // Empêcher le comportement de zoom par défaut
+                  // Prevent default zoom behavior
                   L.DomEvent.stopPropagation(e);
                   onMapDoubleClick();
                 });
@@ -85,7 +85,7 @@ const MapInitializer: React.FC<MapInitializerProps> = ({
         } catch (error) {
           console.error("Error in map timeout callback:", error);
         }
-      }, 300); // Délai pour une meilleure réactivité
+      }, 300); // Delay for better reactivity
     } catch (error) {
       console.error("Error in map initialization:", error);
     }
@@ -95,8 +95,9 @@ const MapInitializer: React.FC<MapInitializerProps> = ({
       try {
         if (map) {
           console.log("Map initializer: safely cleaning up");
-          // Vérifier si la carte existe toujours avant de supprimer les gestionnaires
-          if (map._container && !map._container._leaflet_id) {
+          
+          // Check if the map is still valid before removing event handlers
+          if (!map.getContainer()) {
             console.log("Map has been removed, skipping event cleanup");
             return;
           }

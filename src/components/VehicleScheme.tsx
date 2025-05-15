@@ -1,11 +1,11 @@
 
-import { toast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 import { useState } from 'react';
 import SchemeContainer from './accident/scheme/SchemeContainer';
 import { SchemeData } from './accident/types';
 
 const VehicleScheme = () => {
-  // Données par défaut (Paris)
+  // Default data (Paris)
   const demoFormData = {
     geolocation: {
       lat: 48.8566,
@@ -33,14 +33,13 @@ const VehicleScheme = () => {
     console.log('Scheme data updated:', updatedSchemeData);
     setSchemeData(updatedSchemeData);
     
-    // N'afficher le toast que lors de la première modification
+    // Only show toast on first modification
     if (!hasShownSaveToast && (
       updatedSchemeData.vehicles.length > 0 || 
       updatedSchemeData.paths.length > 0 || 
       updatedSchemeData.annotations.length > 0
     )) {
-      toast({
-        title: "Modifications sauvegardées",
+      toast("Modifications sauvegardées", {
         description: "Les modifications sont sauvegardées automatiquement"
       });
       setHasShownSaveToast(true);

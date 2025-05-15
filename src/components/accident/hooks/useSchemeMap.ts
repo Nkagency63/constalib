@@ -1,7 +1,7 @@
 
 import { useRef, useCallback } from 'react';
 import L from 'leaflet';
-import { toast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 import { Vehicle } from '../types/scheme';
 
 interface UseSchemeMapProps {
@@ -56,8 +56,7 @@ export const useSchemeMap = ({ readOnly, handleMapClick, onReady }: UseSchemeMap
       );
       
       if (validVehicles.length === 0) {
-        toast({
-          title: "Information",
+        toast("Information", {
           description: "Pas de véhicules à centrer sur la carte. Ajoutez des véhicules pour utiliser cette fonction"
         });
         return;
@@ -80,8 +79,7 @@ export const useSchemeMap = ({ readOnly, handleMapClick, onReady }: UseSchemeMap
           duration: 0.5
         });
         
-        toast({
-          title: "Carte centrée",
+        toast("Carte centrée", {
           description: `Carte centrée sur les ${validVehicles.length} véhicule(s) visible(s)`
         });
         
@@ -89,8 +87,7 @@ export const useSchemeMap = ({ readOnly, handleMapClick, onReady }: UseSchemeMap
       }
     } catch (error) {
       console.error("Error centering on vehicles:", error);
-      toast({
-        title: "Erreur",
+      toast("Erreur", {
         description: "Erreur lors du centrage de la carte"
       });
     }

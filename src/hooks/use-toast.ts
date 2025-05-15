@@ -1,11 +1,10 @@
+
 import {
   type ToastActionElement,
   type ToastProps,
 } from "@/components/ui/toast";
 
-import {
-  useToast as useToastPrimitive
-} from "@/components/ui/use-toast";
+import { toast as sonnerToast } from "sonner";
 
 const TOAST_LIMIT = 5;
 const TOAST_REMOVE_DELAY = 1000000;
@@ -139,46 +138,25 @@ function dispatch(action: Action) {
   });
 }
 
-interface ToastOptions {
+// Fixed the toast function to use sonner directly
+export function toast(options: {
   title?: string;
   description?: React.ReactNode;
   action?: ToastActionElement;
   variant?: "default" | "destructive";
   duration?: number;
+}) {
+  // Use the sonner toast directly
+  return sonnerToast(options.title as string, {
+    description: options.description,
+    duration: options.duration || 4000,
+    // Map other options as needed
+  });
 }
 
-function toast(props: ToastOptions) {
-  const id = generateId();
-
-  const update = (props: ToasterToast) =>
-    dispatch({
-      type: actionTypes.UPDATE_TOAST,
-      toast: { ...props, id },
-    });
-  const dismiss = () => dispatch({ type: actionTypes.DISMISS_TOAST, toastId: id });
-
-  dispatch({
-    type: actionTypes.ADD_TOAST,
-    toast: {
-      ...props,
-      id,
-      open: true,
-      onOpenChange: (open) => {
-        if (!open) dismiss();
-      },
-    } as ToasterToast,
-  });
-
+// Fixed useToast to not cause infinite recursion
+export function useToast() {
   return {
-    id: id,
-    dismiss,
-    update,
+    toast,
   };
 }
-
-function useToast() {
-  const { toast } = useToastPrimitive();
-  return { toast };
-}
-
-export { useToast, toast };
