@@ -56,7 +56,8 @@ export const useSchemeMap = ({ readOnly, handleMapClick, onReady }: UseSchemeMap
       );
       
       if (validVehicles.length === 0) {
-        toast("Pas de véhicules à centrer sur la carte", {
+        toast({
+          title: "Pas de véhicules à centrer sur la carte",
           description: "Ajoutez des véhicules pour utiliser cette fonction"
         });
         return;
@@ -79,7 +80,8 @@ export const useSchemeMap = ({ readOnly, handleMapClick, onReady }: UseSchemeMap
           duration: 0.5
         });
         
-        toast("Carte centrée sur les véhicules", {
+        toast({
+          title: "Carte centrée sur les véhicules",
           description: `${validVehicles.length} véhicule(s) visible(s)`
         });
         
@@ -87,8 +89,9 @@ export const useSchemeMap = ({ readOnly, handleMapClick, onReady }: UseSchemeMap
       }
     } catch (error) {
       console.error("Error centering on vehicles:", error);
-      toast("Erreur lors du centrage de la carte", {
-        variant: "destructive"
+      toast({
+        title: "Erreur lors du centrage de la carte",
+        description: "Une erreur est survenue lors du centrage de la carte"
       });
     }
   }, []);
