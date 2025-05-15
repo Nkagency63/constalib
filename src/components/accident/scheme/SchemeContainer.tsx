@@ -140,12 +140,12 @@ const SchemeContainer: React.FC<SchemeContainerProps> = ({
     handleMapReady();
   };
   
-  // Integration with useSchemeMap hook
+  // Integration with useSchemeMap hook - Fix the type mismatch here
   const { handleMapReady: handleMapReadyFromHook, centerOnVehicles: centerOnVehiclesFromHook } = 
     useSchemeMap({ 
       readOnly, 
       handleMapClick, 
-      onReady: onMapReadyInit 
+      onReady: onMapReadyInit // This is where the type mismatch was happening
     });
 
   // Update parent with current scheme data
