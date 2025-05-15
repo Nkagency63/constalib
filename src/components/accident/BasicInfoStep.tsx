@@ -4,12 +4,10 @@ import { Calendar } from 'lucide-react';
 interface BasicInfoStepProps {
   date: string;
   time: string;
-  location?: string;
   handleInputChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
-  setGeolocation?: (lat: number, lng: number, address: string) => void;
 }
 
-const BasicInfoStep = ({ date, time, location = '', handleInputChange, setGeolocation }: BasicInfoStepProps) => {
+const BasicInfoStep = ({ date, time, handleInputChange }: BasicInfoStepProps) => {
   return (
     <div className="space-y-6">
       <div className="space-y-2">
@@ -41,22 +39,6 @@ const BasicInfoStep = ({ date, time, location = '', handleInputChange, setGeoloc
           value={time}
           onChange={handleInputChange}
           className="w-full px-4 py-2 border border-constalib-gray rounded-lg focus:ring-2 focus:ring-constalib-blue focus:border-constalib-blue"
-          required
-        />
-      </div>
-
-      <div className="space-y-2">
-        <label htmlFor="location" className="block text-sm font-medium text-constalib-dark">
-          Lieu de l'accident
-        </label>
-        <input
-          type="text"
-          id="location"
-          name="location"
-          value={location}
-          onChange={handleInputChange}
-          className="w-full px-4 py-2 border border-constalib-gray rounded-lg focus:ring-2 focus:ring-constalib-blue focus:border-constalib-blue"
-          placeholder="Adresse, ville, code postal..."
           required
         />
       </div>

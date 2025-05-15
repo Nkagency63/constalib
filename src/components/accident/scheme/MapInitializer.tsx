@@ -31,15 +31,13 @@ const MapInitializer = ({ onMapReady }: MapInitializerProps) => {
         // Clear the timeout on unmount
         clearTimeout(timer);
         
-        // Safe cleanup approach - only detach events without removing controls
-        // This avoids the "s is undefined" error that happens in the original removeControl call
+        // Clean up safely without attempting to remove controls
         try {
-          console.log("Map initializer: safely cleaning up");
+          console.log("Map initializer: cleaning up");
           
-          // Only remove event listeners without touching controls
-          map.off();
-          
-          // Don't call any removeControl methods that might cause the error
+          // Utiliser une approche plus sûre pour nettoyer les événements
+          // On ne touche pas aux contrôles qui peuvent causer l'erreur "s is undefined"
+          map.off(); // Nettoyage des événements uniquement
         } catch (error) {
           console.error("Error cleaning up map:", error);
         }
