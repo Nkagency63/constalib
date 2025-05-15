@@ -46,33 +46,43 @@ const MapInitializer: React.FC<MapInitializerProps> = ({
               
               if (onMapClick) {
                 console.log("Setting up map click handler");
-                map.on('click', (e) => onMapClick(e.latlng));
+                map.on('click', (e) => {
+                  if (onMapClick) onMapClick(e.latlng);
+                });
               }
               
               if (onMapDoubleClick) {
                 map.on('dblclick', (e) => {
                   // Prevent default zoom behavior
                   L.DomEvent.stopPropagation(e);
-                  onMapDoubleClick();
+                  if (onMapDoubleClick) onMapDoubleClick();
                 });
               }
               
               if (onMapMove) {
-                map.on('mousemove', (e) => onMapMove(e.latlng));
+                map.on('mousemove', (e) => {
+                  if (onMapMove) onMapMove(e.latlng);
+                });
               }
               
               if (setCenter) {
                 map.on('moveend', () => {
-                  const center: [number, number] = [
-                    map.getCenter().lat,
-                    map.getCenter().lng
-                  ];
-                  setCenter(center);
+                  if (map && setCenter) {
+                    const center: [number, number] = [
+                      map.getCenter().lat,
+                      map.getCenter().lng
+                    ];
+                    setCenter(center);
+                  }
                 });
               }
               
               if (setZoom) {
-                map.on('zoomend', () => setZoom(map.getZoom()));
+                map.on('zoomend', () => {
+                  if (map && setZoom) {
+                    setZoom(map.getZoom());
+                  }
+                });
               }
             }
             
@@ -91,16 +101,19 @@ const MapInitializer: React.FC<MapInitializerProps> = ({
     }
     
     return () => {
-      // Clean up event handlers to avoid memory leaks
+      // Safer cleanup that avoids the "s is undefined" error
       try {
-        if (map && map.getContainer && map.getContainer()) {
+        if (map && !map._isDestroyed) {
           console.log("Map initializer: safely cleaning up");
           
-          if (onMapClick) map.off('click');
-          if (onMapDoubleClick) map.off('dblclick');
-          if (onMapMove) map.off('mousemove');
-          if (setCenter) map.off('moveend');
-          if (setZoom) map.off('zoomend');
+          // Always check if the handlers were actually set before removing them
+          if (eventHandlersSetRef.current) {
+            if (onMapClick) map.off('click');
+            if (onMapDoubleClick) map.off('dblclick');
+            if (onMapMove) map.off('mousemove');
+            if (setCenter) map.off('moveend');
+            if (setZoom) map.off('zoomend');
+          }
         }
       } catch (error) {
         console.error("Error cleaning up map:", error);

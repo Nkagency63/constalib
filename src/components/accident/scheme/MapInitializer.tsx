@@ -22,68 +22,98 @@ const MapInitializer: React.FC<MapInitializerProps> = ({
 }) => {
   const map = useMap();
   const initDoneRef = useRef(false);
+  const eventHandlersSetRef = useRef(false);
   
   useEffect(() => {
-    if (map && !initDoneRef.current) {
-      // Marquer l'initialisation comme terminée pour éviter les appels dupliqués
-      initDoneRef.current = true;
+    if (!map || initDoneRef.current) return;
+    
+    // Mark initialization as done to avoid duplicate calls
+    initDoneRef.current = true;
+    
+    try {
+      console.log("Map initializer: map object is ready");
       
-      try {
-        console.log("Map initializer: map object is ready");
-        
-        // Forcer invalidateSize pour assurer un rendu correct
-        setTimeout(() => {
-          map.invalidateSize();
-          
-          // Configurer les gestionnaires d'événements
-          if (onMapClick) {
-            map.on('click', (e) => onMapClick(e.latlng));
+      // Force invalidateSize to ensure proper rendering
+      setTimeout(() => {
+        try {
+          if (map) {
+            console.log("Invalidating map size");
+            map.invalidateSize(true);
+            
+            // Set up event handlers only if they haven't been set up already
+            if (!eventHandlersSetRef.current) {
+              eventHandlersSetRef.current = true;
+              
+              if (onMapClick) {
+                console.log("Setting up map click handler");
+                map.on('click', (e) => {
+                  if (onMapClick) onMapClick(e.latlng);
+                });
+              }
+              
+              if (onMapDoubleClick) {
+                map.on('dblclick', (e) => {
+                  // Prevent default zoom behavior
+                  L.DomEvent.stopPropagation(e);
+                  if (onMapDoubleClick) onMapDoubleClick();
+                });
+              }
+              
+              if (onMapMove) {
+                map.on('mousemove', (e) => {
+                  if (onMapMove) onMapMove(e.latlng);
+                });
+              }
+              
+              if (setCenter) {
+                map.on('moveend', () => {
+                  if (map && setCenter) {
+                    const center: [number, number] = [
+                      map.getCenter().lat,
+                      map.getCenter().lng
+                    ];
+                    setCenter(center);
+                  }
+                });
+              }
+              
+              if (setZoom) {
+                map.on('zoomend', () => {
+                  if (map && setZoom) {
+                    setZoom(map.getZoom());
+                  }
+                });
+              }
+            }
+            
+            // Call onMapReady callback if provided
+            if (onMapReady) {
+              console.log("Calling onMapReady callback");
+              onMapReady(map);
+            }
           }
-          
-          if (onMapDoubleClick) {
-            map.on('dblclick', (e) => {
-              // Empêcher le comportement de zoom par défaut
-              L.DomEvent.stopPropagation(e);
-              onMapDoubleClick();
-            });
-          }
-          
-          if (onMapMove) {
-            map.on('mousemove', (e) => onMapMove(e.latlng));
-          }
-          
-          if (setCenter) {
-            map.on('moveend', () => {
-              setCenter([map.getCenter().lat, map.getCenter().lng] as [number, number]);
-            });
-          }
-          
-          if (setZoom) {
-            map.on('zoomend', () => setZoom(map.getZoom()));
-          }
-          
-          // Appeler le callback onMapReady s'il est fourni
-          if (onMapReady) {
-            onMapReady(map);
-          }
-          
-        }, 300); // Délai pour une meilleure réactivité
-      } catch (error) {
-        console.error("Error in map initialization:", error);
-      }
+        } catch (error) {
+          console.error("Error in map timeout callback:", error);
+        }
+      }, 300); // Delay for better reactivity
+    } catch (error) {
+      console.error("Error in map initialization:", error);
     }
     
     return () => {
+      // Safer cleanup that avoids the "s is undefined" error
       try {
-        console.log("Map initializer: safely cleaning up");
-        
-        // Nettoyage des événements sans supprimer les contrôles
-        if (map) {
-          if (onMapClick) map.off('click');
-          if (onMapDoubleClick) map.off('dblclick');
-          if (onMapMove) map.off('mousemove');
-          if (setCenter) map.off('moveend');
-          if (setZoom) map.off('zoomend');
+        if (map && !map._isDestroyed) {
+          console.log("Map initializer: safely cleaning up");
+          
+          // Always check if the handlers were actually set before removing them
+          if (eventHandlersSetRef.current) {
+            if (onMapClick) map.off('click');
+            if (onMapDoubleClick) map.off('dblclick');
+            if (onMapMove) map.off('mousemove');
+            if (setCenter) map.off('moveend');
+            if (setZoom) map.off('zoomend');
+          }
         }
       } catch (error) {
         console.error("Error cleaning up map:", error);

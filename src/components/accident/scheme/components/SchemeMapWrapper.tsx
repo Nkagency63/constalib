@@ -54,8 +54,28 @@ const SchemeMapWrapper: React.FC<SchemeMapWrapperProps> = ({
 }) => {
   console.log("Rendering SchemeMapWrapper with center:", center);
   
-  // Generate a key based on center coordinates to force re-rendering when location changes
+  // Generate a key based on center coordinates and timestamp to force re-rendering when location changes
   const mapKey = `map-${center[0].toFixed(6)}-${center[1].toFixed(6)}-${Date.now()}`;
+  
+  const handleMapReady = (map: L.Map) => {
+    console.log("SchemeMapWrapper: Map is ready");
+    
+    // Make sure map is properly sized
+    setTimeout(() => {
+      if (map) {
+        try {
+          map.invalidateSize();
+          console.log("SchemeMapWrapper: Map invalidated");
+          
+          if (onMapReady) {
+            onMapReady(map);
+          }
+        } catch (error) {
+          console.error("Error in map initialization:", error);
+        }
+      }
+    }, 300);
+  };
   
   return (
     <div className="relative rounded-lg overflow-hidden shadow-md border border-gray-200 h-full">
@@ -74,9 +94,8 @@ const SchemeMapWrapper: React.FC<SchemeMapWrapperProps> = ({
               attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
             />
             
-            <MapInitializer 
-              onMapReady={onMapReady} 
-            />
+            {/* Using our fixed MapInitializer */}
+            <MapInitializer onMapReady={handleMapReady} />
             
             <VehiclesLayer
               vehicles={vehicles}

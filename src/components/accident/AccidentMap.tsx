@@ -26,8 +26,23 @@ interface AccidentMapProps {
 }
 
 const AccidentMap: React.FC<AccidentMapProps> = ({ lat, lng, address, onMapReady }) => {
-  // Generate unique map key based on coordinates
+  // Generate unique map key based on coordinates to force fresh initialization
   const mapKey = `accident-map-${lat.toFixed(6)}-${lng.toFixed(6)}-${Date.now()}`;
+  
+  const handleMapReady = (map: L.Map) => {
+    // Make sure the map is properly sized
+    setTimeout(() => {
+      if (map) {
+        map.invalidateSize();
+        console.log("AccidentMap: Map invalidated and ready");
+        
+        // Only call onMapReady if it exists
+        if (onMapReady) {
+          onMapReady(map);
+        }
+      }
+    }, 200);
+  };
   
   return (
     <div className="h-[400px] w-full rounded-md overflow-hidden">
@@ -47,7 +62,9 @@ const AccidentMap: React.FC<AccidentMapProps> = ({ lat, lng, address, onMapReady
             {address || `Latitude: ${lat}, Longitude: ${lng}`}
           </Popup>
         </Marker>
-        {onMapReady && <MapInitializer onMapReady={onMapReady} />}
+        
+        {/* Using our fixed MapInitializer */}
+        <MapInitializer onMapReady={handleMapReady} />
       </MapContainer>
       
       {address && (
