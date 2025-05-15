@@ -53,16 +53,25 @@ const SchemeMapWrapper: React.FC<SchemeMapWrapperProps> = ({
   onUpdateAnnotation,
   onMapReady
 }) => {
+  // Use a unique key to force re-mounting of the map when center changes
+  // This helps avoid stale references and cleanup issues
+  const mapKey = `map-${center[0].toFixed(4)}-${center[1].toFixed(4)}`;
+  
   return (
     <div className="relative rounded-lg overflow-hidden shadow-md border border-gray-200 h-full">
       <TooltipProvider>
         <div className="h-full w-full">
           <MapContainer
+            key={mapKey}
             center={center}
             zoom={17}
             style={{ height: '100%', width: '100%', minHeight: '350px' }}
             attributionControl={false}
             zoomControl={true}
+            whenCreated={(map) => {
+              console.log("Map created");
+              return map;
+            }}
           >
             <TileLayer
               url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"

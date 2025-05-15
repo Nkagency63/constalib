@@ -24,20 +24,30 @@ export const useSchemeMap = ({ readOnly, handleMapClick, onReady }: UseSchemeMap
     
     // Configure event handlers if not readonly
     if (!readOnly && mapRef.current) {
-      // Make sure to remove any previous click handlers first
-      mapRef.current.off('click');
-      // Then add our new click handler
-      mapRef.current.on('click', handleMapClick);
-      console.log("Map click handler registered");
+      try {
+        // Remove any previous click handlers first - safely
+        if (mapRef.current.off) {
+          mapRef.current.off('click');
+        }
+        // Then add our new click handler
+        mapRef.current.on('click', handleMapClick);
+        console.log("Map click handler registered");
+      } catch (err) {
+        console.error("Error setting up map click handlers:", err);
+      }
     }
     
     // Ensure map is properly sized
-    setTimeout(() => {
-      if (mapRef.current) {
-        mapRef.current.invalidateSize();
-        console.log("Map size invalidated");
-      }
-    }, 300);
+    try {
+      setTimeout(() => {
+        if (mapRef.current) {
+          mapRef.current.invalidateSize();
+          console.log("Map size invalidated");
+        }
+      }, 300);
+    } catch (err) {
+      console.error("Error invalidating map size:", err);
+    }
     
     // Call the onReady callback to initialize the map with the map object
     onReady(map);
@@ -45,7 +55,7 @@ export const useSchemeMap = ({ readOnly, handleMapClick, onReady }: UseSchemeMap
   }, [readOnly, handleMapClick, onReady]);
 
   const centerOnVehicles = useCallback((vehicles: Vehicle[]) => {
-    if (!mapRef.current || vehicles.length === 0) return;
+    if (!mapRef.current || !vehicles.length) return;
     
     console.log("Centering on vehicles:", vehicles.length);
     
@@ -55,7 +65,7 @@ export const useSchemeMap = ({ readOnly, handleMapClick, onReady }: UseSchemeMap
         v.position && Array.isArray(v.position) && v.position.length === 2
       );
       
-      if (validVehicles.length === 0) {
+      if (!validVehicles.length) {
         toast({
           description: "Pas de véhicules à centrer sur la carte. Ajoutez des véhicules pour utiliser cette fonction"
         });
@@ -67,7 +77,7 @@ export const useSchemeMap = ({ readOnly, handleMapClick, onReady }: UseSchemeMap
         validVehicles.map(v => L.latLng(v.position))
       );
       
-      if (bounds.isValid()) {
+      if (bounds.isValid() && mapRef.current) {
         // Add some padding to the bounds
         bounds.pad(0.2);
         
