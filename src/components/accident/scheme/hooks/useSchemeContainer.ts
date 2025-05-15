@@ -4,7 +4,7 @@ import { SchemeData } from '../../types';
 import { useVehicles } from '../../hooks/useVehicles';
 import { usePaths } from '../../hooks/usePaths';
 import { useAnnotations } from '../../hooks/useAnnotations';
-import { useSchemeMap } from '../../hooks/useSchemeMap';
+import { useSchemeMap } from '@/hooks/accident/useSchemeMap';
 import L from 'leaflet';
 import { toast } from '@/hooks/use-toast';
 

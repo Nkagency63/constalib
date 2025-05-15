@@ -21,7 +21,10 @@ const SchemeStep: React.FC<SchemeStepProps> = ({ formData, onSchemeUpdate }) => 
       schemeData.paths.length > 0 || 
       schemeData.annotations.length > 0
     )) {
-      toast("Les modifications sont enregistrées automatiquement");
+      toast({
+        title: "Modifications sauvegardées",
+        description: "Les modifications sont enregistrées automatiquement"
+      });
       setHasShownUpdateToast(true);
     }
     
