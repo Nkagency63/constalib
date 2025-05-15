@@ -7,7 +7,6 @@ import { Checkbox } from '../ui/checkbox';
 import { Label } from '../ui/label';
 import { RadioGroup, RadioGroupItem } from '../ui/radio-group';
 import { toast } from 'sonner';
-import { cn } from '@/lib/utils';
 
 interface CircumstanceStepProps {
   circumstances: string[];
@@ -97,44 +96,23 @@ const CircumstanceStep: React.FC<CircumstanceStepProps> = ({
   }, [circumstanceCategories, searchQuery]);
 
   return (
-    <div className="space-y-6 bg-white">
-      {/* Header with blue background - similar to e-constat */}
-      <div className="bg-[#1a3b8e] text-white p-4 rounded-t-lg shadow-sm mb-6">
-        <h2 className="text-xl font-bold text-center">CIRCONSTANCES</h2>
-        <p className="text-center text-sm opacity-90">
-          Cochez les cases utiles pour préciser le croquis et les circonstances
-        </p>
-      </div>
-      
+    <div className="space-y-6">
       <div className="flex flex-col md:flex-row mb-6 gap-4 items-center">
         <h3 className="text-lg font-medium">Sélectionner pour le véhicule :</h3>
-        <div className="flex w-full md:w-auto gap-4 justify-center">
-          <div 
-            className={cn(
-              "flex-1 md:flex-initial cursor-pointer rounded-md px-5 py-3 text-center font-bold border-2 flex flex-col items-center justify-center gap-1",
-              currentVehicleId === 'A' 
-                ? "border-[#1a3b8e] bg-[#e6ebf7] text-[#1a3b8e]" 
-                : "border-gray-300 bg-white text-gray-500"
-            )}
-            onClick={() => setCurrentVehicleId('A')}
-          >
-            <span className="text-2xl">A</span>
-            <span className="text-xs">VOTRE VÉHICULE</span>
+        <RadioGroup 
+          value={currentVehicleId} 
+          onValueChange={(value) => setCurrentVehicleId(value as 'A' | 'B')}
+          className="flex space-x-4"
+        >
+          <div className="flex items-center space-x-2">
+            <RadioGroupItem value="A" id="vehicleA" />
+            <Label htmlFor="vehicleA" className="font-medium">Véhicule A (votre véhicule)</Label>
           </div>
-          
-          <div 
-            className={cn(
-              "flex-1 md:flex-initial cursor-pointer rounded-md px-5 py-3 text-center font-bold border-2 flex flex-col items-center justify-center gap-1",
-              currentVehicleId === 'B' 
-                ? "border-[#d04a35] bg-[#f9e9e7] text-[#d04a35]" 
-                : "border-gray-300 bg-white text-gray-500"
-            )}
-            onClick={() => setCurrentVehicleId('B')}
-          >
-            <span className="text-2xl">B</span>
-            <span className="text-xs">AUTRE VÉHICULE</span>
+          <div className="flex items-center space-x-2">
+            <RadioGroupItem value="B" id="vehicleB" />
+            <Label htmlFor="vehicleB" className="font-medium">Véhicule B (autre véhicule)</Label>
           </div>
-        </div>
+        </RadioGroup>
       </div>
 
       <div className="relative mb-6">
@@ -144,7 +122,7 @@ const CircumstanceStep: React.FC<CircumstanceStepProps> = ({
         <Input
           type="text"
           placeholder="Rechercher une circonstance..."
-          className="pl-10 pr-10 border-[#1a3b8e]"
+          className="pl-10 pr-10"
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
         />
@@ -166,95 +144,45 @@ const CircumstanceStep: React.FC<CircumstanceStepProps> = ({
         </div>
       )}
 
-      <div className="grid grid-cols-1 gap-6">
-        {filteredCategories.map((category) => (
-          <div key={category.id} className="border border-[#1a3b8e] rounded-lg overflow-hidden">
-            <div className="bg-[#1a3b8e] text-white p-3 font-semibold">
-              {category.title}
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 p-4">
-              {category.circumstances.map((circ) => (
-                <div 
-                  key={circ.id} 
-                  className={cn(
-                    "flex items-start space-x-3 p-3 rounded-md transition-colors",
-                    currentCircumstances.includes(circ.id) 
-                      ? currentVehicleId === 'A'
-                        ? "bg-[#e6ebf7] border border-[#1a3b8e]" 
-                        : "bg-[#f9e9e7] border border-[#d04a35]"
-                      : "border border-gray-200 hover:bg-gray-50"
-                  )}
-                >
-                  <Checkbox 
-                    id={`${currentVehicleId}-${circ.id}`} 
-                    checked={currentCircumstances.includes(circ.id)}
-                    onCheckedChange={(checked) => {
-                      handleCircumstanceClick(circ.id, checked === true);
-                    }}
-                    className={cn(
-                      "mt-1", 
-                      currentVehicleId === 'A' ? "text-[#1a3b8e]" : "text-[#d04a35]"
-                    )}
-                  />
-                  <div>
-                    <Label 
-                      htmlFor={`${currentVehicleId}-${circ.id}`}
-                      className="font-medium cursor-pointer"
-                    >
-                      {circ.label}
-                    </Label>
-                    <p className="text-sm text-gray-500 mt-1">{circ.description}</p>
-                  </div>
+      {filteredCategories.map((category) => (
+        <div key={category.id} className="mb-8">
+          <h3 className="text-lg font-medium mb-3">{category.title}</h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {category.circumstances.map((circ) => (
+              <div key={circ.id} className="flex items-start space-x-3 p-3 rounded-md border border-gray-200 hover:bg-gray-50 transition-colors">
+                <Checkbox 
+                  id={`${currentVehicleId}-${circ.id}`} 
+                  checked={currentCircumstances.includes(circ.id)}
+                  onCheckedChange={(checked) => {
+                    handleCircumstanceClick(circ.id, checked === true);
+                  }}
+                  className="mt-1"
+                />
+                <div>
+                  <Label 
+                    htmlFor={`${currentVehicleId}-${circ.id}`}
+                    className="font-medium cursor-pointer"
+                  >
+                    {circ.label}
+                  </Label>
+                  <p className="text-sm text-gray-500 mt-1">{circ.description}</p>
                 </div>
-              ))}
-            </div>
+              </div>
+            ))}
           </div>
-        ))}
-      </div>
+        </div>
+      ))}
 
-      <div className="mt-6 p-4 rounded-md flex flex-col md:flex-row gap-4 border-2 border-[#1a3b8e]">
-        <div className={cn(
-          "flex-1 p-3 rounded-md", 
-          vehicleACircumstances.length > 0 ? "bg-[#e6ebf7]" : "bg-gray-50"
-        )}>
-          <h4 className="font-bold text-[#1a3b8e] mb-2">VÉHICULE A</h4>
-          <p className="text-[#1a3b8e] font-semibold">{vehicleACircumstances.length} circonstance(s) sélectionnée(s)</p>
-          <ul className="mt-2 space-y-1">
-            {vehicleACircumstances.map(id => {
-              const circ = circumstanceCategories
-                .flatMap(cat => cat.circumstances)
-                .find(c => c.id === id);
-              return circ ? (
-                <li key={id} className="text-sm">• {circ.label}</li>
-              ) : null;
-            })}
-          </ul>
+      <div className="mt-6 p-4 bg-blue-50 rounded-md border border-blue-200">
+        <h4 className="font-medium text-blue-800 mb-2">Nombre de circonstances sélectionnées :</h4>
+        <div className="flex flex-col md:flex-row gap-4">
+          <div>
+            <span className="font-semibold">Véhicule A :</span> {vehicleACircumstances.length} circonstance(s)
+          </div>
+          <div>
+            <span className="font-semibold">Véhicule B :</span> {vehicleBCircumstances.length} circonstance(s)
+          </div>
         </div>
-        
-        <div className={cn(
-          "flex-1 p-3 rounded-md",
-          vehicleBCircumstances.length > 0 ? "bg-[#f9e9e7]" : "bg-gray-50"
-        )}>
-          <h4 className="font-bold text-[#d04a35] mb-2">VÉHICULE B</h4>
-          <p className="text-[#d04a35] font-semibold">{vehicleBCircumstances.length} circonstance(s) sélectionnée(s)</p>
-          <ul className="mt-2 space-y-1">
-            {vehicleBCircumstances.map(id => {
-              const circ = circumstanceCategories
-                .flatMap(cat => cat.circumstances)
-                .find(c => c.id === id);
-              return circ ? (
-                <li key={id} className="text-sm">• {circ.label}</li>
-              ) : null;
-            })}
-          </ul>
-        </div>
-      </div>
-      
-      <div className="p-4 bg-[#f7f9fc] rounded-md border border-gray-200 mt-6">
-        <p className="text-sm text-gray-600 italic">
-          <span className="font-semibold">Note :</span> Cochez jusqu'à 3 circonstances par véhicule. 
-          Les circonstances sont utilisées pour déterminer les responsabilités dans l'accident.
-        </p>
       </div>
     </div>
   );
