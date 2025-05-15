@@ -1,17 +1,12 @@
 
 import React from 'react';
-import { MapContainer, TileLayer } from 'react-leaflet';
 import { TooltipProvider } from '@/components/ui/tooltip';
+import MapContainer from '../MapContainer';
 import SchemeInfo from '../SchemeInfo';
 import SchemeGuide from '../SchemeGuide';
 import StepByStepGuide from '../StepByStepGuide';
 import KeyboardShortcuts from '../KeyboardShortcuts';
-import { Vehicle, Path, Annotation } from '../../types/scheme';
-import VehiclesLayer from '../../VehiclesLayer';
-import PathsLayer from '../PathsLayer';
-import AnnotationsLayer from '../AnnotationsLayer';
-import MapInitializer from '../../MapInitializer';
-import 'leaflet/dist/leaflet.css';
+import { Vehicle, Path, Annotation } from '../../types';
 
 interface SchemeMapWrapperProps {
   center: [number, number];
@@ -52,81 +47,29 @@ const SchemeMapWrapper: React.FC<SchemeMapWrapperProps> = ({
   onUpdateAnnotation,
   onMapReady
 }) => {
-  console.log("Rendering SchemeMapWrapper with center:", center);
-  
-  // Generate a key based on center coordinates and timestamp to force re-rendering when location changes
-  const mapKey = `map-${center[0].toFixed(6)}-${center[1].toFixed(6)}-${Date.now()}`;
-  
-  const handleMapReady = (map: L.Map) => {
-    console.log("SchemeMapWrapper: Map is ready");
-    
-    // Make sure map is properly sized
-    setTimeout(() => {
-      if (map) {
-        try {
-          map.invalidateSize();
-          console.log("SchemeMapWrapper: Map invalidated");
-          
-          if (onMapReady) {
-            onMapReady(map);
-          }
-        } catch (error) {
-          console.error("Error in map initialization:", error);
-        }
-      }
-    }, 300);
-  };
-  
   return (
-    <div className="relative rounded-lg overflow-hidden shadow-md border border-gray-200 h-full">
+    <div className="relative rounded-lg overflow-hidden shadow-md border border-gray-200">
       <TooltipProvider>
-        <div className="h-full w-full">
-          <MapContainer
-            key={mapKey}
-            center={center}
-            zoom={17}
-            style={{ height: '100%', width: '100%', minHeight: '400px' }}
-            attributionControl={false}
-            zoomControl={true}
-          >
-            <TileLayer
-              url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-              attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-            />
-            
-            {/* Using our fixed MapInitializer */}
-            <MapInitializer onMapReady={handleMapReady} />
-            
-            <VehiclesLayer
-              vehicles={vehicles}
-              selectedVehicleId={selectedVehicle}
-              onVehicleSelect={onVehicleSelect}
-              onRemoveVehicle={onRemoveVehicle}
-              onRotateVehicle={onRotateVehicle}
-              readOnly={readOnly}
-            />
-            
-            <PathsLayer
-              paths={paths}
-              currentPathPoints={currentPathPoints}
-              isDrawing={currentPathPoints.length > 0}
-              pathColor="#ff0000"
-              readOnly={readOnly}
-              drawingLayerRef={drawingLayerRef}
-              selectedVehicle={selectedVehicle}
-              vehicles={vehicles}
-            />
-            
-            <AnnotationsLayer
-              annotations={annotations}
-              readOnly={readOnly}
-              onRemove={onRemoveAnnotation}
-              onUpdate={onUpdateAnnotation}
-            />
-          </MapContainer>
-        </div>
+        <MapContainer 
+          center={center}
+          zoom={17}
+          vehicles={vehicles}
+          paths={paths}
+          annotations={annotations}
+          currentPathPoints={currentPathPoints}
+          drawingLayerRef={drawingLayerRef}
+          selectedVehicle={selectedVehicle}
+          onVehicleSelect={onVehicleSelect}
+          onRemoveVehicle={onRemoveVehicle}
+          onRotateVehicle={onRotateVehicle}
+          onChangeVehicleType={onChangeVehicleType}
+          onRemoveAnnotation={onRemoveAnnotation}
+          onUpdateAnnotation={onUpdateAnnotation}
+          onMapReady={onMapReady}
+          readOnly={readOnly}
+        />
 
-        {/* Guidance components */}
+        {/* Ajout des composants de guidance */}
         {!readOnly && (
           <>
             <SchemeGuide 

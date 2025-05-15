@@ -1,3 +1,4 @@
+
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { VehicleData, InsuranceData, FvaData } from '../types/vehicleTypes';
@@ -100,7 +101,7 @@ const processInsuranceData = (
  */
 export const lookupVehicleFromSiv = async (
   licensePlate: string,
-  setVehicleInfo: (data: {brand: string, model: string, year?: string, firstRegistration?: string}) => void,
+  setVehicleInfo: (data: {brand: string, model: string, year: string, firstRegistration?: string}) => void,
   handleInputChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void,
   setInsuranceInfo?: (data: {company: string}) => void
 ): Promise<{ 
@@ -131,14 +132,8 @@ export const lookupVehicleFromSiv = async (
   const vehicleData = result.data;
   console.log('Véhicule trouvé:', vehicleData);
   
-  // Make sure the year property has a value before passing to setVehicleInfo
-  const dataWithYear = {
-    ...vehicleData,
-    year: vehicleData.year || '' 
-  };
-  
   // Update form with vehicle information
-  setVehicleInfo(dataWithYear);
+  setVehicleInfo(vehicleData);
   
   let insuranceDetails = null;
   let autoInsuranceFound = false;
@@ -169,7 +164,7 @@ export const lookupVehicleFromSiv = async (
  */
 export const lookupVehicleFromFni = async (
   licensePlate: string,
-  setVehicleInfo: (data: {brand: string, model: string, year?: string, firstRegistration?: string}) => void,
+  setVehicleInfo: (data: {brand: string, model: string, year: string, firstRegistration?: string}) => void,
   handleInputChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void,
   setInsuranceInfo?: (data: {company: string}) => void
 ): Promise<{ 
@@ -200,14 +195,8 @@ export const lookupVehicleFromFni = async (
   const vehicleData = result.data;
   console.log('Véhicule trouvé dans le FNI:', vehicleData);
   
-  // Make sure the year property has a value before passing to setVehicleInfo
-  const dataWithYear = {
-    ...vehicleData,
-    year: vehicleData.year || '' 
-  };
-  
   // Update form with vehicle information
-  setVehicleInfo(dataWithYear);
+  setVehicleInfo(vehicleData);
   
   let insuranceDetails = null;
   let autoInsuranceFound = false;

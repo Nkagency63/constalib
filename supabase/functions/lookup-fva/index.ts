@@ -8,7 +8,7 @@ import {
   simulateApiDelay 
 } from '../_shared/vehicle-utils.ts';
 
-// Simulated FVA database (Fichier des Véhicules Assurés)
+// Simulated FVA database (Insured Vehicles File)
 const fvaDatabase = {
   'AA123BB': { 
     vehicleInfo: {

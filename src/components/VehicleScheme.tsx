@@ -1,11 +1,11 @@
 
-import { toast } from 'sonner';
-import { useState } from 'react';
-import SchemeContainer from './accident/scheme/SchemeContainer';
+import { useToast } from '@/hooks/use-toast';
+import InteractiveScheme from './accident/InteractiveScheme';
 import { SchemeData } from './accident/types';
+import { useState } from 'react';
 
 const VehicleScheme = () => {
-  // Default data (Paris)
+  // Données par défaut (Paris)
   const demoFormData = {
     geolocation: {
       lat: 48.8566,
@@ -20,26 +20,16 @@ const VehicleScheme = () => {
     }
   };
 
+  const { toast } = useToast();
   const [hasShownSaveToast, setHasShownSaveToast] = useState(false);
-  const [schemeData, setSchemeData] = useState<SchemeData>({
-    vehicles: [],
-    paths: [],
-    annotations: [],
-    center: [48.8566, 2.3522],
-    zoom: 17
-  });
 
-  const handleSchemeUpdate = (updatedSchemeData: SchemeData) => {
-    console.log('Scheme data updated:', updatedSchemeData);
-    setSchemeData(updatedSchemeData);
+  const handleSchemeUpdate = (schemeData: SchemeData) => {
+    console.log('Scheme data updated:', schemeData);
     
-    // Only show toast on first modification
-    if (!hasShownSaveToast && (
-      updatedSchemeData.vehicles.length > 0 || 
-      updatedSchemeData.paths.length > 0 || 
-      updatedSchemeData.annotations.length > 0
-    )) {
-      toast("Modifications sauvegardées", {
+    // N'afficher le toast que lors de la première modification
+    if (!hasShownSaveToast) {
+      toast({
+        title: "Schéma enregistré",
         description: "Les modifications sont sauvegardées automatiquement"
       });
       setHasShownSaveToast(true);
@@ -48,13 +38,10 @@ const VehicleScheme = () => {
 
   return (
     <div className="w-full">
-      <div className="bg-white p-4 rounded-lg border border-gray-200 mb-4 h-[500px]">
-        <SchemeContainer 
-          formData={demoFormData}
-          onSchemeUpdate={handleSchemeUpdate}
-          initialData={schemeData}
-        />
-      </div>
+      <InteractiveScheme 
+        formData={demoFormData}
+        onUpdateSchemeData={handleSchemeUpdate}
+      />
       
       <div className="text-sm text-constalib-dark-gray mt-4">
         <p>Glissez les véhicules pour les positionner. Utilisez les outils pour les faire pivoter ou les supprimer.</p>

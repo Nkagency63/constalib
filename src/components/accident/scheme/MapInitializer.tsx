@@ -1,125 +1,51 @@
 
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect } from 'react';
 import { useMap } from 'react-leaflet';
-import L from 'leaflet';
+import { Map } from 'leaflet';
 
 interface MapInitializerProps {
-  onMapReady?: (map: L.Map) => void;
-  setCenter?: (center: [number, number]) => void;
-  setZoom?: (zoom: number) => void;
-  onMapClick?: (latlng: L.LatLng) => void;
-  onMapDoubleClick?: () => void;
-  onMapMove?: (latlng: L.LatLng) => void;
+  onMapReady: (map: Map) => void;
 }
 
-const MapInitializer: React.FC<MapInitializerProps> = ({
-  onMapReady,
-  setCenter,
-  setZoom,
-  onMapClick,
-  onMapDoubleClick,
-  onMapMove
-}) => {
+const MapInitializer = ({ onMapReady }: MapInitializerProps) => {
   const map = useMap();
-  const initDoneRef = useRef(false);
-  const eventHandlersSetRef = useRef(false);
   
   useEffect(() => {
-    if (!map || initDoneRef.current) return;
-    
-    // Mark initialization as done to avoid duplicate calls
-    initDoneRef.current = true;
-    
-    try {
-      console.log("Map initializer: map object is ready");
-      
-      // Force invalidateSize to ensure proper rendering
-      setTimeout(() => {
+    if (map) {
+      // Delay initialization to ensure DOM is ready
+      const timer = setTimeout(() => {
         try {
-          if (map) {
-            console.log("Invalidating map size");
-            map.invalidateSize(true);
-            
-            // Set up event handlers only if they haven't been set up already
-            if (!eventHandlersSetRef.current) {
-              eventHandlersSetRef.current = true;
-              
-              if (onMapClick) {
-                console.log("Setting up map click handler");
-                map.on('click', (e) => {
-                  if (onMapClick) onMapClick(e.latlng);
-                });
-              }
-              
-              if (onMapDoubleClick) {
-                map.on('dblclick', (e) => {
-                  // Prevent default zoom behavior
-                  L.DomEvent.stopPropagation(e);
-                  if (onMapDoubleClick) onMapDoubleClick();
-                });
-              }
-              
-              if (onMapMove) {
-                map.on('mousemove', (e) => {
-                  if (onMapMove) onMapMove(e.latlng);
-                });
-              }
-              
-              if (setCenter) {
-                map.on('moveend', () => {
-                  if (map && setCenter) {
-                    const center: [number, number] = [
-                      map.getCenter().lat,
-                      map.getCenter().lng
-                    ];
-                    setCenter(center);
-                  }
-                });
-              }
-              
-              if (setZoom) {
-                map.on('zoomend', () => {
-                  if (map && setZoom) {
-                    setZoom(map.getZoom());
-                  }
-                });
-              }
-            }
-            
-            // Call onMapReady callback if provided
-            if (onMapReady) {
-              console.log("Calling onMapReady callback");
-              onMapReady(map);
-            }
-          }
+          console.log("Map initializer: map object is ready");
+          
+          // Force invalidate size to ensure proper rendering
+          map.invalidateSize();
+          
+          // Call the callback with the map object
+          onMapReady(map);
         } catch (error) {
-          console.error("Error in map timeout callback:", error);
+          console.error("Error in map initialization:", error);
         }
-      }, 300); // Delay for better reactivity
-    } catch (error) {
-      console.error("Error in map initialization:", error);
-    }
-    
-    return () => {
-      // Safer cleanup that avoids the "s is undefined" error
-      try {
-        if (map && !map._isDestroyed) {
+      }, 500); // Increased delay to ensure rendering is complete
+      
+      return () => {
+        // Clear the timeout on unmount
+        clearTimeout(timer);
+        
+        // Safe cleanup approach - only detach events without removing controls
+        // This avoids the "s is undefined" error that happens in the original removeControl call
+        try {
           console.log("Map initializer: safely cleaning up");
           
-          // Always check if the handlers were actually set before removing them
-          if (eventHandlersSetRef.current) {
-            if (onMapClick) map.off('click');
-            if (onMapDoubleClick) map.off('dblclick');
-            if (onMapMove) map.off('mousemove');
-            if (setCenter) map.off('moveend');
-            if (setZoom) map.off('zoomend');
-          }
+          // Only remove event listeners without touching controls
+          map.off();
+          
+          // Don't call any removeControl methods that might cause the error
+        } catch (error) {
+          console.error("Error cleaning up map:", error);
         }
-      } catch (error) {
-        console.error("Error cleaning up map:", error);
-      }
-    };
-  }, [map, onMapReady, setCenter, setZoom, onMapClick, onMapDoubleClick, onMapMove]);
+      };
+    }
+  }, [map, onMapReady]);
   
   return null;
 };

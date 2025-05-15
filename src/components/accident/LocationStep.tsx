@@ -1,140 +1,117 @@
 
-import React, { useState } from 'react';
-import { MapPin } from 'lucide-react';
-import CurrentLocationButton from './CurrentLocationButton';
-import GeocodingButton from './GeocodingButton';
-import LocationDisplay from './LocationDisplay';
+import { useState } from 'react';
+import { Map, MapPin, Calendar, Clock } from 'lucide-react';
 import AccidentMap from './AccidentMap';
-import { Dialog, DialogContent } from "@/components/ui/dialog";
-import { toast } from 'sonner';
+import GeocodingButton from './GeocodingButton';
+import CurrentLocationButton from './CurrentLocationButton';
+import LocationDisplay from './LocationDisplay';
 
-export interface LocationStepProps {
+interface LocationStepProps {
   date: string;
   time: string;
-  location: string;
-  description?: string;
-  geolocation: {
+  location?: string;
+  geolocation?: {
     lat: number | null;
     lng: number | null;
     address: string;
   };
   handleInputChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
-  setGeolocation: (data: { lat: number; lng: number; address: string }) => void;
+  setGeolocation: (data: {lat: number, lng: number, address: string}) => void;
 }
 
-const LocationStep: React.FC<LocationStepProps> = ({
+const LocationStep = ({
   date,
   time,
-  location,
-  description,
+  location = '',
   geolocation,
   handleInputChange,
   setGeolocation
-}) => {
-  const [isMapVisible, setIsMapVisible] = useState(false);
-
-  const handleGeolocationSuccess = (data: { lat: number; lng: number; address: string }) => {
-    setGeolocation(data);
-    toast.success('Position localisée', {
-      description: 'La position a été correctement géolocalisée'
-    });
-  };
+}: LocationStepProps) => {
+  const [mapVisible, setMapVisible] = useState(false);
 
   return (
     <div className="space-y-6">
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div>
-          <label htmlFor="date" className="block text-sm font-medium text-constalib-dark mb-1">
-            Date de l'accident
-          </label>
+      <div className="space-y-2">
+        <label htmlFor="date" className="block text-sm font-medium text-constalib-dark">
+          Date de l'accident
+        </label>
+        <div className="relative">
           <input
             type="date"
             id="date"
             name="date"
             value={date}
             onChange={handleInputChange}
-            className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full px-4 py-2 border border-constalib-gray rounded-lg focus:ring-2 focus:ring-constalib-blue focus:border-constalib-blue"
             required
           />
+          <Calendar className="absolute right-3 top-1/2 transform -translate-y-1/2 text-constalib-dark-gray" size={18} />
         </div>
-        <div>
-          <label htmlFor="time" className="block text-sm font-medium text-constalib-dark mb-1">
-            Heure de l'accident
-          </label>
+      </div>
+      
+      <div className="space-y-2">
+        <label htmlFor="time" className="block text-sm font-medium text-constalib-dark">
+          Heure de l'accident
+        </label>
+        <div className="relative">
           <input
             type="time"
             id="time"
             name="time"
             value={time}
             onChange={handleInputChange}
-            className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full px-4 py-2 border border-constalib-gray rounded-lg focus:ring-2 focus:ring-constalib-blue focus:border-constalib-blue"
             required
           />
+          <Clock className="absolute right-3 top-1/2 transform -translate-y-1/2 text-constalib-dark-gray" size={18} />
         </div>
       </div>
 
-      <div>
-        <div className="flex justify-between items-center">
-          <label htmlFor="location" className="block text-sm font-medium text-constalib-dark mb-1">
-            Lieu de l'accident
-          </label>
-          <GeocodingButton location={location} setGeolocation={handleGeolocationSuccess} />
-        </div>
-        <input
-          type="text"
-          id="location"
-          name="location"
-          value={location}
-          onChange={handleInputChange}
-          placeholder="Adresse, ville, code postal..."
-          className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-          required
-        />
-      </div>
-
-      <CurrentLocationButton setGeolocation={handleGeolocationSuccess} />
-      
-      {geolocation.lat && geolocation.lng && (
-        <LocationDisplay geolocation={geolocation} setMapVisible={setIsMapVisible} />
-      )}
-
-      <div>
-        <label htmlFor="description" className="block text-sm font-medium text-constalib-dark mb-1">
-          Description de l'accident (optionnel)
+      <div className="space-y-2">
+        <label htmlFor="location" className="block text-sm font-medium text-constalib-dark">
+          Lieu de l'accident
         </label>
-        <textarea
-          id="description"
-          name="description"
-          value={description || ''}
-          onChange={handleInputChange}
-          placeholder="Décrivez les circonstances de l'accident..."
-          className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 h-24"
+        <div className="relative">
+          <input
+            type="text"
+            id="location"
+            name="location"
+            value={location}
+            onChange={handleInputChange}
+            className="w-full px-4 py-2 border border-constalib-gray rounded-lg focus:ring-2 focus:ring-constalib-blue focus:border-constalib-blue"
+            placeholder="Adresse, ville, code postal..."
+            required
+          />
+          <Map className="absolute right-3 top-1/2 transform -translate-y-1/2 text-constalib-dark-gray" size={18} />
+        </div>
+      </div>
+
+      <div className="flex gap-2">
+        <GeocodingButton
+          location={location}
+          setGeolocation={setGeolocation}
+        />
+        <CurrentLocationButton
+          setGeolocation={setGeolocation}
         />
       </div>
 
-      <Dialog open={isMapVisible} onOpenChange={setIsMapVisible}>
-        <DialogContent className="sm:max-w-[700px] sm:max-h-[80vh] overflow-y-auto">
-          <div className="p-2">
-            <h2 className="text-xl font-semibold mb-4">Localisation de l'accident</h2>
-            {geolocation.lat && geolocation.lng && (
-              <AccidentMap 
-                lat={geolocation.lat} 
-                lng={geolocation.lng}
-                address={geolocation.address}
-              />
-            )}
-          </div>
-        </DialogContent>
-      </Dialog>
+      {(geolocation?.lat && geolocation?.lng) ? (
+        <LocationDisplay
+          geolocation={geolocation}
+          setMapVisible={setMapVisible}
+        />
+      ) : null}
 
-      <div className="bg-blue-50 border border-blue-100 rounded-md p-4">
-        <h4 className="text-sm font-medium text-blue-800 mb-1">Conseil</h4>
-        <p className="text-sm text-blue-700">
-          Soyez aussi précis que possible concernant le lieu de l'accident. 
-          Utilisez le bouton "Utiliser ma position actuelle" pour localiser automatiquement votre position.
-          Vous pouvez également saisir manuellement une adresse et la géolocaliser.
-        </p>
-      </div>
+      {mapVisible && geolocation?.lat && geolocation?.lng && (
+        <div className="mt-4 h-64 rounded-lg overflow-hidden border border-gray-200">
+          <AccidentMap
+            lat={geolocation.lat}
+            lng={geolocation.lng}
+            address={geolocation.address}
+          />
+        </div>
+      )}
     </div>
   );
 };

@@ -1,98 +1,142 @@
 
-import { useCallback, useRef } from 'react';
+import { useState, useCallback } from 'react';
+import { useToast } from '@/hooks/use-toast'; 
 import { toast } from 'sonner';
-import { MapContainer, TileLayer, useMapEvents, useMap } from 'react-leaflet';
-import L from 'leaflet';
+import { SchemeData } from '../../types';
+import { useSchemeMap } from '../../hooks/useSchemeMap';
+import { handleMapClick } from '../SchemeMapHandlers';
+import { initializeVehicles } from '../SchemeVehicleInitializer';
 
-export const useSchemeMapHandlers = ({ 
-  addVehicle, 
-  activeTab, 
-  isDrawing, 
-  onPathStart, 
-  onPathContinue,
-  onPathComplete, 
-  currentPathPoints, 
-  addAnnotation,
-  pathColor,
-  readOnly = false
-}) => {
-  // Use a ref to track if we're currently placing a vehicle
-  const placingVehicleRef = useRef(false);
+export const useSchemeMapHandlers = (
+  formData: any,
+  readOnly: boolean,
+  currentTool: 'select' | 'vehicle' | 'path' | 'annotation',
+  vehicles: any[],
+  paths: any[],
+  annotations: any[],
+  selectedVehicle: string | null,
+  isDrawing: boolean,
+  saveToHistory: (state: any) => void,
+  addVehicle: (latlng: L.LatLng) => any[] | null,
+  selectVehicle: (id: string | null) => void,
+  startPath: (point: [number, number], vehicleId?: string, color?: string | null) => void,
+  continuePath: (point: [number, number]) => void,
+  addAnnotation: (point: [number, number]) => any[],
+  setVehicles: (vehicles: any[]) => void,
+  setShowGuidesFirstTime: (show: boolean) => void,
+  setIsMapReady: (ready: boolean) => void,
+  setMapInitialized: (initialized: boolean) => void,
+  showGuidesFirstTime: boolean
+) => {
+  const { toast: uiToast } = useToast();
+  
+  // Get default center coordinates from formData or use Paris as default
+  const center: [number, number] = formData?.geolocation?.lat && formData?.geolocation?.lng
+    ? [formData.geolocation.lat, formData.geolocation.lng]
+    : [48.8566, 2.3522];
 
-  const handleMapClick = useCallback((e) => {
-    if (readOnly) return;
-
-    const latlng = e.latlng;
-    const coords: [number, number] = [latlng.lat, latlng.lng];
-
-    switch (activeTab) {
-      case 'vehicles':
-        if (!placingVehicleRef.current) {
-          placingVehicleRef.current = true;
-          addVehicle(coords);
-          toast.success('Véhicule ajouté', { id: 'add-vehicle' });
-          setTimeout(() => {
-            placingVehicleRef.current = false;
-          }, 300);
-        }
-        break;
-        
-      case 'paths':
-        if (!isDrawing) {
-          // Start drawing a new path
-          onPathStart(coords);
-          toast.info('Début du tracé. Cliquez pour ajouter des points, double-cliquez pour terminer.', { id: 'path-start' });
-        } else {
-          // Continue drawing the current path
-          onPathContinue(coords);
-        }
-        break;
-        
-      case 'annotations':
-        addAnnotation(coords);
-        toast.info('Note ajoutée. Cliquez dessus pour éditer le texte.', { id: 'add-annotation' });
-        break;
-    }
-  }, [activeTab, addVehicle, addAnnotation, onPathStart, onPathContinue, isDrawing, readOnly]);
-
-  const handleMapDblClick = useCallback((e) => {
-    if (readOnly) return;
+  const handleOnMapReady = useCallback(() => {
+    console.log("Map is ready");
+    setIsMapReady(true);
+    setMapInitialized(true);
     
-    // Only handle double click for paths tab
-    if (activeTab === 'paths' && isDrawing && currentPathPoints.length > 1) {
-      e.originalEvent.preventDefault();
-      e.originalEvent.stopPropagation();
+    try {
+      const initialized = initializeVehicles({
+        formData,
+        vehiclesLength: vehicles.length,
+        setVehicles,
+        saveToHistory
+      });
       
-      onPathComplete(pathColor);
-      toast.success('Tracé complété', { id: 'path-complete' });
+      if (initialized) {
+        console.log("Vehicles initialized successfully");
+        // Auto-center on vehicles after initialization
+        setTimeout(() => centerOnVehicles(vehicles), 400);
+      } else if (showGuidesFirstTime) {
+        // Pour les nouveaux utilisateurs, montrer un toast de bienvenue
+        uiToast({
+          title: "Bienvenue sur l'éditeur de schéma d'accident",
+          description: "Utilisez les outils sur la gauche pour créer votre schéma. Commencez par ajouter un véhicule.",
+          duration: 6000,
+        });
+        setShowGuidesFirstTime(false);
+      }
+    } catch (error) {
+      console.error("Error in map initialization:", error);
     }
-  }, [activeTab, isDrawing, currentPathPoints, onPathComplete, pathColor, readOnly]);
+  }, [formData, vehicles, setVehicles, saveToHistory, setIsMapReady, setMapInitialized, setShowGuidesFirstTime, showGuidesFirstTime]);
 
-  const handleKeyDown = useCallback((e) => {
-    if (readOnly) return;
-    
-    // Cancel path drawing with escape key
-    if (e.key === 'Escape' && isDrawing) {
-      console.log('Cancelling path drawing with Escape key');
-      onPathComplete(pathColor, true); // Pass true to indicate cancellation
-      toast.info('Tracé annulé', { id: 'path-cancel' });
+  const { mapRef, drawingLayerRef, handleMapReady, centerOnVehicles } = useSchemeMap({
+    readOnly,
+    handleMapClick: (e) => handleMapClick(e, {
+      readOnly,
+      currentTool,
+      vehicles,
+      paths,
+      annotations,
+      selectedVehicle,
+      isDrawing,
+      centerOnVehicles,
+      saveToHistory,
+      addVehicle,
+      selectVehicle,
+      startPath,
+      continuePath,
+      addAnnotation
+    }),
+    onReady: handleOnMapReady
+  });
+
+  const handleToolbarAddVehicle = useCallback(() => {
+    if (!mapRef.current) {
+      console.error("Map reference not available");
+      return;
     }
-  }, [isDrawing, onPathComplete, pathColor, readOnly]);
-
-  // Map event hook that attaches the event handlers to the map
-  const MapEventHandler = () => {
-    const map = useMapEvents({
-      click: handleMapClick,
-      dblclick: handleMapDblClick,
-    });
     
-    // Add keyboard event listener for ESC key
-    document.addEventListener('keydown', handleKeyDown);
-    
-    return null;
-  };
+    if (vehicles.length < 4) {
+      console.log("Adding vehicle from toolbar");
+      const center = mapRef.current.getCenter();
+      const updatedVehicles = addVehicle(center);
+      
+      if (updatedVehicles) {
+        console.log("Vehicle added successfully from toolbar");
+        saveToHistory({ 
+          vehicles: updatedVehicles, 
+          paths, 
+          annotations, 
+          center: [center.lat, center.lng], 
+          zoom: mapRef.current.getZoom() 
+        });
+        
+        // Assurez-vous que la mise à jour est reflétée dans l'UI
+        setTimeout(() => {
+          console.log("Centering on vehicles after adding");
+          centerOnVehicles(updatedVehicles);
+          mapRef.current?.invalidateSize();
+        }, 200);
+        
+        // Afficher un toast de guidance après l'ajout du premier véhicule
+        if (updatedVehicles.length === 1) {
+          uiToast({
+            title: "Véhicule ajouté",
+            description: "Vous pouvez maintenant le déplacer ou le faire pivoter. Utilisez l'outil trajectoire pour tracer son parcours.",
+            duration: 5000,
+          });
+        }
+      } else {
+        console.error("Failed to add vehicle from toolbar");
+      }
+    } else {
+      toast.warning("Maximum de 4 véhicules atteint");
+    }
+  }, [mapRef, vehicles, addVehicle, paths, annotations, saveToHistory, centerOnVehicles]);
 
   return {
-    MapEventHandler
+    mapRef,
+    drawingLayerRef,
+    handleMapReady,
+    centerOnVehicles,
+    center,
+    handleToolbarAddVehicle
   };
 };

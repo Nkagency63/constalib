@@ -8,16 +8,18 @@ interface SchemeInfoProps {
   isEmpty: boolean;
 }
 
-const SchemeInfo: React.FC<SchemeInfoProps> = ({ vehicleCount, pathCount, annotationCount, isEmpty }) => {
-  if (isEmpty) return null;
-  
+const SchemeInfo = ({ vehicleCount, pathCount, annotationCount, isEmpty }: SchemeInfoProps) => {
   return (
-    <div className="absolute bottom-2 left-2 bg-white/80 p-2 rounded text-xs text-constalib-dark-gray">
-      <p>
-        <span className="font-medium">{vehicleCount}</span> véhicule(s) · 
-        <span className="font-medium"> {pathCount}</span> trajectoire(s) · 
-        <span className="font-medium"> {annotationCount}</span> annotation(s)
-      </p>
+    <div className="bg-white p-2 text-xs text-gray-500 border-t">
+      {isEmpty ? (
+        <p>Cliquez sur la carte pour ajouter des véhicules, trajectoires, et annotations</p>
+      ) : (
+        <p>
+          {vehicleCount} véhicule{vehicleCount > 1 ? 's' : ''} • 
+          {pathCount} trajectoire{pathCount > 1 ? 's' : ''} • 
+          {annotationCount} annotation{annotationCount > 1 ? 's' : ''}
+        </p>
+      )}
     </div>
   );
 };

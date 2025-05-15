@@ -1,47 +1,35 @@
 
-// Type definitions for scheme components
-
-// Base vehicle type
 export interface Vehicle {
   id: string;
-  type: 'car' | 'truck' | 'bike';
-  position: [number, number]; // LatLng coordinates
-  rotation: number;
+  position: [number, number];
   color: string;
-  label?: string;
-  width?: number;
-  isSelected?: boolean;
+  brand?: string;
+  model?: string;
+  rotation: number;
+  isSelected: boolean;
+  vehicleId?: string;
+  vehicleType: 'car' | 'truck' | 'bike';
 }
 
-// Base path type
 export interface Path {
   id: string;
-  points: [number, number][]; // Array of LatLng coordinates
+  points: [number, number][];
   color: string;
-  width: number;
-  dashed: boolean;
   vehicleId?: string;
-  isSelected?: boolean;
+  isSelected: boolean;
 }
 
-// Base annotation type
 export interface Annotation {
   id: string;
-  position: [number, number]; // LatLng coordinates
+  position: [number, number];
   text: string;
+  type: 'obstacle' | 'sign' | 'note';
 }
 
-// Scheme data containing all elements
 export interface SchemeData {
   vehicles: Vehicle[];
   paths: Path[];
   annotations: Annotation[];
-  center: [number, number]; // LatLng for the map center
+  center: [number, number];
   zoom: number;
 }
-
-// Re-export types with different names to avoid conflicts
-export type SchemeVehicle = Vehicle;
-export type SchemePath = Path;
-export type SchemeAnnotation = Annotation;
-export type SchemeDataType = SchemeData;

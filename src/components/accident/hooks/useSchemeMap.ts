@@ -1,24 +1,19 @@
 
 import { useRef, useCallback } from 'react';
 import L from 'leaflet';
-import { toast } from 'sonner';
-import { Vehicle } from '../types/scheme';
+import { Vehicle } from '../types';
 
 interface UseSchemeMapProps {
   readOnly: boolean;
   handleMapClick: (e: L.LeafletMouseEvent) => void;
-  onReady: (map: L.Map) => void;
+  onReady: () => void;
 }
 
 export const useSchemeMap = ({ readOnly, handleMapClick, onReady }: UseSchemeMapProps) => {
   const mapRef = useRef<L.Map | null>(null);
   const drawingLayerRef = useRef<L.LayerGroup | null>(null);
-  const mapReadyCalledRef = useRef<boolean>(false);
 
   const handleMapReady = useCallback((map: L.Map) => {
-    if (mapReadyCalledRef.current) return;
-    mapReadyCalledRef.current = true;
-    
     console.log("Map initialization started");
     mapRef.current = map;
     
@@ -39,8 +34,8 @@ export const useSchemeMap = ({ readOnly, handleMapClick, onReady }: UseSchemeMap
       }
     }, 200);
     
-    // Call the onReady callback to initialize the map with the map object
-    onReady(map);
+    // Call the onReady callback to initialize the map
+    onReady();
     console.log("Map initialization completed");
   }, [readOnly, handleMapClick, onReady]);
 
@@ -51,45 +46,38 @@ export const useSchemeMap = ({ readOnly, handleMapClick, onReady }: UseSchemeMap
     
     try {
       // Create a bounds object to contain all vehicle positions
-      const validVehicles = vehicles.filter(v => 
-        v.position && Array.isArray(v.position) && v.position.length === 2
-      );
-      
-      if (validVehicles.length === 0) {
-        toast("Information", {
-          description: "Pas de véhicules à centrer sur la carte. Ajoutez des véhicules pour utiliser cette fonction"
-        });
-        return;
-      }
-      
-      // Create a bounds object from all vehicle positions
+      // S'assurer que chaque position est un objet LatLng valide
       const bounds = L.latLngBounds(
-        validVehicles.map(v => L.latLng(v.position))
+        vehicles
+          .filter(v => v.position && Array.isArray(v.position) && v.position.length === 2)
+          .map(v => L.latLng(v.position))
       );
       
+      // Vérifier si nous avons pu créer des limites valides
       if (bounds.isValid()) {
-        // Add some padding to the bounds
+        // Slightly pad the bounds for better visibility
         bounds.pad(0.2);
         
-        // Fit the map to the bounds with animation
-        mapRef.current.fitBounds(bounds, {
-          padding: [50, 50],
-          maxZoom: 18,
-          animate: true,
-          duration: 0.5
-        });
-        
-        toast("Carte centrée", {
-          description: `Carte centrée sur les ${validVehicles.length} véhicule(s) visible(s)`
-        });
+        // Set a timeout to ensure the map is fully initialized
+        setTimeout(() => {
+          if (mapRef.current) {
+            // Use fitBounds instead of flyToBounds for more reliable behavior
+            mapRef.current.fitBounds(bounds, {
+              padding: [50, 50],
+              maxZoom: 18
+            });
+            
+            // Force a map refresh
+            mapRef.current.invalidateSize();
+          }
+        }, 300);
         
         console.log("Map centered on vehicles successfully");
+      } else {
+        console.warn("Could not create valid bounds for vehicles");
       }
     } catch (error) {
       console.error("Error centering on vehicles:", error);
-      toast("Erreur", {
-        description: "Erreur lors du centrage de la carte"
-      });
     }
   }, []);
 

@@ -1,40 +1,43 @@
 
-import { useState, useCallback } from 'react';
+import { useState } from 'react';
 import { v4 as uuidv4 } from 'uuid';
-import { Annotation } from '../types/scheme';
-import { toast } from 'sonner';
+import { Annotation } from '../types';
 
 export const useAnnotations = () => {
   const [annotations, setAnnotations] = useState<Annotation[]>([]);
 
-  const addAnnotation = useCallback((position: [number, number], text: string = 'Note...') => {
+  const addAnnotation = (position: [number, number]) => {
     const newAnnotation: Annotation = {
       id: uuidv4(),
       position,
-      text
+      text: 'Note',
+      type: 'note'
     };
-
+    
     const updatedAnnotations = [...annotations, newAnnotation];
     setAnnotations(updatedAnnotations);
     return updatedAnnotations;
-  }, [annotations]);
+  };
 
-  const removeAnnotation = useCallback((id: string) => {
-    setAnnotations(prevAnnotations => prevAnnotations.filter(a => a.id !== id));
-    toast.info("Annotation supprimée");
-  }, []);
-
-  const updateAnnotation = useCallback((id: string, text: string) => {
-    setAnnotations(prevAnnotations => 
-      prevAnnotations.map(a => a.id === id ? { ...a, text } : a)
+  const updateAnnotation = (id: string, text: string) => {
+    const updatedAnnotations = annotations.map(annotation => 
+      annotation.id === id ? { ...annotation, text } : annotation
     );
-  }, []);
+    setAnnotations(updatedAnnotations);
+    return updatedAnnotations;
+  };
+
+  const removeAnnotation = (id: string) => {
+    const updatedAnnotations = annotations.filter(annotation => annotation.id !== id);
+    setAnnotations(updatedAnnotations);
+    return updatedAnnotations;
+  };
 
   return {
     annotations,
+    setAnnotations,
     addAnnotation,
-    removeAnnotation,
     updateAnnotation,
-    setAnnotations
+    removeAnnotation
   };
 };

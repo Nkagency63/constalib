@@ -1,7 +1,8 @@
+
 export interface VehicleData {
   brand: string;
   model: string;
-  year?: string;
+  year: string;
   firstRegistration?: string;
   insurance?: {
     company: string;
@@ -9,10 +10,6 @@ export interface VehicleData {
     name: string;
   };
   source?: string;
-  licensePlate?: string;
-  insuranceCompany?: string;
-  insurancePolicy?: string;
-  description?: string;
 }
 
 export interface InsuranceData {

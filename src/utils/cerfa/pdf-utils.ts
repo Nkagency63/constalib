@@ -29,19 +29,3 @@ export function splitTextIntoLines(text: string, maxCharsPerLine: number): strin
   
   return lines;
 }
-
-/**
- * Saves PDF data to a file and returns a URL
- * @param pdfBytes PDF data as ArrayBuffer
- * @param filename Filename to save as
- * @returns Promise resolving to URL of the saved PDF
- */
-export async function savePdfToFile(pdfBytes: ArrayBuffer, filename: string): Promise<string> {
-  // Create a Blob from the PDF data
-  const blob = new Blob([pdfBytes], { type: 'application/pdf' });
-  
-  // Create a URL for the blob
-  const url = URL.createObjectURL(blob);
-  
-  return url;
-}

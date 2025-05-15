@@ -1,11 +1,10 @@
 
 import React from 'react';
 import { Input } from "@/components/ui/input";
-import { Car, UserCheck, FileSearch } from 'lucide-react';
+import { Car, UserCheck } from 'lucide-react';
 import LookupButton from '../buttons/LookupButton';
 import ActionButton from '../buttons/ActionButton';
 import { formatSivLicensePlate } from '../../utils/licensePlateFormatters';
-import { Button } from "@/components/ui/button";
 
 interface SivTabContentProps {
   licensePlate: string;
@@ -42,7 +41,7 @@ const SivTabContent = ({
 
   return (
     <div className="mt-4">
-      <div className="flex items-center gap-2 mb-2">
+      <div className="flex items-center gap-2">
         <div className="relative flex-grow">
           <Input
             type="text"
@@ -62,22 +61,18 @@ const SivTabContent = ({
             tooltip="Consulter le SIV (Système d'Immatriculation des Véhicules)"
           />
         </div>
-      </div>
-      
-      <div className="flex justify-end mb-2">
         <ActionButton
           isLoading={isFvaLoading}
           onClick={onLookupFva}
           disabled={!licensePlate}
-          Icon={FileSearch}
-          label="Consulter le Fichier des Véhicules Assurés (FVA)"
-          variant="default"
-          tooltip="Consulter le FVA pour obtenir les informations complètes du véhicule et de son assurance"
+          Icon={UserCheck}
+          label="Vérifier FVA"
+          variant="outline"
+          tooltip="Consulter le FVA (Fichier des Véhicules Assurés)"
         />
       </div>
-      
       <p className="text-xs text-constalib-dark-gray">
-        Format du SIV (post-2009): AB-123-CD. Utilisez le bouton "Consulter le FVA" pour obtenir les informations complètes du véhicule et de son assurance.
+        Format du SIV (post-2009): AB-123-CD. Utilisez le bouton "Vérifier FVA" pour consulter le Fichier des Véhicules Assurés.
       </p>
     </div>
   );

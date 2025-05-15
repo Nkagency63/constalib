@@ -34,12 +34,7 @@ export const useLocationForm = (initialData?: any) => {
   };
 
   const handleSetGeolocation = (data: {lat: number, lng: number, address: string}) => {
-    console.log('Setting geolocation data:', data);
     setGeolocation(data);
-    // Update the location input if address is provided and location is empty
-    if (data.address && (!location || location.trim() === '')) {
-      setLocation(data.address);
-    }
   };
 
   return {

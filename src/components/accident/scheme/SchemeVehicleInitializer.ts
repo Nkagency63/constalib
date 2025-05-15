@@ -1,47 +1,74 @@
 
-import { Vehicle } from '../types/scheme';
-import { v4 as uuidv4 } from 'uuid';
+import { Vehicle } from '../types';
 
-// Constants
-const DEFAULT_CAR_POSITION: [number, number] = [48.8566, 2.3522];
-const DEFAULT_OTHER_CAR_POSITION: [number, number] = [48.8568, 2.3528];
+interface VehicleInitializerProps {
+  formData: any;
+  vehiclesLength: number;
+  setVehicles: (vehicles: Vehicle[]) => void;
+  saveToHistory: (state: any) => void;
+}
 
-export const initializeVehicles = (formData: any): Vehicle[] => {
-  const vehicles: Vehicle[] = [];
+export const initializeVehicles = ({
+  formData,
+  vehiclesLength,
+  setVehicles,
+  saveToHistory
+}: VehicleInitializerProps) => {
+  if (!formData?.geolocation?.lat || !formData?.geolocation?.lng || vehiclesLength > 0) {
+    return false;
+  }
+
+  const initialVehicles: Vehicle[] = [];
   
-  if (formData) {
-    // Add main vehicle if data exists
-    if (formData.vehicleBrand || formData.vehicleModel) {
-      const vehicleA: Vehicle = {
-        id: 'A',
-        type: 'car',
-        position: DEFAULT_CAR_POSITION,
-        color: '#1e40af', // Blue for vehicle A
-        rotation: 0,
-        isSelected: false,
-        label: 'A',
-      };
-      
-      vehicles.push(vehicleA);
-    }
-    
-    // Add other vehicle if data exists
-    if (formData.otherVehicle?.brand || formData.otherVehicle?.model) {
-      const vehicleB: Vehicle = {
-        id: 'B',
-        type: 'car',
-        position: DEFAULT_OTHER_CAR_POSITION,
-        color: '#dc2626', // Red for vehicle B
-        rotation: 180, // Facing opposite direction
-        isSelected: false,
-        label: 'B',
-      };
-      
-      vehicles.push(vehicleB);
-    }
+  // Add vehicle A if we have data
+  if (formData.vehicleBrand && formData.vehicleModel) {
+    initialVehicles.push({
+      id: crypto.randomUUID(),
+      position: [
+        formData.geolocation.lat + 0.0002, 
+        formData.geolocation.lng - 0.0002
+      ],
+      color: '#1e40af', // Bleu pour A
+      brand: formData.vehicleBrand,
+      model: formData.vehicleModel,
+      vehicleId: 'A',
+      rotation: 0,
+      isSelected: false,
+      vehicleType: 'car' // Type par défaut
+    });
   }
   
-  return vehicles;
+  // Add vehicle B if we have data
+  if (formData.otherVehicle?.brand && formData.otherVehicle?.model) {
+    initialVehicles.push({
+      id: crypto.randomUUID(),
+      position: [
+        formData.geolocation.lat - 0.0002, 
+        formData.geolocation.lng + 0.0002
+      ],
+      color: '#dc2626', // Rouge pour B
+      brand: formData.otherVehicle.brand,
+      model: formData.otherVehicle.model,
+      vehicleId: 'B',
+      rotation: 0,
+      isSelected: false,
+      vehicleType: 'car' // Type par défaut
+    });
+  }
+  
+  // Set initial vehicles if we have any
+  if (initialVehicles.length > 0) {
+    setVehicles(initialVehicles);
+    saveToHistory({
+      vehicles: initialVehicles,
+      paths: [],
+      annotations: [],
+      center: [formData.geolocation.lat, formData.geolocation.lng],
+      zoom: 17
+    });
+    
+    return true;
+  }
+  
+  return false;
 };
-
-export default initializeVehicles;

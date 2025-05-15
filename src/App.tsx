@@ -25,6 +25,8 @@ function App() {
           <Route path="/carrossiers" element={<Carrossiers />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
+        
+        <ToastHandler />
       </BrowserRouter>
     </MobileAppWrapper>
   );

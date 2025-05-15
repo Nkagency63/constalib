@@ -17,10 +17,8 @@ const GeocodingButton = ({
   const [isLoading, setIsLoading] = useState(false);
   
   const geocodeAddress = async () => {
-    if (!location || location.trim() === '') {
-      toast.error("Adresse requise", {
-        description: "Veuillez saisir une adresse"
-      });
+    if (!location) {
+      toast.error("Veuillez saisir une adresse");
       return;
     }
 
@@ -32,32 +30,24 @@ const GeocodingButton = ({
       });
 
       if (error) {
-        toast.error("Erreur lors de la géolocalisation", {
-          description: error.message
-        });
+        toast.error("Erreur lors de la géolocalisation");
         console.error('Error geocoding address:', error);
         return;
       }
 
-      if (data?.success && data?.data) {
+      if (data.success && data.data) {
         setGeolocation({
           lat: data.data.lat,
           lng: data.data.lng,
           address: data.data.formatted_address
         });
-        toast.success("Localisation réussie", {
-          description: "Adresse géolocalisée avec succès"
-        });
+        toast.success("Adresse géolocalisée avec succès");
       } else {
-        toast.error("Erreur de géolocalisation", {
-          description: data?.message || "Impossible de géolocaliser cette adresse"
-        });
+        toast.error(data.message || "Impossible de géolocaliser cette adresse");
       }
     } catch (err) {
       console.error('Error in geocoding:', err);
-      toast.error("Erreur", {
-        description: "Une erreur est survenue"
-      });
+      toast.error("Une erreur est survenue");
     } finally {
       setIsLoading(false);
     }

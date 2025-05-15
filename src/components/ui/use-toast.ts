@@ -1,6 +1,4 @@
 
-// Re-export from sonner for backward compatibility
-import { toast } from 'sonner';
-import { useToast as useCustomToast } from "@/hooks/use-toast";
+import { useToast, toast } from "@/hooks/use-toast";
 
-export { toast, useCustomToast as useToast };
+export { useToast, toast };

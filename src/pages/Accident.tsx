@@ -1,3 +1,4 @@
+
 import Header from '@/components/Header';
 import AccidentForm from '@/components/AccidentForm';
 import { Button } from '@/components/ui/button';
@@ -5,6 +6,7 @@ import { AlertCircle, Info, HelpCircle } from 'lucide-react';
 import { useState } from 'react';
 import EmergencyServicesDrawer from '@/components/accident/EmergencyServicesDrawer';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { Toaster } from "@/components/ui/toaster";
 import ToastHandler from "@/components/ToastHandler";
 
 const Accident = () => {
@@ -158,7 +160,6 @@ const Accident = () => {
         onEmergencyContacted={handleEmergencyContacted}
       />
 
-      {/* Toast handler for notifications */}
       <ToastHandler />
     </div>
   );

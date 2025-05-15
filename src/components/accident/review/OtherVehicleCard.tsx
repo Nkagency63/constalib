@@ -1,62 +1,53 @@
 
-import { Car } from 'lucide-react';
+import { CarTaxiFront, Shield } from 'lucide-react';
 import ReviewCard from './ReviewCard';
 
-interface Vehicle {
-  licensePlate?: string;
-  brand?: string;
-  model?: string;
-  year?: string;
-  description?: string;
-  insurancePolicy?: string;
-  insuranceCompany?: string;
+interface OtherVehicleCardProps {
+  otherVehicle: {
+    licensePlate: string;
+    brand: string;
+    model: string;
+    year: string;
+    description: string;
+    insurancePolicy?: string;
+    insuranceCompany?: string;
+  };
 }
 
-export interface OtherVehicleCardProps {
-  vehicle: Vehicle;
-  driverName?: string;
-  insuredName?: string;
-}
-
-const OtherVehicleCard = ({ vehicle, driverName, insuredName }: OtherVehicleCardProps) => {
-  if (!vehicle || (!vehicle.brand && !vehicle.licensePlate)) {
-    return (
-      <ReviewCard icon={<Car className="h-5 w-5 text-constalib-gray" />} title="Véhicule B (tiers)">
-        <div className="text-sm text-constalib-dark-gray">
-          <p>Aucune information sur le véhicule tiers</p>
-        </div>
-      </ReviewCard>
-    );
-  }
-
+const OtherVehicleCard = ({ otherVehicle }: OtherVehicleCardProps) => {
   return (
-    <ReviewCard icon={<Car className="h-5 w-5 text-constalib-blue" />} title="Véhicule B (tiers)">
-      <div className="space-y-1">
-        <p className="text-sm font-medium text-constalib-dark">
-          {vehicle.brand} {vehicle.model} {vehicle.year ? `(${vehicle.year})` : ''}
+    <ReviewCard icon={<CarTaxiFront className="h-5 w-5 text-constalib-blue" />} title="Véhicule adverse">
+      <p className="text-sm text-constalib-dark-gray">
+        <span className="font-medium">Immatriculation:</span> {otherVehicle.licensePlate || "Non renseigné"}
+      </p>
+      {otherVehicle.brand && (
+        <p className="text-sm text-constalib-dark-gray">
+          <span className="font-medium">Marque/Modèle:</span> {otherVehicle.brand} {otherVehicle.model} ({otherVehicle.year})
         </p>
-        {vehicle.licensePlate && (
-          <p className="text-sm text-constalib-dark-gray">
-            <span className="font-medium">Immatriculation:</span> {vehicle.licensePlate}
-          </p>
-        )}
-        {driverName && (
-          <p className="text-sm text-constalib-dark-gray">
-            <span className="font-medium">Conducteur:</span> {driverName}
-          </p>
-        )}
-        {insuredName && (
-          <p className="text-sm text-constalib-dark-gray">
-            <span className="font-medium">Assuré:</span> {insuredName}
-          </p>
-        )}
-        {vehicle.insuranceCompany && (
-          <p className="text-sm text-constalib-dark-gray">
-            <span className="font-medium">Assurance:</span> {vehicle.insuranceCompany}
-            {vehicle.insurancePolicy && ` (Police n° ${vehicle.insurancePolicy})`}
-          </p>
-        )}
-      </div>
+      )}
+      {otherVehicle.description && (
+        <p className="text-sm text-constalib-dark-gray">
+          <span className="font-medium">Description:</span> {otherVehicle.description}
+        </p>
+      )}
+      {(otherVehicle.insurancePolicy || otherVehicle.insuranceCompany) && (
+        <div className="mt-2 pt-2 border-t border-gray-100">
+          <div className="flex items-center gap-1 text-sm text-constalib-dark-gray">
+            <Shield className="h-4 w-4 text-constalib-blue" />
+            <span className="font-medium">Assurance:</span>
+          </div>
+          {otherVehicle.insurancePolicy && (
+            <p className="text-sm text-constalib-dark-gray ml-5">
+              <span className="font-medium">N° de police:</span> {otherVehicle.insurancePolicy}
+            </p>
+          )}
+          {otherVehicle.insuranceCompany && (
+            <p className="text-sm text-constalib-dark-gray ml-5">
+              <span className="font-medium">Compagnie:</span> {otherVehicle.insuranceCompany}
+            </p>
+          )}
+        </div>
+      )}
     </ReviewCard>
   );
 };

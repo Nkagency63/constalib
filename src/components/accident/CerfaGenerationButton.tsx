@@ -31,9 +31,7 @@ const CerfaGenerationButton = ({ formData, className = "", signatures }: CerfaGe
   return (
     <div className="flex flex-col sm:flex-row gap-3 w-full">
       <DownloadButton 
-        onClick={async () => {
-          await handleGenerateCerfa();
-        }}
+        onClick={handleGenerateCerfa}
         isGenerating={isGenerating}
         className={className}
       />

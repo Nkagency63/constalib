@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { AlertCircle } from 'lucide-react';
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 interface ErrorAlertsProps {
   searchError: string | null;
@@ -16,22 +16,25 @@ const ErrorAlerts = ({
   fvaError,
   searchTab
 }: ErrorAlertsProps) => {
-  // Determine which error to show based on the active tab
-  const currentError = searchTab === 'siv' ? searchError : fniError;
-  
   return (
     <>
-      {currentError && (
+      {searchError && searchTab === 'siv' && (
         <Alert variant="destructive" className="mt-2">
           <AlertCircle className="h-4 w-4" />
-          <AlertDescription>{currentError}</AlertDescription>
+          <AlertDescription>{searchError}</AlertDescription>
+        </Alert>
+      )}
+      
+      {fniError && searchTab === 'fni' && (
+        <Alert variant="destructive" className="mt-2">
+          <AlertCircle className="h-4 w-4" />
+          <AlertDescription>{fniError}</AlertDescription>
         </Alert>
       )}
       
       {fvaError && (
         <Alert variant="destructive" className="mt-2">
           <AlertCircle className="h-4 w-4" />
-          <AlertTitle>Erreur FVA</AlertTitle>
           <AlertDescription>{fvaError}</AlertDescription>
         </Alert>
       )}

@@ -1,26 +1,47 @@
 
 import { FileText } from 'lucide-react';
 import ReviewCard from './ReviewCard';
-import { FormData } from '../types';
+import { WitnessInfo } from '../types';
 
-export interface DescriptionCardProps {
-  formData: FormData;
+interface DescriptionCardProps {
+  description: string;
+  hasInjuries?: boolean;
+  injuriesDescription?: string;
+  hasWitnesses?: boolean;
+  witnesses?: WitnessInfo[];
 }
 
-const DescriptionCard = ({ formData }: DescriptionCardProps) => {
+const DescriptionCard = ({ 
+  description, 
+  hasInjuries, 
+  injuriesDescription,
+  hasWitnesses,
+  witnesses
+}: DescriptionCardProps) => {
   return (
-    <ReviewCard icon={<FileText className="h-5 w-5 text-constalib-blue" />} title="Descriptions">
+    <ReviewCard icon={<FileText className="h-5 w-5 text-constalib-blue" />} title="Description de l'accident">
       <div className="space-y-3">
-        {formData.materialDamageDescription && (
-          <div>
-            <h5 className="text-sm font-medium text-constalib-dark">Dommages matériels :</h5>
-            <p className="text-sm text-constalib-dark-gray">{formData.materialDamageDescription}</p>
+        <div>
+          <p className="text-sm text-constalib-dark-gray">{description || "Aucune description fournie"}</p>
+        </div>
+        
+        {hasInjuries && (
+          <div className="mt-2">
+            <h4 className="text-sm font-medium text-constalib-dark">Blessés</h4>
+            <p className="text-sm text-constalib-dark-gray">{injuriesDescription || "Des blessés ont été signalés"}</p>
           </div>
         )}
-        {formData.injuriesDescription && (
-          <div>
-            <h5 className="text-sm font-medium text-constalib-dark">Dommages corporels :</h5>
-            <p className="text-sm text-constalib-dark-gray">{formData.injuriesDescription}</p>
+        
+        {hasWitnesses && witnesses && witnesses.length > 0 && (
+          <div className="mt-2">
+            <h4 className="text-sm font-medium text-constalib-dark">Témoins</h4>
+            <ul className="text-sm text-constalib-dark-gray">
+              {witnesses.map((witness, index) => (
+                <li key={index}>
+                  {witness.fullName} {witness.phone && `- ${witness.phone}`} {witness.email && `- ${witness.email}`}
+                </li>
+              ))}
+            </ul>
           </div>
         )}
       </div>

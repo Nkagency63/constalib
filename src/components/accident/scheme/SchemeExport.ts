@@ -1,71 +1,92 @@
 
-import { saveAs } from 'file-saver';
 import html2canvas from 'html2canvas';
-import L from 'leaflet';
+import { toast } from 'sonner';
 
-// Type definition for the mapRef parameter
-interface MapRefProps {
+interface ExportImageProps {
   mapRef: React.MutableRefObject<L.Map | null>;
 }
 
-// Fonction pour exporter l'image de la carte
-export const handleExportImage = async ({ mapRef }: MapRefProps) => {
+export const handleExportImage = async ({ mapRef }: ExportImageProps) => {
   if (!mapRef.current) {
-    console.error("Map reference not available for export");
+    toast.error("Impossible d'exporter la carte");
     return;
   }
 
   try {
-    const dataUrl = await captureSchemeAsDataUrl();
-    if (dataUrl) {
-      // Convertir la base64 en blob pour le téléchargement
-      const blob = dataURItoBlob(dataUrl);
-      saveAs(blob, `accident-schema-${new Date().toISOString().slice(0, 10)}.png`);
-    }
+    toast.info("Préparation de l'image...");
+    
+    // Récupérer le conteneur de la carte Leaflet
+    const mapContainer = mapRef.current.getContainer();
+    
+    // Utiliser html2canvas pour générer l'image
+    const canvas = await html2canvas(mapContainer, {
+      useCORS: true, // Permettre le chargement des tuiles de carte à partir d'autres domaines
+      allowTaint: false,
+      backgroundColor: '#ffffff',
+      logging: false,
+      scale: 2, // Meilleure qualité
+    });
+    
+    // Convertir le canvas en URL de données
+    const imageUrl = canvas.toDataURL('image/png');
+    
+    // Créer un élément pour télécharger l'image
+    const downloadLink = document.createElement('a');
+    downloadLink.href = imageUrl;
+    downloadLink.download = `accident-schema-${new Date().toISOString().slice(0,10)}.png`;
+    
+    // Déclencher le téléchargement
+    document.body.appendChild(downloadLink);
+    downloadLink.click();
+    document.body.removeChild(downloadLink);
+    
+    toast.success("Image exportée avec succès");
   } catch (error) {
-    console.error("Error exporting image:", error);
+    toast.error("Erreur lors de l'exportation de l'image");
+    console.error("Erreur d'exportation:", error);
   }
 };
 
-// Fonction pour capturer le schéma comme URL de données
+// Fonction pour capturer le schéma sans téléchargement - utilisé pour le CERFA
 export const captureSchemeAsDataUrl = async (): Promise<string | null> => {
   try {
-    // Récupérer l'élément de la carte
-    const mapElement = document.querySelector('.leaflet-container');
-    if (!mapElement) {
-      console.error("Map element not found in DOM");
+    // Trouver le conteneur de la carte
+    const schemeContainer = document.querySelector('.leaflet-container') as HTMLElement;
+    
+    if (!schemeContainer) {
+      console.warn("Conteneur de schéma introuvable");
       return null;
     }
-
-    // Utiliser html2canvas pour capturer l'élément en image
-    const canvas = await html2canvas(mapElement as HTMLElement, {
-      useCORS: true, // Permettre CORS pour les tuiles de carte
-      allowTaint: true, // Permettre les éléments potentiellement contaminés
-      scale: 2, // Échelle x2 pour une meilleure qualité
-      logging: false, // Désactiver les logs pour la production
+    
+    // Attendre les rendus en cours et s'assurer que la carte est complètement chargée
+    await new Promise(resolve => setTimeout(resolve, 500));
+    
+    // Paramètres améliorés pour une meilleure qualité
+    const canvas = await html2canvas(schemeContainer, {
+      useCORS: true,
+      allowTaint: true,
+      backgroundColor: "#ffffff",
+      scale: 3, // Augmentation de la qualité pour une meilleure résolution
+      logging: false,
+      width: schemeContainer.offsetWidth,
+      height: schemeContainer.offsetHeight,
+      imageTimeout: 5000, // Plus de temps pour charger les images
+      onclone: (doc) => {
+        // Dans le clone du document, on peut effectuer des manipulations pour améliorer le rendu
+        const clonedContainer = doc.querySelector('.leaflet-container') as HTMLElement;
+        if (clonedContainer) {
+          // Assurer que les tuiles sont complètement chargées
+          const tiles = clonedContainer.querySelectorAll('.leaflet-tile');
+          console.log(`Nombre de tuiles dans le schéma: ${tiles.length}`);
+        }
+        return doc;
+      }
     });
-
-    // Retourner l'URL de données de l'image
-    return canvas.toDataURL('image/png');
+    
+    // Convertir en URL de données avec haute qualité
+    return canvas.toDataURL('image/png', 0.95);
   } catch (error) {
-    console.error("Error capturing scheme:", error);
+    console.error("Erreur lors de la capture du schéma:", error);
     return null;
   }
 };
-
-// Fonction pour convertir une URL de données en Blob
-function dataURItoBlob(dataURI: string): Blob {
-  // Séparer le type MIME de la donnée
-  const byteString = atob(dataURI.split(',')[1]);
-  const mimeString = dataURI.split(',')[0].split(':')[1].split(';')[0];
-
-  // Écrire le contenu dans un tableau d'octets
-  const ab = new ArrayBuffer(byteString.length);
-  const ia = new Uint8Array(ab);
-  for (let i = 0; i < byteString.length; i++) {
-    ia[i] = byteString.charCodeAt(i);
-  }
-
-  // Créer un blob avec le type MIME approprié
-  return new Blob([ab], { type: mimeString });
-}

@@ -3,8 +3,8 @@ import { Image } from 'lucide-react';
 import ReviewCard from './ReviewCard';
 
 interface PhotosCardProps {
-  vehiclePhotos: File[] | string[];
-  damagePhotos: File[] | string[];
+  vehiclePhotos: File[];
+  damagePhotos: File[];
 }
 
 const PhotosCard = ({ vehiclePhotos, damagePhotos }: PhotosCardProps) => {

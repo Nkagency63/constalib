@@ -25,11 +25,6 @@ interface SchemeToolbarsProps {
   mapRef: React.MutableRefObject<L.Map | null>;
   currentVehicleType: 'car' | 'truck' | 'bike';
   onChangeVehicleType: (type: 'car' | 'truck' | 'bike') => void;
-  // Optional props for component mapping to different implementations
-  activeTab?: 'vehicles' | 'paths' | 'annotations';
-  setActiveTab?: (tab: 'vehicles' | 'paths' | 'annotations') => void;
-  pathColor?: string;
-  setPathColor?: (color: string) => void;
 }
 
 const SchemeToolbars: React.FC<SchemeToolbarsProps> = ({
@@ -50,11 +45,7 @@ const SchemeToolbars: React.FC<SchemeToolbarsProps> = ({
   centerOnVehicles,
   mapRef,
   currentVehicleType,
-  onChangeVehicleType,
-  activeTab,
-  setActiveTab,
-  pathColor,
-  setPathColor
+  onChangeVehicleType
 }) => {
   if (readOnly) return null;
   
@@ -102,10 +93,7 @@ const SchemeToolbars: React.FC<SchemeToolbarsProps> = ({
       
       <SchemeToolbar 
         currentTool={currentTool}
-        onSelect={() => setCurrentTool('select')}
-        onAddVehicle={() => setCurrentTool('vehicle')}
-        onAddPath={() => setCurrentTool('path')}
-        onAddAnnotation={() => setCurrentTool('annotation')}
+        setCurrentTool={setCurrentTool}
       />
     </>
   );

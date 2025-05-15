@@ -1,47 +1,26 @@
 
-import { Car } from 'lucide-react';
+import { Car, FileCheck } from 'lucide-react';
 import ReviewCard from './ReviewCard';
-
-interface Vehicle {
-  licensePlate?: string;
-  brand?: string;
-  model?: string;
-  year?: string;
-  description?: string;
-  insurancePolicy?: string;
-  insuranceCompany?: string;
-}
+import { FormData } from '../types';
 
 export interface VehicleCardProps {
-  vehicle: Vehicle;
-  driverName?: string;
-  insuredName?: string;
+  formData: FormData;
 }
 
-const VehicleCard = ({ vehicle, driverName, insuredName }: VehicleCardProps) => {
+const VehicleCard = ({ formData }: VehicleCardProps) => {
   return (
     <ReviewCard icon={<Car className="h-5 w-5 text-constalib-blue" />} title="Véhicule A (conducteur principal)">
       <div className="space-y-1">
         <p className="text-sm font-medium text-constalib-dark">
-          {vehicle.brand} {vehicle.model} ({vehicle.year || 'Année inconnue'})
+          {formData.vehicleBrand} {formData.vehicleModel} ({formData.vehicleYear || 'Année inconnue'})
         </p>
         <p className="text-sm text-constalib-dark-gray">
-          <span className="font-medium">Immatriculation:</span> {vehicle.licensePlate}
+          <span className="font-medium">Immatriculation:</span> {formData.licensePlate}
         </p>
-        {driverName && (
+        {formData.insuranceCompany && (
           <p className="text-sm text-constalib-dark-gray">
-            <span className="font-medium">Conducteur:</span> {driverName}
-          </p>
-        )}
-        {insuredName && (
-          <p className="text-sm text-constalib-dark-gray">
-            <span className="font-medium">Assuré:</span> {insuredName}
-          </p>
-        )}
-        {vehicle.insuranceCompany && (
-          <p className="text-sm text-constalib-dark-gray">
-            <span className="font-medium">Assurance:</span> {vehicle.insuranceCompany}
-            {vehicle.insurancePolicy && ` (Police n° ${vehicle.insurancePolicy})`}
+            <span className="font-medium">Assurance:</span> {formData.insuranceCompany}
+            {formData.insurancePolicy && ` (Police n° ${formData.insurancePolicy})`}
           </p>
         )}
       </div>
