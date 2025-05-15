@@ -37,7 +37,7 @@ export const useSchemeMap = ({ readOnly, handleMapClick, onReady }: UseSchemeMap
         mapRef.current.invalidateSize();
         console.log("Map size invalidated");
       }
-    }, 200);
+    }, 300);
     
     // Call the onReady callback to initialize the map with the map object
     onReady(map);
