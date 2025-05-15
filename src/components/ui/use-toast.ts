@@ -1,5 +1,9 @@
 
-// Re-export from the main hook file for backward compatibility
-import { toast, useToast } from "../../hooks/use-toast";
+import { toast } from "sonner";
 
-export { toast, useToast };
+export { toast };
+
+// Create a useToast hook that returns the toast function
+export const useToast = () => {
+  return { toast };
+};
