@@ -2,7 +2,7 @@
 import { useRef, useCallback } from 'react';
 import L from 'leaflet';
 import { toast } from 'sonner';
-import { Vehicle } from '@/components/accident/types/scheme';
+import { Vehicle } from '../accident/types/scheme';
 
 interface UseSchemeMapProps {
   readOnly: boolean;
@@ -16,11 +16,7 @@ export const useSchemeMap = ({ readOnly, handleMapClick, onReady }: UseSchemeMap
   const mapReadyCalledRef = useRef<boolean>(false);
 
   const handleMapReady = useCallback((map: L.Map) => {
-    if (mapReadyCalledRef.current) {
-      console.log("Map ready has already been called, ignoring");
-      return;
-    }
-    
+    if (mapReadyCalledRef.current) return;
     mapReadyCalledRef.current = true;
     
     console.log("Map initialization started");
@@ -28,36 +24,24 @@ export const useSchemeMap = ({ readOnly, handleMapClick, onReady }: UseSchemeMap
     
     // Configure event handlers if not readonly
     if (!readOnly && mapRef.current) {
-      try {
-        // Make sure to remove any previous click handlers first
-        mapRef.current.off('click');
-        // Then add our new click handler
-        mapRef.current.on('click', handleMapClick);
-        console.log("Map click handler registered");
-      } catch (error) {
-        console.error("Error setting up map click handler:", error);
-      }
+      // Make sure to remove any previous click handlers first
+      mapRef.current.off('click');
+      // Then add our new click handler
+      mapRef.current.on('click', handleMapClick);
+      console.log("Map click handler registered");
     }
     
     // Ensure map is properly sized
-    try {
-      setTimeout(() => {
-        if (mapRef.current) {
-          mapRef.current.invalidateSize();
-          console.log("Map size invalidated");
-        }
-      }, 300);
-    } catch (error) {
-      console.error("Error invalidating map size:", error);
-    }
+    setTimeout(() => {
+      if (mapRef.current) {
+        mapRef.current.invalidateSize();
+        console.log("Map size invalidated");
+      }
+    }, 200);
     
     // Call the onReady callback to initialize the map with the map object
-    try {
-      onReady(map);
-      console.log("Map initialization completed");
-    } catch (error) {
-      console.error("Error calling onReady callback:", error);
-    }
+    onReady(map);
+    console.log("Map initialization completed");
   }, [readOnly, handleMapClick, onReady]);
 
   const centerOnVehicles = useCallback((vehicles: Vehicle[]) => {
@@ -72,7 +56,7 @@ export const useSchemeMap = ({ readOnly, handleMapClick, onReady }: UseSchemeMap
       );
       
       if (validVehicles.length === 0) {
-        toast("Information", {
+        toast.info("Information", {
           description: "Pas de véhicules à centrer sur la carte. Ajoutez des véhicules pour utiliser cette fonction"
         });
         return;
@@ -95,7 +79,7 @@ export const useSchemeMap = ({ readOnly, handleMapClick, onReady }: UseSchemeMap
           duration: 0.5
         });
         
-        toast("Carte centrée", {
+        toast.success("Carte centrée", {
           description: `Carte centrée sur les ${validVehicles.length} véhicule(s) visible(s)`
         });
         
@@ -103,7 +87,7 @@ export const useSchemeMap = ({ readOnly, handleMapClick, onReady }: UseSchemeMap
       }
     } catch (error) {
       console.error("Error centering on vehicles:", error);
-      toast("Erreur", {
+      toast.error("Erreur", {
         description: "Erreur lors du centrage de la carte"
       });
     }

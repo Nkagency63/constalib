@@ -93,14 +93,8 @@ const MapInitializer: React.FC<MapInitializerProps> = ({
     return () => {
       // Clean up event handlers to avoid memory leaks
       try {
-        if (map) {
+        if (map && map.getContainer && map.getContainer()) {
           console.log("Map initializer: safely cleaning up");
-          
-          // Check if the map is still valid before removing event handlers
-          if (!map.getContainer()) {
-            console.log("Map has been removed, skipping event cleanup");
-            return;
-          }
           
           if (onMapClick) map.off('click');
           if (onMapDoubleClick) map.off('dblclick');

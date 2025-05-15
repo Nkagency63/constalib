@@ -26,9 +26,13 @@ interface AccidentMapProps {
 }
 
 const AccidentMap: React.FC<AccidentMapProps> = ({ lat, lng, address, onMapReady }) => {
+  // Generate unique map key based on coordinates
+  const mapKey = `accident-map-${lat.toFixed(6)}-${lng.toFixed(6)}-${Date.now()}`;
+  
   return (
     <div className="h-[400px] w-full rounded-md overflow-hidden">
       <MapContainer 
+        key={mapKey}
         center={[lat, lng]} 
         zoom={15} 
         style={{ height: "100%", width: "100%" }}

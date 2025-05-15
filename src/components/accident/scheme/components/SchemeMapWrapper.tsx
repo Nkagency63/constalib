@@ -54,12 +54,15 @@ const SchemeMapWrapper: React.FC<SchemeMapWrapperProps> = ({
 }) => {
   console.log("Rendering SchemeMapWrapper with center:", center);
   
+  // Generate a key based on center coordinates to force re-rendering when location changes
+  const mapKey = `map-${center[0].toFixed(6)}-${center[1].toFixed(6)}-${Date.now()}`;
+  
   return (
     <div className="relative rounded-lg overflow-hidden shadow-md border border-gray-200 h-full">
       <TooltipProvider>
         <div className="h-full w-full">
           <MapContainer
-            key={`map-${center[0]}-${center[1]}`} // Ajout d'une clé unique pour forcer la réinitialisation
+            key={mapKey}
             center={center}
             zoom={17}
             style={{ height: '100%', width: '100%', minHeight: '400px' }}

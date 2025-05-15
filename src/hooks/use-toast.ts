@@ -1,162 +1,35 @@
 
-import {
-  type ToastActionElement,
-  type ToastProps,
-} from "@/components/ui/toast";
+import { toast as sonnerToast, type ToastT } from "sonner";
 
-import { toast as sonnerToast } from "sonner";
-
-const TOAST_LIMIT = 5;
-const TOAST_REMOVE_DELAY = 1000000;
-
-type ToasterToastProps = {
-  id: string;
-  title?: React.ReactNode;
-  description?: React.ReactNode;
-  action?: ToastActionElement;
+// Define the toast action type
+export type ToastAction = {
+  label: string;
+  onClick: () => void;
 };
 
-type ToasterToast = ToastProps & ToasterToastProps;
-
-const actionTypes = {
-  ADD_TOAST: "ADD_TOAST",
-  UPDATE_TOAST: "UPDATE_TOAST",
-  DISMISS_TOAST: "DISMISS_TOAST",
-  REMOVE_TOAST: "REMOVE_TOAST",
-} as const;
-
-let count = 0;
-
-function generateId() {
-  count = (count + 1) % Number.MAX_SAFE_INTEGER;
-  return count.toString();
-}
-
-type ActionType = typeof actionTypes;
-
-type Action =
-  | {
-      type: ActionType["ADD_TOAST"];
-      toast: ToasterToast;
-    }
-  | {
-      type: ActionType["UPDATE_TOAST"];
-      toast: Partial<ToasterToast>;
-    }
-  | {
-      type: ActionType["DISMISS_TOAST"];
-      toastId?: string;
-    }
-  | {
-      type: ActionType["REMOVE_TOAST"];
-      toastId?: string;
-    };
-
-interface State {
-  toasts: ToasterToast[];
-}
-
-const toastTimeouts = new Map<string, ReturnType<typeof setTimeout>>();
-
-const addToRemoveQueue = (toastId: string) => {
-  if (toastTimeouts.has(toastId)) {
-    return;
-  }
-
-  const timeout = setTimeout(() => {
-    toastTimeouts.delete(toastId);
-    dispatch({
-      type: actionTypes.REMOVE_TOAST,
-      toastId: toastId,
-    });
-  }, TOAST_REMOVE_DELAY);
-
-  toastTimeouts.set(toastId, timeout);
-};
-
-export const reducer = (state: State, action: Action): State => {
-  switch (action.type) {
-    case actionTypes.ADD_TOAST:
-      return {
-        ...state,
-        toasts: [action.toast, ...state.toasts].slice(0, TOAST_LIMIT),
-      };
-
-    case actionTypes.UPDATE_TOAST:
-      return {
-        ...state,
-        toasts: state.toasts.map((t) =>
-          t.id === action.toast.id ? { ...t, ...action.toast } : t
-        ),
-      };
-
-    case actionTypes.DISMISS_TOAST: {
-      const { toastId } = action;
-
-      if (toastId) {
-        addToRemoveQueue(toastId);
-      } else {
-        state.toasts.forEach((toast) => {
-          addToRemoveQueue(toast.id);
-        });
-      }
-
-      return {
-        ...state,
-        toasts: state.toasts.map((t) =>
-          t.id === toastId || toastId === undefined
-            ? {
-                ...t,
-                open: false,
-              }
-            : t
-        ),
-      };
-    }
-    case actionTypes.REMOVE_TOAST:
-      if (action.toastId === undefined) {
-        return {
-          ...state,
-          toasts: [],
-        };
-      }
-      return {
-        ...state,
-        toasts: state.toasts.filter((t) => t.id !== action.toastId),
-      };
-  }
-};
-
-const listeners: Array<(state: State) => void> = [];
-
-let memoryState: State = { toasts: [] };
-
-function dispatch(action: Action) {
-  memoryState = reducer(memoryState, action);
-  listeners.forEach((listener) => {
-    listener(memoryState);
-  });
-}
-
-// Fixed the toast function to use sonner directly
-export function toast(options: {
+// Define the toast props type
+export type ToastProps = {
   title?: string;
-  description?: React.ReactNode;
-  action?: ToastActionElement;
+  description?: string;
+  action?: ToastAction;
   variant?: "default" | "destructive";
-  duration?: number;
-}) {
-  // Use the sonner toast directly
-  return sonnerToast(options.title as string, {
-    description: options.description,
-    duration: options.duration || 4000,
-    // Map other options as needed
-  });
-}
+};
 
-// Fixed useToast to not cause infinite recursion
-export function useToast() {
+// Create a toast function that wraps sonner
+export const toast = ({ title, description, action, variant }: ToastProps) => {
+  return sonnerToast(title || "", {
+    description,
+    action: action ? {
+      label: action.label,
+      onClick: action.onClick,
+    } : undefined,
+    className: variant === "destructive" ? "bg-destructive text-destructive-foreground" : ""
+  });
+};
+
+// Export the useToast hook without recursion
+export const useToast = () => {
   return {
     toast,
   };
-}
+};

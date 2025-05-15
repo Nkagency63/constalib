@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { MapPin, Loader2 } from 'lucide-react';
 import { Button } from "@/components/ui/button";
-import { toast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 
 interface CurrentLocationButtonProps {
   setGeolocation: (data: {lat: number, lng: number, address: string}) => void;
@@ -13,8 +13,7 @@ const CurrentLocationButton = ({ setGeolocation }: CurrentLocationButtonProps) =
 
   const handleGetCurrentLocation = () => {
     if (!navigator.geolocation) {
-      toast({
-        title: "Erreur",
+      toast.error("Erreur", {
         description: "La géolocalisation n'est pas supportée par votre navigateur"
       });
       return;
@@ -38,8 +37,7 @@ const CurrentLocationButton = ({ setGeolocation }: CurrentLocationButtonProps) =
             address: `${lat.toFixed(6)}, ${lng.toFixed(6)}`
           });
           
-          toast({
-            title: "Succès",
+          toast.success("Succès", {
             description: "Votre position actuelle a été détectée"
           });
           
@@ -54,8 +52,7 @@ const CurrentLocationButton = ({ setGeolocation }: CurrentLocationButtonProps) =
             address: `${lat.toFixed(6)}, ${lng.toFixed(6)}`
           });
           
-          toast({
-            title: "Information",
+          toast.info("Information", {
             description: "Les coordonnées ont été enregistrées mais l'adresse n'a pas pu être récupérée"
           });
         } finally {
@@ -68,26 +65,22 @@ const CurrentLocationButton = ({ setGeolocation }: CurrentLocationButtonProps) =
         
         switch(error.code) {
           case error.PERMISSION_DENIED:
-            toast({
-              title: "Erreur",
+            toast.error("Erreur", {
               description: "Vous avez refusé l'accès à votre position"
             });
             break;
           case error.POSITION_UNAVAILABLE:
-            toast({
-              title: "Erreur",
+            toast.error("Erreur", {
               description: "Les informations de position ne sont pas disponibles"
             });
             break;
           case error.TIMEOUT:
-            toast({
-              title: "Erreur", 
+            toast.error("Erreur", { 
               description: "La demande de position a expiré"
             });
             break;
           default:
-            toast({
-              title: "Erreur",
+            toast.error("Erreur", {
               description: "Une erreur inconnue s'est produite"
             });
         }
