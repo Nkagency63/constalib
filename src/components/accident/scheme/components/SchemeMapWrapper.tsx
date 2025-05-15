@@ -64,10 +64,6 @@ const SchemeMapWrapper: React.FC<SchemeMapWrapperProps> = ({
             style={{ height: '100%', width: '100%', minHeight: '400px' }}
             attributionControl={false}
             zoomControl={true}
-            whenCreated={(map) => {
-              console.log("MapContainer created");
-              // This is just logging, actual initialization happens in MapInitializer
-            }}
           >
             <TileLayer
               url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
