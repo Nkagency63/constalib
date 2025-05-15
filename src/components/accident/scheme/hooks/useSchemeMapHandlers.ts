@@ -40,31 +40,27 @@ export const useSchemeMapHandlers = (
     setIsMapReady(true);
     setMapInitialized(true);
     
-    try {
-      const initialized = initializeVehicles({
-        formData,
-        vehiclesLength: vehicles.length,
-        setVehicles,
-        saveToHistory
+    const initialized = initializeVehicles({
+      formData,
+      vehiclesLength: vehicles.length,
+      setVehicles,
+      saveToHistory
+    });
+    
+    if (initialized) {
+      console.log("Vehicles initialized successfully");
+      // Auto-center on vehicles after initialization
+      setTimeout(() => centerOnVehicles(vehicles), 300);
+    } else if (showGuidesFirstTime) {
+      // Pour les nouveaux utilisateurs, montrer un toast de bienvenue
+      uiToast({
+        title: "Bienvenue sur l'éditeur de schéma d'accident",
+        description: "Utilisez les outils sur la gauche pour créer votre schéma. Commencez par ajouter un véhicule.",
+        duration: 6000,
       });
-      
-      if (initialized) {
-        console.log("Vehicles initialized successfully");
-        // Auto-center on vehicles after initialization
-        setTimeout(() => centerOnVehicles(vehicles), 400);
-      } else if (showGuidesFirstTime) {
-        // Pour les nouveaux utilisateurs, montrer un toast de bienvenue
-        uiToast({
-          title: "Bienvenue sur l'éditeur de schéma d'accident",
-          description: "Utilisez les outils sur la gauche pour créer votre schéma. Commencez par ajouter un véhicule.",
-          duration: 6000,
-        });
-        setShowGuidesFirstTime(false);
-      }
-    } catch (error) {
-      console.error("Error in map initialization:", error);
+      setShowGuidesFirstTime(false);
     }
-  }, [formData, vehicles, setVehicles, saveToHistory, setIsMapReady, setMapInitialized, setShowGuidesFirstTime, showGuidesFirstTime]);
+  }, [formData, vehicles, setVehicles, saveToHistory, setIsMapReady, setMapInitialized, setShowGuidesFirstTime]);
 
   const { mapRef, drawingLayerRef, handleMapReady, centerOnVehicles } = useSchemeMap({
     readOnly,
@@ -113,7 +109,7 @@ export const useSchemeMapHandlers = (
           console.log("Centering on vehicles after adding");
           centerOnVehicles(updatedVehicles);
           mapRef.current?.invalidateSize();
-        }, 200);
+        }, 100);
         
         // Afficher un toast de guidance après l'ajout du premier véhicule
         if (updatedVehicles.length === 1) {

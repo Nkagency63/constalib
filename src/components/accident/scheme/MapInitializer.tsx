@@ -13,7 +13,7 @@ const MapInitializer = ({ onMapReady }: MapInitializerProps) => {
   useEffect(() => {
     if (map) {
       // Delay initialization to ensure DOM is ready
-      const timer = setTimeout(() => {
+      setTimeout(() => {
         try {
           console.log("Map initializer: map object is ready");
           
@@ -21,28 +21,26 @@ const MapInitializer = ({ onMapReady }: MapInitializerProps) => {
           map.invalidateSize();
           
           // Call the callback with the map object
+          // This is safer than trying to manipulate controls directly
           onMapReady(map);
         } catch (error) {
           console.error("Error in map initialization:", error);
         }
-      }, 500); // Increased delay to ensure rendering is complete
-      
-      return () => {
-        // Clear the timeout on unmount
-        clearTimeout(timer);
-        
-        // Clean up safely without attempting to remove controls
+      }, 200); // Increased delay to ensure rendering is complete
+    }
+    
+    return () => {
+      // Clean up event listeners to prevent memory leaks
+      // But don't try to remove controls which can cause errors
+      if (map) {
         try {
-          console.log("Map initializer: cleaning up");
-          
-          // Utiliser une approche plus sûre pour nettoyer les événements
-          // On ne touche pas aux contrôles qui peuvent causer l'erreur "s is undefined"
-          map.off(); // Nettoyage des événements uniquement
+          console.log("Map initializer: cleaning up event listeners");
+          map.off(); // Remove our event listeners only
         } catch (error) {
           console.error("Error cleaning up map:", error);
         }
-      };
-    }
+      }
+    };
   }, [map, onMapReady]);
   
   return null;

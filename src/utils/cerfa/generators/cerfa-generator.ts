@@ -38,63 +38,10 @@ export const generateCerfaPDF = async (
     const reportId = uuidv4();
     console.log("Generated unique report ID:", reportId);
     
-    // If schemeImageDataUrl is null, try to capture it here as a fallback
-    if (!schemeImageDataUrl) {
-      console.log("Scheme image not provided, attempting fallback capture");
-      try {
-        const { captureSchemeAsDataUrl } = await import("@/components/accident/scheme/SchemeExport");
-        schemeImageDataUrl = await captureSchemeAsDataUrl();
-        console.log("Fallback scheme capture:", schemeImageDataUrl ? "successful" : "failed");
-      } catch (captureError) {
-        console.error("Failed to capture scheme in fallback:", captureError);
-      }
-    }
-    
-    // Préparer les informations complètes pour le PDF
-    const completeFormData: FormData = {
-      ...formData,
-      // S'assurer que toutes les données requises sont présentes
-      driverInfo: {
-        A: {
-          name: formData.driverName || formData.insuredName || "Non renseigné",
-          address: formData.driverAddress || formData.insuredAddress || "Non renseigné",
-          licenseNumber: formData.driverLicense || "Non renseigné",
-          phone: formData.driverPhone || formData.insuredPhone || "Non renseigné",
-        },
-        B: {
-          name: formData.otherDriverName || "Non renseigné",
-          address: formData.otherDriverAddress || "Non renseigné",
-          licenseNumber: formData.otherDriverLicense || "Non renseigné",
-          phone: formData.otherDriverPhone || "Non renseigné",
-        }
-      },
-      insuredInfo: {
-        A: {
-          name: formData.insuredName || "Non renseigné",
-          address: formData.insuredAddress || "Non renseigné",
-          phone: formData.insuredPhone || "Non renseigné",
-          email: formData.personalEmail || "Non renseigné",
-        },
-        B: {
-          name: formData.otherInsuredName || "Non renseigné",
-          address: formData.otherInsuredAddress || "Non renseigné",
-          phone: formData.otherInsuredPhone || "Non renseigné",
-          email: formData.otherInsuredEmail || "Non renseigné",
-        }
-      },
-      // Assurer que les informations relatives aux blessures sont correctement formatées
-      injuriesDescription: formData.injuriesDescription || "",
-      hasInjuries: formData.hasInjuries || false,
-      injuries: formData.injuries || [],
-      // Informations sur les dégâts matériels
-      hasMaterialDamage: formData.hasMaterialDamage || false,
-      materialDamageDescription: formData.materialDamageDescription || ""
-    };
-    
     // Generate placeholder PDF instead of trying to fetch a template
     // This ensures we can always generate a PDF even if templates aren't available
     toast.info("Generating accident report document...");
-    const pdfUrl = await generatePlaceholderPDF(completeFormData, schemeImageDataUrl, signatures);
+    const pdfUrl = await generatePlaceholderPDF(formData, schemeImageDataUrl, signatures);
     
     // Save report reference in database if we have signatures
     if (signatures?.partyA && signatures?.partyB) {

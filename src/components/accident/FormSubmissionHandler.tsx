@@ -29,23 +29,23 @@ const FormSubmissionHandler = ({
     
     try {
       const vehicleId = await saveVehicleData({
-        licensePlate: formData.licensePlate,
+        license_plate: formData.licensePlate,
         brand: formData.vehicleBrand,
         model: formData.vehicleModel,
         year: formData.vehicleYear,
         first_registration: formData.firstRegistration,
-        insurancePolicy: formData.insurancePolicy,
-        insuranceCompany: formData.insuranceCompany
+        insurance_policy: formData.insurancePolicy,
+        insurance_company: formData.insuranceCompany
       });
       
       const otherVehicleId = await saveVehicleData({
-        licensePlate: formData.otherVehicle.licensePlate,
+        license_plate: formData.otherVehicle.licensePlate,
         brand: formData.otherVehicle.brand,
         model: formData.otherVehicle.model,
         year: formData.otherVehicle.year,
         first_registration: formData.otherVehicle.firstRegistration,
-        insurancePolicy: formData.otherVehicle.insurancePolicy,
-        insuranceCompany: formData.otherVehicle.insuranceCompany
+        insurance_policy: formData.otherVehicle.insurancePolicy,
+        insurance_company: formData.otherVehicle.insuranceCompany
       });
       
       const vehiclePhotoUrls = await uploadPhotos(formData.vehiclePhotos, 'vehicle');

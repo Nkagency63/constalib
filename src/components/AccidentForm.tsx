@@ -77,14 +77,10 @@ const AccidentForm = ({ onEmergencyRequest, onStepChange }: AccidentFormProps) =
           formData={formData}
           handleInputChange={handleInputChange}
           handleOtherVehicleChange={handleOtherVehicleChange}
-          handlePhotoUpload={(type, files) => {
-            // Adapter pour correspondre à l'interface attendue
-            if (type === "vehicle") handlePhotoUpload("vehiclePhotos", files);
-            else if (type === "damage") handlePhotoUpload("damagePhotos", files);
-          }}
+          handlePhotoUpload={handlePhotoUpload}
           setVehicleInfo={setVehicleInfo}
           setOtherVehicleInfo={setOtherVehicleInfo}
-          setGeolocation={(lat, lng, address) => setGeolocation({lat, lng, address})}
+          setGeolocation={setGeolocation}
           setInsuranceEmails={setInsuranceEmails}
           setInvolvedPartyEmails={setInvolvedPartyEmails}
           setPersonalEmail={setPersonalEmail}

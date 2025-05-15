@@ -32,7 +32,7 @@ export const useSchemeMap = ({ readOnly, handleMapClick, onReady }: UseSchemeMap
         mapRef.current.invalidateSize();
         console.log("Map size invalidated");
       }
-    }, 200);
+    }, 100);
     
     // Call the onReady callback to initialize the map
     onReady();
@@ -46,36 +46,26 @@ export const useSchemeMap = ({ readOnly, handleMapClick, onReady }: UseSchemeMap
     
     try {
       // Create a bounds object to contain all vehicle positions
-      // S'assurer que chaque position est un objet LatLng valide
-      const bounds = L.latLngBounds(
-        vehicles
-          .filter(v => v.position && Array.isArray(v.position) && v.position.length === 2)
-          .map(v => L.latLng(v.position))
-      );
+      const bounds = L.latLngBounds(vehicles.map(v => v.position));
       
-      // Vérifier si nous avons pu créer des limites valides
-      if (bounds.isValid()) {
-        // Slightly pad the bounds for better visibility
-        bounds.pad(0.2);
-        
-        // Set a timeout to ensure the map is fully initialized
-        setTimeout(() => {
-          if (mapRef.current) {
-            // Use fitBounds instead of flyToBounds for more reliable behavior
-            mapRef.current.fitBounds(bounds, {
-              padding: [50, 50],
-              maxZoom: 18
-            });
-            
-            // Force a map refresh
-            mapRef.current.invalidateSize();
-          }
-        }, 300);
-        
-        console.log("Map centered on vehicles successfully");
-      } else {
-        console.warn("Could not create valid bounds for vehicles");
-      }
+      // Slightly pad the bounds for better visibility
+      bounds.pad(0.2);
+      
+      // Adjust the map to these bounds with animation
+      mapRef.current.flyToBounds(bounds, {
+        padding: [50, 50],
+        duration: 0.5,
+        maxZoom: 18
+      });
+      
+      // Force a map refresh
+      setTimeout(() => {
+        if (mapRef.current) {
+          mapRef.current.invalidateSize();
+        }
+      }, 100);
+      
+      console.log("Map centered on vehicles successfully");
     } catch (error) {
       console.error("Error centering on vehicles:", error);
     }
