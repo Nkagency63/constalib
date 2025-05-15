@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import {
@@ -11,7 +10,7 @@ import {
   DrawerTitle,
 } from '@/components/ui/drawer';
 import { Phone, Ambulance, AlertCircle, ShieldAlert } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 
 interface EmergencyServicesDrawerProps {
   open: boolean;
@@ -31,7 +30,6 @@ const EmergencyServicesDrawer = ({
   geolocation
 }: EmergencyServicesDrawerProps) => {
   const [calling, setCalling] = useState(false);
-  const { toast } = useToast();
 
   const emergencyServices = [
     {
@@ -69,8 +67,7 @@ const EmergencyServicesDrawer = ({
       onEmergencyContacted();
       onOpenChange(false);
       
-      toast({
-        title: "Services d'urgence contactés",
+      toast("Services d'urgence contactés", {
         description: `Vous avez contacté ${serviceName} (${number})`,
       });
     }, 1000);

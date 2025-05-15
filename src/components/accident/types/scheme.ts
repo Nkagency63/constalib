@@ -1,33 +1,17 @@
 
-export interface Vehicle {
-  id: string;
-  position: [number, number];
-  color: string;
-  brand?: string;
-  model?: string;
-  rotation: number;
-  isSelected: boolean;
-}
+// Import base types from main types file instead of redeclaring them
+import { Vehicle as BaseVehicle, Path as BasePath, Annotation as BaseAnnotation, SchemeData as BaseSchemeData } from '../types';
 
-export interface Path {
-  id: string;
-  points: [number, number][];
-  color: string;
-  vehicleId?: string;
-  isSelected: boolean;
-}
+// Re-export types with different names to avoid conflicts
+export type SchemeVehicle = BaseVehicle;
+export type SchemePath = BasePath;
+export type SchemeAnnotation = BaseAnnotation;
+export type SchemeDataType = BaseSchemeData;
 
-export interface Annotation {
-  id: string;
-  position: [number, number];
-  text: string;
-  type: 'obstacle' | 'sign' | 'note';
-}
-
-export interface SchemeData {
-  vehicles: Vehicle[];
-  paths: Path[];
-  annotations: Annotation[];
-  center: [number, number];
-  zoom: number;
-}
+// For backward compatibility - use type aliases instead of export declarations
+export type { 
+  BaseVehicle as Vehicle, 
+  BasePath as Path, 
+  BaseAnnotation as Annotation,
+  BaseSchemeData as SchemeData
+};

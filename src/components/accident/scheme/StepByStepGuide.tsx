@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Check, AlertCircle } from 'lucide-react';
+import { Check, Car, Route, StickyNote } from 'lucide-react';
 
 interface StepByStepGuideProps {
   vehicleCount: number;
@@ -13,60 +13,61 @@ const StepByStepGuide: React.FC<StepByStepGuideProps> = ({
   pathCount, 
   annotationCount 
 }) => {
-  const steps = [
-    {
-      id: 'vehicles',
-      title: 'Ajouter les véhicules impliqués',
-      description: 'Placez tous les véhicules concernés',
-      completed: vehicleCount > 0,
-    },
-    {
-      id: 'position',
-      title: 'Positionner les véhicules',
-      description: 'Placez-les correctement sur la carte',
-      completed: vehicleCount > 0,
-    },
-    {
-      id: 'paths',
-      title: 'Tracer les trajectoires',
-      description: 'Montrez le déplacement des véhicules',
-      completed: pathCount > 0,
-    },
-    {
-      id: 'annotations',
-      title: 'Ajouter des annotations',
-      description: 'Précisez des détails importants',
-      completed: annotationCount > 0,
-    }
-  ];
+  // Ne pas afficher le guide si tous les éléments sont présents
+  if (vehicleCount > 0 && pathCount > 0 && annotationCount > 0) {
+    return null;
+  }
   
   return (
-    <div className="absolute top-16 right-4 z-10 bg-white/90 backdrop-blur-sm rounded-lg shadow-md border border-gray-200 p-4 w-64">
-      <h3 className="text-sm font-medium mb-2 flex items-center">
-        <AlertCircle className="h-4 w-4 mr-1 text-blue-600" />
-        Guide étape par étape
-      </h3>
-      <ul className="space-y-2">
-        {steps.map((step) => (
-          <li key={step.id} className="flex items-start">
-            <div className={`mt-1 flex-shrink-0 w-5 h-5 rounded-full flex items-center justify-center ${
-              step.completed ? 'bg-green-100 text-green-600' : 'bg-gray-100 text-gray-400'
-            }`}>
-              {step.completed ? (
-                <Check className="h-3 w-3" />
-              ) : (
-                <span className="text-xs">{steps.findIndex(s => s.id === step.id) + 1}</span>
-              )}
+    <div className="absolute top-4 right-4 bg-white rounded-lg shadow-md p-3 text-sm w-64">
+      <h4 className="font-medium mb-2">Guide étape par étape</h4>
+      
+      <div className="space-y-2">
+        <div className="flex items-center gap-2">
+          {vehicleCount > 0 ? (
+            <div className="w-5 h-5 rounded-full bg-green-100 flex items-center justify-center">
+              <Check className="w-3 h-3 text-green-600" />
             </div>
-            <div className="ml-2">
-              <p className={`text-xs font-medium ${step.completed ? 'text-green-600' : 'text-gray-600'}`}>
-                {step.title}
-              </p>
-              <p className="text-xs text-gray-500">{step.description}</p>
+          ) : (
+            <div className="w-5 h-5 rounded-full bg-blue-100 flex items-center justify-center">
+              <Car className="w-3 h-3 text-blue-600" />
             </div>
-          </li>
-        ))}
-      </ul>
+          )}
+          <span className={vehicleCount > 0 ? "text-green-600" : ""}>
+            {vehicleCount > 0 ? "Véhicules ajoutés" : "Ajoutez les véhicules impliqués"}
+          </span>
+        </div>
+        
+        <div className="flex items-center gap-2">
+          {pathCount > 0 ? (
+            <div className="w-5 h-5 rounded-full bg-green-100 flex items-center justify-center">
+              <Check className="w-3 h-3 text-green-600" />
+            </div>
+          ) : (
+            <div className="w-5 h-5 rounded-full bg-gray-100 flex items-center justify-center">
+              <Route className="w-3 h-3 text-gray-600" />
+            </div>
+          )}
+          <span className={pathCount > 0 ? "text-green-600" : ""}>
+            {pathCount > 0 ? "Trajectoires tracées" : "Tracez les trajectoires des véhicules"}
+          </span>
+        </div>
+        
+        <div className="flex items-center gap-2">
+          {annotationCount > 0 ? (
+            <div className="w-5 h-5 rounded-full bg-green-100 flex items-center justify-center">
+              <Check className="w-3 h-3 text-green-600" />
+            </div>
+          ) : (
+            <div className="w-5 h-5 rounded-full bg-gray-100 flex items-center justify-center">
+              <StickyNote className="w-3 h-3 text-gray-600" />
+            </div>
+          )}
+          <span className={annotationCount > 0 ? "text-green-600" : ""}>
+            {annotationCount > 0 ? "Annotations ajoutées" : "Ajoutez des annotations si nécessaire"}
+          </span>
+        </div>
+      </div>
     </div>
   );
 };

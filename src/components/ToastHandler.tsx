@@ -1,14 +1,20 @@
 
 import React from 'react';
-import { Toaster as SonnerToaster } from 'sonner';
-import { Toaster } from "@/components/ui/toaster";
+import { Toaster } from 'sonner';
 
 const ToastHandler = () => {
   return (
-    <>
-      <SonnerToaster position="top-right" />
-      <Toaster />
-    </>
+    <Toaster 
+      position="top-right" 
+      toastOptions={{
+        style: {
+          background: '#fff',
+          color: '#363636',
+        },
+        duration: 4000,
+        className: 'my-toast-class',
+      }}
+    />
   );
 };
 

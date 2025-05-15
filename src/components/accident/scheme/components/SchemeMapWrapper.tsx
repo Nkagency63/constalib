@@ -1,12 +1,18 @@
 
 import React from 'react';
+import { MapContainer, TileLayer, useMap } from 'react-leaflet';
 import { TooltipProvider } from '@/components/ui/tooltip';
-import MapContainer from '../MapContainer';
 import SchemeInfo from '../SchemeInfo';
 import SchemeGuide from '../SchemeGuide';
 import StepByStepGuide from '../StepByStepGuide';
 import KeyboardShortcuts from '../KeyboardShortcuts';
 import { Vehicle, Path, Annotation } from '../../types';
+import VehiclesLayer from '../VehiclesLayer';
+import PathsLayer from '../PathsLayer';
+import AnnotationsLayer from '../AnnotationsLayer';
+import MapInitializer from '../../MapInitializer';
+import { AspectRatio } from '@/components/ui/aspect-ratio';
+import 'leaflet/dist/leaflet.css';
 
 interface SchemeMapWrapperProps {
   center: [number, number];
@@ -48,28 +54,53 @@ const SchemeMapWrapper: React.FC<SchemeMapWrapperProps> = ({
   onMapReady
 }) => {
   return (
-    <div className="relative rounded-lg overflow-hidden shadow-md border border-gray-200">
+    <div className="relative rounded-lg overflow-hidden shadow-md border border-gray-200 h-full">
       <TooltipProvider>
-        <MapContainer 
-          center={center}
-          zoom={17}
-          vehicles={vehicles}
-          paths={paths}
-          annotations={annotations}
-          currentPathPoints={currentPathPoints}
-          drawingLayerRef={drawingLayerRef}
-          selectedVehicle={selectedVehicle}
-          onVehicleSelect={onVehicleSelect}
-          onRemoveVehicle={onRemoveVehicle}
-          onRotateVehicle={onRotateVehicle}
-          onChangeVehicleType={onChangeVehicleType}
-          onRemoveAnnotation={onRemoveAnnotation}
-          onUpdateAnnotation={onUpdateAnnotation}
-          onMapReady={onMapReady}
-          readOnly={readOnly}
-        />
+        <div className="h-full w-full">
+          <MapContainer
+            center={center}
+            zoom={17}
+            style={{ height: '100%', width: '100%', minHeight: '350px' }}
+            attributionControl={false}
+            zoomControl={true}
+          >
+            <TileLayer
+              url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+              attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+            />
+            
+            <MapInitializer onMapReady={onMapReady} />
+            
+            <VehiclesLayer
+              vehicles={vehicles}
+              selectedVehicleId={selectedVehicle}
+              onVehicleSelect={onVehicleSelect}
+              onRemoveVehicle={onRemoveVehicle}
+              onRotateVehicle={onRotateVehicle}
+              readOnly={readOnly}
+            />
+            
+            <PathsLayer
+              paths={paths}
+              currentPathPoints={currentPathPoints}
+              isDrawing={currentPathPoints.length > 0}
+              pathColor="#ff0000"
+              readOnly={readOnly}
+              drawingLayerRef={drawingLayerRef}
+              selectedVehicle={selectedVehicle}
+              vehicles={vehicles}
+            />
+            
+            <AnnotationsLayer
+              annotations={annotations}
+              readOnly={readOnly}
+              onRemove={onRemoveAnnotation}
+              onUpdate={onUpdateAnnotation}
+            />
+          </MapContainer>
+        </div>
 
-        {/* Ajout des composants de guidance */}
+        {/* Guidance components */}
         {!readOnly && (
           <>
             <SchemeGuide 

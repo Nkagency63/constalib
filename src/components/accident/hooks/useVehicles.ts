@@ -1,7 +1,8 @@
-import { useState, useEffect } from 'react';
+
+import { useState, useEffect, useCallback } from 'react';
 import { v4 as uuidv4 } from 'uuid';
-import { Vehicle } from '../types';
-import { toast } from 'sonner';
+import { Vehicle } from '../types/scheme';
+import { toast } from '@/hooks/use-toast';
 
 export const VEHICLE_COLORS: Record<'A' | 'B' | 'C' | 'D', string> = {
   'A': '#1e40af', // Bleu plus vif
@@ -15,43 +16,42 @@ export const useVehicles = () => {
   const [selectedVehicle, setSelectedVehicle] = useState<string | null>(null);
   const [currentVehicleType, setCurrentVehicleType] = useState<'car' | 'truck' | 'bike'>('car');
 
-  const addVehicle = (location: L.LatLng) => {
+  const addVehicle = useCallback((position: [number, number], type: 'car' | 'truck' | 'bike' = 'car') => {
     if (vehicles.length >= Object.keys(VEHICLE_COLORS).length) {
-      toast.warning(`Maximum de ${Object.keys(VEHICLE_COLORS).length} véhicules atteint`);
+      toast({
+        description: "Maximum de 4 véhicules atteint"
+      });
       return null;
     }
 
     // Determine vehicle ID based on existing vehicles
-    const usedIds = vehicles.map(v => v.vehicleId);
+    const usedIds = vehicles.map(v => v.id);
     const availableIds = (Object.keys(VEHICLE_COLORS) as Array<'A' | 'B' | 'C' | 'D'>).filter(
       id => !usedIds.includes(id)
     );
-    const vehicleId = availableIds[0];
-    const color = VEHICLE_COLORS[vehicleId];
-
-    // Générer un ID unique pour le véhicule
+    
+    // Generate a unique ID for the vehicle
     const uniqueId = uuidv4();
 
-    // Créer le nouveau véhicule avec une position précise
+    // Create the new vehicle with a precise position
     const newVehicle: Vehicle = {
       id: uniqueId,
-      position: [location.lat, location.lng],
-      color,
-      vehicleId,
-      rotation: 0,
+      position: position,
+      color: getRandomColor(),
+      rotation: 0, // north is 0 degrees
       isSelected: true,
-      vehicleType: currentVehicleType
+      type: type
     };
 
     console.log("Creating new vehicle:", newVehicle);
 
-    // Mettre à jour la liste des véhicules et sélectionner le nouveau véhicule
+    // Update the vehicle list and select the new vehicle
     const updatedVehicles = [...vehicles, newVehicle];
     
-    // Nous devons d'abord mettre à jour les véhicules existants pour désélectionner les autres
+    // We must first update existing vehicles to deselect the others
     const deselectedVehicles = vehicles.map(v => ({...v, isSelected: false}));
     
-    // Puis ajouter le nouveau véhicule sélectionné
+    // Then add the new selected vehicle
     const finalUpdatedVehicles = [...deselectedVehicles, newVehicle];
     
     setVehicles(finalUpdatedVehicles);
@@ -60,7 +60,7 @@ export const useVehicles = () => {
     console.log("Updated vehicles list:", finalUpdatedVehicles);
     
     return finalUpdatedVehicles;
-  };
+  }, [vehicles]);
 
   const removeVehicle = (id: string) => {
     const vehicleToRemove = vehicles.find(v => v.id === id);
@@ -101,7 +101,7 @@ export const useVehicles = () => {
     if (selectedVehicle) {
       const updatedVehicles = vehicles.map(vehicle => 
         vehicle.id === selectedVehicle 
-          ? { ...vehicle, vehicleType: type }
+          ? { ...vehicle, type: type }
           : vehicle
       );
       setVehicles(updatedVehicles);
@@ -111,7 +111,7 @@ export const useVehicles = () => {
     return vehicles;
   };
 
-  // Afficher dans la console les véhicules actuels pour déboguer
+  // Log current vehicles for debugging
   useEffect(() => {
     console.log("Current vehicles:", vehicles);
   }, [vehicles]);
@@ -129,3 +129,8 @@ export const useVehicles = () => {
     VEHICLE_COLORS
   };
 };
+
+function getRandomColor(): string {
+  const colors = Object.values(VEHICLE_COLORS);
+  return colors[Math.floor(Math.random() * colors.length)];
+}

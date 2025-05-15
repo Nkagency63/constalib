@@ -1,58 +1,97 @@
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { useMap } from 'react-leaflet';
-import { Map } from 'leaflet';
+import L from 'leaflet';
 
 interface MapInitializerProps {
-  onMapReady: (map: Map) => void;
+  onMapReady?: (map: L.Map) => void;
+  setCenter?: (center: [number, number]) => void;
+  setZoom?: (zoom: number) => void;
+  onMapClick?: (latlng: L.LatLng) => void;
+  onMapDoubleClick?: () => void;
+  onMapMove?: (latlng: L.LatLng) => void;
 }
 
-const MapInitializer = ({ onMapReady }: MapInitializerProps) => {
+const MapInitializer: React.FC<MapInitializerProps> = ({
+  onMapReady,
+  setCenter,
+  setZoom,
+  onMapClick,
+  onMapDoubleClick,
+  onMapMove
+}) => {
   const map = useMap();
+  const initDoneRef = useRef(false);
   
   useEffect(() => {
-    if (map) {
-      // Delay initialization to ensure DOM is ready
-      const timeoutId = setTimeout(() => {
-        try {
-          // Make sure the map is still valid before proceeding
-          if (map && map.getContainer && !map.getContainer().parentElement) {
-            console.log("Map container has been removed, skipping initialization");
-            return;
-          }
-          
-          // Make sure all existing event listeners are cleared to prevent memory leaks
-          // Only clear events if the map is valid
-          if (map && typeof map.off === 'function') {
-            map.off();
-          }
-          
-          // Call onMapReady with the map object only after ensuring it's properly set up
-          onMapReady(map);
-        } catch (error) {
-          console.error("Error initializing map:", error);
-        }
-      }, 100); // Small delay to ensure rendering is complete
+    if (map && !initDoneRef.current) {
+      // Marquer l'initialisation comme terminée pour éviter les appels dupliqués
+      initDoneRef.current = true;
       
-      return () => {
-        // Clear the timeout to prevent callbacks after unmount
-        clearTimeout(timeoutId);
+      try {
+        console.log("Map initializer: map object is ready");
         
-        // Clean up event listeners to prevent memory leaks
-        if (map) {
-          try {
-            // Only attempt to remove listeners if the map is still valid
-            // @ts-ignore - _isDestroyed might exist at runtime but not in type definitions
-            if (typeof map.off === 'function' && !map._isDestroyed) {
-              map.off();
-            }
-          } catch (error) {
-            console.error("Error cleaning up map:", error);
+        // Forcer invalidateSize pour assurer un rendu correct
+        setTimeout(() => {
+          map.invalidateSize();
+          
+          // Configurer les gestionnaires d'événements
+          if (onMapClick) {
+            map.on('click', (e) => onMapClick(e.latlng));
           }
-        }
-      };
+          
+          if (onMapDoubleClick) {
+            map.on('dblclick', (e) => {
+              // Empêcher le comportement de zoom par défaut
+              L.DomEvent.stopPropagation(e);
+              onMapDoubleClick();
+            });
+          }
+          
+          if (onMapMove) {
+            map.on('mousemove', (e) => onMapMove(e.latlng));
+          }
+          
+          if (setCenter) {
+            map.on('moveend', () => {
+              setCenter([map.getCenter().lat, map.getCenter().lng] as [number, number]);
+            });
+          }
+          
+          if (setZoom) {
+            map.on('zoomend', () => setZoom(map.getZoom()));
+          }
+          
+          // Appeler le callback onMapReady s'il est fourni
+          if (onMapReady) {
+            onMapReady(map);
+          }
+          
+        }, 300); // Délai pour une meilleure réactivité
+        
+      } catch (error) {
+        console.error("Error in map initialization:", error);
+      }
     }
-  }, [map, onMapReady]);
+    
+    return () => {
+      try {
+        console.log("Map initializer: safely cleaning up");
+        
+        // Nettoyage sécurisé sans accéder à des propriétés potentiellement inexistantes
+        if (map) {
+          // Supprimer tous les écouteurs d'événements que nous avons ajoutés
+          if (onMapClick) map.off('click');
+          if (onMapDoubleClick) map.off('dblclick');
+          if (onMapMove) map.off('mousemove');
+          if (setCenter) map.off('moveend');
+          if (setZoom) map.off('zoomend');
+        }
+      } catch (error) {
+        console.error("Error cleaning up map:", error);
+      }
+    };
+  }, [map, onMapReady, setCenter, setZoom, onMapClick, onMapDoubleClick, onMapMove]);
   
   return null;
 };

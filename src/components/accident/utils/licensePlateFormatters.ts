@@ -62,3 +62,48 @@ export const formatDateFr = (dateStr: string) => {
     year: 'numeric'
   });
 };
+
+/**
+ * Validates a license plate format
+ * @param plate License plate to validate
+ * @param format Format type ('siv' for modern format, 'fni' for old format)
+ * @returns boolean indicating if the license plate is valid
+ */
+export const isValidLicensePlate = (plate: string, format: 'siv' | 'fni'): boolean => {
+  if (!plate || plate.length < 3) return false;
+  
+  // For SIV format (modern French plates, e.g. AA-123-BB)
+  if (format === 'siv') {
+    // Basic validation - SIV is typically 7-9 characters excluding hyphens
+    const normalized = plate.replace(/[\s-]/g, '').toUpperCase();
+    
+    // Check if the normalized plate has at least 5 characters
+    if (normalized.length < 5) return false;
+    
+    // Check if the plate follows the basic pattern: 2 letters + 3 digits + 2 letters
+    // This regex allows partial plates as well (during typing)
+    const sivPattern = /^[A-Z]{1,2}[0-9]{0,3}[A-Z]{0,2}$/;
+    return sivPattern.test(normalized);
+  }
+  
+  // For FNI format (old format, e.g. 123 ABC 75)
+  if (format === 'fni') {
+    // Basic validation - FNI is typically 6-8 characters excluding spaces
+    const normalized = plate.replace(/\s/g, '').toUpperCase();
+    
+    // Check if the normalized plate has at least 4 characters
+    if (normalized.length < 4) return false;
+    
+    // Check if the plate follows the basic pattern: 1-4 digits + 1-3 letters + optional 1-2 digits (dept)
+    // This regex allows partial plates as well (during typing)
+    const fniPattern = /^[0-9]{1,4}[A-Z]{1,3}([0-9]{0,2})?$/;
+    return fniPattern.test(normalized);
+  }
+  
+  return false;
+};
+
+// Helper function to check if a string matches a pattern
+const matchesPattern = (str: string, pattern: RegExp): boolean => {
+  return pattern.test(str);
+};

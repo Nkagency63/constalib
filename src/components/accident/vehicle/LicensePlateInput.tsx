@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { Car, FileText } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -5,6 +6,7 @@ import SivTabContent from './tabs/SivTabContent';
 import FniTabContent from './tabs/FniTabContent';
 import ErrorAlerts from './ErrorAlerts';
 import { formatSivLicensePlate, formatFniLicensePlate } from '../utils/licensePlateFormatters';
+
 interface LicensePlateInputProps {
   licensePlate: string;
   handleInputChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
@@ -22,6 +24,7 @@ interface LicensePlateInputProps {
   fniError: string | null;
   fvaError: string | null;
 }
+
 const LicensePlateInput = ({
   licensePlate,
   handleInputChange,
@@ -47,39 +50,79 @@ const LicensePlateInput = ({
         name: 'licensePlate'
       }
     } as React.ChangeEvent<HTMLInputElement>;
+    
     handleInputChange(syntheticEvent);
   };
+  
   const handleTabChange = (value: string) => {
     onSearchTab(value as 'siv' | 'fni');
+    
+    // Format the license plate according to the selected tab format
     if (licensePlate) {
-      const formattedValue = value === 'siv' ? formatSivLicensePlate(licensePlate) : formatFniLicensePlate(licensePlate);
+      const formattedValue = value === 'siv' ? 
+        formatSivLicensePlate(licensePlate) : 
+        formatFniLicensePlate(licensePlate);
+      
       const syntheticEvent = {
         target: {
           name: 'licensePlate',
           value: formattedValue
         }
       } as React.ChangeEvent<HTMLInputElement>;
+      
       handleInputChange(syntheticEvent);
     }
   };
-  return <div className="space-y-2">
+
+  return (
+    <div className="space-y-2">
       <label htmlFor="licensePlate" className="block text-sm font-medium text-constalib-dark">
         Immatriculation du véhicule
       </label>
       
       <Tabs value={searchTab} onValueChange={handleTabChange} className="w-full">
-        
+        <TabsList className="grid w-full grid-cols-2 mb-4">
+          <TabsTrigger value="siv" className="flex items-center gap-2">
+            <Car className="h-4 w-4" />
+            <span>SIV (Après 2009)</span>
+          </TabsTrigger>
+          <TabsTrigger value="fni" className="flex items-center gap-2">
+            <FileText className="h-4 w-4" />
+            <span>FNI (Avant 2009)</span>
+          </TabsTrigger>
+        </TabsList>
         
         <TabsContent value="siv">
-          <SivTabContent licensePlate={licensePlate} handleLicensePlateChange={handleLicensePlateChange} onLookupVehicle={onLookupVehicle} onLookupFva={onLookupFva} isLoading={isLoading} isFvaLoading={isFvaLoading} lookupSuccess={lookupSuccess} />
+          <SivTabContent 
+            licensePlate={licensePlate} 
+            handleLicensePlateChange={handleLicensePlateChange} 
+            onLookupVehicle={onLookupVehicle} 
+            onLookupFva={onLookupFva} 
+            isLoading={isLoading} 
+            isFvaLoading={isFvaLoading} 
+            lookupSuccess={lookupSuccess} 
+          />
         </TabsContent>
         
         <TabsContent value="fni">
-          <FniTabContent licensePlate={licensePlate} handleLicensePlateChange={handleLicensePlateChange} onLookupFni={onLookupFni} isFniLoading={isFniLoading} fniLookupSuccess={fniLookupSuccess} />
+          <FniTabContent 
+            licensePlate={licensePlate} 
+            handleLicensePlateChange={handleLicensePlateChange} 
+            onLookupFni={onLookupFni} 
+            isFniLoading={isFniLoading} 
+            fniLookupSuccess={fniLookupSuccess} 
+          />
         </TabsContent>
       </Tabs>
       
-      <ErrorAlerts searchError={searchError} fniError={fniError} fvaError={fvaError} searchTab={searchTab} />
-    </div>;
+      <ErrorAlerts 
+        searchError={searchError} 
+        fniError={fniError} 
+        fvaError={fvaError} 
+        searchTab={searchTab} 
+      />
+    </div>
+  );
 };
+
 export default LicensePlateInput;

@@ -1,134 +1,140 @@
 
-import { useState, useEffect } from 'react';
-import { MapPin, Search, Loader2 } from 'lucide-react';
-import { Input } from "@/components/ui/input";
-import GeocodingButton from './GeocodingButton';
+import React, { useState } from 'react';
+import { MapPin } from 'lucide-react';
 import CurrentLocationButton from './CurrentLocationButton';
+import GeocodingButton from './GeocodingButton';
 import LocationDisplay from './LocationDisplay';
+import AccidentMap from './AccidentMap';
+import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { toast } from 'sonner';
 
-interface LocationStepProps {
+export interface LocationStepProps {
+  date: string;
+  time: string;
   location: string;
+  description?: string;
+  geolocation: {
+    lat: number | null;
+    lng: number | null;
+    address: string;
+  };
   handleInputChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
-  setGeolocation: (data: {lat: number, lng: number, address: string}) => void;
+  setGeolocation: (data: { lat: number; lng: number; address: string }) => void;
 }
 
-const LocationStep = ({
+const LocationStep: React.FC<LocationStepProps> = ({
+  date,
+  time,
   location,
+  description,
+  geolocation,
   handleInputChange,
   setGeolocation
-}: LocationStepProps) => {
-  const [currentLocation, setCurrentLocation] = useState<{lat: number, lng: number} | null>(null);
-  const [formattedAddress, setFormattedAddress] = useState('');
-  const [geocodingStatus, setGeocodingStatus] = useState<'none' | 'success' | 'error'>('none');
+}) => {
+  const [isMapVisible, setIsMapVisible] = useState(false);
 
-  const handleGeocodeSuccess = (data: {lat: number, lng: number, address: string}) => {
+  const handleGeolocationSuccess = (data: { lat: number; lng: number; address: string }) => {
     setGeolocation(data);
-    setCurrentLocation({
-      lat: data.lat,
-      lng: data.lng
+    toast.success('Position localisée', {
+      description: 'La position a été correctement géolocalisée'
     });
-    setFormattedAddress(data.address);
-    setGeocodingStatus('success');
   };
-
-  const handleGeocodeError = () => {
-    setGeocodingStatus('error');
-  };
-
-  const handleGeocodeStart = () => {
-    setGeocodingStatus('none');
-  };
-
-  const handleLocationInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    handleInputChange(e);
-    // Reset geocoding status when user types
-    if (geocodingStatus !== 'none') {
-      setGeocodingStatus('none');
-    }
-  };
-
-  const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Enter') {
-      e.preventDefault();
-      const geocodeButton = document.querySelector('button[data-geocode-button]') as HTMLButtonElement;
-      if (geocodeButton) {
-        geocodeButton.click();
-      }
-    }
-  };
-
-  useEffect(() => {
-    // If location changes externally, reset the geocoding status
-    setGeocodingStatus('none');
-  }, [location]);
 
   return (
     <div className="space-y-6">
-      <div className="p-4 border rounded-lg bg-constalib-light-blue/10">
-        <h3 className="font-medium text-constalib-dark mb-2">Comment localiser votre accident ?</h3>
-        <p className="text-sm text-constalib-dark-gray">
-          Vous pouvez soit <strong>saisir l'adresse précise</strong> et cliquer sur "Géolocaliser", soit utiliser votre 
-          position actuelle en cliquant sur le bouton ci-dessous.
-        </p>
-      </div>
-      
-      <div className="space-y-2">
-        <label htmlFor="location" className="block text-sm font-medium text-constalib-dark">
-          Adresse de l'accident
-        </label>
-        <div className="relative">
-          <Input
-            type="text"
-            id="location"
-            name="location"
-            value={location}
-            onChange={handleLocationInputChange}
-            placeholder="Ex: 15 rue de Paris, 75001 Paris"
-            className="pl-10"
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+          <label htmlFor="date" className="block text-sm font-medium text-constalib-dark mb-1">
+            Date de l'accident
+          </label>
+          <input
+            type="date"
+            id="date"
+            name="date"
+            value={date}
+            onChange={handleInputChange}
+            className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             required
-            onKeyPress={handleKeyPress}
           />
-          <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 text-constalib-dark-gray" size={18} />
-          
-          <div className="absolute right-2 top-1/2 transform -translate-y-1/2 flex space-x-2">
-            <GeocodingButton
-              location={location}
-              onGeocodeSuccess={handleGeocodeSuccess}
-              onGeocodeError={handleGeocodeError}
-              onGeocodeStart={handleGeocodeStart}
-            />
-          </div>
         </div>
-        <p className="text-sm text-constalib-dark-gray mt-1">
-          Saisissez l'adresse la plus précise possible pour une localisation exacte
+        <div>
+          <label htmlFor="time" className="block text-sm font-medium text-constalib-dark mb-1">
+            Heure de l'accident
+          </label>
+          <input
+            type="time"
+            id="time"
+            name="time"
+            value={time}
+            onChange={handleInputChange}
+            className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            required
+          />
+        </div>
+      </div>
+
+      <div>
+        <div className="flex justify-between items-center">
+          <label htmlFor="location" className="block text-sm font-medium text-constalib-dark mb-1">
+            Lieu de l'accident
+          </label>
+          <GeocodingButton location={location} setGeolocation={handleGeolocationSuccess} />
+        </div>
+        <input
+          type="text"
+          id="location"
+          name="location"
+          value={location}
+          onChange={handleInputChange}
+          placeholder="Adresse, ville, code postal..."
+          className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+          required
+        />
+      </div>
+
+      <CurrentLocationButton setGeolocation={handleGeolocationSuccess} />
+      
+      {geolocation.lat && geolocation.lng && (
+        <LocationDisplay geolocation={geolocation} setMapVisible={setIsMapVisible} />
+      )}
+
+      <div>
+        <label htmlFor="description" className="block text-sm font-medium text-constalib-dark mb-1">
+          Description de l'accident (optionnel)
+        </label>
+        <textarea
+          id="description"
+          name="description"
+          value={description || ''}
+          onChange={handleInputChange}
+          placeholder="Décrivez les circonstances de l'accident..."
+          className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 h-24"
+        />
+      </div>
+
+      <Dialog open={isMapVisible} onOpenChange={setIsMapVisible}>
+        <DialogContent className="sm:max-w-[700px] sm:max-h-[80vh] overflow-y-auto">
+          <div className="p-2">
+            <h2 className="text-xl font-semibold mb-4">Localisation de l'accident</h2>
+            {geolocation.lat && geolocation.lng && (
+              <AccidentMap 
+                lat={geolocation.lat} 
+                lng={geolocation.lng}
+                address={geolocation.address}
+              />
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      <div className="bg-blue-50 border border-blue-100 rounded-md p-4">
+        <h4 className="text-sm font-medium text-blue-800 mb-1">Conseil</h4>
+        <p className="text-sm text-blue-700">
+          Soyez aussi précis que possible concernant le lieu de l'accident. 
+          Utilisez le bouton "Utiliser ma position actuelle" pour localiser automatiquement votre position.
+          Vous pouvez également saisir manuellement une adresse et la géolocaliser.
         </p>
       </div>
-      
-      <div className="flex items-center my-4">
-        <div className="flex-grow h-px bg-gray-200"></div>
-        <span className="px-3 text-xs text-gray-500 bg-white">OU</span>
-        <div className="flex-grow h-px bg-gray-200"></div>
-      </div>
-      
-      <CurrentLocationButton
-        onLocationSuccess={handleGeocodeSuccess}
-        onLocationError={handleGeocodeError}
-        onLocationStart={handleGeocodeStart}
-      />
-      
-      <LocationDisplay
-        currentLocation={currentLocation}
-        formattedAddress={formattedAddress}
-        geocodingStatus={geocodingStatus}
-        onRefresh={() => {
-          if (location) {
-            const geocodeButton = document.querySelector('button[data-geocode-button]') as HTMLButtonElement;
-            if (geocodeButton) {
-              geocodeButton.click();
-            }
-          }
-        }}
-      />
     </div>
   );
 };

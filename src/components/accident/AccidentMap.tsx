@@ -1,64 +1,59 @@
 
 import React from 'react';
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
-import { Icon } from 'leaflet';
+import 'leaflet/dist/leaflet.css';
+import L from 'leaflet';
 import { MapPin } from 'lucide-react';
+import MapInitializer from './MapInitializer';
 
 // Fix Leaflet marker icon issue
-import markerIcon2x from 'leaflet/dist/images/marker-icon-2x.png';
-import markerIcon from 'leaflet/dist/images/marker-icon.png';
-import markerShadow from 'leaflet/dist/images/marker-shadow.png';
-
-// Note: We'll import the leaflet CSS in main.tsx instead
-
-delete (Icon.Default.prototype as any)._getIconUrl;
-Icon.Default.mergeOptions({
-  iconUrl: markerIcon,
-  iconRetinaUrl: markerIcon2x,
-  shadowUrl: markerShadow,
+const DefaultIcon = L.icon({
+  iconUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-icon.png',
+  shadowUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-shadow.png',
+  iconSize: [25, 41],
+  iconAnchor: [12, 41],
+  popupAnchor: [1, -34],
+  shadowSize: [41, 41]
 });
 
-// Create a custom accident icon
-const accidentIcon = new Icon({
-  iconUrl: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48Y2lyY2xlIGN4PSIxMiIgY3k9IjEyIiByPSIxMiIgZmlsbD0iI2U1MzkxNSIvPjxwYXRoIGQ9Ik0xOSAxN0g1TDMgMTVWMTNIMjFWMTVMMTkgMTdaIiBzdHJva2U9IndoaXRlIiBzdHJva2Utd2lkdGg9IjIiLz48cGF0aCBkPSJNNiAxM1Y3QzYgNS44OTU0MyA2Ljg5NTQzIDUgOCA1SDE2QzE3LjEwNDYgNSAxOCA1Ljg5NTQzIDE4IDdWMTMiIHN0cm9rZT0id2hpdGUiIHN0cm9rZS13aWR0aD0iMiIvPjwvc3ZnPg==',
-  iconSize: [38, 38],
-  iconAnchor: [19, 38],
-  popupAnchor: [0, -38]
-});
+L.Marker.prototype.options.icon = DefaultIcon;
 
 interface AccidentMapProps {
   lat: number;
   lng: number;
-  address: string;
-  children?: React.ReactNode;
+  address?: string;
+  onMapReady?: (map: L.Map) => void;
 }
 
-const AccidentMap = ({ lat, lng, address, children }: AccidentMapProps) => {
+const AccidentMap: React.FC<AccidentMapProps> = ({ lat, lng, address, onMapReady }) => {
   return (
-    <div className="rounded-lg overflow-hidden shadow-lg">
-      <MapContainer
-        center={[lat, lng] as [number, number]}
-        zoom={16}
+    <div className="h-[400px] w-full rounded-md overflow-hidden">
+      <MapContainer 
+        center={[lat, lng]} 
+        zoom={15} 
+        style={{ height: "100%", width: "100%" }}
         scrollWheelZoom={false}
-        style={{ height: '300px', width: '100%' }}
-        className="z-0"
       >
         <TileLayer
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         />
-        <Marker position={[lat, lng] as [number, number]} icon={accidentIcon}>
+        <Marker position={[lat, lng]}>
           <Popup>
-            <div className="text-sm font-medium">
-              <p>{address}</p>
-              <p className="text-xs text-constalib-dark-gray mt-1">
-                Lat: {lat.toFixed(6)}, Lng: {lng.toFixed(6)}
-              </p>
-            </div>
+            {address || `Latitude: ${lat}, Longitude: ${lng}`}
           </Popup>
         </Marker>
-        {children}
+        {onMapReady && <MapInitializer onMapReady={onMapReady} />}
       </MapContainer>
+      
+      {address && (
+        <div className="mt-2 text-sm text-constalib-dark-gray">
+          <div className="flex items-start">
+            <MapPin className="h-4 w-4 mr-1 mt-0.5 flex-shrink-0" />
+            <p>{address}</p>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

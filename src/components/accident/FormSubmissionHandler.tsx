@@ -1,116 +1,109 @@
 
-import { useState } from 'react';
+import React, { useState } from 'react';
+import { Button } from "@/components/ui/button";
+import { FileDown, Loader2, AlertTriangle } from 'lucide-react';
+import { useCerfaGeneration } from '@/hooks/accident/useCerfaGeneration';
 import { FormData } from './types';
-import { useToast } from '@/hooks/use-toast';
-import { toast } from 'sonner';
-import { saveVehicleData, uploadPhotos, saveAccidentReport, sendEmails } from '@/services/accidentReportService';
-import AccidentReportSubmitButton from './AccidentReportSubmitButton';
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import SignatureDialog from './SignatureDialog';
+import OfficialRegistrationDialog from './OfficialRegistrationDialog';
 
 interface FormSubmissionHandlerProps {
   formData: FormData;
-  children?: (props: {
-    handleSubmit: (e?: React.FormEvent) => Promise<void>;  // Make the event parameter optional
-    isSubmitting: boolean;
-  }) => React.ReactNode;
   onSubmitSuccess: () => void;
 }
 
-const FormSubmissionHandler = ({ 
-  formData, 
-  children, 
-  onSubmitSuccess 
-}: FormSubmissionHandlerProps) => {
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const { toast: uiToast } = useToast();
+const FormSubmissionHandler = ({ formData, onSubmitSuccess }: FormSubmissionHandlerProps) => {
+  const [showSignatureDialog, setShowSignatureDialog] = useState(false);
+  const [signatures, setSignatures] = useState<{ partyA: string | null; partyB: string | null; }>({
+    partyA: null,
+    partyB: null,
+  });
+  
+  const {
+    isGenerating,
+    isRegistering,
+    showOfficialDialog,
+    setShowOfficialDialog,
+    referenceId,
+    handleGenerateCerfa,
+    handleRegisterOfficial,
+    canRegisterOfficial
+  } = useCerfaGeneration({ formData, signatures });
 
-  const handleSubmit = async (e?: React.FormEvent) => {  // Make the event parameter optional
-    if (e) e.preventDefault();  // Only call preventDefault if e exists
-    setIsSubmitting(true);
-    
-    try {
-      const vehicleId = await saveVehicleData({
-        license_plate: formData.licensePlate,
-        brand: formData.vehicleBrand,
-        model: formData.vehicleModel,
-        year: formData.vehicleYear,
-        first_registration: formData.firstRegistration,
-        insurance_policy: formData.insurancePolicy,
-        insurance_company: formData.insuranceCompany
-      });
-      
-      const otherVehicleId = await saveVehicleData({
-        license_plate: formData.otherVehicle.licensePlate,
-        brand: formData.otherVehicle.brand,
-        model: formData.otherVehicle.model,
-        year: formData.otherVehicle.year,
-        first_registration: formData.otherVehicle.firstRegistration,
-        insurance_policy: formData.otherVehicle.insurancePolicy,
-        insurance_company: formData.otherVehicle.insuranceCompany
-      });
-      
-      const vehiclePhotoUrls = await uploadPhotos(formData.vehiclePhotos, 'vehicle');
-      const damagePhotoUrls = await uploadPhotos(formData.damagePhotos, 'damage');
-      
-      const data = await saveAccidentReport(
-        formData,
-        vehicleId,
-        otherVehicleId,
-        vehiclePhotoUrls,
-        damagePhotoUrls
-      );
-      
-      console.log('Accident report saved:', data);
-      
-      if (data && data[0] && (formData.personalEmail || formData.insuranceEmails.length > 0 || formData.involvedPartyEmails.length > 0)) {
-        try {
-          await sendEmails(data[0].id, formData);
-          uiToast({
-            title: "Emails envoyés",
-            description: "Le constat a été envoyé par email aux destinataires spécifiés.",
-            variant: "default"
-          });
-        } catch (emailError: any) {
-          console.error("Error sending emails:", emailError);
-          uiToast({
-            title: "Alerte",
-            description: `La déclaration a été enregistrée mais l'envoi des emails a échoué: ${emailError.message}`,
-            variant: "destructive"
-          });
-        }
-      }
-      
-      uiToast({
-        title: "Succès",
-        description: "Votre déclaration a été envoyée avec succès.",
-        variant: "default"
-      });
-      toast.success("Votre déclaration a été envoyée avec succès.");
-      onSubmitSuccess();
-    } catch (err: any) {
-      console.error('Error in submission process:', err);
-      uiToast({
-        title: "Erreur",
-        description: err.message || "Une erreur est survenue lors de la soumission de votre déclaration.",
-        variant: "destructive"
-      });
-      toast.error("Une erreur est survenue lors de la soumission de votre déclaration.");
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
-  // If children prop is provided, use it for custom rendering
-  if (children) {
-    return <>{children({ handleSubmit, isSubmitting })}</>;
-  }
-
-  // Default submit button
   return (
-    <AccidentReportSubmitButton
-      formData={formData}
-      submitReport={handleSubmit}
-      isSubmitting={isSubmitting}
-    />
+    <div className="flex flex-col gap-4">
+      {referenceId && (
+        <Alert className="bg-green-100 border-green-200 text-green-800">
+          <AlertDescription>
+            Votre constat a été enregistré officiellement avec la référence <strong>{referenceId}</strong>.
+          </AlertDescription>
+        </Alert>
+      )}
+      
+      {!formData.date && (
+        <Alert variant="destructive">
+          <AlertTriangle className="h-4 w-4" />
+          <AlertDescription>
+            Les informations de base (date et lieu) sont manquantes. Veuillez les compléter avant de soumettre le formulaire.
+          </AlertDescription>
+        </Alert>
+      )}
+      
+      <div className="flex flex-col sm:flex-row gap-3 mt-4">
+        <Button 
+          onClick={handleGenerateCerfa}
+          disabled={isGenerating}
+          className="flex items-center justify-center"
+          variant="default"
+        >
+          {isGenerating ? (
+            <>
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              Génération...
+            </>
+          ) : (
+            <>
+              <FileDown className="mr-2 h-5 w-5" />
+              Télécharger au format PDF
+            </>
+          )}
+        </Button>
+        
+        <Button 
+          onClick={() => setShowSignatureDialog(true)}
+          disabled={isGenerating || isRegistering}
+          className="flex items-center justify-center"
+        >
+          Ajouter des signatures
+        </Button>
+        
+        {canRegisterOfficial && (
+          <Button
+            onClick={() => setShowOfficialDialog(true)}
+            disabled={isGenerating || isRegistering}
+            className="flex items-center justify-center"
+          >
+            Enregistrer officiellement
+          </Button>
+        )}
+      </div>
+      
+      <SignatureDialog
+        open={showSignatureDialog}
+        onOpenChange={setShowSignatureDialog}
+        onSign={(partyA: string | null, partyB: string | null) => {
+          setSignatures({ partyA, partyB });
+        }}
+      />
+      
+      <OfficialRegistrationDialog
+        open={showOfficialDialog}
+        onOpenChange={setShowOfficialDialog}
+        onRegister={handleRegisterOfficial}
+        isRegistering={isRegistering}
+      />
+    </div>
   );
 };
 

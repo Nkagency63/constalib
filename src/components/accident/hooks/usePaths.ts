@@ -1,61 +1,66 @@
 
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { v4 as uuidv4 } from 'uuid';
-import { Path } from '../types';
+import { Path } from '../types/scheme';
 
 export const usePaths = () => {
   const [paths, setPaths] = useState<Path[]>([]);
   const [currentPathPoints, setCurrentPathPoints] = useState<[number, number][]>([]);
   const [isDrawing, setIsDrawing] = useState(false);
-  const [currentVehicleId, setCurrentVehicleId] = useState<string | undefined>(undefined);
-  const [currentPathColor, setCurrentPathColor] = useState<string | null>(null);
 
-  const startPath = (point: [number, number], vehicleId?: string, color?: string | null) => {
-    setIsDrawing(true);
+  const addPath = useCallback((points: [number, number][], color: string, vehicleId?: string) => {
+    const newPath: Path = {
+      id: uuidv4(),
+      points,
+      color,
+      width: 3,
+      dashed: false,
+      isSelected: true,
+    };
+
+    setPaths(prevPaths => [...prevPaths, newPath]);
+    return newPath;
+  }, []);
+
+  const updatePath = useCallback((id: string, updates: Partial<Path>) => {
+    setPaths(prevPaths =>
+      prevPaths.map(path => (path.id === id ? { ...path, ...updates } : path))
+    );
+  }, []);
+
+  const removePath = useCallback((id: string) => {
+    setPaths(prevPaths => prevPaths.filter(path => path.id !== id));
+  }, []);
+
+  const startPath = useCallback((point: [number, number]) => {
     setCurrentPathPoints([point]);
-    
-    // Store the vehicle ID and color if provided
-    if (vehicleId) setCurrentVehicleId(vehicleId);
-    if (color) setCurrentPathColor(color);
-  };
+    setIsDrawing(true);
+  }, []);
 
-  const continuePath = (point: [number, number]) => {
-    setCurrentPathPoints([...currentPathPoints, point]);
-  };
-
-  const completePath = (selectedVehicle: string | null, vehicleColor: string | null) => {
-    if (currentPathPoints.length > 1) {
-      const newPath: Path = {
-        id: uuidv4(),
-        points: currentPathPoints,
-        color: currentPathColor || vehicleColor || 'black',
-        vehicleId: currentVehicleId || selectedVehicle || undefined,
-        isSelected: false
-      };
-
-      const updatedPaths = [...paths, newPath];
-      setPaths(updatedPaths);
-      resetPath();
-      return updatedPaths;
+  const continuePath = useCallback((point: [number, number]) => {
+    if (isDrawing) {
+      setCurrentPathPoints(prev => [...prev, point]);
     }
-    return paths;
-  };
+  }, [isDrawing]);
 
-  const resetPath = () => {
-    setIsDrawing(false);
+  const completePath = useCallback((color: string, vehicleId?: string) => {
+    if (currentPathPoints.length > 1) {
+      addPath(currentPathPoints, color, vehicleId);
+    }
     setCurrentPathPoints([]);
-    setCurrentVehicleId(undefined);
-    setCurrentPathColor(null);
-  };
+    setIsDrawing(false);
+  }, [currentPathPoints, addPath]);
 
   return {
     paths,
+    addPath,
+    updatePath,
+    removePath,
     setPaths,
     currentPathPoints,
     isDrawing,
     startPath,
     continuePath,
-    completePath,
-    resetPath
+    completePath
   };
 };

@@ -1,4 +1,3 @@
-
 import Header from '@/components/Header';
 import Hero from '@/components/Hero';
 import Footer from '@/components/Footer';
@@ -7,33 +6,23 @@ import HowItWorksSection from '@/components/home/HowItWorksSection';
 import ServicesSection from '@/components/home/ServicesSection';
 import CtaSection from '@/components/home/CtaSection';
 import DownloadPdfSection from '@/components/home/DownloadPdfSection';
+import UploadPdfSection from '@/components/home/UploadPdfSection';
 
 const Index = () => {
   return (
     <div className="min-h-screen flex flex-col">
       <Header />
       
-      <main className="flex-grow">
-        {/* Hero section */}
+      <main className="flex-1">
         <Hero />
-        
-        {/* Features section */}
-        <FeaturesSection />
-        
-        {/* How it works section */}
-        <HowItWorksSection />
-        
-        {/* Services section */}
         <ServicesSection />
-        
-        {/* Download PDF section */}
-        <DownloadPdfSection />
-        
-        {/* CTA section */}
+        <FeaturesSection />
+        <HowItWorksSection />
+        <DownloadPdfSection pdfUrl="/pdf/constat-amiable-vierge.pdf" />
+        <UploadPdfSection />
         <CtaSection />
       </main>
       
-      {/* Footer */}
       <Footer />
     </div>
   );

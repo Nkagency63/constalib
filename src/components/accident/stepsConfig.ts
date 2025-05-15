@@ -1,50 +1,48 @@
 
-import { Step } from './types';
-
-export const accidentFormSteps: Step[] = [
+export const accidentFormSteps = [
   {
     id: 'basics',
     title: 'Informations de base',
-    description: 'Date et heure de l\'accident'
-  },
-  {
-    id: 'location',
-    title: 'Localisation',
-    description: 'Adresse précise de l\'accident'
+    description: 'Date, heure et lieu de l\'accident'
   },
   {
     id: 'vehicles',
-    title: 'Véhicules',
-    description: 'Identification des véhicules impliqués'
+    title: 'Véhicules impliqués',
+    description: 'Identification des véhicules concernés'
   },
   {
-    id: 'details',
-    title: 'Détails',
-    description: 'Description de l\'accident'
-  },
-  {
-    id: 'circumstances',
-    title: 'Circonstances',
-    description: 'Sélection des circonstances de l\'accident'
-  },
-  {
-    id: 'scheme',
-    title: 'Schéma',
-    description: 'Positionnement des véhicules'
+    id: 'persons',
+    title: 'Conducteurs et assurés',
+    description: 'Informations sur les conducteurs et les assurés'
   },
   {
     id: 'photos',
     title: 'Photos',
-    description: 'Photographies des véhicules et des dégâts'
+    description: 'Photos des véhicules et des dommages'
+  },
+  {
+    id: 'scheme',
+    title: 'Schéma d\'accident',
+    description: 'Créer un schéma de l\'accident'
+  },
+  {
+    id: 'circumstances',
+    title: 'Circonstances',
+    description: 'Détails sur les circonstances de l\'accident'
+  },
+  {
+    id: 'details',
+    title: 'Détails complémentaires',
+    description: 'Blessés, témoins et autres informations'
+  },
+  {
+    id: 'emails',
+    title: 'Destinataires',
+    description: 'Personnes à informer'
   },
   {
     id: 'review',
     title: 'Vérification',
-    description: 'Vérifiez les informations et générez le constat'
-  },
-  {
-    id: 'email',
-    title: 'Envoi',
-    description: 'Destinataires du constat'
+    description: 'Vérifier et finaliser le constat'
   }
 ];

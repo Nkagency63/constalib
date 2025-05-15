@@ -1,60 +1,46 @@
 
 import { useRef, useCallback } from 'react';
 import L from 'leaflet';
+import { toast } from '@/hooks/use-toast';
 import { Vehicle } from '../types';
 
 interface UseSchemeMapProps {
   readOnly: boolean;
   handleMapClick: (e: L.LeafletMouseEvent) => void;
-  onReady: () => void;
+  onReady: (map: L.Map) => void;
 }
 
 export const useSchemeMap = ({ readOnly, handleMapClick, onReady }: UseSchemeMapProps) => {
   const mapRef = useRef<L.Map | null>(null);
   const drawingLayerRef = useRef<L.LayerGroup | null>(null);
-  const hasInitialized = useRef(false);
+  const mapReadyCalledRef = useRef<boolean>(false);
 
   const handleMapReady = useCallback((map: L.Map) => {
-    console.log("Map initialization started");
+    if (mapReadyCalledRef.current) return;
+    mapReadyCalledRef.current = true;
     
-    // Store the map reference
+    console.log("Map initialization started");
     mapRef.current = map;
     
-    // Prevent double initialization
-    if (hasInitialized.current) {
-      console.log("Map already initialized, skipping");
-      return;
-    }
-    
-    hasInitialized.current = true;
-    
-    // Configurer les gestionnaires d'événements si non en lecture seule
+    // Configure event handlers if not readonly
     if (!readOnly && mapRef.current) {
-      try {
-        // Only add click handler if map is valid
-        if (mapRef.current && typeof mapRef.current.on === 'function') {
-          mapRef.current.on('click', handleMapClick);
-          console.log("Map click handler registered");
-        }
-      } catch (error) {
-        console.error("Error registering map click handler:", error);
-      }
+      // Make sure to remove any previous click handlers first
+      mapRef.current.off('click');
+      // Then add our new click handler
+      mapRef.current.on('click', handleMapClick);
+      console.log("Map click handler registered");
     }
     
-    // S'assurer que la carte est correctement dimensionnée
+    // Ensure map is properly sized
     setTimeout(() => {
       if (mapRef.current) {
-        try {
-          mapRef.current.invalidateSize();
-          console.log("Map size invalidated");
-        } catch (error) {
-          console.error("Error invalidating map size:", error);
-        }
+        mapRef.current.invalidateSize();
+        console.log("Map size invalidated");
       }
-    }, 100);
+    }, 200);
     
-    // Appeler le callback onReady pour initialiser la carte
-    onReady();
+    // Call the onReady callback to initialize the map with the map object
+    onReady(map);
     console.log("Map initialization completed");
   }, [readOnly, handleMapClick, onReady]);
 
@@ -64,33 +50,46 @@ export const useSchemeMap = ({ readOnly, handleMapClick, onReady }: UseSchemeMap
     console.log("Centering on vehicles:", vehicles.length);
     
     try {
-      // Créer un objet bounds pour contenir toutes les positions des véhicules
-      const bounds = L.latLngBounds(vehicles.map(v => v.position));
+      // Create a bounds object to contain all vehicle positions
+      const validVehicles = vehicles.filter(v => 
+        v.position && Array.isArray(v.position) && v.position.length === 2
+      );
       
-      // Légèrement agrandir les limites pour une meilleure visibilité
-      bounds.pad(0.2);
+      if (validVehicles.length === 0) {
+        toast({
+          description: "Pas de véhicules à centrer sur la carte. Ajoutez des véhicules pour utiliser cette fonction"
+        });
+        return;
+      }
       
-      // Ajuster la carte à ces limites avec animation
-      mapRef.current.flyToBounds(bounds, {
-        padding: [50, 50],
-        duration: 0.5,
-        maxZoom: 18
-      });
+      // Create a bounds object from all vehicle positions
+      const bounds = L.latLngBounds(
+        validVehicles.map(v => L.latLng(v.position))
+      );
       
-      // Forcer un rafraîchissement de la carte
-      setTimeout(() => {
-        if (mapRef.current) {
-          try {
-            mapRef.current.invalidateSize();
-          } catch (error) {
-            console.error("Error invalidating map size during center:", error);
-          }
-        }
-      }, 100);
-      
-      console.log("Map centered on vehicles successfully");
+      if (bounds.isValid()) {
+        // Add some padding to the bounds
+        bounds.pad(0.2);
+        
+        // Fit the map to the bounds with animation
+        mapRef.current.fitBounds(bounds, {
+          padding: [50, 50],
+          maxZoom: 18,
+          animate: true,
+          duration: 0.5
+        });
+        
+        toast({
+          description: `Carte centrée sur les ${validVehicles.length} véhicule(s) visible(s)`
+        });
+        
+        console.log("Map centered on vehicles successfully");
+      }
     } catch (error) {
       console.error("Error centering on vehicles:", error);
+      toast({
+        description: "Erreur lors du centrage de la carte"
+      });
     }
   }, []);
 

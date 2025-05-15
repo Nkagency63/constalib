@@ -1,35 +1,51 @@
 
 import { useState } from 'react';
+import { v4 as uuidv4 } from 'uuid';
 import { WitnessInfo } from '@/components/accident/types';
 
-export const useWitnessForm = (initialData?: any) => {
-  const [hasWitnesses, setHasWitnesses] = useState<boolean>(initialData?.hasWitnesses || false);
-  const [witnesses, setWitnesses] = useState<WitnessInfo[]>(initialData?.witnesses || []);
-
-  const updateWitness = (index: number, field: keyof WitnessInfo, value: string) => {
-    setWitnesses(prev => prev.map((witness, i) => 
-      i === index ? { ...witness, [field]: value } : witness
-    ));
-  };
+export const useWitnessForm = () => {
+  const [hasWitnesses, setHasWitnesses] = useState(false);
+  const [witnesses, setWitnesses] = useState<WitnessInfo[]>([]);
 
   const addWitness = () => {
-    setWitnesses(prev => [...prev, { fullName: '', phone: '', email: '' }]);
+    const newWitness: WitnessInfo = {
+      id: uuidv4(),
+      name: '',
+      address: '',
+      phone: '',
+      email: ''
+    };
+    setWitnesses(prev => [...prev, newWitness]);
   };
 
-  const removeWitness = (index: number) => {
-    setWitnesses(prev => prev.filter((_, i) => i !== index));
+  const updateWitness = (id: string, field: keyof WitnessInfo, value: string) => {
+    setWitnesses(prev => 
+      prev.map(witness => 
+        witness.id === id 
+          ? { ...witness, [field]: value } 
+          : witness
+      )
+    );
+  };
+
+  const removeWitness = (id: string) => {
+    setWitnesses(prev => prev.filter(witness => witness.id !== id));
+  };
+
+  const getWitnessData = () => {
+    return {
+      hasWitnesses,
+      witnesses
+    };
   };
 
   return {
     hasWitnesses,
     witnesses,
     setHasWitnesses,
-    updateWitness,
     addWitness,
+    updateWitness,
     removeWitness,
-    getWitnessData: () => ({
-      hasWitnesses,
-      witnesses
-    })
+    getWitnessData
   };
 };

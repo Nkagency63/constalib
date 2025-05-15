@@ -7,6 +7,8 @@ import StepRenderer from './accident/StepRenderer';
 import { accidentFormSteps } from './accident/stepsConfig';
 import { useAccidentForm } from '@/hooks/useAccidentForm';
 import FormSubmissionHandler from './accident/FormSubmissionHandler';
+import { WitnessInfo, Circumstance } from './accident/types';
+import { FormContext } from '@/context/FormContext';
 
 interface AccidentFormProps {
   onEmergencyRequest?: () => void;
@@ -37,10 +39,43 @@ const AccidentForm = ({ onEmergencyRequest, onStepChange }: AccidentFormProps) =
     setHasInjuries,
     setInjuriesDescription,
     setHasWitnesses,
-    updateWitness,
+    updateWitness: originalUpdateWitness,
     addWitness,
-    removeWitness
+    removeWitness: originalRemoveWitness
   } = useAccidentForm();
+
+  // Adapter function for witness management to match expected parameter types
+  const updateWitness = (index: number, field: keyof WitnessInfo, value: string) => {
+    // Find the witness ID by index
+    if (formData.witnesses && formData.witnesses[index]) {
+      const witnessId = formData.witnesses[index].id;
+      originalUpdateWitness(witnessId, field, value);
+    }
+  };
+
+  const removeWitness = (index: number) => {
+    if (formData.witnesses && formData.witnesses[index]) {
+      const witnessId = formData.witnesses[index].id;
+      originalRemoveWitness(witnessId);
+    }
+  };
+
+  // Circumstance change adapter
+  const adaptedCircumstanceChange = (vehicleId: "A" | "B", circumstance: Circumstance, checked: boolean) => {
+    handleCircumstanceChange(vehicleId, circumstance.id, checked);
+  };
+
+  // Vehicle info adapter with explicit typing
+  const vehicleInfoAdapter = (data: { brand: string, model: string, year?: string, firstRegistration?: string }) => {
+    // Cast data to match the expected structure in setVehicleInfo
+    const vehicleData = {
+      vehicleBrand: data.brand,
+      vehicleModel: data.model,
+      vehicleYear: data.year
+    };
+    
+    setVehicleInfo(vehicleData as any);
+  };
 
   if (submitted) {
     return <SuccessMessage />;
@@ -54,65 +89,71 @@ const AccidentForm = ({ onEmergencyRequest, onStepChange }: AccidentFormProps) =
   }
 
   return (
-    <div className="max-w-3xl mx-auto">
-      <ProgressBar 
-        steps={accidentFormSteps} 
-        currentStepIndex={currentStepIndex}
-      />
-      
-      <div className="mb-8 text-center md:text-left">
-        <h2 className="text-2xl font-bold text-constalib-dark mb-2">
-          {currentStep.title}
-        </h2>
-        {currentStep.description && (
-          <p className="text-constalib-dark-gray">
-            {currentStep.description}
-          </p>
+    <FormContext.Provider value={{ formData, currentVehicleId }}>
+      <div className="max-w-3xl mx-auto">
+        <ProgressBar 
+          steps={accidentFormSteps} 
+          currentStepIndex={currentStepIndex}
+        />
+        
+        <div className="mb-8 text-center md:text-left">
+          <h2 className="text-2xl font-bold text-constalib-dark mb-2">
+            {currentStep.title}
+          </h2>
+          {currentStep.description && (
+            <p className="text-constalib-dark-gray">
+              {currentStep.description}
+            </p>
+          )}
+        </div>
+        
+        <form onSubmit={(e) => e.preventDefault()} className="mb-8">
+          <StepRenderer
+            currentStepId={currentStep.id}
+            formData={formData}
+            handleInputChange={handleInputChange}
+            handleOtherVehicleChange={handleOtherVehicleChange}
+            handlePhotoUpload={(type, files) => {
+              if (type === "vehicle" && files.length > 0) handlePhotoUpload("vehiclePhotos", files[0]);
+              else if (type === "damage" && files.length > 0) handlePhotoUpload("damagePhotos", files[0]);
+            }}
+            setVehicleInfo={vehicleInfoAdapter}
+            setOtherVehicleInfo={setOtherVehicleInfo}
+            setGeolocation={setGeolocation}
+            setInsuranceEmails={setInsuranceEmails}
+            setInvolvedPartyEmails={setInvolvedPartyEmails}
+            setPersonalEmail={setPersonalEmail}
+            onEmergencyContacted={onEmergencyContacted}
+            handleCircumstanceChange={adaptedCircumstanceChange}
+            setCurrentVehicleId={setCurrentVehicleId}
+            currentVehicleId={currentVehicleId}
+            setHasInjuries={setHasInjuries}
+            setInjuriesDescription={setInjuriesDescription}
+            setHasWitnesses={setHasWitnesses}
+            updateWitness={updateWitness}
+            addWitness={addWitness}
+            removeWitness={removeWitness}
+          />
+        </form>
+        
+        {currentStep.id === "review" ? (
+          <FormSubmissionHandler 
+            formData={formData} 
+            onSubmitSuccess={() => setSubmitted(true)}
+          />
+        ) : (
+          <StepNavigation 
+            prevStep={prevStep}
+            nextStep={nextStep}
+            handleSubmit={async (e) => e.preventDefault()}
+            currentStepIndex={currentStepIndex}
+            totalSteps={accidentFormSteps.length}
+            isSubmitting={false}
+            onEmergencyRequest={onEmergencyRequest}
+          />
         )}
       </div>
-      
-      <form onSubmit={(e) => e.preventDefault()} className="mb-8">
-        <StepRenderer
-          currentStepId={currentStep.id}
-          formData={formData}
-          handleInputChange={handleInputChange}
-          handleOtherVehicleChange={handleOtherVehicleChange}
-          handlePhotoUpload={handlePhotoUpload}
-          setVehicleInfo={setVehicleInfo}
-          setOtherVehicleInfo={setOtherVehicleInfo}
-          setGeolocation={setGeolocation}
-          setInsuranceEmails={setInsuranceEmails}
-          setInvolvedPartyEmails={setInvolvedPartyEmails}
-          setPersonalEmail={setPersonalEmail}
-          onEmergencyContacted={onEmergencyContacted}
-          handleCircumstanceChange={handleCircumstanceChange}
-          setCurrentVehicleId={setCurrentVehicleId}
-          setHasInjuries={setHasInjuries}
-          setInjuriesDescription={setInjuriesDescription}
-          setHasWitnesses={setHasWitnesses}
-          updateWitness={updateWitness}
-          addWitness={addWitness}
-          removeWitness={removeWitness}
-        />
-      </form>
-      
-      {currentStep.id === "review" ? (
-        <FormSubmissionHandler 
-          formData={formData} 
-          onSubmitSuccess={() => setSubmitted(true)}
-        />
-      ) : (
-        <StepNavigation 
-          prevStep={prevStep}
-          nextStep={nextStep}
-          handleSubmit={async (e) => e.preventDefault()}
-          currentStepIndex={currentStepIndex}
-          totalSteps={accidentFormSteps.length}
-          isSubmitting={false}
-          onEmergencyRequest={onEmergencyRequest}
-        />
-      )}
-    </div>
+    </FormContext.Provider>
   );
 };
 

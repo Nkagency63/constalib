@@ -1,72 +1,116 @@
 
+import React from 'react';
 import { FormData } from './types';
-import ReviewInfoAlert from './review/ReviewInfoAlert';
-import DateTimeCard from './review/DateTimeCard';
-import LocationCard from './review/LocationCard';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { AlertTriangle } from 'lucide-react';
 import VehicleCard from './review/VehicleCard';
 import OtherVehicleCard from './review/OtherVehicleCard';
-import DescriptionCard from './review/DescriptionCard';
-import PhotosCard from './review/PhotosCard';
+import LocationCard from './review/LocationCard';
+import DateTimeCard from './review/DateTimeCard';
 import EmailsCard from './review/EmailsCard';
+import PhotosCard from './review/PhotosCard';
+import DescriptionCard from './review/DescriptionCard';
 import EmergencyCard from './review/EmergencyCard';
-import CerfaGenerationButton from './CerfaGenerationButton';
+import ReviewInfoAlert from './review/ReviewInfoAlert';
 
 interface ReviewStepProps {
   formData: FormData;
+  handleInputChange?: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
+  handlePhotoUpload?: (type: string, files: FileList) => void;
 }
 
-const ReviewStep = ({ formData }: ReviewStepProps) => {
-  const hasEmailRecipients = formData.personalEmail || formData.insuranceEmails.length > 0 || formData.involvedPartyEmails.length > 0;
-  
+const ReviewStep: React.FC<ReviewStepProps> = ({ 
+  formData,
+  handleInputChange,
+  handlePhotoUpload
+}) => {
   return (
     <div className="space-y-6">
-      <div className="space-y-2">
-        <h3 className="text-lg font-medium text-constalib-dark">Vérifiez votre déclaration</h3>
-        <p className="text-sm text-constalib-dark-gray">
-          Voici un récapitulatif des informations que vous avez saisies. Vérifiez-les avant de soumettre votre déclaration.
-        </p>
-      </div>
-
       <ReviewInfoAlert />
       
-      <div className="space-y-4">
-        <DateTimeCard date={formData.date} time={formData.time} />
-        
-        <LocationCard location={formData.location} geolocation={formData.geolocation} />
-        
+      <div className="grid gap-6 md:grid-cols-2">
         <VehicleCard 
-          licensePlate={formData.licensePlate}
-          brand={formData.vehicleBrand}
-          model={formData.vehicleModel}
-          year={formData.vehicleYear}
-          description={formData.vehicleDescription}
-          insurancePolicy={formData.insurancePolicy}
-          insuranceCompany={formData.insuranceCompany}
+          vehicle={{
+            licensePlate: formData.licensePlate,
+            brand: formData.vehicleBrand,
+            model: formData.vehicleModel,
+            year: formData.vehicleYear || '',
+            description: "",
+            insurancePolicy: formData.insurancePolicy || '',
+            insuranceCompany: formData.insuranceCompany || ''
+          }}
+          driverName={formData.driverName}
+          insuredName={formData.insuredName}
         />
         
-        <OtherVehicleCard otherVehicle={formData.otherVehicle} />
-        
-        <DescriptionCard description={formData.description} />
-        
-        <PhotosCard 
-          vehiclePhotos={formData.vehiclePhotos} 
-          damagePhotos={formData.damagePhotos} 
+        <OtherVehicleCard 
+          vehicle={{
+            licensePlate: formData.otherVehicle?.licensePlate,
+            brand: formData.otherVehicle?.brand,
+            model: formData.otherVehicle?.model,
+            year: formData.otherVehicle?.year || '',
+            description: "",
+            insurancePolicy: formData.otherVehicle?.insurancePolicy,
+            insuranceCompany: formData.otherVehicle?.insuranceCompany
+          }}
+          driverName={formData.otherDriverName}
+          insuredName={formData.otherInsuredName}
         />
-        
-        {hasEmailRecipients && (
-          <EmailsCard 
-            personalEmail={formData.personalEmail}
-            insuranceEmails={formData.insuranceEmails}
-            involvedPartyEmails={formData.involvedPartyEmails}
-          />
-        )}
-        
-        <EmergencyCard emergencyContacted={formData.emergencyContacted} />
       </div>
       
-      <div className="flex justify-center mt-6">
-        <CerfaGenerationButton formData={formData} className="w-full md:w-auto" />
+      <div className="grid gap-6 md:grid-cols-2">
+        <LocationCard 
+          location={{
+            address: formData.geolocation?.address,
+            coordinates: {
+              lat: formData.geolocation?.lat,
+              lng: formData.geolocation?.lng
+            },
+            locationText: formData.location
+          }}
+        />
+        
+        <DateTimeCard 
+          date={formData.date || ''}
+          time={formData.time || ''}
+        />
       </div>
+      
+      <div className="grid gap-6 md:grid-cols-2">
+        <EmailsCard 
+          personalEmail={formData.personalEmail || ''}
+          insuranceEmails={formData.insuranceEmails || []}
+          involvedPartyEmails={formData.involvedPartyEmails || []}
+        />
+        
+        {formData.emergencyContacted && (
+          <EmergencyCard 
+            emergencyContacted={formData.emergencyContacted}
+          />
+        )}
+      </div>
+      
+      {(formData.materialDamageDescription || formData.injuriesDescription) && (
+        <DescriptionCard
+          formData={formData}
+        />
+      )}
+      
+      {(formData.vehiclePhotos?.length || formData.damagePhotos?.length) && (
+        <PhotosCard
+          vehiclePhotos={formData.vehiclePhotos || []}
+          damagePhotos={formData.damagePhotos || []}
+        />
+      )}
+      
+      {!formData.date && (
+        <Alert variant="destructive">
+          <AlertTriangle className="h-4 w-4" />
+          <AlertDescription>
+            Les informations de base (date et lieu) sont manquantes. Veuillez les compléter avant de soumettre le formulaire.
+          </AlertDescription>
+        </Alert>
+      )}
     </div>
   );
 };

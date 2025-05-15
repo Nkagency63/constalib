@@ -1,57 +1,50 @@
 
-import { Car, Shield } from 'lucide-react';
+import { Car } from 'lucide-react';
 import ReviewCard from './ReviewCard';
 
-interface VehicleCardProps {
-  licensePlate: string;
-  brand: string;
-  model: string;
-  year: string;
+interface Vehicle {
+  licensePlate?: string;
+  brand?: string;
+  model?: string;
+  year?: string;
   description?: string;
   insurancePolicy?: string;
   insuranceCompany?: string;
 }
 
-const VehicleCard = ({ 
-  licensePlate, 
-  brand, 
-  model, 
-  year, 
-  description,
-  insurancePolicy,
-  insuranceCompany
-}: VehicleCardProps) => {
+export interface VehicleCardProps {
+  vehicle: Vehicle;
+  driverName?: string;
+  insuredName?: string;
+}
+
+const VehicleCard = ({ vehicle, driverName, insuredName }: VehicleCardProps) => {
   return (
-    <ReviewCard icon={<Car className="h-5 w-5 text-constalib-blue" />} title="Votre véhicule">
-      <p className="text-sm text-constalib-dark-gray">
-        <span className="font-medium">Immatriculation:</span> {licensePlate}
-      </p>
-      <p className="text-sm text-constalib-dark-gray">
-        <span className="font-medium">Marque/Modèle:</span> {brand} {model} ({year})
-      </p>
-      {description && (
-        <p className="text-sm text-constalib-dark-gray">
-          <span className="font-medium">Description:</span> {description}
+    <ReviewCard icon={<Car className="h-5 w-5 text-constalib-blue" />} title="Véhicule A (conducteur principal)">
+      <div className="space-y-1">
+        <p className="text-sm font-medium text-constalib-dark">
+          {vehicle.brand} {vehicle.model} ({vehicle.year || 'Année inconnue'})
         </p>
-      )}
-      {(insurancePolicy || insuranceCompany) && (
-        <div className="mt-2 pt-2 border-t border-gray-100">
-          <div className="flex items-center gap-1 text-sm text-constalib-dark-gray">
-            <Shield className="h-4 w-4 text-constalib-blue" />
-            <span className="font-medium">Assurance:</span>
-          </div>
-          {insurancePolicy && (
-            <p className="text-sm text-constalib-dark-gray ml-5">
-              <span className="font-medium">N° de police:</span> {insurancePolicy}
-            </p>
-          )}
-          {insuranceCompany && (
-            <p className="text-sm text-constalib-dark-gray ml-5">
-              <span className="font-medium">Compagnie:</span> {insuranceCompany}
-            </p>
-          )}
-        </div>
-      )}
+        <p className="text-sm text-constalib-dark-gray">
+          <span className="font-medium">Immatriculation:</span> {vehicle.licensePlate}
+        </p>
+        {driverName && (
+          <p className="text-sm text-constalib-dark-gray">
+            <span className="font-medium">Conducteur:</span> {driverName}
+          </p>
+        )}
+        {insuredName && (
+          <p className="text-sm text-constalib-dark-gray">
+            <span className="font-medium">Assuré:</span> {insuredName}
+          </p>
+        )}
+        {vehicle.insuranceCompany && (
+          <p className="text-sm text-constalib-dark-gray">
+            <span className="font-medium">Assurance:</span> {vehicle.insuranceCompany}
+            {vehicle.insurancePolicy && ` (Police n° ${vehicle.insurancePolicy})`}
+          </p>
+        )}
+      </div>
     </ReviewCard>
   );
 };
