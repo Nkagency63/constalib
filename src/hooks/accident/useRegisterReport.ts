@@ -112,9 +112,9 @@ export const useRegisterReport = ({ formData, signatures }: UseRegisterReportPro
 
       // Create a properly typed geolocation object with all required properties
       const geolocation: GeolocationData = {
-        lat: formData.geolocation.lat,
-        lng: formData.geolocation.lng,
-        address: formData.geolocation.address,
+        lat: formData.geolocation.lat || 0,
+        lng: formData.geolocation.lng || 0,
+        address: formData.geolocation.address || "",
         accuracy: formData.geolocation.accuracy || 0,
         timestamp: formData.geolocation.timestamp || Date.now()
       };

@@ -32,19 +32,29 @@ const SchemeMapWrapper: React.FC<SchemeMapWrapperProps> = ({
 }) => {
   // Créer une clé stable pour le centre actuel
   const mapKey = useMemo(() => {
+    // Ensure center is valid
+    if (!center || !Array.isArray(center) || center.length !== 2) {
+      console.warn("Invalid center provided to SchemeMapWrapper:", center);
+      return `map-invalid-${uuidv4().substring(0, 8)}`;
+    }
     return `map-${center[0].toFixed(6)}-${center[1].toFixed(6)}-${zoom}-${uuidv4().substring(0, 8)}`;
-  }, [center[0], center[1], zoom]);
+  }, [center, zoom]);
   
   // Log pour debug
   useEffect(() => {
     console.log("SchemeMapWrapper rendered with center:", center, "and key:", mapKey);
   }, [center, mapKey]);
 
+  // Default center if provided center is invalid
+  const validCenter: [number, number] = (center && Array.isArray(center) && center.length === 2) 
+    ? center 
+    : [48.8566, 2.3522];
+
   return (
     <MapContainer
       key={mapKey}
-      center={center}
-      zoom={zoom}
+      center={validCenter}
+      zoom={zoom || 13}
       style={{ height: '100%', width: '100%' }}
       attributionControl={false}
       zoomControl={false}
@@ -55,12 +65,12 @@ const SchemeMapWrapper: React.FC<SchemeMapWrapperProps> = ({
         attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
       />
       
-      <MapInitializer 
-        onMapReady={onMapReady}
-      />
+      {onMapReady && (
+        <MapInitializer onMapReady={onMapReady} />
+      )}
       
       <VehiclesLayer
-        vehicles={vehicles}
+        vehicles={vehicles || []}
         selectedVehicleId={selectedVehicleId}
         onVehicleSelect={onVehicleSelect}
         readOnly={readOnly}

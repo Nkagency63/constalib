@@ -46,8 +46,7 @@ const MapInitializer: React.FC<MapInitializerProps> = ({
             map.invalidateSize(true);
           }
           
-          // Associer les gestionnaires d'événements de manière sécurisée
-          // Vérifier que chaque méthode existe avant de l'appeler
+          // Safely bind event handlers
           if (onMapClick && typeof map.on === 'function' && !boundEventHandlersRef.current.click) {
             map.on('click', (e) => {
               if (onMapClick) onMapClick(e.latlng);
@@ -58,12 +57,10 @@ const MapInitializer: React.FC<MapInitializerProps> = ({
           
           if (onMapDoubleClick && typeof map.on === 'function' && !boundEventHandlersRef.current.dblclick) {
             map.on('dblclick', (e) => {
-              // Empêcher le comportement de zoom par défaut
-              if (L.DomEvent && L.DomEvent.stopPropagation) {
+              if (L.DomEvent && typeof L.DomEvent.stopPropagation === 'function') {
                 L.DomEvent.stopPropagation(e);
               }
               if (onMapDoubleClick) onMapDoubleClick();
-              console.log("Map double click handled");
             });
             boundEventHandlersRef.current.dblclick = true;
           }
@@ -77,7 +74,7 @@ const MapInitializer: React.FC<MapInitializerProps> = ({
           
           if (setCenter && typeof map.on === 'function' && !boundEventHandlersRef.current.moveend) {
             map.on('moveend', () => {
-              if (setCenter && map.getCenter) {
+              if (setCenter && typeof map.getCenter === 'function') {
                 const center = map.getCenter();
                 setCenter([center.lat, center.lng] as [number, number]);
               }
@@ -87,12 +84,14 @@ const MapInitializer: React.FC<MapInitializerProps> = ({
           
           if (setZoom && typeof map.on === 'function' && !boundEventHandlersRef.current.zoomend) {
             map.on('zoomend', () => {
-              if (setZoom && map.getZoom) setZoom(map.getZoom());
+              if (setZoom && typeof map.getZoom === 'function') {
+                setZoom(map.getZoom());
+              }
             });
             boundEventHandlersRef.current.zoomend = true;
           }
           
-          // Appeler le callback onMapReady s'il est fourni
+          // Call onMapReady callback if provided
           if (onMapReady && map) {
             console.log("Calling onMapReady callback");
             onMapReady(map);
@@ -106,21 +105,21 @@ const MapInitializer: React.FC<MapInitializerProps> = ({
       console.error("Error in map initialization:", error);
     }
     
-    // Nettoyer les gestionnaires d'événements lors du démontage
+    // Clean up event handlers on unmount
     return () => {
       try {
-        // Ne nettoyer que si la carte est valide et que nous avons attaché des événements
-        if (map && typeof map.off === 'function' && Object.keys(boundEventHandlersRef.current).length > 0) {
+        if (map && typeof map.off === 'function') {
           console.log("Map initializer: safely cleaning up");
           
-          // Retirer uniquement les gestionnaires que nous avons explicitement ajoutés
-          if (boundEventHandlersRef.current.click && typeof map.off === 'function') map.off('click');
-          if (boundEventHandlersRef.current.dblclick && typeof map.off === 'function') map.off('dblclick');
-          if (boundEventHandlersRef.current.mousemove && typeof map.off === 'function') map.off('mousemove');
-          if (boundEventHandlersRef.current.moveend && typeof map.off === 'function') map.off('moveend');
-          if (boundEventHandlersRef.current.zoomend && typeof map.off === 'function') map.off('zoomend');
+          // Only remove handlers we explicitly added
+          const handlers = boundEventHandlersRef.current;
+          if (handlers.click) map.off('click');
+          if (handlers.dblclick) map.off('dblclick');
+          if (handlers.mousemove) map.off('mousemove');
+          if (handlers.moveend) map.off('moveend');
+          if (handlers.zoomend) map.off('zoomend');
           
-          // Réinitialiser le suivi des événements liés
+          // Reset handler tracking
           boundEventHandlersRef.current = {};
         }
       } catch (error) {

@@ -12,7 +12,7 @@ interface VehiclesLayerProps {
   onVehicleSelect: (id: string) => void;
   onRemoveVehicle?: (id: string) => void;
   onRotateVehicle?: (id: string, degrees: number) => void;
-  onChangeVehicleType?: (type: 'car' | 'truck' | 'bike') => void;
+  onChangeVehicleType?: (id: string, type: 'car' | 'truck' | 'bike') => void;
   readOnly?: boolean;
   onVehicleMove?: (id: string, position: [number, number]) => void;
 }
@@ -23,9 +23,16 @@ const VehiclesLayer: React.FC<VehiclesLayerProps> = ({
   onVehicleSelect,
   onRemoveVehicle,
   onRotateVehicle,
+  onChangeVehicleType,
   readOnly = false,
   onVehicleMove
 }) => {
+  // Safety check for vehicles
+  if (!vehicles || !Array.isArray(vehicles)) {
+    console.warn("VehiclesLayer: vehicles prop is not an array or is undefined");
+    return <LayerGroup />;
+  }
+
   return (
     <LayerGroup>
       {vehicles.map((vehicle) => (
@@ -45,12 +52,16 @@ const VehiclesLayer: React.FC<VehiclesLayerProps> = ({
             },
             dragend: (e) => {
               if (!readOnly && e.target && onVehicleMove) {
-                const marker = e.target;
-                const latLng = marker.getLatLng();
-                const newPosition: [number, number] = [latLng.lat, latLng.lng];
-                onVehicleMove(vehicle.id, newPosition);
-                console.log("Vehicle moved to:", newPosition);
-                toast("Position du véhicule mise à jour");
+                try {
+                  const marker = e.target;
+                  const latLng = marker.getLatLng();
+                  const newPosition: [number, number] = [latLng.lat, latLng.lng];
+                  onVehicleMove(vehicle.id, newPosition);
+                  console.log("Vehicle moved to:", newPosition);
+                  toast("Position du véhicule mise à jour");
+                } catch (err) {
+                  console.error("Error handling vehicle move:", err);
+                }
               }
             },
             dragstart: () => {

@@ -23,18 +23,17 @@ export const useSchemeMap = ({ readOnly, handleMapClick, onReady }: UseSchemeMap
     console.log("Map initialization started");
     mapRef.current = map;
     
-    // Configurer les gestionnaires d'événements si ce n'est pas en lecture seule
+    // Configure event handlers if not readonly
     if (!readOnly && mapRef.current) {
       try {
-        // S'assurer que la carte est valide avant d'attacher des gestionnaires d'événements
-        if (map && typeof map.off === 'function') {
-          // Retirer d'abord tous les gestionnaires de clics précédents
-          map.off('click');
+        // Remove any previous click handlers safely
+        if (typeof mapRef.current.off === 'function') {
+          mapRef.current.off('click');
         }
         
-        // Puis ajouter en toute sécurité notre nouveau gestionnaire de clics
-        if (map && typeof map.on === 'function') {
-          map.on('click', handleMapClick);
+        // Add our new click handler safely
+        if (typeof mapRef.current.on === 'function') {
+          mapRef.current.on('click', handleMapClick);
           console.log("Map click handler registered");
         }
       } catch (err) {
@@ -42,14 +41,14 @@ export const useSchemeMap = ({ readOnly, handleMapClick, onReady }: UseSchemeMap
       }
     }
     
-    // S'assurer que la carte est correctement dimensionnée
+    // Ensure map is properly sized
     try {
       setTimeout(() => {
         if (mapRef.current && typeof mapRef.current.invalidateSize === 'function') {
           mapRef.current.invalidateSize();
           console.log("Map size invalidated");
           
-          // Marquer la carte comme initialisée
+          // Mark map as initialized
           setIsMapInitialized(true);
         }
       }, 300);
@@ -57,7 +56,7 @@ export const useSchemeMap = ({ readOnly, handleMapClick, onReady }: UseSchemeMap
       console.error("Error invalidating map size:", err);
     }
     
-    // Appeler le callback onReady
+    // Call the onReady callback
     if (typeof onReady === 'function') {
       onReady(map);
       console.log("Map initialization completed");
@@ -65,14 +64,14 @@ export const useSchemeMap = ({ readOnly, handleMapClick, onReady }: UseSchemeMap
   }, [readOnly, handleMapClick, onReady]);
 
   const centerOnVehicles = useCallback((vehicles: Vehicle[]) => {
-    if (!mapRef.current || !vehicles.length) return;
+    if (!mapRef.current || !vehicles || !vehicles.length) return;
     
     console.log("Centering on vehicles:", vehicles.length);
     
     try {
-      // Créer un objet bounds pour contenir toutes les positions des véhicules
+      // Create a bounds object to contain all vehicle positions
       const validVehicles = vehicles.filter(v => 
-        v.position && Array.isArray(v.position) && v.position.length === 2
+        v && v.position && Array.isArray(v.position) && v.position.length === 2
       );
       
       if (!validVehicles.length) {
@@ -80,16 +79,16 @@ export const useSchemeMap = ({ readOnly, handleMapClick, onReady }: UseSchemeMap
         return;
       }
       
-      // Créer un objet bounds à partir de toutes les positions des véhicules
+      // Create bounds from vehicle positions
       const bounds = L.latLngBounds(
-        validVehicles.map(v => L.latLng(v.position))
+        validVehicles.map(v => L.latLng(v.position[0], v.position[1]))
       );
       
       if (bounds.isValid() && mapRef.current && typeof mapRef.current.fitBounds === 'function') {
-        // Ajouter un peu de marge aux limites
+        // Add padding to bounds
         bounds.pad(0.2);
         
-        // Ajuster la carte aux limites avec animation
+        // Fit map to bounds with animation
         mapRef.current.fitBounds(bounds, {
           padding: [50, 50],
           maxZoom: 18,
@@ -98,7 +97,6 @@ export const useSchemeMap = ({ readOnly, handleMapClick, onReady }: UseSchemeMap
         });
         
         toast(`Carte centrée sur les ${validVehicles.length} véhicule(s) visible(s)`);
-        
         console.log("Map centered on vehicles successfully");
       }
     } catch (error) {
