@@ -107,7 +107,7 @@ export const useRegisterReport = ({ formData, signatures }: UseRegisterReportPro
       // Format circumstances data - extract IDs from Circumstance objects
       const circumstancesData: CircumstancesData = {
         vehicleA: (formData.vehicleACircumstances || []).map((circ: Circumstance) => circ.id),
-        vehicleB: (formData.vehicleBCircumstences || []).map((circ: Circumstance) => circ.id)
+        vehicleB: (formData.vehicleBCircumstances || []).map((circ: Circumstance) => circ.id)
       };
 
       // Create a properly typed geolocation object with all required properties

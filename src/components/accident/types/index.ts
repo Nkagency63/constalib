@@ -1,32 +1,25 @@
-
-// Vehicle type
+// Vehicle types for the scheme
 export interface Vehicle {
   id: string;
   position: [number, number];
   rotation: number;
   color: string;
   type: 'car' | 'truck' | 'bike';
-  label?: string;
 }
 
-// Path type
 export interface Path {
   id: string;
   points: [number, number][];
   color: string;
-  width?: number;
-  dashed?: boolean;
-  isSelected?: boolean;
+  vehicleId?: string;
 }
 
-// Annotation type
 export interface Annotation {
   id: string;
   position: [number, number];
   text: string;
 }
 
-// Scheme data type
 export interface SchemeData {
   vehicles: Vehicle[];
   paths: Path[];
@@ -35,55 +28,70 @@ export interface SchemeData {
   zoom: number;
 }
 
-// Witness information
-export interface WitnessInfo {
-  id: string;
-  name: string;
-  contact: string;
-  address: string;
-}
-
-// Circumstance information
 export interface Circumstance {
   id: string;
-  label: string;
-  code: string;
+  text: string;
   selected?: boolean;
 }
 
-// Form data type
+export interface CircumstancesData {
+  vehicleA: string[];
+  vehicleB: string[];
+}
+
+export interface InjuryInfo {
+  id: string;
+  name: string;
+  severity?: string;
+  description?: string;
+}
+
+export interface WitnessInfo {
+  id: string;
+  name: string;
+  address?: string;
+  phone?: string;
+  email?: string;
+}
+
+// FormData interface to ensure type safety throughout the application
 export interface FormData {
-  // Basic information
-  accidentDate?: string;
-  accidentTime?: string;
-  accidentLocation?: string;
-  geolocation?: {
+  // Basic accident information
+  date: string;
+  time: string;
+  location: string;
+  description?: string;
+  
+  // Geolocation data
+  geolocation: {
     lat: number;
     lng: number;
     address: string;
+    accuracy?: number;
+    timestamp?: number;
   };
   
-  // Vehicle information - Vehicle A (user's vehicle)
+  // Vehicle information
   licensePlate?: string;
   vehicleBrand?: string;
   vehicleModel?: string;
   vehicleYear?: string;
+  vehicleDescription?: string;
   insuranceCompany?: string;
-  policyNumber?: string;
-  vehiclePhotos?: File[];
-  damagePhotos?: File[];
+  insurancePolicy?: string;
   
-  // Vehicle information - Vehicle B (other vehicle)
-  otherVehicle?: {
+  // Other vehicle information
+  otherVehicle: {
     licensePlate?: string;
     brand?: string;
     model?: string;
     year?: string;
+    description?: string;
     insuranceCompany?: string;
-    policyNumber?: string;
+    insurancePolicy?: string;
   };
   
-  // Driver and insured information - Vehicle A
+  // Driver and insured information
   driverName?: string;
   driverAddress?: string;
   driverPhone?: string;
@@ -91,8 +99,9 @@ export interface FormData {
   insuredName?: string;
   insuredAddress?: string;
   insuredPhone?: string;
+  personalEmail?: string;
   
-  // Driver and insured information - Vehicle B
+  // Other driver and insured information
   otherDriverName?: string;
   otherDriverAddress?: string;
   otherDriverPhone?: string;
@@ -100,25 +109,75 @@ export interface FormData {
   otherInsuredName?: string;
   otherInsuredAddress?: string;
   otherInsuredPhone?: string;
-  
-  // Witnesses and injuries
-  hasWitnesses?: boolean;
-  witnesses?: WitnessInfo[];
-  hasInjuries?: boolean;
-  injuriesDescription?: string;
+  otherInsuredEmail?: string;
   
   // Circumstances
-  circumstancesA?: Circumstance[];
-  circumstancesB?: Circumstance[];
+  vehicleACircumstances?: Circumstance[];
+  vehicleBCircumstances?: Circumstance[];
   
-  // Schema data
+  // Injuries
+  hasInjuries?: boolean;
+  injuriesDescription?: string;
+  injuries?: InjuryInfo[];
+  
+  // Material damage
+  hasMaterialDamage?: boolean;
+  materialDamageDescription?: string;
+  
+  // Witnesses
+  hasWitnesses?: boolean;
+  witnesses?: WitnessInfo[];
+  
+  // Photos
+  vehiclePhotos?: File[];
+  damagePhotos?: File[];
+  
+  // Scheme data
   schemeData?: SchemeData;
   
-  // Review and submission
-  insuranceEmails?: string[];
-  involvedPartyEmails?: string[];
-  personalEmail?: string;
+  // Vehicle labels (for reference in UI display)
+  vehicleLabels?: {
+    A: {
+      brand: string;
+      model: string;
+      licensePlate: string;
+    };
+    B: {
+      brand: string;
+      model: string;
+      licensePlate: string;
+    };
+  };
   
-  // Status tracking
-  emergencyContacted?: boolean;
+  // Driver info structured by vehicle
+  driverInfo?: {
+    A: {
+      name: string;
+      address: string;
+      licenseNumber: string;
+      phone: string;
+    };
+    B: {
+      name: string;
+      address: string;
+      licenseNumber: string;
+      phone: string;
+    };
+  };
+  
+  // Insured info structured by vehicle
+  insuredInfo?: {
+    A: {
+      name: string;
+      address: string;
+      phone: string;
+      email: string;
+    };
+    B: {
+      name: string;
+      address: string;
+      phone: string;
+      email: string;
+    };
+  };
 }

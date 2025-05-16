@@ -12,7 +12,7 @@ interface VehiclesLayerProps {
   onVehicleSelect: (id: string) => void;
   onRemoveVehicle?: (id: string) => void;
   onRotateVehicle?: (id: string, degrees: number) => void;
-  onChangeVehicleType?: (type: 'car' | 'truck' | 'bike') => void;
+  onChangeVehicleType?: (id: string, type: 'car' | 'truck' | 'bike') => void;
   readOnly?: boolean;
   onVehicleMove?: (id: string, position: [number, number]) => void;
 }
@@ -23,7 +23,9 @@ const VehiclesLayer: React.FC<VehiclesLayerProps> = ({
   onVehicleSelect,
   onRemoveVehicle,
   onRotateVehicle,
-  readOnly = false
+  onChangeVehicleType,
+  readOnly = false,
+  onVehicleMove
 }) => {
   return (
     <LayerGroup>
@@ -43,11 +45,12 @@ const VehiclesLayer: React.FC<VehiclesLayerProps> = ({
               console.log("Vehicle selected:", vehicle.id);
             },
             dragend: (e) => {
-              if (!readOnly && e.target) {
+              if (!readOnly && e.target && onVehicleMove) {
                 const marker = e.target;
                 const latLng = marker.getLatLng();
-                // Update vehicle position in parent component if needed
-                console.log("Vehicle moved to:", [latLng.lat, latLng.lng]);
+                const newPosition: [number, number] = [latLng.lat, latLng.lng];
+                onVehicleMove(vehicle.id, newPosition);
+                console.log("Vehicle moved to:", newPosition);
                 toast("Position du véhicule mise à jour");
               }
             },

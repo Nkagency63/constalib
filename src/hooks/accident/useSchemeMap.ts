@@ -23,13 +23,19 @@ export const useSchemeMap = ({ readOnly, handleMapClick, onReady }: UseSchemeMap
     mapRef.current = map;
     
     // Configure event handlers if not readonly
-    if (!readOnly && mapRef.current && mapRef.current.off && mapRef.current.on) {
+    if (!readOnly && mapRef.current) {
       try {
-        // Remove any previous click handlers first - safely
-        mapRef.current.off('click');
-        // Then add our new click handler
-        mapRef.current.on('click', handleMapClick);
-        console.log("Map click handler registered");
+        // Make sure the map is valid before attaching event handlers
+        if (map && typeof map.off === 'function') {
+          // Remove any previous click handlers first
+          map.off('click');
+        }
+        
+        // Then safely add our new click handler
+        if (map && typeof map.on === 'function') {
+          map.on('click', handleMapClick);
+          console.log("Map click handler registered");
+        }
       } catch (err) {
         console.error("Error setting up map click handlers:", err);
       }
@@ -38,7 +44,7 @@ export const useSchemeMap = ({ readOnly, handleMapClick, onReady }: UseSchemeMap
     // Ensure map is properly sized
     try {
       setTimeout(() => {
-        if (mapRef.current) {
+        if (mapRef.current && mapRef.current.invalidateSize) {
           mapRef.current.invalidateSize();
           console.log("Map size invalidated");
         }
@@ -47,9 +53,11 @@ export const useSchemeMap = ({ readOnly, handleMapClick, onReady }: UseSchemeMap
       console.error("Error invalidating map size:", err);
     }
     
-    // Call the onReady callback to initialize the map with the map object
-    onReady(map);
-    console.log("Map initialization completed");
+    // Call the onReady callback
+    if (typeof onReady === 'function') {
+      onReady(map);
+      console.log("Map initialization completed");
+    }
   }, [readOnly, handleMapClick, onReady]);
 
   const centerOnVehicles = useCallback((vehicles: Vehicle[]) => {
@@ -73,7 +81,7 @@ export const useSchemeMap = ({ readOnly, handleMapClick, onReady }: UseSchemeMap
         validVehicles.map(v => L.latLng(v.position))
       );
       
-      if (bounds.isValid() && mapRef.current) {
+      if (bounds.isValid() && mapRef.current && mapRef.current.fitBounds) {
         // Add some padding to the bounds
         bounds.pad(0.2);
         
