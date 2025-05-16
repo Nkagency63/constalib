@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import { FormData, SchemeData } from './types';
 import SchemeContainer from './scheme/SchemeContainer';
 import { toast } from 'sonner';
+import { TooltipProvider } from '@/components/ui/tooltip';
 
 interface SchemeStepProps {
   formData: FormData;
@@ -32,21 +33,23 @@ const SchemeStep: React.FC<SchemeStepProps> = ({ formData, onSchemeUpdate }) => 
   };
   
   return (
-    <div className="space-y-6">
-      <div className="bg-white p-4 rounded-lg border border-gray-200">
-        <p className="text-sm text-constalib-dark-gray mb-4">
-          Positionnez les véhicules et tracez les trajectoires pour illustrer l'accident. 
-          Vous pouvez ajouter jusqu'à 4 véhicules différents.
-        </p>
-        
-        <div className="h-[500px] rounded-lg overflow-hidden">
-          <SchemeContainer
-            formData={formData}
-            onSchemeUpdate={handleSchemeUpdate}
-          />
+    <TooltipProvider>
+      <div className="space-y-6">
+        <div className="bg-white p-4 rounded-lg border border-gray-200">
+          <p className="text-sm text-constalib-dark-gray mb-4">
+            Positionnez les véhicules et tracez les trajectoires pour illustrer l'accident. 
+            Vous pouvez ajouter jusqu'à 4 véhicules différents.
+          </p>
+          
+          <div className="h-[500px] rounded-lg overflow-hidden">
+            <SchemeContainer
+              formData={formData}
+              onSchemeUpdate={handleSchemeUpdate}
+            />
+          </div>
         </div>
       </div>
-    </div>
+    </TooltipProvider>
   );
 };
 

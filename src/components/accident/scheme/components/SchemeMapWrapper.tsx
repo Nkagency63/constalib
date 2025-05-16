@@ -54,7 +54,7 @@ const SchemeMapWrapper: React.FC<SchemeMapWrapperProps> = ({
 }) => {
   // Use a unique key to force re-mounting of the map when center changes
   // This helps avoid stale references and cleanup issues
-  const mapKey = `map-${center[0].toFixed(4)}-${center[1].toFixed(4)}`;
+  const mapKey = `map-${center[0].toFixed(4)}-${center[1].toFixed(4)}-${Date.now()}`;
   
   return (
     <div className="relative rounded-lg overflow-hidden shadow-md border border-gray-200 h-full">
