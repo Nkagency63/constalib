@@ -49,6 +49,10 @@ const SchemeStep: React.FC<SchemeStepProps> = ({ formData, onSchemeUpdate }) => 
     }
   };
   
+  // Ajout de log pour déboguer
+  console.log('SchemeStep rendering with formData:', formData);
+  console.log('Current schemeData state:', schemeData);
+  
   return (
     <TooltipProvider>
       <div className="space-y-6">
@@ -58,7 +62,7 @@ const SchemeStep: React.FC<SchemeStepProps> = ({ formData, onSchemeUpdate }) => 
             Vous pouvez ajouter jusqu'à 4 véhicules différents.
           </p>
           
-          <div className="h-[500px] rounded-lg overflow-hidden">
+          <div className="h-[500px] rounded-lg overflow-hidden relative">
             <InteractiveScheme
               formData={formData}
               onUpdateSchemeData={handleSchemeUpdate}

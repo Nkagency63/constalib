@@ -31,47 +31,59 @@ const MapInitializer: React.FC<MapInitializerProps> = ({
       console.log("Map initializer: map object is ready");
       initDoneRef.current = true;
       
-      // Forcer invalidateSize pour assurer un rendu correct
+      // Force invalidateSize with a delay to ensure proper rendering
       setTimeout(() => {
-        if (!map) return;
-        
-        map.invalidateSize();
-        
-        // Configurer les gestionnaires d'événements de manière sécurisée
-        if (onMapClick && !boundEventHandlersRef.current.click) {
-          map.on('click', (e) => onMapClick(e.latlng));
-          boundEventHandlersRef.current.click = true;
+        if (!map) {
+          console.error("Map object is null or undefined after timeout");
+          return;
         }
         
-        if (onMapDoubleClick && !boundEventHandlersRef.current.dblclick) {
-          map.on('dblclick', (e) => {
-            // Empêcher le comportement de zoom par défaut
-            L.DomEvent.stopPropagation(e);
-            onMapDoubleClick();
-          });
-          boundEventHandlersRef.current.dblclick = true;
-        }
-        
-        if (onMapMove && !boundEventHandlersRef.current.mousemove) {
-          map.on('mousemove', (e) => onMapMove(e.latlng));
-          boundEventHandlersRef.current.mousemove = true;
-        }
-        
-        if (setCenter && !boundEventHandlersRef.current.moveend) {
-          map.on('moveend', () => {
-            setCenter([map.getCenter().lat, map.getCenter().lng] as [number, number]);
-          });
-          boundEventHandlersRef.current.moveend = true;
-        }
-        
-        if (setZoom && !boundEventHandlersRef.current.zoomend) {
-          map.on('zoomend', () => setZoom(map.getZoom()));
-          boundEventHandlersRef.current.zoomend = true;
-        }
-        
-        // Appeler le callback onMapReady s'il est fourni
-        if (onMapReady) {
-          onMapReady(map);
+        try {
+          console.log("Invalidating map size");
+          map.invalidateSize(true);
+          
+          // Configure event handlers safely
+          if (onMapClick && !boundEventHandlersRef.current.click) {
+            map.on('click', (e) => onMapClick(e.latlng));
+            boundEventHandlersRef.current.click = true;
+            console.log("Map click handler registered");
+          }
+          
+          if (onMapDoubleClick && !boundEventHandlersRef.current.dblclick) {
+            map.on('dblclick', (e) => {
+              // Prevent default zoom behavior
+              L.DomEvent.stopPropagation(e);
+              onMapDoubleClick();
+              console.log("Map double click handled");
+            });
+            boundEventHandlersRef.current.dblclick = true;
+          }
+          
+          if (onMapMove && !boundEventHandlersRef.current.mousemove) {
+            map.on('mousemove', (e) => onMapMove(e.latlng));
+            boundEventHandlersRef.current.mousemove = true;
+          }
+          
+          if (setCenter && !boundEventHandlersRef.current.moveend) {
+            map.on('moveend', () => {
+              const center = map.getCenter();
+              setCenter([center.lat, center.lng] as [number, number]);
+            });
+            boundEventHandlersRef.current.moveend = true;
+          }
+          
+          if (setZoom && !boundEventHandlersRef.current.zoomend) {
+            map.on('zoomend', () => setZoom(map.getZoom()));
+            boundEventHandlersRef.current.zoomend = true;
+          }
+          
+          // Call the callback onMapReady if provided
+          if (onMapReady) {
+            console.log("Calling onMapReady callback");
+            onMapReady(map);
+          }
+        } catch (error) {
+          console.error("Error in map initialization:", error);
         }
       }, 300);
       
@@ -81,7 +93,7 @@ const MapInitializer: React.FC<MapInitializerProps> = ({
     
     return () => {
       try {
-        // Only clean up if map is valid and we've attached events
+        // Clean up only if map is valid and we've attached events
         if (map && Object.keys(boundEventHandlersRef.current).length > 0) {
           console.log("Map initializer: safely cleaning up");
           

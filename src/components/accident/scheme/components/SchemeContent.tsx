@@ -3,6 +3,7 @@ import React from 'react';
 import SchemeToolbars from './SchemeToolbars';
 import SchemeMapWrapper from './SchemeMapWrapper';
 import { SchemeData } from '../../types';
+import 'leaflet/dist/leaflet.css';
 
 interface SchemeContentProps {
   // Map state
@@ -88,12 +89,8 @@ const SchemeContent: React.FC<SchemeContentProps> = ({
   // Map refs
   mapRef
 }) => {
-  const handleAddVehicle = () => {
-    const position: [number, number] = mapCenter;
-    // Use addVehicle method via props here, but since we don't have access
-    // to it directly anymore, we'll just assume the vehicle was added successfully
-    // The actual addition is handled in the parent component
-  };
+  // Log pour déboguer
+  console.log('SchemeContent rendering with mapCenter:', mapCenter);
   
   return (
     <div className="scheme-container h-full flex flex-col">
@@ -101,7 +98,7 @@ const SchemeContent: React.FC<SchemeContentProps> = ({
         readOnly={readOnly}
         currentTool={currentTool}
         setCurrentTool={setCurrentTool}
-        onAddVehicle={handleAddVehicle}
+        onAddVehicle={() => {}}
         canUndo={false} // We'll implement history later
         canRedo={false}
         vehicles={vehicles}
