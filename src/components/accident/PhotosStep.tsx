@@ -1,4 +1,5 @@
 
+import React from 'react';
 import PhotoCapture from '../PhotoCapture';
 
 interface PhotosStepProps {
@@ -7,7 +8,7 @@ interface PhotosStepProps {
   handlePhotoUpload: (type: 'vehiclePhotos' | 'damagePhotos', file: File) => void;
 }
 
-const PhotosStep = ({ vehiclePhotos, damagePhotos, handlePhotoUpload }: PhotosStepProps) => {
+const PhotosStep: React.FC<PhotosStepProps> = ({ vehiclePhotos, damagePhotos, handlePhotoUpload }) => {
   return (
     <div className="space-y-8">
       <div className="space-y-4">
@@ -26,6 +27,23 @@ const PhotosStep = ({ vehiclePhotos, damagePhotos, handlePhotoUpload }: PhotosSt
             label="Photo de la plaque d'immatriculation"
           />
         </div>
+        
+        {vehiclePhotos.length > 0 && (
+          <div className="mt-4">
+            <p className="text-sm font-medium mb-2">{vehiclePhotos.length} photo(s) de véhicule(s) ajoutée(s)</p>
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+              {vehiclePhotos.map((photo, index) => (
+                <div key={index} className="aspect-video bg-gray-100 rounded-md overflow-hidden">
+                  <img 
+                    src={photo instanceof File ? URL.createObjectURL(photo) : photo as string} 
+                    alt={`Vehicle photo ${index + 1}`}
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
       
       <div className="space-y-4">
@@ -44,6 +62,23 @@ const PhotosStep = ({ vehiclePhotos, damagePhotos, handlePhotoUpload }: PhotosSt
             label="Photo supplémentaire (si nécessaire)"
           />
         </div>
+        
+        {damagePhotos.length > 0 && (
+          <div className="mt-4">
+            <p className="text-sm font-medium mb-2">{damagePhotos.length} photo(s) de dégâts ajoutée(s)</p>
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+              {damagePhotos.map((photo, index) => (
+                <div key={index} className="aspect-video bg-gray-100 rounded-md overflow-hidden">
+                  <img 
+                    src={photo instanceof File ? URL.createObjectURL(photo) : photo as string} 
+                    alt={`Damage photo ${index + 1}`}
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

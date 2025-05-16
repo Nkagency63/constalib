@@ -8,6 +8,7 @@ import ReviewStep from './ReviewStep';
 import InjuriesStep from './InjuriesStep';
 import DriverAndInsuredStep from './DriverAndInsuredStep';
 import SchemeStep from './SchemeStep';
+import PhotosStep from './PhotosStep'; // Added import
 import { Circumstance, SchemeData } from './types';
 
 interface StepRendererProps {
@@ -102,6 +103,14 @@ const StepRenderer: React.FC<StepRendererProps> = ({
           formData={formData}
           setHasInjuries={setHasInjuries}
           setInjuriesDescription={setInjuriesDescription}
+        />
+      );
+    case 'photos':  // Add case for photos step
+      return (
+        <PhotosStep
+          vehiclePhotos={formData.vehiclePhotos || []}
+          damagePhotos={formData.damagePhotos || []}
+          handlePhotoUpload={(type, file) => handlePhotoUpload(type, new FileList([file]))}
         />
       );
     case 'circumstances':

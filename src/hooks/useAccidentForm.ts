@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import { WitnessInfo, SchemeData, Circumstance } from '@/components/accident/types';
@@ -132,8 +131,9 @@ export const useAccidentForm = () => {
     const newWitness: WitnessInfo = {
       id: uuidv4(),
       name: '',
-      contact: '',
-      address: ''
+      address: '',
+      phone: '',
+      email: ''
     };
     
     setFormData((prev: any) => ({

@@ -46,7 +46,7 @@ const AccidentForm = ({ onEmergencyRequest, onStepChange }: AccidentFormProps) =
   } = useAccidentForm();
 
   // Adapter function for witness management to match expected parameter types
-  const updateWitness = (index: number, field: string, value: string) => {
+  const updateWitness = (index: number, field: keyof WitnessInfo, value: string) => {
     // Find the witness ID by index
     if (formData.witnesses && formData.witnesses[index]) {
       const witnessId = formData.witnesses[index].id;

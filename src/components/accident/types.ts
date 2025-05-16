@@ -6,9 +6,9 @@ export interface VehicleData {
   licensePlate: string;
   brand: string;
   model: string;
-  year?: string; // Changed from required to optional
+  year?: string;
   firstRegistration?: string;
-  description?: string; // Changed from required to optional
+  description?: string;
   insurancePolicy?: string;
   insuranceCompany?: string;
 }
@@ -19,16 +19,19 @@ export interface WitnessInfo {
   name: string;
   fullName?: string;
   address: string;
-  phone: string;
-  email: string;
+  phone?: string;
+  email?: string;
+  contact?: string;
 }
 
 // Type for circumstance options in the accident form
 export interface Circumstance {
   id: string;
-  text: string;
+  code: string;
+  text?: string;
   label: string;
   image?: string;
+  selected: boolean;
 }
 
 // Injury information
