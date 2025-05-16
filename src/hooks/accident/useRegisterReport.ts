@@ -95,7 +95,7 @@ export const useRegisterReport = ({ formData, signatures }: UseRegisterReportPro
           phone: formData.otherInsuredPhone || "",
           email: formData.otherInsuredEmail || ""
         },
-        witnesses: formData.witnesses?.map(witness => ({
+        witnesses: formData.witnesses?.map((witness: any) => ({
           fullName: witness.name || witness.fullName || "",
           phone: witness.phone || "",
           email: witness.email || ""
@@ -112,7 +112,9 @@ export const useRegisterReport = ({ formData, signatures }: UseRegisterReportPro
       const geolocation = {
         lat: formData.geolocation.lat,
         lng: formData.geolocation.lng,
-        address: formData.geolocation.address
+        address: formData.geolocation.address,
+        accuracy: formData.geolocation.accuracy,
+        timestamp: formData.geolocation.timestamp
       };
       
       const signatureData = {

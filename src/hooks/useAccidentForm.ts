@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import { WitnessInfo, SchemeData, Circumstance } from '@/components/accident/types';
@@ -15,7 +16,22 @@ export const useAccidentForm = () => {
     accidentTime: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
     circumstancesA: DEFAULT_CIRCUMSTANCES,
     circumstancesB: DEFAULT_CIRCUMSTANCES.map(c => ({ ...c })), // Create separate instances
-    witnesses: []
+    witnesses: [],
+    // Driver and insured information
+    driverName: '',
+    driverAddress: '',
+    driverPhone: '',
+    driverLicense: '',
+    insuredName: '',
+    insuredAddress: '',
+    insuredPhone: '',
+    otherDriverName: '',
+    otherDriverAddress: '',
+    otherDriverPhone: '',
+    otherDriverLicense: '',
+    otherInsuredName: '',
+    otherInsuredAddress: '',
+    otherInsuredPhone: ''
   });
 
   // Handle input changes
@@ -80,7 +96,7 @@ export const useAccidentForm = () => {
   };
 
   // Set geolocation
-  const setGeolocation = (location: { lat: number; lng: number; address: string }) => {
+  const setGeolocation = (location: { lat: number; lng: number; address: string; accuracy?: number; timestamp?: number }) => {
     setFormData((prev: any) => ({
       ...prev,
       geolocation: location
@@ -117,6 +133,32 @@ export const useAccidentForm = () => {
       ...prev,
       emergencyContacted: true
     }));
+  };
+
+  // Copy driver info to insured info for vehicle A
+  const copyDriverToInsured = () => {
+    setFormData((prev: any) => ({
+      ...prev,
+      insuredName: prev.driverName,
+      insuredAddress: prev.driverAddress,
+      insuredPhone: prev.driverPhone
+    }));
+    toast.success("Informations copiées", {
+      description: "Les informations du conducteur ont été copiées vers l'assuré"
+    });
+  };
+  
+  // Copy driver info to insured info for vehicle B
+  const copyOtherDriverToInsured = () => {
+    setFormData((prev: any) => ({
+      ...prev,
+      otherInsuredName: prev.otherDriverName,
+      otherInsuredAddress: prev.otherDriverAddress,
+      otherInsuredPhone: prev.otherDriverPhone
+    }));
+    toast.success("Informations copiées", {
+      description: "Les informations du conducteur ont été copiées vers l'assuré"
+    });
   };
 
   // Handle witnesses
@@ -207,6 +249,8 @@ export const useAccidentForm = () => {
     setPersonalEmail,
     setCurrentVehicleId,
     onEmergencyContacted,
+    copyDriverToInsured,
+    copyOtherDriverToInsured,
     nextStep,
     prevStep,
     setSubmitted,

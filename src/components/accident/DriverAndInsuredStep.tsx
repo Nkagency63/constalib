@@ -1,15 +1,17 @@
 
-import React, { useState } from 'react';
-import { FormData } from './types';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Car, FileText, Copy } from 'lucide-react';
+import { Car, FileText, Copy, ClipboardCopy } from 'lucide-react';
 import { Checkbox } from '@/components/ui/checkbox';
+import { Button } from '@/components/ui/button';
+import { Textarea } from '@/components/ui/textarea';
+import { toast } from 'sonner';
 
 interface DriverAndInsuredStepProps {
-  formData: FormData;
+  formData: any;
   handleInputChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
 }
 
@@ -19,6 +21,25 @@ const DriverAndInsuredStep: React.FC<DriverAndInsuredStepProps> = ({
 }) => {
   const [driverIsInsuredA, setDriverIsInsuredA] = useState(false);
   const [driverIsInsuredB, setDriverIsInsuredB] = useState(false);
+
+  // Check on component mount if driver and insured info are the same
+  useEffect(() => {
+    // For vehicle A
+    if (formData.driverName && formData.insuredName && 
+        formData.driverName === formData.insuredName &&
+        formData.driverAddress === formData.insuredAddress &&
+        formData.driverPhone === formData.insuredPhone) {
+      setDriverIsInsuredA(true);
+    }
+    
+    // For vehicle B
+    if (formData.otherDriverName && formData.otherInsuredName && 
+        formData.otherDriverName === formData.otherInsuredName &&
+        formData.otherDriverAddress === formData.otherInsuredAddress &&
+        formData.otherDriverPhone === formData.otherInsuredPhone) {
+      setDriverIsInsuredB(true);
+    }
+  }, [formData]);
 
   // Handler for copying driver information to insured fields for vehicle A
   const copyDriverToInsuredA = () => {
@@ -42,6 +63,10 @@ const DriverAndInsuredStep: React.FC<DriverAndInsuredStepProps> = ({
       if (formData.driverPhone) {
         handleInputChange(createEvent('insuredPhone', formData.driverPhone));
       }
+      
+      toast.success("Informations copiées", {
+        description: "Les informations du conducteur ont été copiées vers l'assuré"
+      });
     }
   };
   
@@ -67,6 +92,10 @@ const DriverAndInsuredStep: React.FC<DriverAndInsuredStepProps> = ({
       if (formData.otherDriverPhone) {
         handleInputChange(createEvent('otherInsuredPhone', formData.otherDriverPhone));
       }
+      
+      toast.success("Informations copiées", {
+        description: "Les informations du conducteur ont été copiées vers l'assuré"
+      });
     }
   };
 
@@ -110,12 +139,13 @@ const DriverAndInsuredStep: React.FC<DriverAndInsuredStepProps> = ({
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="driverAddress">Adresse</Label>
-                    <Input
+                    <Textarea
                       id="driverAddress"
                       name="driverAddress"
                       value={formData.driverAddress || ''}
                       onChange={handleInputChange}
                       placeholder="123 rue de Paris, 75001 Paris"
+                      className="resize-none"
                     />
                   </div>
                   <div className="space-y-2">
@@ -172,12 +202,13 @@ const DriverAndInsuredStep: React.FC<DriverAndInsuredStepProps> = ({
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="insuredAddress">Adresse</Label>
-                    <Input
+                    <Textarea
                       id="insuredAddress"
                       name="insuredAddress"
                       value={formData.insuredAddress || ''}
                       onChange={handleInputChange}
                       placeholder="123 rue de Paris, 75001 Paris"
+                      className="resize-none"
                     />
                   </div>
                   <div className="space-y-2">
@@ -191,6 +222,18 @@ const DriverAndInsuredStep: React.FC<DriverAndInsuredStepProps> = ({
                     />
                   </div>
                 </div>
+                {!driverIsInsuredA && formData.driverName && formData.insuredName === '' && (
+                  <Button 
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    className="mt-2 text-xs"
+                    onClick={copyDriverToInsuredA}
+                  >
+                    <ClipboardCopy className="h-3 w-3 mr-1" />
+                    Copier les informations du conducteur
+                  </Button>
+                )}
               </div>
             </CardContent>
           </Card>
@@ -222,12 +265,13 @@ const DriverAndInsuredStep: React.FC<DriverAndInsuredStepProps> = ({
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="otherDriverAddress">Adresse</Label>
-                    <Input
+                    <Textarea
                       id="otherDriverAddress"
                       name="otherDriverAddress"
                       value={formData.otherDriverAddress || ''}
                       onChange={handleInputChange}
                       placeholder="456 avenue de Lyon, 69002 Lyon"
+                      className="resize-none"
                     />
                   </div>
                   <div className="space-y-2">
@@ -284,12 +328,13 @@ const DriverAndInsuredStep: React.FC<DriverAndInsuredStepProps> = ({
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="otherInsuredAddress">Adresse</Label>
-                    <Input
+                    <Textarea
                       id="otherInsuredAddress"
                       name="otherInsuredAddress"
                       value={formData.otherInsuredAddress || ''}
                       onChange={handleInputChange}
                       placeholder="456 avenue de Lyon, 69002 Lyon"
+                      className="resize-none"
                     />
                   </div>
                   <div className="space-y-2">
@@ -303,6 +348,18 @@ const DriverAndInsuredStep: React.FC<DriverAndInsuredStepProps> = ({
                     />
                   </div>
                 </div>
+                {!driverIsInsuredB && formData.otherDriverName && formData.otherInsuredName === '' && (
+                  <Button 
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    className="mt-2 text-xs"
+                    onClick={copyDriverToInsuredB}
+                  >
+                    <ClipboardCopy className="h-3 w-3 mr-1" />
+                    Copier les informations du conducteur
+                  </Button>
+                )}
               </div>
             </CardContent>
           </Card>
