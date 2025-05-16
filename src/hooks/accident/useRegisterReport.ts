@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { toast } from "sonner";
 import { FormData, Circumstance, CircumstancesData, InjuryInfo } from "@/components/accident/types";
 import { registerOfficialReport } from "@/services/accidentReportService";
+import { GeolocationData } from "@/hooks/accident/useLocationForm";
 
 interface UseRegisterReportProps {
   formData: FormData;
@@ -18,15 +19,6 @@ interface ServiceInjuryInfo {
   contact: string;
   severity?: string;
   description?: string;
-}
-
-// Interface for geolocation data to ensure proper typing
-interface GeolocationData {
-  lat: number;
-  lng: number;
-  address?: string;
-  accuracy?: number;
-  timestamp?: number;
 }
 
 export const useRegisterReport = ({ formData, signatures }: UseRegisterReportProps) => {
@@ -115,16 +107,16 @@ export const useRegisterReport = ({ formData, signatures }: UseRegisterReportPro
       // Format circumstances data - extract IDs from Circumstance objects
       const circumstancesData: CircumstancesData = {
         vehicleA: (formData.vehicleACircumstances || []).map((circ: Circumstance) => circ.id),
-        vehicleB: (formData.vehicleBCircumstances || []).map((circ: Circumstance) => circ.id)
+        vehicleB: (formData.vehicleBCircumstences || []).map((circ: Circumstance) => circ.id)
       };
 
-      // Properly convert formData.geolocation to the expected format with proper type handling
+      // Create a properly typed geolocation object with all required properties
       const geolocation: GeolocationData = {
         lat: formData.geolocation.lat,
         lng: formData.geolocation.lng,
-        address: formData.geolocation.address || "",
-        accuracy: (formData.geolocation as any).accuracy || 0,
-        timestamp: (formData.geolocation as any).timestamp || Date.now()
+        address: formData.geolocation.address,
+        accuracy: formData.geolocation.accuracy || 0,
+        timestamp: formData.geolocation.timestamp || Date.now()
       };
       
       const signatureData = {

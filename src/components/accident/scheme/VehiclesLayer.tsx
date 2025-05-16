@@ -4,7 +4,7 @@ import { Marker, LayerGroup } from 'react-leaflet';
 import L from 'leaflet';
 import { Vehicle } from '../types';
 import { createCarIcon } from '@/utils/mapIcons';
-import { toast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 
 interface VehiclesLayerProps {
   vehicles: Vehicle[];

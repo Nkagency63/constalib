@@ -52,17 +52,15 @@ const SchemeMapWrapper: React.FC<SchemeMapWrapperProps> = ({
   onUpdateAnnotation,
   onMapReady
 }) => {
-  // Utiliser un timestamp pour forcer le remontage de la carte quand center change
-  const mapKey = `map-${center[0].toFixed(4)}-${center[1].toFixed(4)}-${Date.now()}`;
-  
   console.log('SchemeMapWrapper rendering with center:', center);
   
   return (
     <div className="relative rounded-lg overflow-hidden shadow-md border border-gray-200 h-full">
       <TooltipProvider>
         <div className="h-full w-full">
+          {/* We use a key based on the center to force re-render when center changes */}
           <MapContainer
-            key={mapKey}
+            key={`map-${center[0].toFixed(6)}-${center[1].toFixed(6)}`}
             center={center}
             zoom={17}
             style={{ 

@@ -93,16 +93,16 @@ const MapInitializer: React.FC<MapInitializerProps> = ({
     
     return () => {
       try {
-        // Clean up only if map is valid and we've attached events
-        if (map && Object.keys(boundEventHandlersRef.current).length > 0) {
+        // Only clean up if map is valid and we've attached events
+        if (map && typeof map.off === 'function' && Object.keys(boundEventHandlersRef.current).length > 0) {
           console.log("Map initializer: safely cleaning up");
           
           // Remove event listeners safely
-          if (boundEventHandlersRef.current.click) map.off('click');
-          if (boundEventHandlersRef.current.dblclick) map.off('dblclick');
-          if (boundEventHandlersRef.current.mousemove) map.off('mousemove');
-          if (boundEventHandlersRef.current.moveend) map.off('moveend');
-          if (boundEventHandlersRef.current.zoomend) map.off('zoomend');
+          if (boundEventHandlersRef.current.click && map.off) map.off('click');
+          if (boundEventHandlersRef.current.dblclick && map.off) map.off('dblclick');
+          if (boundEventHandlersRef.current.mousemove && map.off) map.off('mousemove');
+          if (boundEventHandlersRef.current.moveend && map.off) map.off('moveend');
+          if (boundEventHandlersRef.current.zoomend && map.off) map.off('zoomend');
           
           // Reset the bound events tracking
           boundEventHandlersRef.current = {};
