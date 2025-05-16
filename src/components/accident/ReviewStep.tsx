@@ -187,25 +187,27 @@ const ReviewStep: React.FC<ReviewStepProps> = ({ formData }) => {
                   <div>
                     <h4 className="font-medium mb-2">Véhicule A</h4>
                     <ul className="list-disc list-inside space-y-1">
-                      {Object.entries(formData.circumstances.A || {})
-                        .filter(([_, checked]) => checked)
-                        .map(([id]) => (
-                          <li key={`A-${id}`} className="text-sm">
-                            {id}
-                          </li>
-                        ))}
+                      {formData.circumstances && formData.circumstances.vehicleA && 
+                        Object.entries(formData.circumstances.vehicleA)
+                          .filter(([_, checked]) => checked)
+                          .map(([id]) => (
+                            <li key={`A-${id}`} className="text-sm">
+                              {id}
+                            </li>
+                          ))}
                     </ul>
                   </div>
                   <div>
                     <h4 className="font-medium mb-2">Véhicule B</h4>
                     <ul className="list-disc list-inside space-y-1">
-                      {Object.entries(formData.circumstances.B || {})
-                        .filter(([_, checked]) => checked)
-                        .map(([id]) => (
-                          <li key={`B-${id}`} className="text-sm">
-                            {id}
-                          </li>
-                        ))}
+                      {formData.circumstances && formData.circumstances.vehicleB && 
+                        Object.entries(formData.circumstances.vehicleB)
+                          .filter(([_, checked]) => checked)
+                          .map(([id]) => (
+                            <li key={`B-${id}`} className="text-sm">
+                              {id}
+                            </li>
+                          ))}
                     </ul>
                   </div>
                 </div>

@@ -19,17 +19,12 @@ export const useFniLookup = (
       });
       return;
     }
-
+    
     updateState({
       isFniLoading: true,
       fniError: null,
       fniLookupSuccess: false,
-      lookupSuccess: false,
-      searchError: null,
-      autoInsuranceFound: false,
-      hasAttemptedLookup: true,
-      fvaLookupSuccess: false,
-      showFvaDetails: false
+      hasAttemptedLookup: true
     });
     
     const result = await lookupVehicleFromFni(licensePlate, setVehicleInfo, handleInputChange, setInsuranceInfo);
@@ -37,13 +32,12 @@ export const useFniLookup = (
     if (result.success) {
       updateState({
         vehicleDetails: result.vehicleDetails,
-        lookupSuccess: true,
         fniLookupSuccess: true,
         insuranceDetails: result.insuranceDetails,
-        autoInsuranceFound: result.autoInsuranceFound,
-        insuranceLookupSuccess: result.autoInsuranceFound
+        insuranceLookupSuccess: result.autoInsuranceFound,
+        autoInsuranceFound: result.autoInsuranceFound
       });
-      toast.success("Informations du véhicule récupérées (utilisez le FVA pour des informations complètes)");
+      toast.success("Informations du véhicule récupérées avec succès du FNI");
     } else {
       updateState({
         fniError: result.error

@@ -15,19 +15,16 @@ export const useSivLookup = (
   const lookupVehicle = async () => {
     if (!validateLicensePlate(licensePlate, 'siv')) {
       updateState({
-        searchError: "L'immatriculation doit contenir au moins 5 caractères"
+        searchError: "L'immatriculation doit contenir au moins 7 caractères"
       });
       return;
     }
-
+    
     updateState({
       isLoading: true,
       searchError: null,
       lookupSuccess: false,
-      autoInsuranceFound: false,
-      hasAttemptedLookup: true,
-      fvaLookupSuccess: false,
-      showFvaDetails: false
+      hasAttemptedLookup: true
     });
     
     const result = await lookupVehicleFromSiv(licensePlate, setVehicleInfo, handleInputChange, setInsuranceInfo);
@@ -37,15 +34,14 @@ export const useSivLookup = (
         vehicleDetails: result.vehicleDetails,
         lookupSuccess: true,
         insuranceDetails: result.insuranceDetails,
-        autoInsuranceFound: result.autoInsuranceFound,
-        insuranceLookupSuccess: result.autoInsuranceFound
+        insuranceLookupSuccess: result.autoInsuranceFound,
+        autoInsuranceFound: result.autoInsuranceFound
       });
-      toast.success("Informations du véhicule récupérées (utilisez le FVA pour plus d'informations)");
     } else {
       updateState({
         searchError: result.error
       });
-      toast.error(result.error || "Aucun véhicule trouvé avec cette immatriculation dans le SIV");
+      toast.error(result.error || "Aucun véhicule trouvé avec cette immatriculation");
     }
     
     updateState({ isLoading: false });

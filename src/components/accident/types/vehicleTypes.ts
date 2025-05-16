@@ -1,3 +1,4 @@
+
 export interface VehicleData {
   brand: string;
   model: string;

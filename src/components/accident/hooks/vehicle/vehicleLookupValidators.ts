@@ -1,21 +1,19 @@
 
-import { isValidLicensePlate } from '../../utils/licensePlateFormatters';
-import { toast } from 'sonner';
-
 /**
- * Validates a license plate before performing a lookup
+ * Validates if a license plate meets the minimum requirements for lookup
  */
 export const validateLicensePlate = (licensePlate: string, format: 'siv' | 'fni'): boolean => {
-  if (!licensePlate || licensePlate.trim().length === 0) {
-    toast.error("Veuillez saisir une immatriculation");
+  if (!licensePlate || licensePlate.trim() === '') {
     return false;
   }
   
-  if (!isValidLicensePlate(licensePlate, format)) {
-    const formatName = format === 'siv' ? 'SIV (AB-123-CD)' : 'FNI (123 ABC 75)';
-    toast.error(`Format d'immatriculation invalide pour le format ${formatName}`);
-    return false;
-  }
+  const cleanedPlate = licensePlate.replace(/-/g, '').replace(/\s/g, '').trim();
   
-  return true;
+  if (format === 'siv') {
+    // SIV format: minimum 7 chars (AB123CD)
+    return cleanedPlate.length >= 7;
+  } else {
+    // FNI format: minimum 5 chars (123AB75, doesn't include department number)
+    return cleanedPlate.length >= 5;
+  }
 };
