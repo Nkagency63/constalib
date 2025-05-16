@@ -1,11 +1,12 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { FormData } from './types';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Car, FileText } from 'lucide-react';
+import { Car, FileText, Copy } from 'lucide-react';
+import { Checkbox } from '@/components/ui/checkbox';
 
 interface DriverAndInsuredStepProps {
   formData: FormData;
@@ -16,6 +17,59 @@ const DriverAndInsuredStep: React.FC<DriverAndInsuredStepProps> = ({
   formData,
   handleInputChange
 }) => {
+  const [driverIsInsuredA, setDriverIsInsuredA] = useState(false);
+  const [driverIsInsuredB, setDriverIsInsuredB] = useState(false);
+
+  // Handler for copying driver information to insured fields for vehicle A
+  const copyDriverToInsuredA = () => {
+    const isChecked = !driverIsInsuredA;
+    setDriverIsInsuredA(isChecked);
+    
+    if (isChecked) {
+      // Create synthetic events to update insured info based on driver info
+      const createEvent = (name: string, value: string) => ({
+        target: { name, value },
+      } as React.ChangeEvent<HTMLInputElement>);
+      
+      if (formData.driverName) {
+        handleInputChange(createEvent('insuredName', formData.driverName));
+      }
+      
+      if (formData.driverAddress) {
+        handleInputChange(createEvent('insuredAddress', formData.driverAddress));
+      }
+      
+      if (formData.driverPhone) {
+        handleInputChange(createEvent('insuredPhone', formData.driverPhone));
+      }
+    }
+  };
+  
+  // Handler for copying driver information to insured fields for vehicle B
+  const copyDriverToInsuredB = () => {
+    const isChecked = !driverIsInsuredB;
+    setDriverIsInsuredB(isChecked);
+    
+    if (isChecked) {
+      // Create synthetic events to update insured info based on driver info
+      const createEvent = (name: string, value: string) => ({
+        target: { name, value },
+      } as React.ChangeEvent<HTMLInputElement>);
+      
+      if (formData.otherDriverName) {
+        handleInputChange(createEvent('otherInsuredName', formData.otherDriverName));
+      }
+      
+      if (formData.otherDriverAddress) {
+        handleInputChange(createEvent('otherInsuredAddress', formData.otherDriverAddress));
+      }
+      
+      if (formData.otherDriverPhone) {
+        handleInputChange(createEvent('otherInsuredPhone', formData.otherDriverPhone));
+      }
+    }
+  };
+
   return (
     <div className="space-y-6">
       <Tabs defaultValue="vehicle-a" className="w-full">
@@ -88,10 +142,23 @@ const DriverAndInsuredStep: React.FC<DriverAndInsuredStepProps> = ({
               </div>
               
               <div>
-                <h4 className="font-medium text-constalib-dark mb-3 flex items-center">
-                  <FileText className="h-4 w-4 mr-2" />
-                  Assuré
-                </h4>
+                <div className="flex justify-between items-center mb-3">
+                  <h4 className="font-medium text-constalib-dark flex items-center">
+                    <FileText className="h-4 w-4 mr-2" />
+                    Assuré
+                  </h4>
+                  <div className="flex items-center space-x-2">
+                    <Checkbox 
+                      id="driverIsInsuredA" 
+                      checked={driverIsInsuredA} 
+                      onCheckedChange={copyDriverToInsuredA} 
+                    />
+                    <Label htmlFor="driverIsInsuredA" className="text-sm text-gray-600 cursor-pointer flex items-center">
+                      <Copy className="h-4 w-4 mr-1 text-gray-500" />
+                      Le conducteur est l'assuré
+                    </Label>
+                  </div>
+                </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label htmlFor="insuredName">Nom et prénom</Label>
@@ -187,10 +254,23 @@ const DriverAndInsuredStep: React.FC<DriverAndInsuredStepProps> = ({
               </div>
               
               <div>
-                <h4 className="font-medium text-constalib-dark mb-3 flex items-center">
-                  <FileText className="h-4 w-4 mr-2" />
-                  Assuré
-                </h4>
+                <div className="flex justify-between items-center mb-3">
+                  <h4 className="font-medium text-constalib-dark flex items-center">
+                    <FileText className="h-4 w-4 mr-2" />
+                    Assuré
+                  </h4>
+                  <div className="flex items-center space-x-2">
+                    <Checkbox 
+                      id="driverIsInsuredB" 
+                      checked={driverIsInsuredB} 
+                      onCheckedChange={copyDriverToInsuredB} 
+                    />
+                    <Label htmlFor="driverIsInsuredB" className="text-sm text-gray-600 cursor-pointer flex items-center">
+                      <Copy className="h-4 w-4 mr-1 text-gray-500" />
+                      Le conducteur est l'assuré
+                    </Label>
+                  </div>
+                </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label htmlFor="otherInsuredName">Nom et prénom</Label>
