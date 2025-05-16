@@ -1,5 +1,5 @@
 
-import { useRef, useCallback } from 'react';
+import { useRef, useCallback, useState } from 'react';
 import L from 'leaflet';
 import { toast } from 'sonner';
 import { Vehicle } from '@/components/accident/types';
@@ -14,6 +14,7 @@ export const useSchemeMap = ({ readOnly, handleMapClick, onReady }: UseSchemeMap
   const mapRef = useRef<L.Map | null>(null);
   const drawingLayerRef = useRef<L.LayerGroup | null>(null);
   const mapReadyCalledRef = useRef<boolean>(false);
+  const [isMapInitialized, setIsMapInitialized] = useState(false);
 
   const handleMapReady = useCallback((map: L.Map) => {
     if (mapReadyCalledRef.current) return;
@@ -22,16 +23,16 @@ export const useSchemeMap = ({ readOnly, handleMapClick, onReady }: UseSchemeMap
     console.log("Map initialization started");
     mapRef.current = map;
     
-    // Configure event handlers if not readonly
+    // Configurer les gestionnaires d'événements si ce n'est pas en lecture seule
     if (!readOnly && mapRef.current) {
       try {
-        // Make sure the map is valid before attaching event handlers
+        // S'assurer que la carte est valide avant d'attacher des gestionnaires d'événements
         if (map && typeof map.off === 'function') {
-          // Remove any previous click handlers first
+          // Retirer d'abord tous les gestionnaires de clics précédents
           map.off('click');
         }
         
-        // Then safely add our new click handler
+        // Puis ajouter en toute sécurité notre nouveau gestionnaire de clics
         if (map && typeof map.on === 'function') {
           map.on('click', handleMapClick);
           console.log("Map click handler registered");
@@ -41,19 +42,22 @@ export const useSchemeMap = ({ readOnly, handleMapClick, onReady }: UseSchemeMap
       }
     }
     
-    // Ensure map is properly sized
+    // S'assurer que la carte est correctement dimensionnée
     try {
       setTimeout(() => {
-        if (mapRef.current && mapRef.current.invalidateSize) {
+        if (mapRef.current && typeof mapRef.current.invalidateSize === 'function') {
           mapRef.current.invalidateSize();
           console.log("Map size invalidated");
+          
+          // Marquer la carte comme initialisée
+          setIsMapInitialized(true);
         }
       }, 300);
     } catch (err) {
       console.error("Error invalidating map size:", err);
     }
     
-    // Call the onReady callback
+    // Appeler le callback onReady
     if (typeof onReady === 'function') {
       onReady(map);
       console.log("Map initialization completed");
@@ -66,7 +70,7 @@ export const useSchemeMap = ({ readOnly, handleMapClick, onReady }: UseSchemeMap
     console.log("Centering on vehicles:", vehicles.length);
     
     try {
-      // Create a bounds object to contain all vehicle positions
+      // Créer un objet bounds pour contenir toutes les positions des véhicules
       const validVehicles = vehicles.filter(v => 
         v.position && Array.isArray(v.position) && v.position.length === 2
       );
@@ -76,16 +80,16 @@ export const useSchemeMap = ({ readOnly, handleMapClick, onReady }: UseSchemeMap
         return;
       }
       
-      // Create a bounds object from all vehicle positions
+      // Créer un objet bounds à partir de toutes les positions des véhicules
       const bounds = L.latLngBounds(
         validVehicles.map(v => L.latLng(v.position))
       );
       
-      if (bounds.isValid() && mapRef.current && mapRef.current.fitBounds) {
-        // Add some padding to the bounds
+      if (bounds.isValid() && mapRef.current && typeof mapRef.current.fitBounds === 'function') {
+        // Ajouter un peu de marge aux limites
         bounds.pad(0.2);
         
-        // Fit the map to the bounds with animation
+        // Ajuster la carte aux limites avec animation
         mapRef.current.fitBounds(bounds, {
           padding: [50, 50],
           maxZoom: 18,
@@ -107,6 +111,7 @@ export const useSchemeMap = ({ readOnly, handleMapClick, onReady }: UseSchemeMap
     mapRef,
     drawingLayerRef,
     handleMapReady,
-    centerOnVehicles
+    centerOnVehicles,
+    isMapInitialized
   };
 };

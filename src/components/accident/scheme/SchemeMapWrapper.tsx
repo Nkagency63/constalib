@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { MapContainer, TileLayer } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import MapInitializer from '../MapInitializer';
@@ -30,26 +30,15 @@ const SchemeMapWrapper: React.FC<SchemeMapWrapperProps> = ({
   onMapReady,
   children
 }) => {
-  // Use a unique key for the map to force recreation when center changes dramatically
-  const [mapKey, setMapKey] = useState(uuidv4());
-  const [prevCenter, setPrevCenter] = useState(center);
+  // Créer une clé stable pour le centre actuel
+  const mapKey = useMemo(() => {
+    return `map-${center[0].toFixed(6)}-${center[1].toFixed(6)}-${zoom}-${uuidv4().substring(0, 8)}`;
+  }, [center[0], center[1], zoom]);
   
-  // Force map recreation if center changes dramatically to prevent weird behavior
+  // Log pour debug
   useEffect(() => {
-    const [prevLat, prevLng] = prevCenter;
-    const [newLat, newLng] = center;
-    
-    // Calculate distance between previous and new center
-    const distance = Math.sqrt(
-      Math.pow(newLat - prevLat, 2) + Math.pow(newLng - prevLng, 2)
-    );
-    
-    // If distance is significant, recreate the map
-    if (distance > 1) { // 1 degree is approximately 111km
-      setMapKey(uuidv4());
-      setPrevCenter(center);
-    }
-  }, [center, prevCenter]);
+    console.log("SchemeMapWrapper rendered with center:", center, "and key:", mapKey);
+  }, [center, mapKey]);
 
   return (
     <MapContainer
@@ -66,7 +55,9 @@ const SchemeMapWrapper: React.FC<SchemeMapWrapperProps> = ({
         attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
       />
       
-      <MapInitializer onMapReady={onMapReady} />
+      <MapInitializer 
+        onMapReady={onMapReady}
+      />
       
       <VehiclesLayer
         vehicles={vehicles}

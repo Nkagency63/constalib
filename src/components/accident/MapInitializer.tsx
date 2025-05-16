@@ -25,14 +25,14 @@ const MapInitializer: React.FC<MapInitializerProps> = ({
   const boundEventHandlersRef = useRef<{ [key: string]: boolean }>({});
   
   useEffect(() => {
-    // Safely handle map initialization
+    // Vérifier que la carte est bien initialisée et éviter les initialisations multiples
     if (!map || initDoneRef.current) return;
     
     try {
       console.log("Map initializer: map object is ready");
       initDoneRef.current = true;
       
-      // Force invalidateSize with a delay to ensure proper rendering
+      // Forcer invalidateSize avec un délai pour assurer un rendu correct
       setTimeout(() => {
         if (!map) {
           console.error("Map object is null or undefined after timeout");
@@ -40,10 +40,14 @@ const MapInitializer: React.FC<MapInitializerProps> = ({
         }
         
         try {
-          console.log("Invalidating map size");
-          map.invalidateSize(true);
+          // S'assurer que invalidateSize existe avant de l'appeler
+          if (typeof map.invalidateSize === 'function') {
+            console.log("Invalidating map size");
+            map.invalidateSize(true);
+          }
           
-          // Safely set up event handlers
+          // Associer les gestionnaires d'événements de manière sécurisée
+          // Vérifier que chaque méthode existe avant de l'appeler
           if (onMapClick && typeof map.on === 'function' && !boundEventHandlersRef.current.click) {
             map.on('click', (e) => {
               if (onMapClick) onMapClick(e.latlng);
@@ -54,8 +58,8 @@ const MapInitializer: React.FC<MapInitializerProps> = ({
           
           if (onMapDoubleClick && typeof map.on === 'function' && !boundEventHandlersRef.current.dblclick) {
             map.on('dblclick', (e) => {
+              // Empêcher le comportement de zoom par défaut
               if (L.DomEvent && L.DomEvent.stopPropagation) {
-                // Prevent default zoom behavior
                 L.DomEvent.stopPropagation(e);
               }
               if (onMapDoubleClick) onMapDoubleClick();
@@ -73,7 +77,7 @@ const MapInitializer: React.FC<MapInitializerProps> = ({
           
           if (setCenter && typeof map.on === 'function' && !boundEventHandlersRef.current.moveend) {
             map.on('moveend', () => {
-              if (setCenter) {
+              if (setCenter && map.getCenter) {
                 const center = map.getCenter();
                 setCenter([center.lat, center.lng] as [number, number]);
               }
@@ -83,13 +87,13 @@ const MapInitializer: React.FC<MapInitializerProps> = ({
           
           if (setZoom && typeof map.on === 'function' && !boundEventHandlersRef.current.zoomend) {
             map.on('zoomend', () => {
-              if (setZoom) setZoom(map.getZoom());
+              if (setZoom && map.getZoom) setZoom(map.getZoom());
             });
             boundEventHandlersRef.current.zoomend = true;
           }
           
-          // Call the callback onMapReady if provided
-          if (onMapReady) {
+          // Appeler le callback onMapReady s'il est fourni
+          if (onMapReady && map) {
             console.log("Calling onMapReady callback");
             onMapReady(map);
           }
@@ -102,21 +106,21 @@ const MapInitializer: React.FC<MapInitializerProps> = ({
       console.error("Error in map initialization:", error);
     }
     
-    // Clean up event handlers on unmount
+    // Nettoyer les gestionnaires d'événements lors du démontage
     return () => {
       try {
-        // Only clean up if map is valid and we've attached events
+        // Ne nettoyer que si la carte est valide et que nous avons attaché des événements
         if (map && typeof map.off === 'function' && Object.keys(boundEventHandlersRef.current).length > 0) {
           console.log("Map initializer: safely cleaning up");
           
-          // Only remove handlers we've explicitly added
-          if (boundEventHandlersRef.current.click) map.off('click');
-          if (boundEventHandlersRef.current.dblclick) map.off('dblclick');
-          if (boundEventHandlersRef.current.mousemove) map.off('mousemove');
-          if (boundEventHandlersRef.current.moveend) map.off('moveend');
-          if (boundEventHandlersRef.current.zoomend) map.off('zoomend');
+          // Retirer uniquement les gestionnaires que nous avons explicitement ajoutés
+          if (boundEventHandlersRef.current.click && typeof map.off === 'function') map.off('click');
+          if (boundEventHandlersRef.current.dblclick && typeof map.off === 'function') map.off('dblclick');
+          if (boundEventHandlersRef.current.mousemove && typeof map.off === 'function') map.off('mousemove');
+          if (boundEventHandlersRef.current.moveend && typeof map.off === 'function') map.off('moveend');
+          if (boundEventHandlersRef.current.zoomend && typeof map.off === 'function') map.off('zoomend');
           
-          // Reset the bound events tracking
+          // Réinitialiser le suivi des événements liés
           boundEventHandlersRef.current = {};
         }
       } catch (error) {
