@@ -1,12 +1,29 @@
 
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
+import { toast } from 'sonner';
 
-export const useLocationForm = (initialData?: any) => {
+export interface GeolocationData {
+  lat: number | null;
+  lng: number | null;
+  address: string;
+  accuracy?: number;
+  timestamp?: number;
+}
+
+export interface LocationFormData {
+  date: string;
+  time: string;
+  location: string;
+  description: string;
+  geolocation: GeolocationData;
+}
+
+export const useLocationForm = (initialData?: Partial<LocationFormData>) => {
   const [date, setDate] = useState<string>(initialData?.date || '');
   const [time, setTime] = useState<string>(initialData?.time || '');
   const [location, setLocation] = useState<string>(initialData?.location || '');
   const [description, setDescription] = useState<string>(initialData?.description || '');
-  const [geolocation, setGeolocation] = useState<{lat: number | null, lng: number | null, address: string}>(
+  const [geolocation, setGeolocation] = useState<GeolocationData>(
     initialData?.geolocation || {
       lat: null,
       lng: null,
@@ -33,14 +50,26 @@ export const useLocationForm = (initialData?: any) => {
     }
   };
 
-  const handleSetGeolocation = (data: {lat: number, lng: number, address: string}) => {
+  const handleSetGeolocation = useCallback((data: GeolocationData) => {
     console.log('Setting geolocation data:', data);
     setGeolocation(data);
+    
     // Update the location input if address is provided and location is empty
     if (data.address && (!location || location.trim() === '')) {
       setLocation(data.address);
+      toast.success('Adresse récupérée', {
+        description: 'Le champ lieu a été automatiquement rempli'
+      });
     }
-  };
+  }, [location]);
+
+  const clearGeolocation = useCallback(() => {
+    setGeolocation({
+      lat: null,
+      lng: null,
+      address: ''
+    });
+  }, []);
 
   return {
     date,
@@ -50,6 +79,7 @@ export const useLocationForm = (initialData?: any) => {
     geolocation,
     handleInputChange,
     setGeolocation: handleSetGeolocation,
+    clearGeolocation,
     getLocationData: () => ({
       date,
       time,

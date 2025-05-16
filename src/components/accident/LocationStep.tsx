@@ -1,25 +1,24 @@
 
 import React, { useState } from 'react';
-import { MapPin } from 'lucide-react';
+import { MapPin, X } from 'lucide-react';
 import CurrentLocationButton from './CurrentLocationButton';
 import GeocodingButton from './GeocodingButton';
 import LocationDisplay from './LocationDisplay';
 import AccidentMap from './AccidentMap';
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { toast } from 'sonner';
+import { GeolocationData } from '@/hooks/accident/useLocationForm';
+import { Button } from "@/components/ui/button";
 
 export interface LocationStepProps {
   date: string;
   time: string;
   location: string;
   description?: string;
-  geolocation: {
-    lat: number | null;
-    lng: number | null;
-    address: string;
-  };
+  geolocation: GeolocationData;
   handleInputChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
-  setGeolocation: (data: { lat: number; lng: number; address: string }) => void;
+  setGeolocation: (data: GeolocationData) => void;
+  clearGeolocation?: () => void;
 }
 
 const LocationStep: React.FC<LocationStepProps> = ({
@@ -29,15 +28,25 @@ const LocationStep: React.FC<LocationStepProps> = ({
   description,
   geolocation,
   handleInputChange,
-  setGeolocation
+  setGeolocation,
+  clearGeolocation
 }) => {
   const [isMapVisible, setIsMapVisible] = useState(false);
 
-  const handleGeolocationSuccess = (data: { lat: number; lng: number; address: string }) => {
+  const handleGeolocationSuccess = (data: GeolocationData) => {
     setGeolocation(data);
     toast.success('Position localisée', {
       description: 'La position a été correctement géolocalisée'
     });
+  };
+
+  const handleClearGeolocation = () => {
+    if (clearGeolocation) {
+      clearGeolocation();
+      toast.info('Localisation réinitialisée', {
+        description: 'Les coordonnées GPS ont été effacées'
+      });
+    }
   };
 
   return (
@@ -95,7 +104,19 @@ const LocationStep: React.FC<LocationStepProps> = ({
       <CurrentLocationButton setGeolocation={handleGeolocationSuccess} />
       
       {geolocation.lat && geolocation.lng && (
-        <LocationDisplay geolocation={geolocation} setMapVisible={setIsMapVisible} />
+        <div className="relative">
+          <LocationDisplay geolocation={geolocation} setMapVisible={setIsMapVisible} />
+          {clearGeolocation && (
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              className="absolute top-2 right-2 h-6 w-6" 
+              onClick={handleClearGeolocation}
+            >
+              <X className="h-4 w-4" />
+            </Button>
+          )}
+        </div>
       )}
 
       <div>

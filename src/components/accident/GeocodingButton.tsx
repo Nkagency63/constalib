@@ -4,10 +4,11 @@ import { Search, Loader2 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { Button } from "@/components/ui/button";
+import { GeolocationData } from '@/hooks/accident/useLocationForm';
 
 interface GeocodingButtonProps {
   location: string;
-  setGeolocation: (data: {lat: number, lng: number, address: string}) => void;
+  setGeolocation: (data: GeolocationData) => void;
 }
 
 const GeocodingButton = ({
@@ -28,7 +29,13 @@ const GeocodingButton = ({
     
     try {
       const { data, error } = await supabase.functions.invoke('geocode-location', {
-        body: { address: location }
+        body: { 
+          address: location,
+          options: {
+            includeDetails: true,
+            language: 'fr'
+          }
+        }
       });
 
       if (error) {
@@ -40,10 +47,13 @@ const GeocodingButton = ({
       }
 
       if (data?.success && data?.data) {
+        const timestamp = Date.now();
         setGeolocation({
           lat: data.data.lat,
           lng: data.data.lng,
-          address: data.data.formatted_address
+          address: data.data.formatted_address,
+          accuracy: data.data.accuracy,
+          timestamp
         });
         toast.success("Localisation réussie", {
           description: "Adresse géolocalisée avec succès"

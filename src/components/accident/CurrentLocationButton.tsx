@@ -4,9 +4,10 @@ import { MapPin, Loader2 } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
+import { GeolocationData } from '@/hooks/accident/useLocationForm';
 
 interface CurrentLocationButtonProps {
-  setGeolocation: (data: {lat: number, lng: number, address: string}) => void;
+  setGeolocation: (data: GeolocationData) => void;
 }
 
 const CurrentLocationButton = ({ setGeolocation }: CurrentLocationButtonProps) => {
@@ -20,15 +21,28 @@ const CurrentLocationButton = ({ setGeolocation }: CurrentLocationButtonProps) =
 
     setIsLoading(true);
 
+    const geoOptions = {
+      enableHighAccuracy: true,
+      timeout: 10000,
+      maximumAge: 0
+    };
+
     navigator.geolocation.getCurrentPosition(
       async (position) => {
         const lat = position.coords.latitude;
         const lng = position.coords.longitude;
+        const accuracy = position.coords.accuracy;
+        const timestamp = position.timestamp;
         
         try {
           // Reverse geocoding to get the address
           const { data, error } = await supabase.functions.invoke('geocode-location', {
-            body: { address: `${lat},${lng}` }
+            body: { 
+              address: `${lat},${lng}`,
+              options: {
+                includeDetails: true
+              }
+            }
           });
 
           if (error) {
@@ -39,13 +53,17 @@ const CurrentLocationButton = ({ setGeolocation }: CurrentLocationButtonProps) =
             setGeolocation({
               lat,
               lng,
-              address: `${lat.toFixed(6)}, ${lng.toFixed(6)}`
+              address: `${lat.toFixed(6)}, ${lng.toFixed(6)}`,
+              accuracy,
+              timestamp
             });
           } else if (data?.success && data?.data) {
             setGeolocation({
               lat,
               lng,
-              address: data.data.formatted_address
+              address: data.data.formatted_address,
+              accuracy,
+              timestamp
             });
             toast.success("Position localisée", {
               description: "Votre position actuelle a été détectée"
@@ -58,7 +76,9 @@ const CurrentLocationButton = ({ setGeolocation }: CurrentLocationButtonProps) =
           setGeolocation({
             lat,
             lng,
-            address: `${lat.toFixed(6)}, ${lng.toFixed(6)}`
+            address: `${lat.toFixed(6)}, ${lng.toFixed(6)}`,
+            accuracy,
+            timestamp
           });
           
           toast.error("Une erreur est survenue mais les coordonnées ont été enregistrées");
@@ -82,11 +102,7 @@ const CurrentLocationButton = ({ setGeolocation }: CurrentLocationButtonProps) =
             toast.error("Une erreur inconnue s'est produite");
         }
       },
-      { 
-        enableHighAccuracy: true,
-        timeout: 10000,
-        maximumAge: 0
-      }
+      geoOptions
     );
   };
 
