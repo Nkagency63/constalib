@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React from 'react';
 import BasicInfoStep from './BasicInfoStep';
 import LocationStep from './LocationStep';
 import CircumstancesStep from './CircumstancesStep';
@@ -8,9 +8,9 @@ import InjuriesStep from './InjuriesStep';
 import PhotosStep from './PhotosStep';
 import ReviewStep from './ReviewStep';
 import VehiclesStep from './VehiclesStep';
-import VehicleIdentificationStep from './VehicleIdentificationStep';
 import WitnessStep from './WitnessStep';
 import SchemeStep from './SchemeStep';
+import { WitnessInfo, SchemeData } from './types';
 
 interface StepRendererProps {
   currentStepId: string;
@@ -34,6 +34,7 @@ interface StepRendererProps {
   updateWitness: (index: number, field: string, value: string) => void;
   addWitness: () => void;
   removeWitness: (index: number) => void;
+  onSchemeUpdate?: (schemeData: SchemeData) => void;
 }
 
 const StepRenderer: React.FC<StepRendererProps> = ({
@@ -57,25 +58,33 @@ const StepRenderer: React.FC<StepRendererProps> = ({
   setHasWitnesses,
   updateWitness,
   addWitness,
-  removeWitness
+  removeWitness,
+  onSchemeUpdate
 }) => {
   // Render the appropriate step based on the current step ID
   switch (currentStepId) {
     case 'basics':
       return (
         <BasicInfoStep
-          formData={formData}
-          handleInputChange={handleInputChange}
           date={formData.accidentDate}
           time={formData.accidentTime}
           location={formData.location}
+          hasMaterialDamage={formData.hasMaterialDamage}
+          materialDamageDescription={formData.materialDamageDescription}
+          handleInputChange={handleInputChange}
+          onEmergencyContacted={onEmergencyContacted}
         />
       );
       
     case 'location':
       return (
         <LocationStep
-          formData={formData}
+          date={formData.accidentDate}
+          time={formData.accidentTime}
+          location={formData.location}
+          description={formData.description}
+          geolocation={formData.geolocation || { lat: null, lng: null, address: '' }}
+          handleInputChange={handleInputChange}
           setGeolocation={setGeolocation}
         />
       );
@@ -104,8 +113,8 @@ const StepRenderer: React.FC<StepRendererProps> = ({
       return (
         <CircumstancesStep
           formData={formData}
-          vehicleId={currentVehicleId}
-          setVehicleId={setCurrentVehicleId}
+          currentVehicleId={currentVehicleId}
+          setCurrentVehicleId={setCurrentVehicleId as (id: "A" | "B") => void}
           handleCircumstanceChange={handleCircumstanceChange}
         />
       );
@@ -114,7 +123,6 @@ const StepRenderer: React.FC<StepRendererProps> = ({
       return (
         <InjuriesStep
           formData={formData}
-          handleInputChange={handleInputChange}
           setHasInjuries={setHasInjuries}
           setInjuriesDescription={setInjuriesDescription}
         />
@@ -125,7 +133,7 @@ const StepRenderer: React.FC<StepRendererProps> = ({
         <WitnessStep
           formData={formData}
           setHasWitnesses={setHasWitnesses}
-          updateWitness={updateWitness}
+          updateWitness={updateWitness as (index: number, field: keyof WitnessInfo, value: string) => void}
           addWitness={addWitness}
           removeWitness={removeWitness}
         />
@@ -135,20 +143,16 @@ const StepRenderer: React.FC<StepRendererProps> = ({
       return (
         <SchemeStep
           formData={formData}
-          onSchemeUpdate={(schemeData) => {
-            // Handle scheme data update if needed
-            console.log('Scheme updated:', schemeData);
-          }}
+          onSchemeUpdate={onSchemeUpdate}
         />
       );
       
     case 'photos':
       return (
         <PhotosStep
-          formData={formData}
-          handlePhotoUpload={(type, file) => {
-            if (file) {
-              handlePhotoUpload(type, file);
+          handlePhotoUpload={(type, files) => {
+            if (files && files.length > 0) {
+              handlePhotoUpload(type, files);
             }
           }}
         />
@@ -158,9 +162,6 @@ const StepRenderer: React.FC<StepRendererProps> = ({
       return (
         <ReviewStep
           formData={formData}
-          setInsuranceEmails={setInsuranceEmails}
-          setInvolvedPartyEmails={setInvolvedPartyEmails}
-          setPersonalEmail={setPersonalEmail}
         />
       );
       

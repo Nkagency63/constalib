@@ -1,84 +1,82 @@
 
 import React from 'react';
-import PhotoCapture from '../PhotoCapture';
+import { Button } from "@/components/ui/button";
+import { Camera } from 'lucide-react';
 
 interface PhotosStepProps {
-  vehiclePhotos: File[];
-  damagePhotos: File[];
-  handlePhotoUpload: (type: 'vehiclePhotos' | 'damagePhotos', file: File) => void;
+  handlePhotoUpload: (type: string, files: FileList) => void;
 }
 
-const PhotosStep: React.FC<PhotosStepProps> = ({ vehiclePhotos, damagePhotos, handlePhotoUpload }) => {
+const PhotosStep: React.FC<PhotosStepProps> = ({ handlePhotoUpload }) => {
+  // Handle vehicle photo upload
+  const handleVehiclePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files.length > 0) {
+      handlePhotoUpload('vehicle', e.target.files);
+    }
+  };
+  
+  // Handle damage photo upload
+  const handleDamagePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files.length > 0) {
+      handlePhotoUpload('damage', e.target.files);
+    }
+  };
+
   return (
-    <div className="space-y-8">
-      <div className="space-y-4">
-        <h3 className="text-lg font-medium text-constalib-dark">Photos des véhicules</h3>
-        <p className="text-sm text-constalib-dark-gray">
-          Prenez des photos de l'ensemble des véhicules impliqués dans l'accident.
+    <div className="space-y-6">
+      <div className="bg-white p-4 rounded-lg border border-gray-200">
+        <h3 className="text-lg font-medium mb-4">Photos des véhicules</h3>
+        <p className="text-sm text-gray-600 mb-4">
+          Prenez des photos des véhicules impliqués dans l'accident sous différents angles.
         </p>
         
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <PhotoCapture 
-            onPhotoCapture={(file) => handlePhotoUpload('vehiclePhotos', file)} 
-            label="Photo du véhicule (vue d'ensemble)"
-          />
-          <PhotoCapture 
-            onPhotoCapture={(file) => handlePhotoUpload('vehiclePhotos', file)} 
-            label="Photo de la plaque d'immatriculation"
-          />
-        </div>
-        
-        {vehiclePhotos.length > 0 && (
-          <div className="mt-4">
-            <p className="text-sm font-medium mb-2">{vehiclePhotos.length} photo(s) de véhicule(s) ajoutée(s)</p>
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-              {vehiclePhotos.map((photo, index) => (
-                <div key={index} className="aspect-video bg-gray-100 rounded-md overflow-hidden">
-                  <img 
-                    src={photo instanceof File ? URL.createObjectURL(photo) : photo as string} 
-                    alt={`Vehicle photo ${index + 1}`}
-                    className="w-full h-full object-cover"
-                  />
-                </div>
-              ))}
-            </div>
+        <div className="flex justify-center">
+          <div className="relative">
+            <input
+              type="file"
+              id="vehiclePhotos"
+              accept="image/*"
+              multiple
+              onChange={handleVehiclePhotoChange}
+              className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+            />
+            <Button variant="outline" className="flex items-center gap-2">
+              <Camera className="h-5 w-5" />
+              Ajouter des photos des véhicules
+            </Button>
           </div>
-        )}
+        </div>
       </div>
-      
-      <div className="space-y-4">
-        <h3 className="text-lg font-medium text-constalib-dark">Photos des dégâts</h3>
-        <p className="text-sm text-constalib-dark-gray">
-          Prenez des photos détaillées des dommages subis par les véhicules.
+
+      <div className="bg-white p-4 rounded-lg border border-gray-200">
+        <h3 className="text-lg font-medium mb-4">Photos des dommages</h3>
+        <p className="text-sm text-gray-600 mb-4">
+          Prenez des photos détaillées des dommages causés aux véhicules et à d'autres biens.
         </p>
         
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <PhotoCapture 
-            onPhotoCapture={(file) => handlePhotoUpload('damagePhotos', file)} 
-            label="Photo des dégâts (vue rapprochée)"
-          />
-          <PhotoCapture 
-            onPhotoCapture={(file) => handlePhotoUpload('damagePhotos', file)} 
-            label="Photo supplémentaire (si nécessaire)"
-          />
-        </div>
-        
-        {damagePhotos.length > 0 && (
-          <div className="mt-4">
-            <p className="text-sm font-medium mb-2">{damagePhotos.length} photo(s) de dégâts ajoutée(s)</p>
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-              {damagePhotos.map((photo, index) => (
-                <div key={index} className="aspect-video bg-gray-100 rounded-md overflow-hidden">
-                  <img 
-                    src={photo instanceof File ? URL.createObjectURL(photo) : photo as string} 
-                    alt={`Damage photo ${index + 1}`}
-                    className="w-full h-full object-cover"
-                  />
-                </div>
-              ))}
-            </div>
+        <div className="flex justify-center">
+          <div className="relative">
+            <input
+              type="file"
+              id="damagePhotos"
+              accept="image/*"
+              multiple
+              onChange={handleDamagePhotoChange}
+              className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+            />
+            <Button variant="outline" className="flex items-center gap-2">
+              <Camera className="h-5 w-5" />
+              Ajouter des photos des dommages
+            </Button>
           </div>
-        )}
+        </div>
+      </div>
+
+      <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
+        <p className="text-sm text-blue-800">
+          <strong>Conseil:</strong> Assurez-vous que vos photos sont claires et montrent bien l'étendue des dégâts.
+          Prenez des photos sous plusieurs angles et avec un bon éclairage si possible.
+        </p>
       </div>
     </div>
   );

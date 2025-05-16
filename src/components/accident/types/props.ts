@@ -53,11 +53,27 @@ export interface MultiVehicleStepProps {
 }
 
 export interface BasicInfoStepProps {
-  formData: any;
-  handleInputChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
   date: string;
   time: string;
   location: string;
+  hasMaterialDamage?: boolean;
+  materialDamageDescription?: string;
+  handleInputChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
+  onEmergencyContacted: () => void;
+}
+
+export interface LocationStepProps {
+  date: string;
+  time: string;
+  location: string;
+  description?: string;
+  geolocation: {
+    lat: number | null;
+    lng: number | null;
+    address: string;
+  };
+  handleInputChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
+  setGeolocation: (data: { lat: number; lng: number; address: string }) => void;
 }
 
 export interface VehiclesStepProps {
@@ -70,8 +86,7 @@ export interface VehiclesStepProps {
 }
 
 export interface PhotosStepProps {
-  formData: any;
-  handlePhotoUpload: (type: string, file: FileList) => void;
+  handlePhotoUpload: (type: string, files: FileList) => void;
 }
 
 export interface WitnessStepProps {
@@ -84,7 +99,17 @@ export interface WitnessStepProps {
 
 export interface InjuriesStepProps {
   formData: any;
-  handleInputChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
   setHasInjuries: (hasInjuries: boolean) => void;
   setInjuriesDescription: (description: string) => void;
+}
+
+export interface CircumstancesStepProps {
+  formData: any;
+  currentVehicleId: "A" | "B";
+  setCurrentVehicleId: (id: "A" | "B") => void;
+  handleCircumstanceChange: (vehicleId: "A" | "B", circumstanceId: string, checked: boolean) => void;
+}
+
+export interface ReviewStepProps {
+  formData: any;
 }
