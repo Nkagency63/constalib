@@ -4,7 +4,7 @@ import { FormData } from './types';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from '@/components/ui/separator';
-import { CheckCircle, FilePdf, Send, Clock } from 'lucide-react';
+import { CheckCircle, File, Send, Clock } from 'lucide-react';
 
 interface ReviewStepProps {
   formData: FormData;
@@ -72,7 +72,7 @@ const ReviewStep: React.FC<ReviewStepProps> = ({ formData }) => {
             </>
           ) : (
             <>
-              <FilePdf className="mr-2 h-4 w-4" />
+              <File className="mr-2 h-4 w-4" />
               Télécharger le PDF
             </>
           )}
