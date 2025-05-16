@@ -1,6 +1,7 @@
 
 import React, { useState } from 'react';
 import MultiVehicleStep from './MultiVehicleStep';
+import { useVehicleLookup } from './hooks/useVehicleLookup';
 
 interface VehiclesStepProps {
   formData: any;
@@ -20,6 +21,63 @@ const VehiclesStep: React.FC<VehiclesStepProps> = ({
   setOtherVehicleInfo
 }) => {
   const [vehicleId, setVehicleId] = useState<'A' | 'B'>('A');
+  const [searchTab, setSearchTab] = useState<'siv' | 'fni'>('siv');
+  
+  // Use the vehicle lookup hook for vehicle A
+  const [
+    {
+      isLoading,
+      lookupSuccess,
+      searchError,
+      isFvaLoading,
+      fvaLookupSuccess,
+      fvaError,
+      isFniLoading,
+      fniLookupSuccess,
+      fniError,
+      hasAttemptedLookup
+    },
+    {
+      lookupVehicle,
+      lookupFni,
+      lookupFva
+    }
+  ] = useVehicleLookup({
+    licensePlate: formData.licensePlate,
+    handleInputChange,
+    setVehicleInfo,
+    setInsuranceInfo: (data: {company: string}) => {}
+  });
+  
+  // Use the vehicle lookup hook for vehicle B (other vehicle)
+  const [
+    {
+      isLoading: otherIsLoading,
+      lookupSuccess: otherLookupSuccess,
+      searchError: otherSearchError,
+      isFvaLoading: otherIsFvaLoading,
+      fvaLookupSuccess: otherFvaLookupSuccess,
+      fvaError: otherFvaError,
+      isFniLoading: otherIsFniLoading,
+      fniLookupSuccess: otherFniLookupSuccess,
+      fniError: otherFniError,
+      hasAttemptedLookup: otherHasAttemptedLookup
+    },
+    {
+      lookupVehicle: lookupOtherVehicle,
+      lookupFni: lookupOtherFni,
+      lookupFva: lookupOtherFva
+    }
+  ] = useVehicleLookup({
+    licensePlate: formData.otherVehicle?.licensePlate,
+    handleInputChange: handleOtherVehicleChange,
+    setVehicleInfo: setOtherVehicleInfo,
+    setInsuranceInfo: (data: {company: string}) => {}
+  });
+
+  const handleSearchTabChange = (tab: 'siv' | 'fni') => {
+    setSearchTab(tab);
+  };
 
   return (
     <MultiVehicleStep
@@ -40,6 +98,37 @@ const VehiclesStep: React.FC<VehiclesStepProps> = ({
       vehicleId={vehicleId}
       setVehicleId={setVehicleId}
       emergencyContacted={formData.emergencyContacted || false}
+      handlePhotoUpload={handlePhotoUpload}
+      // Vehicle A lookup methods
+      lookupVehicle={lookupVehicle}
+      lookupFni={lookupFni}
+      lookupFva={lookupFva}
+      isLoading={isLoading}
+      isFvaLoading={isFvaLoading}
+      isFniLoading={isFniLoading}
+      lookupSuccess={lookupSuccess}
+      fvaLookupSuccess={fvaLookupSuccess}
+      fniLookupSuccess={fniLookupSuccess}
+      searchError={searchError}
+      fvaError={fvaError}
+      fniError={fniError}
+      hasAttemptedLookup={hasAttemptedLookup}
+      searchTab={searchTab}
+      onSearchTabChange={handleSearchTabChange}
+      // Vehicle B lookup methods
+      lookupOtherVehicle={lookupOtherVehicle}
+      lookupOtherFni={lookupOtherFni}
+      lookupOtherFva={lookupOtherFva}
+      otherIsLoading={otherIsLoading}
+      otherIsFvaLoading={otherIsFvaLoading}
+      otherIsFniLoading={otherIsFniLoading}
+      otherLookupSuccess={otherLookupSuccess}
+      otherFvaLookupSuccess={otherFvaLookupSuccess}
+      otherFniLookupSuccess={otherFniLookupSuccess}
+      otherSearchError={otherSearchError}
+      otherFvaError={otherFvaError}
+      otherFniError={otherFniError}
+      otherHasAttemptedLookup={otherHasAttemptedLookup}
     />
   );
 };

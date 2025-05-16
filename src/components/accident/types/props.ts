@@ -1,124 +1,90 @@
 
-import { FormData, SchemeData, WitnessInfo, Circumstance } from "../types";
-import { Vehicle, Path, Annotation } from "../types/scheme";
+import { WitnessInfo } from './';
 
-// Props for SignatureDialog
-export interface SignatureDialogProps {
-  open: boolean;
-  onClose: () => void;
-  onSign: (partyA: string, partyB: string) => void;
-}
-
-// Props for OfficialRegistrationDialog
-export interface OfficialRegistrationDialogProps {
-  open: boolean;
-  onClose: () => void;
-  onRegister: () => Promise<void>;
-  isRegistering: boolean;
-  referenceId?: string | null;
-}
-
-// Props for SchemeStep
-export interface SchemeStepProps {
-  formData: FormData;
-  onSchemeUpdate?: (schemeData: SchemeData) => void;
-  handleSchemeData?: (data: SchemeData) => void;
-}
-
-// Props for MultiVehicleStep
 export interface MultiVehicleStepProps {
   licensePlate: string;
   vehicleBrand: string;
   vehicleModel: string;
   vehicleYear: string;
   vehicleDescription: string;
-  firstRegistration?: string;
-  insurancePolicy?: string;
-  insuranceCompany?: string;
-  otherVehicle: FormData['otherVehicle'];
+  firstRegistration: string;
+  insurancePolicy: string;
+  insuranceCompany: string;
+  otherVehicle: any;
   handleInputChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
   handleOtherVehicleChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
-  setVehicleInfo: (data: { brand: string, model: string, year?: string, firstRegistration?: string }) => void;
-  setOtherVehicleInfo: (data: Partial<FormData['otherVehicle']>) => void;
+  setVehicleInfo: (data: {brand: string, model: string, year: string, firstRegistration?: string}) => void;
+  setOtherVehicleInfo: (data: {brand: string, model: string, year: string, firstRegistration?: string}) => void;
   onEmergencyContacted: () => void;
   vehicleId: 'A' | 'B';
-  setVehicleId: (vehicleId: 'A' | 'B') => void;
+  setVehicleId: (id: 'A' | 'B') => void;
   emergencyContacted: boolean;
+  handlePhotoUpload?: (type: string, files: FileList) => void;
+  // Vehicle A lookup methods
+  lookupVehicle?: () => void;
+  lookupFni?: () => void;
+  lookupFva?: () => void;
+  isLoading?: boolean;
+  isFvaLoading?: boolean;
+  isFniLoading?: boolean;
+  lookupSuccess?: boolean;
+  fvaLookupSuccess?: boolean;
+  fniLookupSuccess?: boolean;
+  searchError?: string | null;
+  fvaError?: string | null;
+  fniError?: string | null;
+  hasAttemptedLookup?: boolean;
+  searchTab?: 'siv' | 'fni';
+  onSearchTabChange?: (tab: 'siv' | 'fni') => void;
+  // Vehicle B lookup methods
+  lookupOtherVehicle?: () => void;
+  lookupOtherFni?: () => void;
+  lookupOtherFva?: () => void;
+  otherIsLoading?: boolean;
+  otherIsFvaLoading?: boolean;
+  otherIsFniLoading?: boolean;
+  otherLookupSuccess?: boolean;
+  otherFvaLookupSuccess?: boolean;
+  otherFniLookupSuccess?: boolean;
+  otherSearchError?: string | null;
+  otherFvaError?: string | null;
+  otherFniError?: string | null;
+  otherHasAttemptedLookup?: boolean;
 }
 
-// Props for MapContainer in SchemeMapWrapper
-export interface MapContainerProps {
-  center: [number, number];
-  zoom: number;
-  setCenter: (center: [number, number]) => void;
-  setZoom: (zoom: number) => void;
-  vehicles: Vehicle[];
-  selectedVehicleId?: string;
-  paths: Path[];
-  annotations: Annotation[];
-  onVehicleSelect: (id: string) => void;
-  onRemoveVehicle: (id: string) => void;
-  onRotateVehicle: (id: string, angle: number) => void;
-  onChangeVehicleType: (id: string, type: 'car' | 'truck' | 'bike') => void;
-  onPathSelect: (id: string) => void;
-  onPathRemove: (id: string) => void;
-  onAnnotationSelect: (id: string) => any;
-  onAnnotationRemove: (id: string) => void;
-  onAnnotationUpdate: (id: string, text: string) => void;
-  activeTab: 'vehicles' | 'paths' | 'annotations';
-  readOnly: boolean;
-  onPathStart: (point: [number, number]) => void;
-  onPathContinue: (point: [number, number]) => void;
-  onPathComplete: (color: string) => void;
-  currentPathPoints: [number, number][];
-  isDrawing: boolean;
-  pathColor: string;
-  isTilting: boolean;
-  drawingLayerRef?: React.MutableRefObject<any>;
+export interface BasicInfoStepProps {
+  formData: any;
+  handleInputChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
+  date: string;
+  time: string;
+  location: string;
 }
 
-// Props for VehicleIcon
-export interface VehicleIconProps {
-  type: 'car' | 'truck' | 'bike';
-  rotation: number;
-  color: string;
-  selected?: boolean;
+export interface VehiclesStepProps {
+  formData: any;
+  handleInputChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  handleOtherVehicleChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  handlePhotoUpload: (type: string, files: FileList) => void;
+  setVehicleInfo: (data: any) => void;
+  setOtherVehicleInfo: (data: any) => void;
 }
 
-// Props for VehiclesLayer
-export interface VehiclesLayerProps {
-  vehicles: Vehicle[];
-  selectedVehicleId?: string;
-  onVehicleSelect: (id: string) => void;
-  onVehicleMove?: (id: string, position: [number, number]) => void;
-  readOnly?: boolean;
-  onRemoveVehicle?: (id: string) => void;
-  onRotateVehicle?: (id: string, degrees: number) => void;
-  onChangeVehicleType?: (id: string, type: 'car' | 'truck' | 'bike') => void;
+export interface PhotosStepProps {
+  formData: any;
+  handlePhotoUpload: (type: string, file: FileList) => void;
 }
 
-// Props for SchemeToolbars component
-export interface SchemeToolbarsProps {
-  activeTab?: 'vehicles' | 'paths' | 'annotations';
-  setActiveTab?: (tab: 'vehicles' | 'paths' | 'annotations') => void;
-  vehicles: any;
-  paths: any;
-  annotations: any;
-  pathColor?: string;
-  setPathColor?: (color: string) => void;
-  readOnly: boolean;
-  currentTool: 'select' | 'vehicle' | 'path' | 'annotation';
-  setCurrentTool: (tool: 'select' | 'vehicle' | 'path' | 'annotation') => void;
-  onAddVehicle: () => void;
-  canUndo: boolean;
-  canRedo: boolean;
-  handleUndo: (currentState: any) => any;
-  handleRedo: (currentState: any) => any;
-  setVehicles: (vehicles: Vehicle[]) => void;
-  setPaths: (paths: Path[]) => void;
-  setAnnotations: (annotations: Annotation[]) => void;
-  centerOnVehicles: (vehicles: Vehicle[]) => void;
-  mapRef: React.MutableRefObject<L.Map | null>;
-  currentVehicleType: 'car' | 'truck' | 'bike';
-  onChangeVehicleType: (type: 'car' | 'truck' | 'bike') => void;
+export interface WitnessStepProps {
+  formData: any;
+  setHasWitnesses: (hasWitnesses: boolean) => void;
+  updateWitness: (index: number, field: keyof WitnessInfo, value: string) => void;
+  addWitness: () => void;
+  removeWitness: (index: number) => void;
+}
+
+export interface InjuriesStepProps {
+  formData: any;
+  handleInputChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
+  setHasInjuries: (hasInjuries: boolean) => void;
+  setInjuriesDescription: (description: string) => void;
 }
