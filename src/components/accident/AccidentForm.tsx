@@ -7,7 +7,7 @@ import StepRenderer from './StepRenderer';
 import { accidentFormSteps } from './stepsConfig';
 import { useAccidentForm } from '@/hooks/useAccidentForm';
 import FormSubmissionHandler from './FormSubmissionHandler';
-import { WitnessInfo, Circumstance, SchemeData } from './types';
+import { WitnessInfo, SchemeData } from './types';
 import { FormContext } from '@/context/FormContext';
 
 interface AccidentFormProps {
@@ -46,7 +46,7 @@ const AccidentForm = ({ onEmergencyRequest, onStepChange }: AccidentFormProps) =
   } = useAccidentForm();
 
   // Adapter function for witness management to match expected parameter types
-  const updateWitness = (index: number, field: keyof WitnessInfo, value: string) => {
+  const updateWitness = (index: number, field: string, value: string) => {
     // Find the witness ID by index
     if (formData.witnesses && formData.witnesses[index]) {
       const witnessId = formData.witnesses[index].id;
@@ -59,11 +59,6 @@ const AccidentForm = ({ onEmergencyRequest, onStepChange }: AccidentFormProps) =
       const witnessId = formData.witnesses[index].id;
       originalRemoveWitness(witnessId);
     }
-  };
-
-  // Circumstance change adapter
-  const adaptedCircumstanceChange = (vehicleId: "A" | "B", circumstance: Circumstance, checked: boolean) => {
-    handleCircumstanceChange(vehicleId, circumstance.id, checked);
   };
 
   // Vehicle info adapter with explicit typing
@@ -130,8 +125,8 @@ const AccidentForm = ({ onEmergencyRequest, onStepChange }: AccidentFormProps) =
             setInvolvedPartyEmails={setInvolvedPartyEmails}
             setPersonalEmail={setPersonalEmail}
             onEmergencyContacted={onEmergencyContacted}
-            handleCircumstanceChange={adaptedCircumstanceChange}
-            setCurrentVehicleId={setCurrentVehicleId}
+            handleCircumstanceChange={handleCircumstanceChange}
+            setCurrentVehicleId={(id: string) => setCurrentVehicleId(id as "A" | "B")}
             currentVehicleId={currentVehicleId}
             setHasInjuries={setHasInjuries}
             setInjuriesDescription={setInjuriesDescription}

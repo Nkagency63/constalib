@@ -8,6 +8,7 @@ import ReviewStep from './ReviewStep';
 import InjuriesStep from './InjuriesStep';
 import DriverAndInsuredStep from './DriverAndInsuredStep';
 import SchemeStep from './SchemeStep';
+import { Circumstance, SchemeData } from './types';
 
 interface StepRendererProps {
   currentStepId: string;
@@ -31,7 +32,7 @@ interface StepRendererProps {
   updateWitness: (index: number, field: string, value: string) => void;
   addWitness: () => void;
   removeWitness: (index: number) => void;
-  onSchemeUpdate?: (schemeData: any) => void;
+  onSchemeUpdate?: (schemeData: SchemeData) => void;
 }
 
 const StepRenderer: React.FC<StepRendererProps> = ({
@@ -107,7 +108,9 @@ const StepRenderer: React.FC<StepRendererProps> = ({
       return (
         <CircumstancesStep
           formData={formData}
-          handleCircumstanceChange={handleCircumstanceChange}
+          handleCircumstanceChange={(vehicleId, circumstanceId, checked) => 
+            handleCircumstanceChange(vehicleId, circumstanceId, checked)
+          }
           setCurrentVehicleId={setCurrentVehicleId}
           currentVehicleId={currentVehicleId}
         />

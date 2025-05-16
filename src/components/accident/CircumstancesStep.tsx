@@ -1,54 +1,57 @@
+
 import React from 'react';
 import { Circumstance } from './types';
 
-export interface CircumstancesStepProps {
-  vehicleACircumstances: Circumstance[];
-  vehicleBCircumstances: Circumstance[];
-  handleCircumstanceChange: (vehicleId: string, circumstance: Circumstance, checked: boolean) => void;
+interface CircumstancesStepProps {
+  formData: any;
+  handleCircumstanceChange: (vehicleId: string, circumstanceId: string, checked: boolean) => void;
   currentVehicleId: string;
   setCurrentVehicleId?: (id: string) => void;
 }
 
 const CircumstancesStep: React.FC<CircumstancesStepProps> = ({
-  vehicleACircumstances,
-  vehicleBCircumstances,
+  formData,
   handleCircumstanceChange,
   currentVehicleId,
   setCurrentVehicleId
 }) => {
+  // Get circumstances from formData
+  const vehicleACircumstances = formData.circumstancesA || [];
+  const vehicleBCircumstances = formData.circumstancesB || [];
+
   // List of all possible circumstances
   const circumstances: Circumstance[] = [
-    { id: "1", text: "En stationnement", label: "1", image: "/circumstances/1.svg" },
-    { id: "2", text: "Quittait un stationnement", label: "2", image: "/circumstances/2.svg" },
-    { id: "3", text: "Prenait un stationnement", label: "3", image: "/circumstances/3.svg" },
-    { id: "4", text: "Sortait d'un parking, d'un lieu privé, d'un chemin de terre", label: "4", image: "/circumstances/4.svg" },
-    { id: "5", text: "S'engageait dans un parking, un lieu privé, un chemin de terre", label: "5", image: "/circumstances/5.svg" },
-    { id: "6", text: "S'engageait sur une place à sens giratoire", label: "6", image: "/circumstances/6.svg" },
-    { id: "7", text: "Roulait sur une place à sens giratoire", label: "7", image: "/circumstances/7.svg" },
-    { id: "8", text: "Heurtait à l'arrière, en roulant dans le même sens et sur une même file", label: "8", image: "/circumstances/8.svg" },
-    { id: "9", text: "Roulait dans le même sens et sur une file différente", label: "9", image: "/circumstances/9.svg" },
-    { id: "10", text: "Changeait de file", label: "10", image: "/circumstances/10.svg" },
-    { id: "11", text: "Doublait", label: "11", image: "/circumstances/11.svg" },
-    { id: "12", text: "Virait à droite", label: "12", image: "/circumstances/12.svg" },
-    { id: "13", text: "Virait à gauche", label: "13", image: "/circumstances/13.svg" },
-    { id: "14", text: "Reculait", label: "14", image: "/circumstances/14.svg" },
-    { id: "15", text: "Empiétait sur une voie réservée à la circulation en sens inverse", label: "15", image: "/circumstances/15.svg" },
-    { id: "16", text: "Venait de droite (dans un carrefour)", label: "16", image: "/circumstances/16.svg" },
-    { id: "17", text: "N'avait pas observé un signal de priorité ou un feu rouge", label: "17", image: "/circumstances/17.svg" },
+    { id: "1", label: "En stationnement", code: "1" },
+    { id: "2", label: "Quittait un stationnement", code: "2" },
+    { id: "3", label: "Prenait un stationnement", code: "3" },
+    { id: "4", label: "Sortait d'un parking, d'un lieu privé, d'un chemin de terre", code: "4" },
+    { id: "5", label: "S'engageait dans un parking, un lieu privé, un chemin de terre", code: "5" },
+    { id: "6", label: "S'engageait sur une place à sens giratoire", code: "6" },
+    { id: "7", label: "Roulait sur une place à sens giratoire", code: "7" },
+    { id: "8", label: "Heurtait à l'arrière, en roulant dans le même sens et sur une même file", code: "8" },
+    { id: "9", label: "Roulait dans le même sens et sur une file différente", code: "9" },
+    { id: "10", label: "Changeait de file", code: "10" },
+    { id: "11", label: "Doublait", code: "11" },
+    { id: "12", label: "Virait à droite", code: "12" },
+    { id: "13", label: "Virait à gauche", code: "13" },
+    { id: "14", label: "Reculait", code: "14" },
+    { id: "15", label: "Empiétait sur une voie réservée à la circulation en sens inverse", code: "15" },
+    { id: "16", label: "Venait de droite (dans un carrefour)", code: "16" },
+    { id: "17", label: "N'avait pas observé un signal de priorité ou un feu rouge", code: "17" },
   ];
 
   // Check if a circumstance is selected for a vehicle
   const isCircumstanceSelected = (vehicleId: string, circumstanceId: string) => {
     if (vehicleId === "A") {
-      return vehicleACircumstances.some(c => c.id === circumstanceId);
+      return vehicleACircumstances.some((c: Circumstance) => c.id === circumstanceId && c.selected);
     } else {
-      return vehicleBCircumstances.some(c => c.id === circumstanceId);
+      return vehicleBCircumstances.some((c: Circumstance) => c.id === circumstanceId && c.selected);
     }
   };
 
   // Handle checkbox change
-  const handleCheckboxChange = (vehicleId: string, circumstance: Circumstance, checked: boolean) => {
-    handleCircumstanceChange(vehicleId, circumstance, checked);
+  const handleCheckboxChange = (vehicleId: string, circumstanceId: string, checked: boolean) => {
+    handleCircumstanceChange(vehicleId, circumstanceId, checked);
   };
 
   // Switch between vehicles
@@ -107,24 +110,16 @@ const CircumstancesStep: React.FC<CircumstancesStepProps> = ({
               id={`circumstance-${currentVehicleId}-${circumstance.id}`}
               className="w-4 h-4 mt-1 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500"
               checked={isCircumstanceSelected(currentVehicleId, circumstance.id)}
-              onChange={(e) => handleCheckboxChange(currentVehicleId, circumstance, e.target.checked)}
+              onChange={(e) => handleCheckboxChange(currentVehicleId, circumstance.id, e.target.checked)}
             />
             <label
               htmlFor={`circumstance-${currentVehicleId}-${circumstance.id}`}
               className="ml-3 text-sm font-medium text-gray-900 cursor-pointer flex items-center"
             >
               <div className="flex-shrink-0 w-12 h-12 mr-3 bg-gray-100 rounded flex items-center justify-center">
-                {circumstance.image ? (
-                  <img
-                    src={circumstance.image}
-                    alt={circumstance.text}
-                    className="w-10 h-10 object-contain"
-                  />
-                ) : (
-                  <span className="text-lg font-bold">{circumstance.label}</span>
-                )}
+                <span className="text-lg font-bold">{circumstance.code}</span>
               </div>
-              <span>{circumstance.text}</span>
+              <span>{circumstance.label}</span>
             </label>
           </div>
         ))}
@@ -135,13 +130,15 @@ const CircumstancesStep: React.FC<CircumstancesStepProps> = ({
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <h5 className="font-medium text-sm mb-1">Véhicule A</h5>
-            {vehicleACircumstances.length > 0 ? (
+            {vehicleACircumstances.filter((c: Circumstance) => c.selected).length > 0 ? (
               <ul className="list-disc pl-5 text-sm">
-                {vehicleACircumstances.map((c) => (
-                  <li key={c.id} className="mb-1">
-                    {c.text}
-                  </li>
-                ))}
+                {vehicleACircumstances
+                  .filter((c: Circumstance) => c.selected)
+                  .map((c: Circumstance) => (
+                    <li key={c.id} className="mb-1">
+                      {c.label}
+                    </li>
+                  ))}
               </ul>
             ) : (
               <p className="text-sm text-gray-500">Aucune circonstance sélectionnée</p>
@@ -149,13 +146,15 @@ const CircumstancesStep: React.FC<CircumstancesStepProps> = ({
           </div>
           <div>
             <h5 className="font-medium text-sm mb-1">Véhicule B</h5>
-            {vehicleBCircumstances.length > 0 ? (
+            {vehicleBCircumstances.filter((c: Circumstance) => c.selected).length > 0 ? (
               <ul className="list-disc pl-5 text-sm">
-                {vehicleBCircumstances.map((c) => (
-                  <li key={c.id} className="mb-1">
-                    {c.text}
-                  </li>
-                ))}
+                {vehicleBCircumstances
+                  .filter((c: Circumstance) => c.selected)
+                  .map((c: Circumstance) => (
+                    <li key={c.id} className="mb-1">
+                      {c.label}
+                    </li>
+                  ))}
               </ul>
             ) : (
               <p className="text-sm text-gray-500">Aucune circonstance sélectionnée</p>
