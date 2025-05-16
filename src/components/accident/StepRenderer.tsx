@@ -115,7 +115,7 @@ const StepRenderer: React.FC<StepRendererProps> = ({
         />
       );
       
-    case 'drivers':
+    case 'persons':
       return (
         <DriverAndInsuredStep
           formData={formData}
@@ -193,7 +193,7 @@ const StepRenderer: React.FC<StepRendererProps> = ({
         />
       );
 
-    case 'email':
+    case 'emails':
       return (
         <EmailStep
           personalEmail={formData.personalEmail || ''}
@@ -213,7 +213,7 @@ const StepRenderer: React.FC<StepRendererProps> = ({
       );
 
     default:
-      return <div>Étape non reconnue</div>;
+      return <div>Étape non reconnue: {currentStepId}</div>;
   }
 };
 
