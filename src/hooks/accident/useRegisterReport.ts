@@ -20,6 +20,15 @@ interface ServiceInjuryInfo {
   description?: string;
 }
 
+// Interface for geolocation data to ensure proper typing
+interface GeolocationData {
+  lat: number;
+  lng: number;
+  address?: string;
+  accuracy?: number;
+  timestamp?: number;
+}
+
 export const useRegisterReport = ({ formData, signatures }: UseRegisterReportProps) => {
   const [isRegistering, setIsRegistering] = useState(false);
   const [showOfficialDialog, setShowOfficialDialog] = useState(false);
@@ -109,12 +118,13 @@ export const useRegisterReport = ({ formData, signatures }: UseRegisterReportPro
         vehicleB: (formData.vehicleBCircumstances || []).map((circ: Circumstance) => circ.id)
       };
 
-      const geolocation = {
+      // Properly convert formData.geolocation to the expected format with proper type handling
+      const geolocation: GeolocationData = {
         lat: formData.geolocation.lat,
         lng: formData.geolocation.lng,
-        address: formData.geolocation.address,
-        accuracy: formData.geolocation.accuracy || 0,
-        timestamp: formData.geolocation.timestamp || Date.now()
+        address: formData.geolocation.address || "",
+        accuracy: (formData.geolocation as any).accuracy || 0,
+        timestamp: (formData.geolocation as any).timestamp || Date.now()
       };
       
       const signatureData = {
