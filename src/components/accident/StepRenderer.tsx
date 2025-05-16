@@ -1,3 +1,4 @@
+
 import React from 'react';
 import BasicInfoStep from './BasicInfoStep';
 import VehicleIdentificationStep from './VehicleIdentificationStep';
@@ -117,28 +118,7 @@ const StepRenderer: React.FC<StepRendererProps> = ({
     case 'drivers':
       return (
         <DriverAndInsuredStep
-          driver={{
-            name: formData.driverName || '',
-            address: formData.driverAddress || '',
-            phone: formData.driverPhone || '',
-            license: formData.driverLicense || ''
-          }}
-          insured={{
-            name: formData.insuredName || '',
-            address: formData.insuredAddress || '',
-            phone: formData.insuredPhone || ''
-          }}
-          otherDriver={{
-            name: formData.otherDriverName || '',
-            address: formData.otherDriverAddress || '',
-            phone: formData.otherDriverPhone || '',
-            license: formData.otherDriverLicense || ''
-          }}
-          otherInsured={{
-            name: formData.otherInsuredName || '',
-            address: formData.otherInsuredAddress || '',
-            phone: formData.otherInsuredPhone || ''
-          }}
+          formData={formData}
           handleInputChange={handleInputChange}
         />
       );
