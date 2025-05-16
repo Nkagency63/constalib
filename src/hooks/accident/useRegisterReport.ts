@@ -113,8 +113,8 @@ export const useRegisterReport = ({ formData, signatures }: UseRegisterReportPro
         lat: formData.geolocation.lat,
         lng: formData.geolocation.lng,
         address: formData.geolocation.address,
-        accuracy: formData.geolocation.accuracy,
-        timestamp: formData.geolocation.timestamp
+        accuracy: formData.geolocation.accuracy || 0,
+        timestamp: formData.geolocation.timestamp || Date.now()
       };
       
       const signatureData = {
