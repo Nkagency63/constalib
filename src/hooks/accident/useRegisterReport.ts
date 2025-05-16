@@ -115,6 +115,7 @@ export const useRegisterReport = ({ formData, signatures }: UseRegisterReportPro
         lat: formData.geolocation.lat || 0,
         lng: formData.geolocation.lng || 0,
         address: formData.geolocation.address || "",
+        // Set default values for optional properties
         accuracy: formData.geolocation.accuracy || 0,
         timestamp: formData.geolocation.timestamp || Date.now()
       };

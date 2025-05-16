@@ -1,3 +1,4 @@
+
 // Vehicle types for the scheme
 export interface Vehicle {
   id: string;
@@ -5,6 +6,7 @@ export interface Vehicle {
   rotation: number;
   color: string;
   type: 'car' | 'truck' | 'bike';
+  label?: string;
 }
 
 export interface Path {

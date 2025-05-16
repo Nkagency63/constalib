@@ -11,7 +11,7 @@ export const accidentFormSteps = [
     description: 'Identification des véhicules concernés'
   },
   {
-    id: 'persons',
+    id: 'drivers',
     title: 'Conducteurs et assurés',
     description: 'Informations sur les conducteurs et les assurés'
   },
