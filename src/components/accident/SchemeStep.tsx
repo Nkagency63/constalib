@@ -1,7 +1,7 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { FormData, SchemeData } from './types';
-import SchemeContainer from './scheme/SchemeContainer';
+import InteractiveScheme from './InteractiveScheme';
 import { toast } from 'sonner';
 import { TooltipProvider } from '@/components/ui/tooltip';
 
@@ -12,15 +12,32 @@ interface SchemeStepProps {
 
 const SchemeStep: React.FC<SchemeStepProps> = ({ formData, onSchemeUpdate }) => {
   const [hasShownUpdateToast, setHasShownUpdateToast] = useState(false);
+  const [schemeData, setSchemeData] = useState<SchemeData>({
+    vehicles: [],
+    paths: [],
+    annotations: [],
+    center: formData?.geolocation?.lat && formData?.geolocation?.lng 
+      ? [formData.geolocation.lat, formData.geolocation.lng] 
+      : [48.8566, 2.3522],
+    zoom: 17
+  });
   
-  const handleSchemeUpdate = (schemeData: SchemeData) => {
-    console.log('Scheme data saved:', schemeData);
+  // Initialize with existing scheme data if available in formData
+  useEffect(() => {
+    if (formData.schemeData) {
+      setSchemeData(formData.schemeData);
+    }
+  }, [formData.schemeData]);
+
+  const handleSchemeUpdate = (updatedSchemeData: SchemeData) => {
+    console.log('Scheme data saved:', updatedSchemeData);
+    setSchemeData(updatedSchemeData);
     
     // Show toast only on first meaningful update
     if (!hasShownUpdateToast && (
-      schemeData.vehicles.length > 0 || 
-      schemeData.paths.length > 0 || 
-      schemeData.annotations.length > 0
+      updatedSchemeData.vehicles.length > 0 || 
+      updatedSchemeData.paths.length > 0 || 
+      updatedSchemeData.annotations.length > 0
     )) {
       toast("Les modifications sont enregistrées automatiquement");
       setHasShownUpdateToast(true);
@@ -28,7 +45,7 @@ const SchemeStep: React.FC<SchemeStepProps> = ({ formData, onSchemeUpdate }) => 
     
     // If a handler was provided, call it with the updated scheme data
     if (onSchemeUpdate) {
-      onSchemeUpdate(schemeData);
+      onSchemeUpdate(updatedSchemeData);
     }
   };
   
@@ -42,9 +59,10 @@ const SchemeStep: React.FC<SchemeStepProps> = ({ formData, onSchemeUpdate }) => 
           </p>
           
           <div className="h-[500px] rounded-lg overflow-hidden">
-            <SchemeContainer
+            <InteractiveScheme
               formData={formData}
-              onSchemeUpdate={handleSchemeUpdate}
+              onUpdateSchemeData={handleSchemeUpdate}
+              initialData={schemeData}
             />
           </div>
         </div>

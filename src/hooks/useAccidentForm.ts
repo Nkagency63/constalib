@@ -1,122 +1,221 @@
 
-import { useState, useMemo } from 'react';
-import { FormData, Circumstance } from '@/components/accident/types';
-import { useToast } from '@/hooks/use-toast';
-import { useFormNavigation } from './accident/useFormNavigation';
-import { useVehicleForm } from './accident/useVehicleForm';
-import { useCircumstancesForm } from './accident/useCircumstancesForm';
-import { useWitnessForm } from './accident/useWitnessForm';
-import { useInjuriesForm } from './accident/useInjuriesForm';
-import { useLocationForm } from './accident/useLocationForm';
-import { usePhotosForm } from './accident/usePhotosForm';
-import { useEmailForm } from './accident/useEmailForm';
-import { useEmergencyForm } from './accident/useEmergencyForm';
+import { useState } from 'react';
+import { v4 as uuidv4 } from 'uuid';
+import { WitnessInfo, SchemeData, Circumstance } from '@/components/accident/types';
+import { toast } from 'sonner';
+import { DEFAULT_CIRCUMSTANCES } from '@/components/accident/defaultCircumstances';
 
 export const useAccidentForm = () => {
-  // Toast notification hook
-  const { toast: uiToast } = useToast();
+  const [currentStepIndex, setCurrentStepIndex] = useState(0);
+  const [submitted, setSubmitted] = useState(false);
+  const [currentVehicleId, setCurrentVehicleId] = useState<"A" | "B">("A");
   
-  // Initialize all the specialized form hooks
-  const navigation = useFormNavigation();
-  const vehicleForm = useVehicleForm();
-  const circumstancesForm = useCircumstancesForm();
-  const witnessForm = useWitnessForm();
-  const injuriesForm = useInjuriesForm();
-  const locationForm = useLocationForm();
-  const photosForm = usePhotosForm();
-  const emailForm = useEmailForm();
-  const emergencyForm = useEmergencyForm();
+  const [formData, setFormData] = useState<any>({
+    // Set default values for form fields
+    accidentDate: new Date().toISOString().split('T')[0],
+    accidentTime: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+    circumstancesA: DEFAULT_CIRCUMSTANCES,
+    circumstancesB: DEFAULT_CIRCUMSTANCES.map(c => ({ ...c })), // Create separate instances
+    witnesses: []
+  });
 
-  // Combine all form data into a single FormData object
-  const formData: FormData = useMemo(() => {
-    // Using type casting to avoid type conflicts
-    const combinedData = {
-      hasMaterialDamage: false, // Adding the missing required field with a default value
-      materialDamageDescription: '',
-      ...locationForm.getLocationData(),
-      ...vehicleForm.getVehicleData(),
-      ...(circumstancesForm.getCircumstancesData() as any),
-      ...witnessForm.getWitnessData(),
-      ...injuriesForm.getInjuriesData(),
-      ...photosForm.getPhotosData(),
-      ...emailForm.getEmailData(),
-      ...emergencyForm.getEmergencyData()
+  // Handle input changes
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target;
+    setFormData((prev: any) => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+
+  // Handle other vehicle changes
+  const handleOtherVehicleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setFormData((prev: any) => ({
+      ...prev,
+      otherVehicle: {
+        ...prev.otherVehicle || {},
+        [name]: value
+      }
+    }));
+  };
+
+  // Handle circumstance changes
+  const handleCircumstanceChange = (vehicleId: "A" | "B", circumstanceId: string, checked: boolean) => {
+    const field = vehicleId === "A" ? "circumstancesA" : "circumstancesB";
+    
+    setFormData((prev: any) => ({
+      ...prev,
+      [field]: prev[field].map((c: Circumstance) => 
+        c.id === circumstanceId ? { ...c, selected: checked } : c
+      )
+    }));
+  };
+
+  // Handle photo upload
+  const handlePhotoUpload = (field: string, file: File) => {
+    setFormData((prev: any) => ({
+      ...prev,
+      [field]: [...(prev[field] || []), file]
+    }));
+    toast.success("Photo ajoutée");
+  };
+
+  // Set vehicle info
+  const setVehicleInfo = (data: any) => {
+    setFormData((prev: any) => ({
+      ...prev,
+      ...data
+    }));
+  };
+
+  // Set other vehicle info
+  const setOtherVehicleInfo = (data: any) => {
+    setFormData((prev: any) => ({
+      ...prev,
+      otherVehicle: {
+        ...prev.otherVehicle || {},
+        ...data
+      }
+    }));
+  };
+
+  // Set geolocation
+  const setGeolocation = (location: { lat: number; lng: number; address: string }) => {
+    setFormData((prev: any) => ({
+      ...prev,
+      geolocation: location
+    }));
+  };
+
+  // Set insurance emails
+  const setInsuranceEmails = (emails: string[]) => {
+    setFormData((prev: any) => ({
+      ...prev,
+      insuranceEmails: emails
+    }));
+  };
+
+  // Set involved party emails
+  const setInvolvedPartyEmails = (emails: string[]) => {
+    setFormData((prev: any) => ({
+      ...prev,
+      involvedPartyEmails: emails
+    }));
+  };
+
+  // Set personal email
+  const setPersonalEmail = (email: string) => {
+    setFormData((prev: any) => ({
+      ...prev,
+      personalEmail: email
+    }));
+  };
+
+  // Emergency contacted flag
+  const onEmergencyContacted = () => {
+    setFormData((prev: any) => ({
+      ...prev,
+      emergencyContacted: true
+    }));
+  };
+
+  // Handle witnesses
+  const setHasWitnesses = (hasWitnesses: boolean) => {
+    setFormData((prev: any) => ({
+      ...prev,
+      hasWitnesses
+    }));
+  };
+
+  const addWitness = () => {
+    const newWitness: WitnessInfo = {
+      id: uuidv4(),
+      name: '',
+      contact: '',
+      address: ''
     };
     
-    // Ensure circumstance data is properly populated as Circumstance[] objects
-    if (!combinedData.vehicleACircumstances) {
-      combinedData.vehicleACircumstances = [] as Circumstance[];
-    }
-    
-    if (!combinedData.vehicleBCircumstances) {
-      combinedData.vehicleBCircumstances = [] as Circumstance[];
-    }
-    
-    return combinedData as FormData;
-  }, [
-    locationForm,
-    vehicleForm,
-    circumstancesForm,
-    witnessForm,
-    injuriesForm,
-    photosForm,
-    emailForm,
-    emergencyForm
-  ]);
+    setFormData((prev: any) => ({
+      ...prev,
+      witnesses: [...(prev.witnesses || []), newWitness]
+    }));
+  };
+
+  const updateWitness = (id: string, field: keyof WitnessInfo, value: string) => {
+    setFormData((prev: any) => ({
+      ...prev,
+      witnesses: prev.witnesses.map((w: WitnessInfo) => 
+        w.id === id ? { ...w, [field]: value } : w
+      )
+    }));
+  };
+
+  const removeWitness = (id: string) => {
+    setFormData((prev: any) => ({
+      ...prev,
+      witnesses: prev.witnesses.filter((w: WitnessInfo) => w.id !== id)
+    }));
+  };
+
+  // Handle injuries
+  const setHasInjuries = (hasInjuries: boolean) => {
+    setFormData((prev: any) => ({
+      ...prev,
+      hasInjuries
+    }));
+  };
+
+  const setInjuriesDescription = (injuriesDescription: string) => {
+    setFormData((prev: any) => ({
+      ...prev,
+      injuriesDescription
+    }));
+  };
+  
+  // Handle scheme data
+  const setSchemeData = (schemeData: SchemeData) => {
+    setFormData((prev: any) => ({
+      ...prev,
+      schemeData
+    }));
+  };
+
+  // Step navigation
+  const nextStep = () => {
+    setCurrentStepIndex(Math.min(currentStepIndex + 1, 7)); // Assuming we have 8 steps (0-7)
+  };
+
+  const prevStep = () => {
+    setCurrentStepIndex(Math.max(currentStepIndex - 1, 0));
+  };
 
   return {
-    // Form data
     formData,
-    
-    // Navigation state and methods
-    currentStepIndex: navigation.currentStepIndex,
-    submitted: navigation.submitted,
-    isSubmitting: navigation.isSubmitting,
-    nextStep: navigation.nextStep,
-    prevStep: navigation.prevStep,
-    setCurrentStepIndex: navigation.setCurrentStepIndex,
-    setSubmitted: navigation.setSubmitted,
-    setIsSubmitting: navigation.setIsSubmitting,
-    
-    // Vehicle form methods
-    currentVehicleId: vehicleForm.currentVehicleId,
-    handleInputChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-      locationForm.handleInputChange(e);
-      vehicleForm.handleInputChange(e);
-    },
-    handleOtherVehicleChange: vehicleForm.handleOtherVehicleChange,
-    setVehicleInfo: vehicleForm.setVehicleInfo,
-    setOtherVehicleInfo: vehicleForm.setOtherVehicleInfo,
-    setCurrentVehicleId: vehicleForm.updateCurrentVehicleId,
-    
-    // Circumstance form methods
-    handleCircumstanceChange: circumstancesForm.handleCircumstanceChange,
-    
-    // Witness form methods
-    setHasWitnesses: witnessForm.setHasWitnesses,
-    updateWitness: witnessForm.updateWitness,
-    addWitness: witnessForm.addWitness,
-    removeWitness: witnessForm.removeWitness,
-    
-    // Injuries form methods
-    setHasInjuries: injuriesForm.setHasInjuries,
-    setInjuriesDescription: injuriesForm.setInjuriesDescription,
-    
-    // Location/geolocation methods
-    setGeolocation: locationForm.setGeolocation,
-    
-    // Photo upload methods
-    handlePhotoUpload: photosForm.handlePhotoUpload,
-    
-    // Email form methods
-    setPersonalEmail: emailForm.setPersonalEmail,
-    setInsuranceEmails: emailForm.setInsuranceEmails,
-    setInvolvedPartyEmails: emailForm.setInsuranceEmails,
-    
-    // Emergency methods
-    onEmergencyContacted: emergencyForm.onEmergencyContacted,
-    
-    // Toast notifications
-    uiToast
+    currentStepIndex,
+    submitted,
+    currentVehicleId,
+    handleInputChange,
+    handleOtherVehicleChange,
+    handleCircumstanceChange,
+    handlePhotoUpload,
+    setVehicleInfo,
+    setOtherVehicleInfo,
+    setGeolocation,
+    setInsuranceEmails,
+    setInvolvedPartyEmails,
+    setPersonalEmail,
+    setCurrentVehicleId,
+    onEmergencyContacted,
+    nextStep,
+    prevStep,
+    setSubmitted,
+    setHasInjuries,
+    setInjuriesDescription,
+    setHasWitnesses,
+    updateWitness,
+    addWitness,
+    removeWitness,
+    setSchemeData
   };
 };

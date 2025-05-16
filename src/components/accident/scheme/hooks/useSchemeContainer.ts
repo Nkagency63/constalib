@@ -7,6 +7,7 @@ import { useAnnotations } from '../../hooks/useAnnotations';
 import { useSchemeMap } from '../../hooks/useSchemeMap';
 import L from 'leaflet';
 import { toast } from 'sonner';
+import { handleMapClick } from '../SchemeMapHandlers';
 
 interface UseSchemeContainerProps {
   initialData?: SchemeData;
@@ -63,35 +64,37 @@ export const useSchemeContainer = ({
     }
   }, [formData, initialData]);
 
-  // Map click handler
-  const handleMapClick = (e: L.LeafletMouseEvent) => {
-    if (readOnly) return;
-    
-    const latlng = e.latlng;
-    const coords: [number, number] = [latlng.lat, latlng.lng];
-    
-    switch (currentTool) {
-      case 'vehicle':
-        vehiclesHook.addVehicle(coords);
-        break;
-      case 'path':
-        if (pathsHook.isDrawing) {
-          pathsHook.continuePath(coords);
-        } else {
-          pathsHook.startPath(coords);
-        }
-        break;
-      case 'annotation':
-        annotationsHook.addAnnotation(coords, 'Double-click to edit');
-        break;
-    }
-  };
+  // Map click handler integration with SchemeMapHandlers
+  const handleMapClickWrapper = useCallback((e: L.LeafletMouseEvent) => {
+    handleMapClick(e, {
+      readOnly,
+      currentTool,
+      vehicles: vehiclesHook.vehicles,
+      paths: pathsHook.paths,
+      annotations: annotationsHook.annotations,
+      selectedVehicle: vehiclesHook.selectedVehicle,
+      isDrawing: pathsHook.isDrawing,
+      centerOnVehicles: handleCenterOnVehicles,
+      saveToHistory: () => ({}), // We'll implement history later if needed
+      addVehicle: (latlng: L.LatLng) => {
+        const coords: [number, number] = [latlng.lat, latlng.lng];
+        return vehiclesHook.addVehicle(coords);
+      },
+      selectVehicle: vehiclesHook.selectVehicle,
+      startPath: pathsHook.startPath,
+      continuePath: pathsHook.continuePath,
+      addAnnotation: (point: [number, number]) => {
+        annotationsHook.addAnnotation(point, 'Double-cliquez pour éditer');
+        return annotationsHook.annotations;
+      }
+    });
+  }, [readOnly, currentTool, vehiclesHook, pathsHook, annotationsHook]);
   
-  // Corrigeons l'intégration avec useSchemeMap
-  const { mapRef, drawingLayerRef: mapDrawingLayerRef, handleMapReady: handleMapReadyFromHook, centerOnVehicles } = 
+  // Integration with useSchemeMap
+  const { mapRef, handleMapReady: handleMapReadyFromHook, centerOnVehicles } = 
     useSchemeMap({ 
       readOnly, 
-      handleMapClick,
+      handleMapClick: handleMapClickWrapper,
       onReady: (map) => handleMapReady(map)
     });
   
@@ -100,7 +103,7 @@ export const useSchemeContainer = ({
     centerOnVehicles(vehiclesHook.vehicles);
   }, [centerOnVehicles, vehiclesHook.vehicles]);
 
-  // Map ready handler - pour recevoir le paramètre map
+  // Map ready handler
   const handleMapReady = useCallback((map: L.Map) => {
     // Initialize the drawing layer if needed
     if (!drawingLayerRef.current) {
@@ -166,7 +169,7 @@ export const useSchemeContainer = ({
     removeAnnotation: annotationsHook.removeAnnotation,
     
     // Handlers
-    handleMapClick,
+    handleMapClick: handleMapClickWrapper,
     handleMapReady,
     handleMapReadyFromHook,
     handleCenterOnVehicles,

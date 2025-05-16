@@ -1,40 +1,37 @@
 
 import React from 'react';
 import BasicInfoStep from './BasicInfoStep';
-import VehicleIdentificationStep from './VehicleIdentificationStep';
-import DriverAndInsuredStep from './DriverAndInsuredStep';
-import LocationStep from './LocationStep';
-import DetailsStep from './DetailsStep';
+import VehiclesStep from './VehiclesStep';
+import WitnessStep from './WitnessStep';
 import CircumstancesStep from './CircumstancesStep';
-import EmailStep from './EmailStep';
 import ReviewStep from './ReviewStep';
+import InjuriesStep from './InjuriesStep';
+import DriverAndInsuredStep from './DriverAndInsuredStep';
 import SchemeStep from './SchemeStep';
-import PhotosStep from './PhotosStep';
-import { FormData, SchemeData, WitnessInfo, Circumstance } from './types';
-import MultiVehicleStep from './MultiVehicleStep';
 
 interface StepRendererProps {
   currentStepId: string;
-  formData: FormData;
-  handleInputChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
-  handleOtherVehicleChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  formData: any;
+  handleInputChange: (e: any) => void;
+  handleOtherVehicleChange: (e: any) => void;
   handlePhotoUpload: (type: string, files: FileList) => void;
-  setVehicleInfo: (data: { brand: string, model: string, year?: string, firstRegistration?: string }) => void;
-  setOtherVehicleInfo: (info: Partial<FormData['otherVehicle']>) => void;
-  setGeolocation: (data: { lat: number; lng: number; address: string }) => void;
+  setVehicleInfo: (data: any) => void;
+  setOtherVehicleInfo: (data: any) => void;
+  setGeolocation: (location: { lat: number; lng: number; address: string }) => void;
   setInsuranceEmails: (emails: string[]) => void;
   setInvolvedPartyEmails: (emails: string[]) => void;
   setPersonalEmail: (email: string) => void;
   onEmergencyContacted: () => void;
-  handleCircumstanceChange?: (vehicleId: "A" | "B", circumstance: Circumstance, checked: boolean) => void;
-  setCurrentVehicleId?: (id: string) => void;
-  currentVehicleId?: string;
-  setHasInjuries?: (hasInjuries: boolean) => void;
-  setInjuriesDescription?: (description: string) => void;
-  setHasWitnesses?: (hasWitnesses: boolean) => void;
-  updateWitness?: (index: number, field: keyof WitnessInfo, value: string) => void;
-  addWitness?: () => void;
-  removeWitness?: (index: number) => void;
+  handleCircumstanceChange: (vehicleId: string, circumstanceId: string, checked: boolean) => void;
+  setCurrentVehicleId: (id: string) => void;
+  currentVehicleId: string;
+  setHasInjuries: (hasInjuries: boolean) => void;
+  setInjuriesDescription: (description: string) => void;
+  setHasWitnesses: (hasWitnesses: boolean) => void;
+  updateWitness: (index: number, field: string, value: string) => void;
+  addWitness: () => void;
+  removeWitness: (index: number) => void;
+  onSchemeUpdate?: (schemeData: any) => void;
 }
 
 const StepRenderer: React.FC<StepRendererProps> = ({
@@ -58,63 +55,29 @@ const StepRenderer: React.FC<StepRendererProps> = ({
   setHasWitnesses,
   updateWitness,
   addWitness,
-  removeWitness
+  removeWitness,
+  onSchemeUpdate
 }) => {
-  // Helper function to ensure we have valid circumstance handler
-  const safeHandleCircumstanceChange = (vehicleId: "A" | "B", circumstance: Circumstance, checked: boolean = true) => {
-    if (handleCircumstanceChange) {
-      handleCircumstanceChange(vehicleId, circumstance, checked);
-    }
-  };
-
   switch (currentStepId) {
     case 'basics':
       return (
-        <BasicInfoStep 
-          date={formData.date}
-          time={formData.time}
-          location={formData.location}
+        <BasicInfoStep
+          formData={formData}
           handleInputChange={handleInputChange}
-          onEmergencyContacted={onEmergencyContacted}
+          setGeolocation={setGeolocation}
         />
       );
-      
     case 'vehicles':
       return (
-        <VehicleIdentificationStep
+        <VehiclesStep
           formData={formData}
           handleInputChange={handleInputChange}
           handleOtherVehicleChange={handleOtherVehicleChange}
+          handlePhotoUpload={handlePhotoUpload}
           setVehicleInfo={setVehicleInfo}
           setOtherVehicleInfo={setOtherVehicleInfo}
-          onEmergencyContacted={onEmergencyContacted}
-          vehicleId="A"
         />
       );
-
-    case 'multivehicle':
-      return (
-        <MultiVehicleStep
-          licensePlate={formData.licensePlate}
-          vehicleBrand={formData.vehicleBrand}
-          vehicleModel={formData.vehicleModel}
-          vehicleYear={formData.vehicleYear || ''}
-          vehicleDescription={formData.vehicleDescription || ''}
-          firstRegistration={formData.otherVehicle.firstRegistration}
-          insurancePolicy={formData.insurancePolicy}
-          insuranceCompany={formData.insuranceCompany}
-          otherVehicle={formData.otherVehicle}
-          handleInputChange={handleInputChange}
-          handleOtherVehicleChange={handleOtherVehicleChange}
-          setVehicleInfo={setVehicleInfo}
-          setOtherVehicleInfo={setOtherVehicleInfo}
-          onEmergencyContacted={onEmergencyContacted}
-          vehicleId={currentVehicleId as 'A' | 'B' || 'A'}
-          setVehicleId={setCurrentVehicleId as (id: 'A' | 'B') => void}
-          emergencyContacted={formData.emergencyContacted || false}
-        />
-      );
-      
     case 'persons':
       return (
         <DriverAndInsuredStep
@@ -122,96 +85,50 @@ const StepRenderer: React.FC<StepRendererProps> = ({
           handleInputChange={handleInputChange}
         />
       );
-      
-    case 'location':
+    case 'witnesses':
       return (
-        <LocationStep
-          date={formData.date}
-          time={formData.time}
-          location={formData.location}
-          geolocation={formData.geolocation}
-          handleInputChange={handleInputChange}
-          setGeolocation={setGeolocation}
-        />
-      );
-      
-    case 'details':
-      return (
-        <DetailsStep
-          hasInjuries={formData.hasInjuries || false}
-          injuriesDescription={formData.injuriesDescription || ''}
-          hasWitnesses={formData.hasWitnesses || false}
-          witnesses={formData.witnesses || []}
-          description={formData.description || ''}
-          handleInputChange={handleInputChange}
-          setHasInjuries={setHasInjuries}
-          setInjuriesDescription={setInjuriesDescription}
+        <WitnessStep
+          formData={formData}
           setHasWitnesses={setHasWitnesses}
           updateWitness={updateWitness}
           addWitness={addWitness}
           removeWitness={removeWitness}
         />
       );
-      
+    case 'injuries':
+      return (
+        <InjuriesStep
+          formData={formData}
+          setHasInjuries={setHasInjuries}
+          setInjuriesDescription={setInjuriesDescription}
+        />
+      );
     case 'circumstances':
       return (
         <CircumstancesStep
-          vehicleACircumstances={formData.vehicleACircumstances || []}
-          vehicleBCircumstances={formData.vehicleBCircumstances || []}
+          formData={formData}
           handleCircumstanceChange={handleCircumstanceChange}
-          currentVehicleId={currentVehicleId || "A"}
           setCurrentVehicleId={setCurrentVehicleId}
+          currentVehicleId={currentVehicleId}
         />
       );
-      
     case 'scheme':
       return (
         <SchemeStep
           formData={formData}
-          onSchemeUpdate={(schemeData: SchemeData) => console.log('Scheme data saved:', schemeData)}
+          onSchemeUpdate={onSchemeUpdate}
         />
       );
-
-    case 'photos':
-      return (
-        <PhotosStep
-          vehiclePhotos={(formData.vehiclePhotos || []) as File[]}
-          damagePhotos={(formData.damagePhotos || []) as File[]}
-          handlePhotoUpload={(type: 'vehiclePhotos' | 'damagePhotos', file: File) => {
-            // Create a FileList-like object
-            const fileList = {
-              0: file,
-              length: 1,
-              item: (index: number) => index === 0 ? file : null,
-              [Symbol.iterator]: function* () {
-                yield file;
-              }
-            } as unknown as FileList;
-            
-            handlePhotoUpload(type, fileList);
-          }}
-        />
-      );
-
-    case 'emails':
-      return (
-        <EmailStep
-          personalEmail={formData.personalEmail || ''}
-          insuranceEmails={formData.insuranceEmails || []}
-          involvedPartyEmails={formData.involvedPartyEmails || []}
-          setPersonalEmail={setPersonalEmail}
-          setInsuranceEmails={setInsuranceEmails}
-          setInvolvedPartyEmails={setInvolvedPartyEmails}
-        />
-      );
-      
     case 'review':
       return (
         <ReviewStep
           formData={formData}
+          setInsuranceEmails={setInsuranceEmails}
+          setInvolvedPartyEmails={setInvolvedPartyEmails}
+          setPersonalEmail={setPersonalEmail}
+          onEmergencyContacted={onEmergencyContacted}
         />
       );
-
     default:
       return <div>Étape non reconnue: {currentStepId}</div>;
   }

@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import ProgressBar from './ProgressBar';
 import StepNavigation from './StepNavigation';
@@ -6,7 +7,7 @@ import StepRenderer from './StepRenderer';
 import { accidentFormSteps } from './stepsConfig';
 import { useAccidentForm } from '@/hooks/useAccidentForm';
 import FormSubmissionHandler from './FormSubmissionHandler';
-import { WitnessInfo, Circumstance } from './types';
+import { WitnessInfo, Circumstance, SchemeData } from './types';
 import { FormContext } from '@/context/FormContext';
 
 interface AccidentFormProps {
@@ -40,7 +41,8 @@ const AccidentForm = ({ onEmergencyRequest, onStepChange }: AccidentFormProps) =
     setHasWitnesses,
     updateWitness: originalUpdateWitness,
     addWitness,
-    removeWitness: originalRemoveWitness
+    removeWitness: originalRemoveWitness,
+    setSchemeData
   } = useAccidentForm();
 
   // Adapter function for witness management to match expected parameter types
@@ -74,6 +76,11 @@ const AccidentForm = ({ onEmergencyRequest, onStepChange }: AccidentFormProps) =
     };
     
     setVehicleInfo(vehicleData as any);
+  };
+  
+  // Scheme data handler
+  const handleSchemeUpdate = (updatedSchemeData: SchemeData) => {
+    setSchemeData(updatedSchemeData);
   };
 
   if (submitted) {
@@ -132,6 +139,7 @@ const AccidentForm = ({ onEmergencyRequest, onStepChange }: AccidentFormProps) =
             updateWitness={updateWitness}
             addWitness={addWitness}
             removeWitness={removeWitness}
+            onSchemeUpdate={handleSchemeUpdate}
           />
         </form>
         

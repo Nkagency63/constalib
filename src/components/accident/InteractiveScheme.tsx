@@ -22,13 +22,20 @@ L.Icon.Default.mergeOptions({
 interface InteractiveSchemeProps {
   formData: any;
   onUpdateSchemeData: (data: SchemeData) => void;
+  initialData?: SchemeData;
   readOnly?: boolean;
 }
 
-const InteractiveScheme = ({ formData, onUpdateSchemeData, readOnly = false }: InteractiveSchemeProps) => (
+const InteractiveScheme = ({ 
+  formData, 
+  onUpdateSchemeData, 
+  initialData,
+  readOnly = false 
+}: InteractiveSchemeProps) => (
   <SchemeContainer
     formData={formData}
     onUpdateSchemeData={onUpdateSchemeData}
+    initialData={initialData}
     readOnly={readOnly}
   />
 );
