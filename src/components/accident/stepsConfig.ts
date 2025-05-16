@@ -31,14 +31,14 @@ export const accidentFormSteps = [
     description: 'Détails sur les circonstances de l\'accident'
   },
   {
-    id: 'details',
-    title: 'Détails complémentaires',
-    description: 'Blessés, témoins et autres informations'
+    id: 'witnesses',
+    title: 'Témoins',
+    description: 'Informations sur les témoins de l\'accident'
   },
   {
-    id: 'emails',
-    title: 'Destinataires',
-    description: 'Personnes à informer'
+    id: 'injuries',
+    title: 'Blessures',
+    description: 'Informations sur les personnes blessées'
   },
   {
     id: 'review',

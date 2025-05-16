@@ -17,6 +17,6 @@ export const DEFAULT_CIRCUMSTANCES: Circumstance[] = [
   { id: '13', code: '13', label: 'Virait à gauche', selected: false },
   { id: '14', code: '14', label: 'Reculait', selected: false },
   { id: '15', code: '15', label: 'Empiétait sur une voie réservée à la circulation en sens inverse', selected: false },
-  { id: '16', code: '16', label: 'Venait de droite (dans un carrefour)', selected: false },
-  { id: '17', code: '17', label: 'N\'avait pas observé un signal de priorité ou un feu rouge', selected: false },
+  { id: '16', code: '16', label: 'Venait de droite (à un carrefour)', selected: false },
+  { id: '17', code: '17', label: 'N\'avait pas observé un signal de priorité ou un feu rouge', selected: false }
 ];
