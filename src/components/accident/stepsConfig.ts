@@ -21,14 +21,14 @@ export const accidentFormSteps = [
     description: 'Photos des véhicules et des dommages'
   },
   {
-    id: 'scheme',
-    title: 'Schéma d\'accident',
-    description: 'Créer un schéma de l\'accident'
-  },
-  {
     id: 'circumstances',
     title: 'Circonstances',
     description: 'Détails sur les circonstances de l\'accident'
+  },
+  {
+    id: 'scheme',
+    title: 'Schéma d\'accident',
+    description: 'Créer un schéma de l\'accident'
   },
   {
     id: 'witnesses',

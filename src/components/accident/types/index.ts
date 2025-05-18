@@ -1,4 +1,3 @@
-
 // Vehicle types for the scheme
 export interface Vehicle {
   id: string;
@@ -56,6 +55,15 @@ export interface WitnessInfo {
   email?: string;
 }
 
+// Ajout d'une interface pour les données de géolocalisation
+export interface GeolocationData {
+  lat: number;
+  lng: number;
+  address: string;
+  accuracy?: number;
+  timestamp?: number;
+}
+
 // FormData interface to ensure type safety throughout the application
 export interface FormData {
   // Basic accident information
@@ -65,13 +73,7 @@ export interface FormData {
   description?: string;
   
   // Geolocation data
-  geolocation: {
-    lat: number;
-    lng: number;
-    address: string;
-    accuracy?: number;
-    timestamp?: number;
-  };
+  geolocation: GeolocationData;
   
   // Vehicle information
   licensePlate?: string;

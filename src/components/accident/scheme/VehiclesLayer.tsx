@@ -43,8 +43,7 @@ const VehiclesLayer: React.FC<VehiclesLayerProps> = ({
             vehicle.color, 
             vehicle.rotation, 
             vehicle.id === selectedVehicleId,
-            vehicle.type,
-            vehicle.label
+            vehicle.type
           )}
           eventHandlers={{
             click: () => {
