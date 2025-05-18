@@ -2,7 +2,7 @@
 import React from 'react';
 import SchemeToolbars from './SchemeToolbars';
 import SchemeMapWrapper from './SchemeMapWrapper';
-import { SchemeData } from '../../types';
+import { SchemeData, GeolocationData } from '../../types';
 import 'leaflet/dist/leaflet.css';
 
 interface SchemeContentProps {
@@ -46,6 +46,9 @@ interface SchemeContentProps {
   
   // Map refs
   mapRef: React.MutableRefObject<L.Map | null>;
+  
+  // Geolocation data
+  geolocationData?: GeolocationData;
 }
 
 const SchemeContent: React.FC<SchemeContentProps> = ({
@@ -87,7 +90,10 @@ const SchemeContent: React.FC<SchemeContentProps> = ({
   readOnly,
   
   // Map refs
-  mapRef
+  mapRef,
+  
+  // Geolocation data
+  geolocationData
 }) => {
   // Log pour déboguer
   console.log('SchemeContent rendering with mapCenter:', mapCenter);
@@ -138,6 +144,7 @@ const SchemeContent: React.FC<SchemeContentProps> = ({
           onRemoveAnnotation={removeAnnotation}
           onUpdateAnnotation={updateAnnotation}
           onMapReady={handleMapReadyFromHook}
+          geolocationData={geolocationData}
         />
       </div>
     </div>

@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { SchemeData } from '../types';
+import { SchemeData, GeolocationData } from '../types';
 import { useSchemeContainer } from './hooks/useSchemeContainer';
 import SchemeContent from './components/SchemeContent';
 
@@ -19,13 +19,23 @@ const SchemeContainer: React.FC<SchemeContainerProps> = ({
   onSchemeUpdate,
   readOnly = false,
 }) => {
+  // Extract geolocation data from formData if available
+  const geolocationData: GeolocationData | undefined = formData?.geolocation ? {
+    lat: formData.geolocation.lat,
+    lng: formData.geolocation.lng,
+    address: formData.geolocation.address,
+    accuracy: formData.geolocation.accuracy,
+    timestamp: formData.geolocation.timestamp
+  } : undefined;
+
   // Use our custom hook to manage the scheme state
   const schemeState = useSchemeContainer({
     initialData,
     formData,
     onUpdateSchemeData,
     onSchemeUpdate,
-    readOnly
+    readOnly,
+    geolocationData
   });
   
   return (
@@ -70,6 +80,9 @@ const SchemeContainer: React.FC<SchemeContainerProps> = ({
       
       // Map refs
       mapRef={schemeState.mapRef}
+      
+      // Geolocation data
+      geolocationData={geolocationData}
     />
   );
 };

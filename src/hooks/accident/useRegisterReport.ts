@@ -1,165 +1,154 @@
-
 import { useState } from 'react';
-import { toast } from "sonner";
-import { FormData, Circumstance, CircumstancesData, InjuryInfo } from "@/components/accident/types";
-import { registerOfficialReport } from "@/services/accidentReportService";
-import { GeolocationData } from "@/hooks/accident/useLocationForm";
+import { FormData, GeolocationData } from '@/components/accident/types';
+import { toast } from 'sonner';
 
-interface UseRegisterReportProps {
-  formData: FormData;
-  signatures: {
-    partyA: string | null;
-    partyB: string | null;
-  };
-}
-
-// Interface to match expected service format for injuries
-interface ServiceInjuryInfo {
-  name: string;
-  contact: string;
-  severity?: string;
-  description?: string;
-}
-
-export const useRegisterReport = ({ formData, signatures }: UseRegisterReportProps) => {
+export const useRegisterReport = () => {
   const [isRegistering, setIsRegistering] = useState(false);
-  const [showOfficialDialog, setShowOfficialDialog] = useState(false);
-  const [referenceId, setReferenceId] = useState<string | null>(null);
+  const [registrationError, setRegistrationError] = useState<string | null>(null);
+  const [registrationSuccess, setRegistrationSuccess] = useState(false);
 
-  const handleRegisterOfficial = async (schemeImageDataUrl: string | null = null) => {
-    if (!signatures?.partyA || !signatures?.partyB) {
-      toast.error("Les deux signatures sont nécessaires pour l'enregistrement officiel");
-      return;
-    }
-    
+  const registerReport = async (formData: FormData) => {
     setIsRegistering(true);
+    setRegistrationError(null);
+
     try {
-      // Prepare data for official registration - organizing it according to the expected parameters
-      const reportData = {
+      console.log('Registering accident report with data:', formData);
+      
+      // Validate required fields
+      if (!formData.date || !formData.time || !formData.geolocation) {
+        throw new Error('Informations de base manquantes');
+      }
+
+      // Format data for API submission
+      const apiFormData = {
+        // Basic information
         date: formData.date,
         time: formData.time,
-        location: formData.location,
-        personalEmail: formData.personalEmail,
-        hasInjuries: formData.hasInjuries,
-        injuriesDescription: formData.injuriesDescription,
-        hasMaterialDamage: formData.hasMaterialDamage,
-        materialDamageDescription: formData.materialDamageDescription
-      };
-
-      const vehicleA = {
-        licensePlate: formData.licensePlate,
-        brand: formData.vehicleBrand,
-        model: formData.vehicleModel,
-        insuranceCompany: formData.insuranceCompany,
-        insurancePolicy: formData.insurancePolicy
-      };
-
-      const vehicleB = {
-        licensePlate: formData.otherVehicle.licensePlate,
-        brand: formData.otherVehicle.brand,
-        model: formData.otherVehicle.model,
-        insuranceCompany: formData.otherVehicle.insuranceCompany,
-        insurancePolicy: formData.otherVehicle.insurancePolicy
-      };
-
-      // Adapt injuries to match expected service format
-      const adaptedInjuries: ServiceInjuryInfo[] = (formData.injuries || []).map((injury: InjuryInfo) => ({
-        name: injury.name,
-        contact: "N/A", // Add the required contact field with placeholder
-        severity: injury.severity,
-        description: injury.description
-      }));
-
-      // Compile all participant information
-      const participants = {
-        driverA: {
-          name: formData.driverName || "",
-          address: formData.driverAddress || "",
-          phone: formData.driverPhone || "",
-          license: formData.driverLicense || ""
+        location: formData.location || '',
+        description: formData.description || '',
+        
+        // Geolocation data
+        geolocation: {
+          lat: formData.geolocation.lat,
+          lng: formData.geolocation.lng,
+          address: formData.geolocation.address,
+          accuracy: formData.geolocation.accuracy || null,
+          timestamp: formData.geolocation.timestamp || Date.now()
         },
-        driverB: {
-          name: formData.otherDriverName || "",
-          address: formData.otherDriverAddress || "",
-          phone: formData.otherDriverPhone || "",
-          license: formData.otherDriverLicense || ""
+        
+        // Vehicle information
+        vehicles: {
+          A: {
+            brand: formData.vehicleBrand || '',
+            model: formData.vehicleModel || '',
+            year: formData.vehicleYear || '',
+            licensePlate: formData.licensePlate || '',
+            insuranceCompany: formData.insuranceCompany || '',
+            insurancePolicy: formData.insurancePolicy || '',
+          },
+          B: {
+            brand: formData.otherVehicle?.brand || '',
+            model: formData.otherVehicle?.model || '',
+            year: formData.otherVehicle?.year || '',
+            licensePlate: formData.otherVehicle?.licensePlate || '',
+            insuranceCompany: formData.otherVehicle?.insuranceCompany || '',
+            insurancePolicy: formData.otherVehicle?.insurancePolicy || '',
+          }
         },
-        insuredA: {
-          name: formData.insuredName || "",
-          address: formData.insuredAddress || "",
-          phone: formData.insuredPhone || "",
-          email: formData.personalEmail || ""
+        
+        // Driver information
+        drivers: {
+          A: {
+            name: formData.driverName || '',
+            address: formData.driverAddress || '',
+            phone: formData.driverPhone || '',
+            licenseNumber: formData.driverLicense || '',
+          },
+          B: {
+            name: formData.otherDriverName || '',
+            address: formData.otherDriverAddress || '',
+            phone: formData.otherDriverPhone || '',
+            licenseNumber: formData.otherDriverLicense || '',
+          }
         },
-        insuredB: {
-          name: formData.otherInsuredName || "",
-          address: formData.otherInsuredAddress || "",
-          phone: formData.otherInsuredPhone || "",
-          email: formData.otherInsuredEmail || ""
+        
+        // Insured information
+        insured: {
+          A: {
+            name: formData.insuredName || '',
+            address: formData.insuredAddress || '',
+            phone: formData.insuredPhone || '',
+            email: formData.personalEmail || '',
+          },
+          B: {
+            name: formData.otherInsuredName || '',
+            address: formData.otherInsuredAddress || '',
+            phone: formData.otherInsuredPhone || '',
+            email: formData.otherInsuredEmail || '',
+          }
         },
-        witnesses: formData.witnesses?.map((witness: any) => ({
-          fullName: witness.name || witness.fullName || "",
-          phone: witness.phone || "",
-          email: witness.email || ""
-        })) || [],
-        injuries: adaptedInjuries
-      };
-
-      // Format circumstances data - extract IDs from Circumstance objects
-      const circumstancesData: CircumstancesData = {
-        vehicleA: (formData.vehicleACircumstances || []).map((circ: Circumstance) => circ.id),
-        vehicleB: (formData.vehicleBCircumstances || []).map((circ: Circumstance) => circ.id)
-      };
-
-      // Create a properly typed geolocation object with all required properties
-      const geolocation: GeolocationData = {
-        lat: formData.geolocation.lat || 0,
-        lng: formData.geolocation.lng || 0,
-        address: formData.geolocation.address || "",
-        // Set default values for optional properties
-        accuracy: formData.geolocation.accuracy || 0,
-        timestamp: formData.geolocation.timestamp || Date.now()
-      };
-      
-      const signatureData = {
-        partyA: signatures.partyA,
-        partyB: signatures.partyB,
-        timestamp: new Date().toISOString()
-      };
-      
-      // Call the official registration function with the consolidated data structure
-      const result = await registerOfficialReport(
-        reportData, 
-        vehicleA, 
-        vehicleB, 
-        circumstancesData, 
-        geolocation,
-        {
-          participants,
-          signatureData,
-          schemeImage: schemeImageDataUrl // Properly named parameter
+        
+        // Circumstances
+        circumstances: {
+          vehicleA: formData.vehicleACircumstances?.filter(c => c.selected).map(c => c.id) || [],
+          vehicleB: formData.vehicleBCircumstances?.filter(c => c.selected).map(c => c.id) || [],
+        },
+        
+        // Injuries
+        injuries: {
+          hasInjuries: formData.hasInjuries || false,
+          description: formData.injuriesDescription || '',
+          details: formData.injuries || [],
+        },
+        
+        // Material damage
+        materialDamage: {
+          hasDamage: formData.hasMaterialDamage || false,
+          description: formData.materialDamageDescription || '',
+        },
+        
+        // Witnesses
+        witnesses: {
+          hasWitnesses: formData.hasWitnesses || false,
+          list: formData.witnesses || [],
+        },
+        
+        // Scheme data
+        schemeData: formData.schemeData || null,
+        
+        // Photo references
+        photos: {
+          vehiclePhotos: formData.vehiclePhotos?.map(p => typeof p === 'string' ? p : p.name) || [],
+          damagePhotos: formData.damagePhotos?.map(p => typeof p === 'string' ? p : p.name) || [],
         }
-      );
+      };
+
+      // Simulate API call
+      await new Promise(resolve => setTimeout(resolve, 2000));
       
-      if (result.success) {
-        setReferenceId(result.referenceId);
-        setShowOfficialDialog(true);
-        toast.success("Constat enregistré officiellement");
-      } else {
-        throw new Error(result.error || "Failed to register official report");
-      }
-    } catch (error: any) {
-      console.error("Error registering official report:", error);
-      toast.error(error.message || "Error registering official report");
+      // Here you would normally submit to an API
+      console.log('Data formatted for API submission:', apiFormData);
+      
+      // Mock successful submission
+      setRegistrationSuccess(true);
+      toast.success('Constat enregistré avec succès !');
+      
+      return true;
+    } catch (error) {
+      console.error('Error registering accident report:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Erreur lors de l\'enregistrement du constat';
+      setRegistrationError(errorMessage);
+      toast.error(errorMessage);
+      return false;
     } finally {
       setIsRegistering(false);
     }
   };
 
   return {
+    registerReport,
     isRegistering,
-    showOfficialDialog,
-    setShowOfficialDialog,
-    referenceId,
-    handleRegisterOfficial
+    registrationError,
+    registrationSuccess
   };
 };

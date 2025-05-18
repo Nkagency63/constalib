@@ -1,6 +1,6 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { SchemeData } from '../../types';
+import { SchemeData, GeolocationData } from '../../types';
 import { useVehicles } from '../../hooks/useVehicles';
 import { usePaths } from '../../hooks/usePaths';
 import { useAnnotations } from '../../hooks/useAnnotations';
@@ -15,6 +15,7 @@ interface UseSchemeContainerProps {
   onUpdateSchemeData?: (data: SchemeData) => void;
   onSchemeUpdate?: (data: SchemeData) => void;
   readOnly?: boolean;
+  geolocationData?: GeolocationData;
 }
 
 export const useSchemeContainer = ({
@@ -23,6 +24,7 @@ export const useSchemeContainer = ({
   onUpdateSchemeData,
   onSchemeUpdate,
   readOnly = false,
+  geolocationData
 }: UseSchemeContainerProps) => {
   // State for map and tools
   const [mapCenter, setMapCenter] = useState<[number, number]>([48.8566, 2.3522]);
@@ -38,15 +40,35 @@ export const useSchemeContainer = ({
   const pathsHook = usePaths();
   const annotationsHook = useAnnotations();
   
-  // Initialize map with geolocation from formData if available
+  // Initialize map with geolocation from formData or geolocationData if available
   useEffect(() => {
-    if (formData?.geolocation?.lat && formData?.geolocation?.lng) {
-      setMapCenter([formData.geolocation.lat, formData.geolocation.lng]);
-      setMapZoom(17);
-    } else if (initialData?.center) {
-      setMapCenter(initialData.center);
-      setMapZoom(initialData.zoom || 17);
+    let centerLat = 48.8566;
+    let centerLng = 2.3522;
+    let zoom = 13;
+    
+    // Priority 1: Use geolocationData if provided
+    if (geolocationData?.lat && geolocationData?.lng) {
+      centerLat = geolocationData.lat;
+      centerLng = geolocationData.lng;
+      zoom = 17;
     }
+    // Priority 2: Use formData.geolocation if provided
+    else if (formData?.geolocation?.lat && formData?.geolocation?.lng) {
+      centerLat = formData.geolocation.lat;
+      centerLng = formData.geolocation.lng;
+      zoom = 17;
+    }
+    // Priority 3: Use initialData.center if provided
+    else if (initialData?.center) {
+      centerLat = initialData.center[0];
+      centerLng = initialData.center[1];
+      zoom = initialData.zoom || 17;
+    }
+    
+    setMapCenter([centerLat, centerLng]);
+    setMapZoom(zoom);
+    
+    console.log("Setting map center to:", [centerLat, centerLng], "with zoom:", zoom);
     
     // Initialize vehicles if provided in initial data
     if (initialData?.vehicles && initialData.vehicles.length > 0) {
@@ -62,7 +84,7 @@ export const useSchemeContainer = ({
     if (initialData?.annotations && initialData.annotations.length > 0) {
       annotationsHook.setAnnotations(initialData.annotations);
     }
-  }, [formData, initialData]);
+  }, [formData, initialData, geolocationData]);
 
   // Map click handler integration with SchemeMapHandlers
   const handleMapClickWrapper = useCallback((e: L.LeafletMouseEvent) => {

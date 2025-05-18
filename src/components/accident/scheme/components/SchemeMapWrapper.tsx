@@ -1,12 +1,11 @@
-
 import React from 'react';
-import { MapContainer, TileLayer } from 'react-leaflet';
+import { MapContainer, TileLayer, Circle, Popup } from 'react-leaflet';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import SchemeInfo from '../SchemeInfo';
 import SchemeGuide from '../SchemeGuide';
 import StepByStepGuide from '../StepByStepGuide';
 import KeyboardShortcuts from '../KeyboardShortcuts';
-import { Vehicle, Path, Annotation } from '../../types';
+import { Vehicle, Path, Annotation, GeolocationData } from '../../types';
 import VehiclesLayer from '../VehiclesLayer';
 import PathsLayer from '../PathsLayer';
 import AnnotationsLayer from '../AnnotationsLayer';
@@ -31,6 +30,7 @@ interface SchemeMapWrapperProps {
   onRemoveAnnotation: (id: string) => void;
   onUpdateAnnotation: (id: string, text: string) => void;
   onMapReady: (map: L.Map) => void;
+  geolocationData?: GeolocationData;
 }
 
 const SchemeMapWrapper: React.FC<SchemeMapWrapperProps> = ({
@@ -50,17 +50,20 @@ const SchemeMapWrapper: React.FC<SchemeMapWrapperProps> = ({
   onChangeVehicleType,
   onRemoveAnnotation,
   onUpdateAnnotation,
-  onMapReady
+  onMapReady,
+  geolocationData
 }) => {
   console.log('SchemeMapWrapper rendering with center:', center);
+  
+  // Generate map key based on center coordinates to force re-render when center changes
+  const mapKey = `map-${center[0].toFixed(6)}-${center[1].toFixed(6)}`;
   
   return (
     <div className="relative rounded-lg overflow-hidden shadow-md border border-gray-200 h-full">
       <TooltipProvider>
         <div className="h-full w-full">
-          {/* We use a key based on the center to force re-render when center changes */}
           <MapContainer
-            key={`map-${center[0].toFixed(6)}-${center[1].toFixed(6)}`}
+            key={mapKey}
             center={center}
             zoom={17}
             style={{ 
@@ -77,6 +80,27 @@ const SchemeMapWrapper: React.FC<SchemeMapWrapperProps> = ({
               url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
               attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
             />
+            
+            {/* Show geolocation accuracy circle if available */}
+            {geolocationData?.accuracy && geolocationData.accuracy > 0 && (
+              <Circle 
+                center={[geolocationData.lat, geolocationData.lng]}
+                radius={geolocationData.accuracy}
+                pathOptions={{ 
+                  fillColor: '#3388ff', 
+                  fillOpacity: 0.1, 
+                  weight: 1,
+                  color: '#3388ff',
+                  opacity: 0.3
+                }}
+              >
+                <Popup>
+                  Précision: ~{geolocationData.accuracy < 1000 ? 
+                    `${Math.round(geolocationData.accuracy)} m` : 
+                    `${(geolocationData.accuracy/1000).toFixed(1)} km`}
+                </Popup>
+              </Circle>
+            )}
             
             <MapInitializer onMapReady={onMapReady} />
             
@@ -134,6 +158,7 @@ const SchemeMapWrapper: React.FC<SchemeMapWrapperProps> = ({
           pathCount={paths.length}
           annotationCount={annotations.length}
           isEmpty={isEmpty}
+          geolocationAddress={geolocationData?.address}
         />
       </TooltipProvider>
     </div>
