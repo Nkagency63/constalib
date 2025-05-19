@@ -1,147 +1,124 @@
+
 import { useState } from 'react';
-import { FormData, GeolocationData } from '@/components/accident/types';
+import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { FormData } from '@/components/accident/types';
 
 export const useRegisterReport = () => {
   const [isRegistering, setIsRegistering] = useState(false);
-  const [registrationError, setRegistrationError] = useState<string | null>(null);
+  const [registrationError, setRegistrationError] = useState('');
   const [registrationSuccess, setRegistrationSuccess] = useState(false);
+  const [showOfficialDialog, setShowOfficialDialog] = useState(false);
+  const [referenceId, setReferenceId] = useState('');
 
-  const registerReport = async (formData: FormData) => {
+  const registerReport = async (formData: FormData): Promise<boolean> => {
     setIsRegistering(true);
-    setRegistrationError(null);
-
+    setRegistrationError('');
+    
     try {
-      console.log('Registering accident report with data:', formData);
-      
-      // Validate required fields
-      if (!formData.date || !formData.time || !formData.geolocation) {
-        throw new Error('Informations de base manquantes');
-      }
-
-      // Format data for API submission
-      const apiFormData = {
-        // Basic information
-        date: formData.date,
-        time: formData.time,
+      // Prepare the report data
+      const reportData = {
+        // Include all formData here, properly formatted for your database
+        userId: formData.userId || null,
+        date: formData.date || new Date().toISOString(),
+        time: formData.time || new Date().toTimeString().split(' ')[0],
         location: formData.location || '',
-        description: formData.description || '',
-        
-        // Geolocation data
-        geolocation: {
+        city: formData.city || '',
+        country: formData.country || 'France',
+        hasInjuries: formData.hasInjuries || false,
+        injuriesDescription: formData.injuriesDescription || '',
+        hasWitnesses: formData.hasWitnesses || false,
+        witnesses: formData.witnesses || [],
+        vehicleA: {
+          licensePlate: formData.licensePlate || '',
+          brand: formData.vehicleBrand || '',
+          model: formData.vehicleModel || '',
+          year: formData.vehicleYear || '',
+          description: formData.vehicleDescription || '',
+          insuranceInfo: {
+            company: formData.insuranceCompany || '',
+            policy: formData.insurancePolicy || ''
+          },
+          driverName: formData.driverName || '',
+          driverPhone: formData.driverPhone || '',
+          driverAddress: formData.driverAddress || '',
+          driverLicense: formData.driverLicense || '',
+          insuredName: formData.insuredName || '',
+          insuredPhone: formData.insuredPhone || '',
+          insuredAddress: formData.insuredAddress || '',
+        },
+        vehicleB: {
+          licensePlate: formData.otherVehicle?.licensePlate || '',
+          brand: formData.otherVehicle?.brand || '',
+          model: formData.otherVehicle?.model || '',
+          year: formData.otherVehicle?.year || '',
+          description: formData.otherVehicle?.description || '',
+          insuranceInfo: {
+            company: formData.otherVehicle?.insuranceCompany || '',
+            policy: formData.otherVehicle?.insurancePolicy || ''
+          },
+          driverName: formData.otherDriverName || '',
+          driverPhone: formData.otherDriverPhone || '',
+          driverAddress: formData.otherDriverAddress || '',
+          driverLicense: formData.otherDriverLicense || '',
+          insuredName: formData.otherInsuredName || '',
+          insuredPhone: formData.otherInsuredPhone || '',
+          insuredAddress: formData.otherInsuredAddress || '',
+        },
+        geolocation: formData.geolocation ? {
           lat: formData.geolocation.lat,
           lng: formData.geolocation.lng,
-          address: formData.geolocation.address,
+          address: formData.geolocation.address || '',
           accuracy: formData.geolocation.accuracy || null,
           timestamp: formData.geolocation.timestamp || Date.now()
-        },
-        
-        // Vehicle information
-        vehicles: {
-          A: {
-            brand: formData.vehicleBrand || '',
-            model: formData.vehicleModel || '',
-            year: formData.vehicleYear || '',
-            licensePlate: formData.licensePlate || '',
-            insuranceCompany: formData.insuranceCompany || '',
-            insurancePolicy: formData.insurancePolicy || '',
-          },
-          B: {
-            brand: formData.otherVehicle?.brand || '',
-            model: formData.otherVehicle?.model || '',
-            year: formData.otherVehicle?.year || '',
-            licensePlate: formData.otherVehicle?.licensePlate || '',
-            insuranceCompany: formData.otherVehicle?.insuranceCompany || '',
-            insurancePolicy: formData.otherVehicle?.insurancePolicy || '',
-          }
-        },
-        
-        // Driver information
-        drivers: {
-          A: {
-            name: formData.driverName || '',
-            address: formData.driverAddress || '',
-            phone: formData.driverPhone || '',
-            licenseNumber: formData.driverLicense || '',
-          },
-          B: {
-            name: formData.otherDriverName || '',
-            address: formData.otherDriverAddress || '',
-            phone: formData.otherDriverPhone || '',
-            licenseNumber: formData.otherDriverLicense || '',
-          }
-        },
-        
-        // Insured information
-        insured: {
-          A: {
-            name: formData.insuredName || '',
-            address: formData.insuredAddress || '',
-            phone: formData.insuredPhone || '',
-            email: formData.personalEmail || '',
-          },
-          B: {
-            name: formData.otherInsuredName || '',
-            address: formData.otherInsuredAddress || '',
-            phone: formData.otherInsuredPhone || '',
-            email: formData.otherInsuredEmail || '',
-          }
-        },
-        
-        // Circumstances
-        circumstances: {
-          vehicleA: formData.vehicleACircumstances?.filter(c => c.selected).map(c => c.id) || [],
-          vehicleB: formData.vehicleBCircumstances?.filter(c => c.selected).map(c => c.id) || [],
-        },
-        
-        // Injuries
-        injuries: {
-          hasInjuries: formData.hasInjuries || false,
-          description: formData.injuriesDescription || '',
-          details: formData.injuries || [],
-        },
-        
-        // Material damage
-        materialDamage: {
-          hasDamage: formData.hasMaterialDamage || false,
-          description: formData.materialDamageDescription || '',
-        },
-        
-        // Witnesses
-        witnesses: {
-          hasWitnesses: formData.hasWitnesses || false,
-          list: formData.witnesses || [],
-        },
-        
-        // Scheme data
-        schemeData: formData.schemeData || null,
-        
-        // Photo references
-        photos: {
-          vehiclePhotos: formData.vehiclePhotos?.map(p => typeof p === 'string' ? p : p.name) || [],
-          damagePhotos: formData.damagePhotos?.map(p => typeof p === 'string' ? p : p.name) || [],
-        }
+        } : null,
+        schemeData: formData.schemeData || null
       };
 
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      console.log('Registering report with data:', reportData);
+
+      // Insert the report into the database
+      const { data, error } = await supabase
+        .from('accident_reports')
+        .insert(reportData)
+        .select()
+        .single();
+
+      if (error) {
+        console.error('Error registering report:', error);
+        toast.error("Erreur lors de l'enregistrement du constat");
+        setRegistrationError(error.message);
+        return false;
+      }
+
+      // Set the reference ID for the generated report
+      setReferenceId(data.id);
       
-      // Here you would normally submit to an API
-      console.log('Data formatted for API submission:', apiFormData);
-      
-      // Mock successful submission
+      toast.success("Constat enregistré avec succès");
       setRegistrationSuccess(true);
-      toast.success('Constat enregistré avec succès !');
       
       return true;
-    } catch (error) {
-      console.error('Error registering accident report:', error);
-      const errorMessage = error instanceof Error ? error.message : 'Erreur lors de l\'enregistrement du constat';
-      setRegistrationError(errorMessage);
-      toast.error(errorMessage);
+    } catch (err: any) {
+      console.error('Unexpected error registering report:', err);
+      toast.error("Une erreur inattendue s'est produite");
+      setRegistrationError(err.message || "Une erreur inattendue s'est produite");
       return false;
     } finally {
       setIsRegistering(false);
+    }
+  };
+
+  const handleRegisterOfficial = async (formData: FormData): Promise<string> => {
+    try {
+      // Implementation for registering the official report
+      // This would involve sending the data to a specific endpoint or process
+      console.log('Registering official report:', formData);
+      
+      // Return a reference number or tracking ID for the official registration
+      return 'REF-123456';
+    } catch (error) {
+      console.error('Error registering official report:', error);
+      throw error;
     }
   };
 
@@ -149,6 +126,10 @@ export const useRegisterReport = () => {
     registerReport,
     isRegistering,
     registrationError,
-    registrationSuccess
+    registrationSuccess,
+    showOfficialDialog,
+    setShowOfficialDialog,
+    referenceId,
+    handleRegisterOfficial
   };
 };

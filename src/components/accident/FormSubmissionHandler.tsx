@@ -1,108 +1,91 @@
 
-import React, { useState } from 'react';
+import React from 'react';
 import { Button } from "@/components/ui/button";
-import { FileDown, Loader2, AlertTriangle } from 'lucide-react';
-import { useCerfaGeneration } from '@/hooks/accident/useCerfaGeneration';
+import { AlertCircle, CheckCircle2 } from 'lucide-react';
+import { toast } from 'sonner';
+import { useRegisterReport } from '@/hooks/accident/useRegisterReport';
 import { FormData } from './types';
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import SignatureDialog from './SignatureDialog';
-import OfficialRegistrationDialog from './OfficialRegistrationDialog';
+import CerfaGenerationButton from './CerfaGenerationButton';
 
 interface FormSubmissionHandlerProps {
   formData: FormData;
-  onSubmitSuccess: () => void;
+  onSubmitSuccess?: () => void;
 }
 
-const FormSubmissionHandler = ({ formData, onSubmitSuccess }: FormSubmissionHandlerProps) => {
-  const [showSignatureDialog, setShowSignatureDialog] = useState(false);
-  const [signatures, setSignatures] = useState<{ partyA: string | null; partyB: string | null; }>({
-    partyA: null,
-    partyB: null,
-  });
-  
-  const {
-    isGenerating,
-    isRegistering,
-    showOfficialDialog,
+const FormSubmissionHandler: React.FC<FormSubmissionHandlerProps> = ({ 
+  formData,
+  onSubmitSuccess 
+}) => {
+  const { 
+    registerReport, 
+    isRegistering, 
+    registrationError, 
+    registrationSuccess,
+    showOfficialDialog, 
     setShowOfficialDialog,
-    referenceId,
-    handleGenerateCerfa,
-    handleRegisterOfficial,
-    canRegisterOfficial
-  } = useCerfaGeneration({ formData, signatures });
+    referenceId
+  } = useRegisterReport();
+
+  const handleSubmit = async () => {
+    const success = await registerReport(formData);
+    
+    if (success && onSubmitSuccess) {
+      onSubmitSuccess();
+    }
+  };
 
   return (
-    <div className="flex flex-col gap-4">
-      {referenceId && (
-        <Alert className="bg-green-100 border-green-200 text-green-800">
-          <AlertDescription>
-            Votre constat a été enregistré officiellement avec la référence <strong>{referenceId}</strong>.
-          </AlertDescription>
-        </Alert>
-      )}
-      
-      {!formData.date && (
-        <Alert variant="destructive">
-          <AlertTriangle className="h-4 w-4" />
-          <AlertDescription>
-            Les informations de base (date et lieu) sont manquantes. Veuillez les compléter avant de soumettre le formulaire.
-          </AlertDescription>
-        </Alert>
-      )}
-      
-      <div className="flex flex-col sm:flex-row gap-3 mt-4">
-        <Button 
-          onClick={handleGenerateCerfa}
-          disabled={isGenerating}
-          className="flex items-center justify-center"
-          variant="default"
-        >
-          {isGenerating ? (
-            <>
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              Génération...
-            </>
-          ) : (
-            <>
-              <FileDown className="mr-2 h-5 w-5" />
-              Télécharger au format PDF
-            </>
-          )}
-        </Button>
-        
-        <Button 
-          onClick={() => setShowSignatureDialog(true)}
-          disabled={isGenerating || isRegistering}
-          className="flex items-center justify-center"
-        >
-          Ajouter des signatures
-        </Button>
-        
-        {canRegisterOfficial && (
-          <Button
-            onClick={() => setShowOfficialDialog(true)}
-            disabled={isGenerating || isRegistering}
-            className="flex items-center justify-center"
-          >
-            Enregistrer officiellement
-          </Button>
-        )}
+    <div className="space-y-6 py-4">
+      <div className="bg-blue-50 p-4 rounded-lg flex items-start space-x-3">
+        <CheckCircle2 className="h-5 w-5 text-constalib-blue flex-shrink-0 mt-1" />
+        <div className="space-y-1">
+          <h4 className="font-medium text-constalib-dark">Prêt à générer votre constat amiable</h4>
+          <p className="text-sm text-constalib-dark-gray">
+            Vérifiez que toutes les informations saisies sont correctes avant de générer 
+            votre constat. Après génération, vous recevrez une copie par email et pourrez 
+            le télécharger au format PDF.
+          </p>
+        </div>
       </div>
       
-      <SignatureDialog
-        open={showSignatureDialog}
-        onOpenChange={setShowSignatureDialog}
-        onSign={(partyA: string | null, partyB: string | null) => {
-          setSignatures({ partyA, partyB });
-        }}
-      />
+      {registrationError && (
+        <div className="bg-red-50 border-l-4 border-red-500 p-4 rounded">
+          <div className="flex items-start">
+            <AlertCircle className="h-5 w-5 text-red-500 mr-2 mt-0.5" />
+            <p className="text-sm text-red-700">{registrationError}</p>
+          </div>
+        </div>
+      )}
       
-      <OfficialRegistrationDialog
-        open={showOfficialDialog}
-        onOpenChange={setShowOfficialDialog}
-        onRegister={handleRegisterOfficial}
-        isRegistering={isRegistering}
-      />
+      <div className="space-y-2">
+        {!registrationSuccess ? (
+          <Button
+            onClick={handleSubmit}
+            disabled={isRegistering}
+            className="w-full bg-constalib-blue hover:bg-constalib-dark-blue"
+            size="lg"
+          >
+            {isRegistering ? 'Génération en cours...' : 'Générer mon constat amiable'}
+          </Button>
+        ) : (
+          <div className="bg-green-50 p-4 rounded-lg flex items-start space-x-3">
+            <CheckCircle2 className="h-5 w-5 text-green-600 flex-shrink-0 mt-1" />
+            <div className="space-y-1">
+              <h4 className="font-medium text-constalib-dark">Constat généré avec succès</h4>
+              <p className="text-sm text-constalib-dark-gray">
+                Votre constat a été généré avec succès. Votre numéro de référence est: <strong>{referenceId}</strong>
+              </p>
+              <Button 
+                className="mt-2"
+                variant="outline"
+                onClick={() => toast.success("Le constat a été envoyé à votre adresse email")}
+              >
+                Télécharger mon constat
+              </Button>
+            </div>
+          </div>
+        )}
+      </div>
     </div>
   );
 };

@@ -51,6 +51,14 @@ export const useVehicleForm = (initialData?: any) => {
   const handleOtherVehicleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     
+    if (name === 'licensePlate') {
+      setOtherVehicle(prev => ({
+        ...prev,
+        licensePlate: value
+      }));
+      return;
+    }
+    
     if (name === 'otherVehicleInsurancePolicy') {
       setOtherVehicle(prev => ({
         ...prev,
@@ -67,11 +75,9 @@ export const useVehicleForm = (initialData?: any) => {
       return;
     }
     
-    const fieldName = name.replace('otherVehicle', '');
-    
     setOtherVehicle(prev => ({
       ...prev,
-      [fieldName]: value
+      [name]: value
     }));
   };
 

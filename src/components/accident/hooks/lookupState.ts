@@ -22,27 +22,6 @@ export interface VehicleLookupState {
   hasAttemptedLookup: boolean;
 }
 
-export const initialLookupState: VehicleLookupState = {
-  isLoading: false,
-  lookupSuccess: false,
-  vehicleDetails: null,
-  searchError: null,
-  isInsuranceLoading: false,
-  insuranceDetails: null,
-  insuranceLookupSuccess: false,
-  insuranceError: null,
-  autoInsuranceFound: false,
-  isFvaLoading: false,
-  fvaData: null,
-  fvaLookupSuccess: false,
-  fvaError: null,
-  showFvaDetails: false,
-  isFniLoading: false,
-  fniLookupSuccess: false,
-  fniError: null,
-  hasAttemptedLookup: false
-};
-
 export interface VehicleLookupActions {
   lookupVehicle: () => Promise<void>;
   lookupFni: () => Promise<void>;
@@ -54,5 +33,5 @@ export interface UseVehicleLookupProps {
   licensePlate: string;
   handleInputChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
   setVehicleInfo: (data: {brand: string, model: string, year: string, firstRegistration?: string}) => void;
-  setInsuranceInfo?: (data: {company: string}) => void;
+  setInsuranceInfo: (data: {company: string}) => void;
 }

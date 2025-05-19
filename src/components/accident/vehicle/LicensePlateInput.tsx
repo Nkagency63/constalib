@@ -43,6 +43,7 @@ const LicensePlateInput = ({
   fvaError
 }: LicensePlateInputProps) => {
   const handleLicensePlateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    // Create a new synthetic event with the name set to 'licensePlate'
     const syntheticEvent = {
       ...e,
       target: {
