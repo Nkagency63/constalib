@@ -38,6 +38,21 @@ const SchemeContainer: React.FC<SchemeContainerProps> = ({
     geolocationData
   });
   
+  // Map vehicles from our state to the format expected by react-konva
+  React.useEffect(() => {
+    if (initialData?.vehicles && initialData.vehicles.length > 0 && schemeState.vehicles.length === 0) {
+      // Convert existing vehicles to format with x,y coordinates for Konva
+      const konvaVehicles = initialData.vehicles.map(vehicle => ({
+        ...vehicle,
+        x: vehicle.position[0],
+        y: vehicle.position[1],
+        width: 80,
+        height: 40
+      }));
+      schemeState.setVehicles(konvaVehicles);
+    }
+  }, [initialData, schemeState.vehicles.length]);
+  
   return (
     <SchemeContent
       // Map state

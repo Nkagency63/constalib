@@ -22,7 +22,34 @@ const VehicleScheme = () => {
 
   const [hasShownSaveToast, setHasShownSaveToast] = useState(false);
   const [schemeData, setSchemeData] = useState<SchemeData>({
-    vehicles: [],
+    vehicles: [
+      {
+        id: 'vehicle-A',
+        type: 'car',
+        position: [200, 200],
+        x: 200,
+        y: 200,
+        width: 80,
+        height: 40,
+        rotation: 0,
+        color: '#3b82f6',
+        label: 'Véhicule A',
+        isSelected: false
+      },
+      {
+        id: 'vehicle-B',
+        type: 'car',
+        position: [300, 300],
+        x: 300,
+        y: 300,
+        width: 80,
+        height: 40,
+        rotation: 45,
+        color: '#ef4444',
+        label: 'Véhicule B',
+        isSelected: false
+      }
+    ],
     paths: [],
     annotations: [],
     center: [48.8566, 2.3522],
@@ -46,16 +73,19 @@ const VehicleScheme = () => {
 
   return (
     <div className="w-full">
-      <div className="bg-white p-4 rounded-lg border border-gray-200 mb-4 h-[500px]">
-        <SchemeContainer 
-          formData={demoFormData}
-          onSchemeUpdate={handleSchemeUpdate}
-          initialData={schemeData}
-        />
-      </div>
-      
-      <div className="text-sm text-constalib-dark-gray mt-4">
-        <p>Glissez les véhicules pour les positionner. Utilisez les outils pour les faire pivoter ou les supprimer.</p>
+      <div className="bg-white p-4 rounded-lg border border-gray-200 mb-4">
+        <h3 className="text-lg font-semibold mb-2">Schéma de l'accident</h3>
+        <p className="text-sm text-constalib-dark-gray mb-4">
+          Positionnez les véhicules pour illustrer l'accident. 
+          Glissez-déposez pour déplacer, utilisez les poignées pour redimensionner et pivoter.
+        </p>
+        <div className="h-[500px] flex justify-center">
+          <SchemeContainer 
+            formData={demoFormData}
+            onSchemeUpdate={handleSchemeUpdate}
+            initialData={schemeData}
+          />
+        </div>
       </div>
     </div>
   );

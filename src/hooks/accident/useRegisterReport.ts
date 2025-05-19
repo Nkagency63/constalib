@@ -76,6 +76,7 @@ export const useRegisterReport = () => {
 
       const response = await saveAccidentReport(apiData);
       
+      // Correction des erreurs TypeScript ici
       if (response && response.id) {
         setReportId(response.id);
         setRegistrationSuccess(true);
