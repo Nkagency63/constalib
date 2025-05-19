@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { SchemeData, GeolocationData } from '../../types';
 import { useVehicles } from '../../hooks/useVehicles';
@@ -8,6 +7,7 @@ import { useSchemeMap } from '../../hooks/useSchemeMap';
 import L from 'leaflet';
 import { toast } from 'sonner';
 import { handleMapClick } from '../SchemeMapHandlers';
+import initializeVehicles from '../SchemeVehicleInitializer';
 
 interface UseSchemeContainerProps {
   initialData?: SchemeData;
@@ -70,9 +70,15 @@ export const useSchemeContainer = ({
     
     console.log("Setting map center to:", [centerLat, centerLng], "with zoom:", zoom);
     
-    // Initialize vehicles if provided in initial data
+    // Initialize vehicles
     if (initialData?.vehicles && initialData.vehicles.length > 0) {
+      // If we have initial data, use it
       vehiclesHook.setVehicles(initialData.vehicles);
+    } else if (vehiclesHook.vehicles.length === 0) {
+      // Otherwise if we don't have any vehicles yet, initialize with A and B vehicles
+      console.log("Initializing vehicles A and B");
+      const initialVehicles = initializeVehicles(formData);
+      vehiclesHook.setVehicles(initialVehicles);
     }
     
     // Initialize paths if provided

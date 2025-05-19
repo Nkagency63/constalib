@@ -40,6 +40,7 @@ const AccidentForm = ({ onEmergencyRequest, onStepChange }: AccidentFormProps) =
     setHasInjuries,
     setInjuriesDescription,
     setHasWitnesses,
+    setSchemeData,
     updateWitness: originalUpdateWitness,
     addWitness,
     removeWitness: originalRemoveWitness
@@ -130,6 +131,7 @@ const AccidentForm = ({ onEmergencyRequest, onStepChange }: AccidentFormProps) =
             updateWitness={updateWitness}
             addWitness={addWitness}
             removeWitness={removeWitness}
+            onSchemeUpdate={setSchemeData}
           />
         </form>
         

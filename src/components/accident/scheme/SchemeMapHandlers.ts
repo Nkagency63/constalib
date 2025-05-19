@@ -1,102 +1,52 @@
 
-import { Vehicle, Path, Annotation } from '../types';
-import { toast } from 'sonner';
+import L from 'leaflet';
+import { v4 as uuidv4 } from 'uuid';
 
-interface MapHandlersProps {
+interface SchemeMapHandlersProps {
   readOnly: boolean;
   currentTool: 'select' | 'vehicle' | 'path' | 'annotation';
-  vehicles: Vehicle[];
-  paths: Path[];
-  annotations: Annotation[];
+  vehicles: any[];
+  paths: any[];
+  annotations: any[];
   selectedVehicle: string | null;
   isDrawing: boolean;
-  centerOnVehicles: (vehicles: Vehicle[]) => void;
-  saveToHistory: (state: any) => any;
-  addVehicle: (latlng: L.LatLng) => Vehicle[] | null;
+  centerOnVehicles: () => void;
+  saveToHistory: () => any;
+  addVehicle: (latlng: L.LatLng) => any;
   selectVehicle: (id: string | null) => void;
-  startPath: (point: [number, number], vehicleId?: string, color?: string | null) => void;
+  startPath: (point: [number, number]) => void;
   continuePath: (point: [number, number]) => void;
-  addAnnotation: (point: [number, number]) => Annotation[];
+  addAnnotation: (point: [number, number]) => any;
 }
 
-// Handle clicks on the map based on the selected tool
-export const handleMapClick = (
-  e: L.LeafletMouseEvent,
-  {
-    readOnly,
-    currentTool,
-    vehicles,
-    paths,
-    annotations,
-    selectedVehicle,
-    isDrawing,
-    centerOnVehicles,
-    saveToHistory,
-    addVehicle,
-    selectVehicle,
-    startPath,
-    continuePath,
-    addAnnotation
-  }: MapHandlersProps
-) => {
+export const handleMapClick = (e: L.LeafletMouseEvent, props: SchemeMapHandlersProps) => {
+  const { readOnly, currentTool, addVehicle, startPath, addAnnotation } = props;
+  
   if (readOnly) return;
   
-  const newPoint: [number, number] = [e.latlng.lat, e.latlng.lng];
+  // Get the clicked coordinates
+  const latlng = e.latlng;
   
+  // Handle the click depending on the active tool
   switch (currentTool) {
     case 'vehicle':
-      if (vehicles.length < 4) {
-        console.log("Adding vehicle at position:", newPoint);
-        const updatedVehicles = addVehicle(e.latlng);
-        if (updatedVehicles) {
-          console.log("Vehicle added successfully:", updatedVehicles.length);
-          saveToHistory({ 
-            vehicles: updatedVehicles, 
-            paths, 
-            annotations, 
-            center: [e.latlng.lat, e.latlng.lng],
-            zoom: 17 
-          });
-          
-          // Force update vehicle positions and center on new vehicle
-          setTimeout(() => centerOnVehicles(updatedVehicles), 100);
-        } else {
-          console.error("Failed to add vehicle");
-        }
-      } else {
-        toast.warning("Maximum de 4 véhicules atteint");
-      }
+      // Add a vehicle at the clicked location
+      addVehicle(latlng);
       break;
       
     case 'path':
-      if (isDrawing) {
-        continuePath(newPoint);
-      } else if (selectedVehicle) {
-        // Start drawing a path from the selected vehicle
-        const vehicle = vehicles.find(v => v.id === selectedVehicle);
-        if (vehicle) {
-          startPath(vehicle.position, vehicle.id, vehicle.color);
-        }
-      } else {
-        startPath(newPoint);
-      }
+      // Start a new path at the clicked location
+      startPath([latlng.lat, latlng.lng]);
       break;
       
     case 'annotation':
-      const updatedAnnotations = addAnnotation(newPoint);
-      saveToHistory({
-        vehicles,
-        paths,
-        annotations: updatedAnnotations,
-        center: [e.latlng.lat, e.latlng.lng],
-        zoom: 17
-      });
+      // Add an annotation at the clicked location
+      addAnnotation([latlng.lat, latlng.lng]);
       break;
       
     case 'select':
     default:
-      // In select mode, deselect current vehicle
-      selectVehicle(null);
+      // Default behavior is to do nothing or deselect
       break;
   }
 };

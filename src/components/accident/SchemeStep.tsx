@@ -4,6 +4,8 @@ import { FormData, SchemeData } from './types';
 import InteractiveScheme from './InteractiveScheme';
 import { toast } from 'sonner';
 import { TooltipProvider } from '@/components/ui/tooltip';
+import { Car, Info } from 'lucide-react';
+import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
 
 interface SchemeStepProps {
   formData: FormData;
@@ -49,18 +51,28 @@ const SchemeStep: React.FC<SchemeStepProps> = ({ formData, onSchemeUpdate }) => 
     }
   };
   
-  // Ajout de log pour déboguer
-  console.log('SchemeStep rendering with formData:', formData);
-  console.log('Current schemeData state:', schemeData);
-  
   return (
     <TooltipProvider>
       <div className="space-y-6">
+        <Alert className="bg-blue-50 border-blue-200">
+          <Info className="h-5 w-5 text-blue-600" />
+          <AlertTitle>Schéma d'accident</AlertTitle>
+          <AlertDescription className="text-sm text-blue-700">
+            Positionnez les véhicules A et B sur la carte pour illustrer l'accident. 
+            Vous pouvez les déplacer en glissant-déposant, et les faire pivoter avec les contrôles.
+          </AlertDescription>
+        </Alert>
+        
         <div className="bg-white p-4 rounded-lg border border-gray-200">
-          <p className="text-sm text-constalib-dark-gray mb-4">
-            Positionnez les véhicules et tracez les trajectoires pour illustrer l'accident. 
-            Vous pouvez ajouter jusqu'à 4 véhicules différents.
-          </p>
+          <div className="flex items-center gap-2 mb-3 text-sm text-constalib-dark-gray">
+            <Car className="h-4 w-4 text-blue-600" />
+            <span>Véhicule A (votre véhicule) - <span className="font-semibold">{formData.vehicleBrand} {formData.vehicleModel}</span></span>
+          </div>
+          
+          <div className="flex items-center gap-2 mb-4 text-sm text-constalib-dark-gray">
+            <Car className="h-4 w-4 text-red-600" />
+            <span>Véhicule B (autre partie) - <span className="font-semibold">{formData.otherVehicle?.brand} {formData.otherVehicle?.model}</span></span>
+          </div>
           
           <div className="h-[500px] rounded-lg overflow-hidden relative">
             <InteractiveScheme

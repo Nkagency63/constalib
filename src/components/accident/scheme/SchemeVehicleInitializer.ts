@@ -6,40 +6,47 @@ import { v4 as uuidv4 } from 'uuid';
 const DEFAULT_CAR_POSITION: [number, number] = [48.8566, 2.3522];
 const DEFAULT_OTHER_CAR_POSITION: [number, number] = [48.8568, 2.3528];
 
+// Colors for vehicles
+const VEHICLE_A_COLOR = '#1e40af'; // Blue
+const VEHICLE_B_COLOR = '#dc2626'; // Red
+const ADDITIONAL_VEHICLE_COLORS = ['#10b981', '#f59e0b', '#6366f1']; // Green, Orange, Purple
+
 export const initializeVehicles = (formData: any): Vehicle[] => {
   const vehicles: Vehicle[] = [];
   
-  if (formData) {
-    // Add main vehicle if data exists
-    if (formData.vehicleBrand || formData.vehicleModel) {
-      const vehicleA: Vehicle = {
-        id: 'A',
-        type: 'car',
-        position: DEFAULT_CAR_POSITION,
-        color: '#1e40af', // Blue for vehicle A
-        rotation: 0,
-        isSelected: false,
-        label: 'A',
-      };
-      
-      vehicles.push(vehicleA);
-    }
-    
-    // Add other vehicle if data exists
-    if (formData.otherVehicle?.brand || formData.otherVehicle?.model) {
-      const vehicleB: Vehicle = {
-        id: 'B',
-        type: 'car',
-        position: DEFAULT_OTHER_CAR_POSITION,
-        color: '#dc2626', // Red for vehicle B
-        rotation: 180, // Facing opposite direction
-        isSelected: false,
-        label: 'B',
-      };
-      
-      vehicles.push(vehicleB);
-    }
+  // If we have geolocation, use it as a base position
+  let basePosition: [number, number] = DEFAULT_CAR_POSITION;
+  if (formData?.geolocation?.lat && formData?.geolocation?.lng) {
+    basePosition = [formData.geolocation.lat, formData.geolocation.lng];
   }
+
+  // Create offset positions around the base location
+  const offsetLat = 0.0002; // Small latitude offset
+  const offsetLng = 0.0006; // Small longitude offset
+  
+  // Add vehicle A (main vehicle)
+  const vehicleA: Vehicle = {
+    id: 'A',
+    type: 'car',
+    position: [basePosition[0] - offsetLat, basePosition[1] - offsetLng],
+    color: VEHICLE_A_COLOR,
+    rotation: 0,
+    isSelected: false,
+    label: 'A'
+  };
+  vehicles.push(vehicleA);
+  
+  // Add vehicle B (other vehicle)
+  const vehicleB: Vehicle = {
+    id: 'B',
+    type: 'car',
+    position: [basePosition[0] + offsetLat, basePosition[1] + offsetLng],
+    color: VEHICLE_B_COLOR,
+    rotation: 180, // Facing opposite direction by default
+    isSelected: false,
+    label: 'B'
+  };
+  vehicles.push(vehicleB);
   
   return vehicles;
 };

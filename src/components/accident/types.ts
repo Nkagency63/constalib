@@ -217,3 +217,12 @@ export interface FormData {
   // Current vehicle ID for forms
   currentVehicleId?: string;
 }
+
+// Type for geolocation data
+export interface GeolocationData {
+  lat: number;
+  lng: number;
+  address: string;
+  accuracy?: number;
+  timestamp?: number;
+}
