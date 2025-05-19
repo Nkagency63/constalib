@@ -1,6 +1,7 @@
+
 import { useState, useCallback } from 'react';
 import { v4 as uuidv4 } from 'uuid';
-import { WitnessInfo, GeolocationData, SchemeData } from '@/components/accident/types';
+import { WitnessInfo, GeolocationData, SchemeData, Circumstance } from '@/components/accident/types';
 import { useLocationForm } from './accident/useLocationForm';
 import { useWitnessForm } from './accident/useWitnessForm';
 import { useInjuriesForm } from './accident/useInjuriesForm';
@@ -56,7 +57,10 @@ export const useAccidentForm = () => {
 
   // Handling input change
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { name, value, type, checked } = e.target;
+    const { name, value } = e.target;
+    // Pour les champs de type checkbox, nous devons récupérer checked différemment
+    const isCheckbox = (e.target as HTMLInputElement).type === 'checkbox';
+    const checked = isCheckbox ? (e.target as HTMLInputElement).checked : false;
 
     switch (name) {
       case 'date':
@@ -78,7 +82,7 @@ export const useAccidentForm = () => {
         setMaterialDamageDescription(value);
         break;
       default:
-        console.warn(`Input ${name} not handled`);
+        console.warn(`Input ${name} not handled in useAccidentForm`);
     }
   };
 
@@ -138,23 +142,32 @@ export const useAccidentForm = () => {
     vehiclePhotos,
     damagePhotos,
     
-    // Circumstances
-    vehicleACircumstances: circumstancesForm.vehicleACircumstances,
-    vehicleBCircumstances: circumstancesForm.vehicleBCircumstances,
+    // Circumstances - Assurez-vous que ce sont des tableaux de Circumstance
+    vehicleACircumstances: circumstancesForm.vehicleACircumstances as Circumstance[],
+    vehicleBCircumstances: circumstancesForm.vehicleBCircumstances as Circumstance[],
     
     // Emails
     personalEmail: emailForm.personalEmail,
     insuranceEmails: emailForm.insuranceEmails,
     involvedPartyEmails: emailForm.involvedPartyEmails,
     
-    // Geolocation
-    geolocation: geolocation || { lat: 0, lng: 0, address: '' },
+    // Geolocation with additional properties expected by the API
+    geolocation: geolocation ? {
+      ...geolocation,
+      accuracy: 0,
+      timestamp: new Date().toISOString()
+    } : { lat: 0, lng: 0, address: '', accuracy: 0, timestamp: new Date().toISOString() },
     
     // Scheme data
     schemeData,
     
     // Current vehicle ID for forms
     currentVehicleId: vehicleForm.currentVehicleId,
+
+    // Fields pour la compatibilité avec la FormData attendue par l'API
+    userId: 'anonymous',
+    city: locationForm.city || '',
+    country: locationForm.country || 'France',
   };
 
   // Return the entire form state and methods
@@ -165,8 +178,8 @@ export const useAccidentForm = () => {
     submitted,
     
     // Basic form navigation
-    nextStep: () => setCurrentStepIndex(prev => Math.min(prev + 1, 10)),
-    prevStep: () => setCurrentStepIndex(prev => Math.max(prev - 1, 0)),
+    nextStep,
+    prevStep,
     setSubmitted,
     
     // Input handlers
@@ -190,7 +203,7 @@ export const useAccidentForm = () => {
     setSchemeData,
     
     // Helper functions
-    onEmergencyContacted: emergencyForm.setEmergencyContacted,
+    onEmergencyContacted: emergencyForm.onEmergencyContacted,
     
     // Witness management
     updateWitness: witnessForm.updateWitness,

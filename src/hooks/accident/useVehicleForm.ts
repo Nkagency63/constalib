@@ -45,6 +45,10 @@ export const useVehicleForm = (initialData?: any) => {
       case 'insuranceCompany':
         setInsuranceCompany(value);
         break;
+      default:
+        // For other input fields that don't match specific cases
+        console.log(`Unhandled input field: ${name}`);
+        break;
     }
   };
 
