@@ -60,9 +60,9 @@ export const useRegisterReport = () => {
           driverPhone: formData.otherDriver?.phone || '',
           driverAddress: formData.otherDriver?.address || '',
           driverLicense: formData.otherDriver?.licenseNumber || '',
-          insuredName: '',
-          insuredPhone: '',
-          insuredAddress: ''
+          insuredName: formData.otherInsured?.name || '',
+          insuredPhone: formData.otherInsured?.phone || '',
+          insuredAddress: formData.otherInsured?.address || ''
         },
         geolocation: {
           lat: formData.geolocation?.lat || 0,
@@ -76,7 +76,7 @@ export const useRegisterReport = () => {
 
       const response = await saveAccidentReport(apiData);
       
-      if (response.id) {
+      if (response && response.id) {
         setReportId(response.id);
         setRegistrationSuccess(true);
         toast.success('Votre constat a été enregistré avec succès');

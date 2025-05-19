@@ -177,8 +177,8 @@ export const useAccidentForm = () => {
 
     // Fields for API compatibility
     userId: 'anonymous',
-    city: locationForm.city,
-    country: locationForm.country || 'France',
+    city: locationForm.location ? locationForm.location.split(',')[0].trim() : '',
+    country: 'France',
   };
 
   // Return the entire form state and methods

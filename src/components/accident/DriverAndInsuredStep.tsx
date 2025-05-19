@@ -25,18 +25,18 @@ const DriverAndInsuredStep: React.FC<DriverAndInsuredStepProps> = ({
   // Check on component mount if driver and insured info are the same
   useEffect(() => {
     // For vehicle A
-    if (formData.driverName && formData.insuredName && 
-        formData.driverName === formData.insuredName &&
-        formData.driverAddress === formData.insuredAddress &&
-        formData.driverPhone === formData.insuredPhone) {
+    if (formData.driver?.name && formData.insured?.name && 
+        formData.driver.name === formData.insured.name &&
+        formData.driver.address === formData.insured.address &&
+        formData.driver.phone === formData.insured.phone) {
       setDriverIsInsuredA(true);
     }
     
     // For vehicle B
-    if (formData.otherDriverName && formData.otherInsuredName && 
-        formData.otherDriverName === formData.otherInsuredName &&
-        formData.otherDriverAddress === formData.otherInsuredAddress &&
-        formData.otherDriverPhone === formData.otherInsuredPhone) {
+    if (formData.otherDriver?.name && formData.otherInsured?.name && 
+        formData.otherDriver.name === formData.otherInsured.name &&
+        formData.otherDriver.address === formData.otherInsured.address &&
+        formData.otherDriver.phone === formData.otherInsured.phone) {
       setDriverIsInsuredB(true);
     }
   }, [formData]);
@@ -52,16 +52,16 @@ const DriverAndInsuredStep: React.FC<DriverAndInsuredStepProps> = ({
         target: { name, value },
       } as React.ChangeEvent<HTMLInputElement>);
       
-      if (formData.driverName) {
-        handleInputChange(createEvent('insuredName', formData.driverName));
+      if (formData.driver?.name) {
+        handleInputChange(createEvent('insuredName', formData.driver.name));
       }
       
-      if (formData.driverAddress) {
-        handleInputChange(createEvent('insuredAddress', formData.driverAddress));
+      if (formData.driver?.address) {
+        handleInputChange(createEvent('insuredAddress', formData.driver.address));
       }
       
-      if (formData.driverPhone) {
-        handleInputChange(createEvent('insuredPhone', formData.driverPhone));
+      if (formData.driver?.phone) {
+        handleInputChange(createEvent('insuredPhone', formData.driver.phone));
       }
       
       toast.success("Informations copiées", {
@@ -81,16 +81,16 @@ const DriverAndInsuredStep: React.FC<DriverAndInsuredStepProps> = ({
         target: { name, value },
       } as React.ChangeEvent<HTMLInputElement>);
       
-      if (formData.otherDriverName) {
-        handleInputChange(createEvent('otherInsuredName', formData.otherDriverName));
+      if (formData.otherDriver?.name) {
+        handleInputChange(createEvent('otherInsuredName', formData.otherDriver.name));
       }
       
-      if (formData.otherDriverAddress) {
-        handleInputChange(createEvent('otherInsuredAddress', formData.otherDriverAddress));
+      if (formData.otherDriver?.address) {
+        handleInputChange(createEvent('otherInsuredAddress', formData.otherDriver.address));
       }
       
-      if (formData.otherDriverPhone) {
-        handleInputChange(createEvent('otherInsuredPhone', formData.otherDriverPhone));
+      if (formData.otherDriver?.phone) {
+        handleInputChange(createEvent('otherInsuredPhone', formData.otherDriver.phone));
       }
       
       toast.success("Informations copiées", {
@@ -132,7 +132,7 @@ const DriverAndInsuredStep: React.FC<DriverAndInsuredStepProps> = ({
                     <Input
                       id="driverName"
                       name="driverName"
-                      value={formData.driverName || ''}
+                      value={formData.driver?.name || ''}
                       onChange={handleInputChange}
                       placeholder="Jean Dupont"
                     />
@@ -142,7 +142,7 @@ const DriverAndInsuredStep: React.FC<DriverAndInsuredStepProps> = ({
                     <Textarea
                       id="driverAddress"
                       name="driverAddress"
-                      value={formData.driverAddress || ''}
+                      value={formData.driver?.address || ''}
                       onChange={handleInputChange}
                       placeholder="123 rue de Paris, 75001 Paris"
                       className="resize-none"
@@ -153,7 +153,7 @@ const DriverAndInsuredStep: React.FC<DriverAndInsuredStepProps> = ({
                     <Input
                       id="driverPhone"
                       name="driverPhone"
-                      value={formData.driverPhone || ''}
+                      value={formData.driver?.phone || ''}
                       onChange={handleInputChange}
                       placeholder="06 12 34 56 78"
                     />
@@ -163,7 +163,7 @@ const DriverAndInsuredStep: React.FC<DriverAndInsuredStepProps> = ({
                     <Input
                       id="driverLicense"
                       name="driverLicense"
-                      value={formData.driverLicense || ''}
+                      value={formData.driver?.licenseNumber || ''}
                       onChange={handleInputChange}
                       placeholder="12AB34567890"
                     />
@@ -195,7 +195,7 @@ const DriverAndInsuredStep: React.FC<DriverAndInsuredStepProps> = ({
                     <Input
                       id="insuredName"
                       name="insuredName"
-                      value={formData.insuredName || ''}
+                      value={formData.insured?.name || ''}
                       onChange={handleInputChange}
                       placeholder="Jean Dupont"
                     />
@@ -205,7 +205,7 @@ const DriverAndInsuredStep: React.FC<DriverAndInsuredStepProps> = ({
                     <Textarea
                       id="insuredAddress"
                       name="insuredAddress"
-                      value={formData.insuredAddress || ''}
+                      value={formData.insured?.address || ''}
                       onChange={handleInputChange}
                       placeholder="123 rue de Paris, 75001 Paris"
                       className="resize-none"
@@ -216,13 +216,13 @@ const DriverAndInsuredStep: React.FC<DriverAndInsuredStepProps> = ({
                     <Input
                       id="insuredPhone"
                       name="insuredPhone"
-                      value={formData.insuredPhone || ''}
+                      value={formData.insured?.phone || ''}
                       onChange={handleInputChange}
                       placeholder="06 12 34 56 78"
                     />
                   </div>
                 </div>
-                {!driverIsInsuredA && formData.driverName && formData.insuredName === '' && (
+                {!driverIsInsuredA && formData.driver?.name && !formData.insured?.name && (
                   <Button 
                     type="button"
                     variant="outline"
@@ -258,7 +258,7 @@ const DriverAndInsuredStep: React.FC<DriverAndInsuredStepProps> = ({
                     <Input
                       id="otherDriverName"
                       name="otherDriverName"
-                      value={formData.otherDriverName || ''}
+                      value={formData.otherDriver?.name || ''}
                       onChange={handleInputChange}
                       placeholder="Michel Martin"
                     />
@@ -268,7 +268,7 @@ const DriverAndInsuredStep: React.FC<DriverAndInsuredStepProps> = ({
                     <Textarea
                       id="otherDriverAddress"
                       name="otherDriverAddress"
-                      value={formData.otherDriverAddress || ''}
+                      value={formData.otherDriver?.address || ''}
                       onChange={handleInputChange}
                       placeholder="456 avenue de Lyon, 69002 Lyon"
                       className="resize-none"
@@ -279,7 +279,7 @@ const DriverAndInsuredStep: React.FC<DriverAndInsuredStepProps> = ({
                     <Input
                       id="otherDriverPhone"
                       name="otherDriverPhone"
-                      value={formData.otherDriverPhone || ''}
+                      value={formData.otherDriver?.phone || ''}
                       onChange={handleInputChange}
                       placeholder="07 98 76 54 32"
                     />
@@ -289,7 +289,7 @@ const DriverAndInsuredStep: React.FC<DriverAndInsuredStepProps> = ({
                     <Input
                       id="otherDriverLicense"
                       name="otherDriverLicense"
-                      value={formData.otherDriverLicense || ''}
+                      value={formData.otherDriver?.licenseNumber || ''}
                       onChange={handleInputChange}
                       placeholder="98ZY76543210"
                     />
@@ -321,7 +321,7 @@ const DriverAndInsuredStep: React.FC<DriverAndInsuredStepProps> = ({
                     <Input
                       id="otherInsuredName"
                       name="otherInsuredName"
-                      value={formData.otherInsuredName || ''}
+                      value={formData.otherInsured?.name || ''}
                       onChange={handleInputChange}
                       placeholder="Michel Martin"
                     />
@@ -331,7 +331,7 @@ const DriverAndInsuredStep: React.FC<DriverAndInsuredStepProps> = ({
                     <Textarea
                       id="otherInsuredAddress"
                       name="otherInsuredAddress"
-                      value={formData.otherInsuredAddress || ''}
+                      value={formData.otherInsured?.address || ''}
                       onChange={handleInputChange}
                       placeholder="456 avenue de Lyon, 69002 Lyon"
                       className="resize-none"
@@ -342,13 +342,13 @@ const DriverAndInsuredStep: React.FC<DriverAndInsuredStepProps> = ({
                     <Input
                       id="otherInsuredPhone"
                       name="otherInsuredPhone"
-                      value={formData.otherInsuredPhone || ''}
+                      value={formData.otherInsured?.phone || ''}
                       onChange={handleInputChange}
                       placeholder="07 98 76 54 32"
                     />
                   </div>
                 </div>
-                {!driverIsInsuredB && formData.otherDriverName && formData.otherInsuredName === '' && (
+                {!driverIsInsuredB && formData.otherDriver?.name && !formData.otherInsured?.name && (
                   <Button 
                     type="button"
                     variant="outline"

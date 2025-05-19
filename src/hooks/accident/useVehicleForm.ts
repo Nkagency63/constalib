@@ -19,6 +19,34 @@ export const useVehicleForm = (initialData?: any) => {
     insurancePolicy: '',
     insuranceCompany: ''
   });
+  
+  // Ajout des informations du conducteur et de l'assuré pour le véhicule A
+  const [driver, setDriver] = useState(initialData?.driver || {
+    name: '',
+    address: '',
+    phone: '',
+    licenseNumber: ''
+  });
+  
+  const [insured, setInsured] = useState(initialData?.insured || {
+    name: '',
+    address: '',
+    phone: ''
+  });
+  
+  // Ajout des informations du conducteur et de l'assuré pour le véhicule B
+  const [otherDriver, setOtherDriver] = useState(initialData?.otherDriver || {
+    name: '',
+    address: '',
+    phone: '',
+    licenseNumber: ''
+  });
+  
+  const [otherInsured, setOtherInsured] = useState(initialData?.otherInsured || {
+    name: '',
+    address: '',
+    phone: ''
+  });
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -45,8 +73,57 @@ export const useVehicleForm = (initialData?: any) => {
       case 'insuranceCompany':
         setInsuranceCompany(value);
         break;
+      // Gestion des champs pour le conducteur du véhicule A
+      case 'driverName':
+        setDriver(prev => ({ ...prev, name: value }));
+        break;
+      case 'driverAddress':
+        setDriver(prev => ({ ...prev, address: value }));
+        break;
+      case 'driverPhone':
+        setDriver(prev => ({ ...prev, phone: value }));
+        break;
+      case 'driverLicense':
+        setDriver(prev => ({ ...prev, licenseNumber: value }));
+        break;
+      
+      // Gestion des champs pour l'assuré du véhicule A
+      case 'insuredName':
+        setInsured(prev => ({ ...prev, name: value }));
+        break;
+      case 'insuredAddress':
+        setInsured(prev => ({ ...prev, address: value }));
+        break;
+      case 'insuredPhone':
+        setInsured(prev => ({ ...prev, phone: value }));
+        break;
+      
+      // Gestion des champs pour le conducteur du véhicule B
+      case 'otherDriverName':
+        setOtherDriver(prev => ({ ...prev, name: value }));
+        break;
+      case 'otherDriverAddress':
+        setOtherDriver(prev => ({ ...prev, address: value }));
+        break;
+      case 'otherDriverPhone':
+        setOtherDriver(prev => ({ ...prev, phone: value }));
+        break;
+      case 'otherDriverLicense':
+        setOtherDriver(prev => ({ ...prev, licenseNumber: value }));
+        break;
+      
+      // Gestion des champs pour l'assuré du véhicule B
+      case 'otherInsuredName':
+        setOtherInsured(prev => ({ ...prev, name: value }));
+        break;
+      case 'otherInsuredAddress':
+        setOtherInsured(prev => ({ ...prev, address: value }));
+        break;
+      case 'otherInsuredPhone':
+        setOtherInsured(prev => ({ ...prev, phone: value }));
+        break;
       default:
-        // For other input fields that don't match specific cases
+        // Pour les autres champs qui ne correspondent pas aux cas spécifiques
         console.log(`Unhandled input field in useVehicleForm: ${name}`);
         break;
     }
@@ -104,6 +181,24 @@ export const useVehicleForm = (initialData?: any) => {
   const updateCurrentVehicleId = (vehicleId: 'A' | 'B') => {
     setCurrentVehicleId(vehicleId);
   };
+  
+  // Fonction pour copier les informations du conducteur vers l'assuré
+  const copyDriverToInsured = () => {
+    setInsured({
+      name: driver.name,
+      address: driver.address,
+      phone: driver.phone
+    });
+  };
+  
+  // Fonction pour copier les informations du conducteur B vers l'assuré B
+  const copyOtherDriverToInsured = () => {
+    setOtherInsured({
+      name: otherDriver.name,
+      address: otherDriver.address,
+      phone: otherDriver.phone
+    });
+  };
 
   return {
     currentVehicleId,
@@ -115,11 +210,17 @@ export const useVehicleForm = (initialData?: any) => {
     insurancePolicy,
     insuranceCompany,
     otherVehicle,
+    driver,
+    insured,
+    otherDriver,
+    otherInsured,
     handleInputChange,
     handleOtherVehicleChange,
     setVehicleInfo,
     setOtherVehicleInfo,
     updateCurrentVehicleId,
+    copyDriverToInsured,
+    copyOtherDriverToInsured,
     getVehicleData: () => ({
       licensePlate,
       vehicleBrand,
@@ -129,7 +230,11 @@ export const useVehicleForm = (initialData?: any) => {
       insurancePolicy,
       insuranceCompany,
       otherVehicle,
-      currentVehicleId
+      currentVehicleId,
+      driver,
+      insured,
+      otherDriver,
+      otherInsured
     })
   };
 };
