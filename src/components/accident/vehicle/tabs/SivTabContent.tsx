@@ -26,9 +26,11 @@ const SivTabContent = ({
   isFvaLoading,
   lookupSuccess
 }: SivTabContentProps) => {
+  // Format the license plate as the user types
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const formattedValue = formatSivLicensePlate(e.target.value);
     
+    // Create a synthetic event with the formatted value
     const syntheticEvent = {
       ...e,
       target: {
@@ -37,6 +39,7 @@ const SivTabContent = ({
       }
     } as React.ChangeEvent<HTMLInputElement>;
     
+    // Pass the synthetic event to the parent handler
     handleLicensePlateChange(syntheticEvent);
   };
 

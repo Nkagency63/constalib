@@ -28,8 +28,8 @@ export const useAccidentForm = () => {
   const [materialDamageDescription, setMaterialDamageDescription] = useState('');
   
   // Photo evidence
-  const [vehiclePhotos, setVehiclePhotos] = useState<(File | string)[]>([]);
-  const [damagePhotos, setDamagePhotos] = useState<(File | string)[]>([]);
+  const [vehiclePhotos, setVehiclePhotos] = useState<string[]>([]);
+  const [damagePhotos, setDamagePhotos] = useState<string[]>([]);
   
   // Geolocation
   const [geolocation, setGeolocationState] = useState<GeolocationData | null>(null);
@@ -142,9 +142,9 @@ export const useAccidentForm = () => {
     vehiclePhotos,
     damagePhotos,
     
-    // Circumstances - Assurez-vous que ce sont des tableaux de Circumstance
-    vehicleACircumstances: circumstancesForm.vehicleACircumstances as Circumstance[],
-    vehicleBCircumstances: circumstancesForm.vehicleBCircumstances as Circumstance[],
+    // Circumstances - Cast to Circumstance[] to satisfy TypeScript
+    vehicleACircumstances: circumstancesForm.vehicleACircumstances as unknown as Circumstance[],
+    vehicleBCircumstances: circumstancesForm.vehicleBCircumstances as unknown as Circumstance[],
     
     // Emails
     personalEmail: emailForm.personalEmail,
