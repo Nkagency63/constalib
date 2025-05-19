@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -70,6 +69,7 @@ const MultiVehicleStep: React.FC<MultiVehicleStepProps> = ({
       formatSivLicensePlate(value) : 
       formatFniLicensePlate(value);
     
+    // Create a synthetic event with the formatted value
     const syntheticEvent = {
       ...e,
       target: {
@@ -177,7 +177,7 @@ const MultiVehicleStep: React.FC<MultiVehicleStepProps> = ({
                     <Input
                       id="licensePlate"
                       name="licensePlate"
-                      value={licensePlate}
+                      value={licensePlate || ''}
                       onChange={(e) => handleLicensePlateChange(e, false)}
                       placeholder="AB-123-CD"
                       className="pr-12"
@@ -225,7 +225,7 @@ const MultiVehicleStep: React.FC<MultiVehicleStepProps> = ({
                     <Input
                       id="licensePlate"
                       name="licensePlate"
-                      value={licensePlate}
+                      value={licensePlate || ''}
                       onChange={(e) => handleLicensePlateChange(e, false)}
                       placeholder="123 ABC 75"
                       className="pr-12"

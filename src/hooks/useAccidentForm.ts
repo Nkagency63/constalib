@@ -1,3 +1,4 @@
+
 import { useState, useCallback } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import { WitnessInfo, GeolocationData, SchemeData, Circumstance } from '@/components/accident/types';
@@ -81,7 +82,8 @@ export const useAccidentForm = () => {
         setMaterialDamageDescription(value);
         break;
       default:
-        console.warn(`Input ${name} not handled in useAccidentForm`);
+        // Forward to vehicle form if not handled here
+        vehicleForm.handleInputChange(e);
     }
   };
 
@@ -153,9 +155,15 @@ export const useAccidentForm = () => {
     // Geolocation with additional properties expected by the API
     geolocation: geolocation ? {
       ...geolocation,
-      accuracy: 0,
-      timestamp: new Date().toISOString()
-    } : { lat: 0, lng: 0, address: '', accuracy: 0, timestamp: new Date().toISOString() },
+      accuracy: geolocation.accuracy || 0,
+      timestamp: geolocation.timestamp || new Date().toISOString()
+    } : { 
+      lat: 0, 
+      lng: 0, 
+      address: '', 
+      accuracy: 0, 
+      timestamp: new Date().toISOString() 
+    },
     
     // Scheme data
     schemeData,
