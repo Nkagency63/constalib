@@ -103,7 +103,15 @@ export const isValidLicensePlate = (plate: string, format: 'siv' | 'fni'): boole
   return false;
 };
 
-// Helper function to check if a string matches a pattern
-const matchesPattern = (str: string, pattern: RegExp): boolean => {
-  return pattern.test(str);
+/**
+ * Normalize a license plate by removing spaces and dashes, and converting to uppercase
+ * @param plate License plate to normalize
+ * @param format Format type ('siv' for modern format, 'fni' for old format)
+ * @returns normalized plate string
+ */
+export const normalizeLicensePlate = (plate: string, format: 'siv' | 'fni'): string => {
+  if (!plate) return '';
+  
+  const normalized = plate.replace(/[\s-]/g, '').toUpperCase();
+  return normalized;
 };

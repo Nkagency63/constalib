@@ -2,6 +2,13 @@
 import { useState } from 'react';
 import { saveAccidentReport } from '@/services/accidentReportService';
 import { toast } from 'sonner';
+import { uploadFileToStorage } from '@/utils/downloadUtils';
+
+export interface RegisterReportResult {
+  success: boolean;
+  reportId?: string;
+  error?: string;
+}
 
 export const useRegisterReport = () => {
   const [isRegistering, setIsRegistering] = useState(false);
@@ -11,11 +18,32 @@ export const useRegisterReport = () => {
   const [showOfficialDialog, setShowOfficialDialog] = useState(false);
   const [referenceId, setReferenceId] = useState<string | null>(null);
 
-  const registerReport = async (formData: any) => {
+  const registerReport = async (formData: any): Promise<boolean> => {
     setIsRegistering(true);
     setRegistrationError(null);
     
     try {
+      // Upload any scheme image if available
+      let schemeImageUrl = null;
+      if (formData.schemeData && formData.schemeImageDataUrl) {
+        try {
+          // Convert data URL to blob for upload
+          const response = await fetch(formData.schemeImageDataUrl);
+          const blob = await response.blob();
+          const file = new File([blob], `scheme-${Date.now()}.png`, { type: 'image/png' });
+          
+          // Upload the scheme image
+          schemeImageUrl = await uploadFileToStorage(
+            file, 
+            `accident-reports/${formData.userId || 'anonymous'}/schemes`
+          );
+          console.log('Scheme image uploaded:', schemeImageUrl);
+        } catch (error) {
+          console.error('Error uploading scheme image:', error);
+          // Continue with report submission even if image upload fails
+        }
+      }
+      
       // Map form data to the expected API structure
       const apiData = {
         userId: formData.userId || 'anonymous',
@@ -71,7 +99,8 @@ export const useRegisterReport = () => {
           accuracy: formData.geolocation?.accuracy || 0,
           timestamp: formData.geolocation?.timestamp || new Date().toISOString()
         },
-        schemeData: formData.schemeData
+        schemeData: formData.schemeData,
+        schemeImageUrl: schemeImageUrl
       };
 
       const response = await saveAccidentReport(apiData);

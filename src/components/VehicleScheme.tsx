@@ -1,92 +1,77 @@
 
-import { toast } from 'sonner';
-import { useState } from 'react';
-import SchemeContainer from './accident/scheme/SchemeContainer';
-import { SchemeData } from './accident/types';
+import { useState, useEffect } from 'react';
+import { Vehicle, SchemeData } from './accident/types/vehicleTypes';
+import SchemeContainer from './accident/scheme/components/SchemeContainer';
+import { Stage, Layer, Rect, Group } from 'react-konva';
 
-const VehicleScheme = () => {
-  // Données par défaut (Paris)
-  const demoFormData = {
-    geolocation: {
-      lat: 48.8566,
-      lng: 2.3522,
-      address: "Emplacement par défaut"
-    },
-    vehicleBrand: "Renault",
-    vehicleModel: "Clio",
-    otherVehicle: {
-      brand: "Peugeot",
-      model: "208"
-    }
-  };
+interface VehicleSchemeProps {
+  initialData?: SchemeData | null;
+  onSchemeUpdate?: (data: SchemeData) => void;
+}
 
-  const [hasShownSaveToast, setHasShownSaveToast] = useState(false);
+const VehicleScheme = ({ initialData, onSchemeUpdate }: VehicleSchemeProps) => {
   const [schemeData, setSchemeData] = useState<SchemeData>({
-    vehicles: [
+    vehicles: initialData?.vehicles || [
       {
-        id: 'vehicle-A',
-        type: 'car',
-        position: [200, 200],
-        x: 200,
-        y: 200,
-        width: 80,
-        height: 40,
+        id: 'vehicle-a',
+        type: 'A',
+        posX: 150,
+        posY: 200,
         rotation: 0,
-        color: '#3b82f6',
-        label: 'Véhicule A',
-        isSelected: false
+        width: 80,
+        height: 40
       },
       {
-        id: 'vehicle-B',
-        type: 'car',
-        position: [300, 300],
-        x: 300,
-        y: 300,
-        width: 80,
-        height: 40,
+        id: 'vehicle-b',
+        type: 'B',
+        posX: 250,
+        posY: 300,
         rotation: 45,
-        color: '#ef4444',
-        label: 'Véhicule B',
-        isSelected: false
+        width: 80,
+        height: 40
       }
-    ],
-    paths: [],
-    annotations: [],
-    center: [48.8566, 2.3522],
-    zoom: 17
+    ]
   });
 
-  const handleSchemeUpdate = (updatedSchemeData: SchemeData) => {
-    console.log('Scheme data updated:', updatedSchemeData);
-    setSchemeData(updatedSchemeData);
+  const handleVehicleMove = (id: string, posX: number, posY: number) => {
+    const updatedVehicles = schemeData.vehicles.map(vehicle => {
+      if (vehicle.id === id) {
+        return { ...vehicle, posX, posY };
+      }
+      return vehicle;
+    });
     
-    // N'afficher le toast que lors de la première modification
-    if (!hasShownSaveToast && (
-      updatedSchemeData.vehicles.length > 0 || 
-      updatedSchemeData.paths.length > 0 || 
-      updatedSchemeData.annotations.length > 0
-    )) {
-      toast("Les modifications sont sauvegardées automatiquement");
-      setHasShownSaveToast(true);
-    }
+    const updatedScheme = { ...schemeData, vehicles: updatedVehicles };
+    setSchemeData(updatedScheme);
+    if (onSchemeUpdate) onSchemeUpdate(updatedScheme);
+  };
+  
+  const handleVehicleRotate = (id: string, rotation: number) => {
+    const updatedVehicles = schemeData.vehicles.map(vehicle => {
+      if (vehicle.id === id) {
+        return { ...vehicle, rotation };
+      }
+      return vehicle;
+    });
+    
+    const updatedScheme = { ...schemeData, vehicles: updatedVehicles };
+    setSchemeData(updatedScheme);
+    if (onSchemeUpdate) onSchemeUpdate(updatedScheme);
   };
 
   return (
     <div className="w-full">
-      <div className="bg-white p-4 rounded-lg border border-gray-200 mb-4">
-        <h3 className="text-lg font-semibold mb-2">Schéma de l'accident</h3>
-        <p className="text-sm text-constalib-dark-gray mb-4">
-          Positionnez les véhicules pour illustrer l'accident. 
-          Glissez-déposez pour déplacer, utilisez les poignées pour redimensionner et pivoter.
-        </p>
-        <div className="h-[500px] flex justify-center">
-          <SchemeContainer 
-            formData={demoFormData}
-            onSchemeUpdate={handleSchemeUpdate}
-            initialData={schemeData}
-          />
-        </div>
-      </div>
+      <h3 className="text-lg font-medium mb-4">Schéma de l'accident</h3>
+      <p className="text-sm text-gray-600 mb-4">
+        Déplacez et tournez les véhicules pour représenter l'accident. 
+        Le véhicule A est bleu, le véhicule B est rouge.
+      </p>
+      
+      <SchemeContainer
+        vehicles={schemeData.vehicles}
+        onVehicleMove={handleVehicleMove}
+        onVehicleRotate={handleVehicleRotate}
+      />
     </div>
   );
 };

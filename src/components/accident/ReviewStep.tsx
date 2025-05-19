@@ -1,316 +1,204 @@
 
-import React, { useState } from 'react';
-import { FormData } from './types';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Separator } from '@/components/ui/separator';
-import { CheckCircle, File, Send, Clock, MapPin, Car, User, Camera, FileText, Mail } from 'lucide-react';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { toast } from "sonner";
-import { format } from 'date-fns';
-import { fr } from 'date-fns/locale';
-import InteractiveScheme from './InteractiveScheme';
-import DownloadButton from './pdf/DownloadButton';
-import { useGeneratePdf } from '@/hooks/accident/useGeneratePdf';
+import { useState } from 'react';
+import { Button } from "@/components/ui/button";
+import { AlertTriangle, Download, CheckCircle, Send } from 'lucide-react';
+import { toast } from 'sonner';
+import { generatePDF } from '@/utils/pdfGeneratorUtils';
+import VehicleScheme from '@/components/VehicleScheme';
+import { useRegisterReport, RegisterReportResult } from '@/hooks/accident/useRegisterReport';
+import { captureStageAsDataUrl } from './scheme/SchemeExport';
+import usePdfGenerator from '@/hooks/accident/usePdfGenerator';
+import { SchemeData } from './types/vehicleTypes';
 
 interface ReviewStepProps {
-  formData: FormData;
+  formData: any;
+  onSubmitSuccess: () => void;
 }
 
-const ReviewStep: React.FC<ReviewStepProps> = ({ formData }) => {
+const ReviewStep = ({ formData, onSubmitSuccess }: ReviewStepProps) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isSendingEmail, setIsSendingEmail] = useState(false);
-  const [activeTab, setActiveTab] = useState("resume");
+  const [officialSubmission, setOfficialSubmission] = useState(false);
+  const [submissionSuccess, setSubmissionSuccess] = useState(false);
+  const [submissionError, setSubmissionError] = useState<string | null>(null);
+  const [schemeData, setSchemeData] = useState<SchemeData | null>(formData.schemeData);
   
-  // Utilisation du hook de génération PDF
-  const { isGenerating, handleGenerateCerfa } = useGeneratePdf({ 
-    formData,
-    signatures: {
-      partyA: null,
-      partyB: null
-    }
-  });
+  const {
+    isRegistering,
+    registrationSuccess,
+    registrationError,
+    reportId,
+    showOfficialDialog,
+    setShowOfficialDialog,
+    referenceId,
+    setReferenceId,
+    registerReport
+  } = useRegisterReport();
   
-  const handleSendEmail = async () => {
-    setIsSendingEmail(true);
+  const { generateAndDownloadPdf, isGenerating } = usePdfGenerator();
+
+  const captureScheme = async (): Promise<string | null> => {
     try {
-      // Email sending logic would go here
-      await new Promise(resolve => setTimeout(resolve, 1200));
-      console.log('Email sent successfully');
-      toast.success("Constat envoyé par email avec succès !");
+      const schemeContainer = document.querySelector('.scheme-container');
+      if (!schemeContainer) {
+        return null;
+      }
+      
+      // Try html2canvas first
+      try {
+        const canvas = await html2canvas(schemeContainer as HTMLElement, {
+          scale: 2,
+          useCORS: true,
+          allowTaint: true,
+          logging: true
+        });
+        
+        return canvas.toDataURL('image/png');
+      } catch (error) {
+        console.error('Error with html2canvas, trying Konva method:', error);
+        
+        // Fallback to Konva method
+        const stageElement = schemeContainer.querySelector('canvas');
+        if (stageElement) {
+          return stageElement.toDataURL();
+        }
+      }
+      
+      return null;
     } catch (error) {
-      console.error('Error sending email:', error);
-      toast.error("Erreur lors de l'envoi de l'email");
-    } finally {
-      setIsSendingEmail(false);
+      console.error('Error capturing scheme:', error);
+      return null;
     }
   };
-  
-  const formatDate = (dateString: string) => {
+
+  const handleSubmit = async () => {
+    setIsSubmitting(true);
+    setSubmissionError(null);
+    
     try {
-      const date = new Date(dateString);
-      return format(date, 'dd MMMM yyyy', { locale: fr });
+      // Capture the scheme image if available
+      let schemeImageDataUrl = null;
+      try {
+        schemeImageDataUrl = await captureScheme();
+      } catch (error) {
+        console.error('Error capturing scheme:', error);
+        // Continue without scheme image if capture fails
+      }
+      
+      // Prepare form data with scheme image
+      const dataToSubmit = {
+        ...formData,
+        schemeImageDataUrl
+      };
+      
+      // Register the report
+      const success = await registerReport(dataToSubmit);
+      
+      if (success) {
+        setSubmissionSuccess(true);
+        onSubmitSuccess();
+      } else {
+        throw new Error(registrationError || 'Erreur lors de l\'enregistrement du constat');
+      }
     } catch (error) {
-      return dateString;
+      console.error('Error submitting report:', error);
+      setSubmissionError(error instanceof Error ? error.message : 'Une erreur inconnue est survenue');
+      toast.error(`Erreur: ${submissionError}`);
+    } finally {
+      setIsSubmitting(false);
     }
+  };
+
+  const handleDownloadPdf = async () => {
+    try {
+      // Capture the scheme image if available
+      let schemeImageDataUrl = null;
+      try {
+        schemeImageDataUrl = await captureScheme();
+      } catch (error) {
+        console.error('Error capturing scheme:', error);
+      }
+      
+      // Generate PDF and download
+      await generateAndDownloadPdf(formData, schemeImageDataUrl);
+      toast.success("Le PDF a été généré et téléchargé avec succès");
+    } catch (error) {
+      console.error('Error downloading PDF:', error);
+      toast.error("Impossible de générer le PDF. Veuillez réessayer.");
+    }
+  };
+
+  const handleOfficialSubmission = () => {
+    setOfficialSubmission(true);
+    setShowOfficialDialog(true);
+  };
+
+  const handleUpdateScheme = (newSchemeData: SchemeData) => {
+    setSchemeData(newSchemeData);
   };
 
   return (
-    <div className="space-y-6">
-      <Tabs defaultValue={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-4 mb-4">
-          <TabsTrigger value="resume" className="flex items-center gap-1">
-            <FileText className="h-4 w-4" />
-            <span className="hidden sm:inline">Résumé</span>
-          </TabsTrigger>
-          <TabsTrigger value="vehicles" className="flex items-center gap-1">
-            <Car className="h-4 w-4" />
-            <span className="hidden sm:inline">Véhicules</span>
-          </TabsTrigger>
-          <TabsTrigger value="scheme" className="flex items-center gap-1">
-            <MapPin className="h-4 w-4" />
-            <span className="hidden sm:inline">Schéma</span>
-          </TabsTrigger>
-          <TabsTrigger value="photos" className="flex items-center gap-1">
-            <Camera className="h-4 w-4" />
-            <span className="hidden sm:inline">Photos</span>
-          </TabsTrigger>
-        </TabsList>
-        
-        {/* Onglet Résumé */}
-        <TabsContent value="resume" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Résumé du constat</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div>
-                <h3 className="font-medium mb-2">Informations de base</h3>
-                <p>Date: {formatDate(formData.date)}</p>
-                <p>Heure: {formData.time}</p>
-                <p>Lieu: {formData.location}</p>
-                {formData.geolocation?.address && (
-                  <p>Adresse exacte: {formData.geolocation.address}</p>
-                )}
-              </div>
-              
-              <Separator />
-              
-              <div>
-                <h3 className="font-medium mb-2">Témoins et blessés</h3>
-                <p>Témoins: {formData.hasWitnesses ? `Oui (${formData.witnesses?.length || 0})` : 'Non'}</p>
-                <p>Blessés: {formData.hasInjuries ? 'Oui' : 'Non'}</p>
-                {formData.hasInjuries && formData.injuriesDescription && (
-                  <p>Description des blessures: {formData.injuriesDescription}</p>
-                )}
-              </div>
-            </CardContent>
-          </Card>
-          
-          <div className="flex flex-wrap gap-4">
-            <DownloadButton 
-              onClick={handleGenerateCerfa}
-              isGenerating={isGenerating}
-              className="flex-1"
-            />
-            
-            <Button variant="secondary" className="flex-1" onClick={handleSendEmail} disabled={isSendingEmail}>
-              {isSendingEmail ? (
-                <>
-                  <Clock className="mr-2 h-4 w-4 animate-spin" />
-                  Envoi en cours...
-                </>
-              ) : (
-                <>
-                  <Mail className="mr-2 h-4 w-4" />
-                  Envoyer par email
-                </>
-              )}
-            </Button>
-          </div>
-        </TabsContent>
-        
-        {/* Onglet Véhicules */}
-        <TabsContent value="vehicles" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Véhicule A (Votre véhicule)</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-2">
-              <p><strong>Marque:</strong> {formData.vehicleBrand || 'Non renseigné'}</p>
-              <p><strong>Modèle:</strong> {formData.vehicleModel || 'Non renseigné'}</p>
-              <p><strong>Immatriculation:</strong> {formData.licensePlate || 'Non renseigné'}</p>
-              <p><strong>Assurance:</strong> {formData.insuranceCompany || 'Non renseigné'}</p>
-              <p><strong>N° de police:</strong> {formData.insurancePolicy || 'Non renseigné'}</p>
-              {formData.vehicleDescription && (
-                <p><strong>Description:</strong> {formData.vehicleDescription}</p>
-              )}
-            </CardContent>
-          </Card>
-          
-          <Card>
-            <CardHeader>
-              <CardTitle>Véhicule B (Véhicule adverse)</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-2">
-              <p><strong>Marque:</strong> {formData.otherVehicle?.brand || 'Non renseigné'}</p>
-              <p><strong>Modèle:</strong> {formData.otherVehicle?.model || 'Non renseigné'}</p>
-              <p><strong>Immatriculation:</strong> {formData.otherVehicle?.licensePlate || 'Non renseigné'}</p>
-              <p><strong>Assurance:</strong> {formData.otherVehicle?.insuranceCompany || 'Non renseigné'}</p>
-              <p><strong>N° de police:</strong> {formData.otherVehicle?.insurancePolicy || 'Non renseigné'}</p>
-              {formData.otherVehicle?.description && (
-                <p><strong>Description:</strong> {formData.otherVehicle.description}</p>
-              )}
-            </CardContent>
-          </Card>
-          
-          {formData.vehicleACircumstances && (
-            <Card>
-              <CardHeader>
-                <CardTitle>Circonstances</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <h4 className="font-medium mb-2">Véhicule A</h4>
-                    <ul className="list-disc list-inside space-y-1">
-                      {formData.vehicleACircumstances && 
-                        formData.vehicleACircumstances.map((circ, index) => (
-                          <li key={`A-${index}`} className="text-sm">
-                            {typeof circ === 'string' ? circ : circ.label}
-                          </li>
-                        ))}
-                    </ul>
-                  </div>
-                  <div>
-                    <h4 className="font-medium mb-2">Véhicule B</h4>
-                    <ul className="list-disc list-inside space-y-1">
-                      {formData.vehicleBCircumstances && 
-                        formData.vehicleBCircumstances.map((circ, index) => (
-                          <li key={`B-${index}`} className="text-sm">
-                            {typeof circ === 'string' ? circ : circ.label}
-                          </li>
-                        ))}
-                    </ul>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          )}
-        </TabsContent>
-        
-        {/* Onglet Schéma */}
-        <TabsContent value="scheme" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Schéma de l'accident</CardTitle>
-            </CardHeader>
-            <CardContent>
-              {formData.schemeData ? (
-                <div className="h-[400px] rounded-lg overflow-hidden border border-gray-200">
-                  <InteractiveScheme 
-                    formData={formData}
-                    onUpdateSchemeData={() => {}} 
-                    initialData={formData.schemeData}
-                    readOnly={true}
-                  />
-                </div>
-              ) : (
-                <div className="text-center p-6 bg-gray-50 rounded-lg">
-                  <MapPin className="h-12 w-12 text-gray-400 mx-auto mb-2" />
-                  <p>Aucun schéma n'a été créé pour cet accident.</p>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        </TabsContent>
-        
-        {/* Onglet Photos */}
-        <TabsContent value="photos" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Photos du constat</CardTitle>
-            </CardHeader>
-            <CardContent>
-              {(formData.vehiclePhotos?.length > 0 || formData.damagePhotos?.length > 0) ? (
-                <div className="space-y-6">
-                  {formData.vehiclePhotos?.length > 0 && (
-                    <div>
-                      <h3 className="font-medium mb-2">Photos des véhicules</h3>
-                      <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                        {Array.isArray(formData.vehiclePhotos) ? (
-                          formData.vehiclePhotos.map((photo, index) => (
-                            <div key={index} className="aspect-square rounded-lg overflow-hidden bg-gray-100">
-                              {typeof photo === 'string' ? (
-                                <img 
-                                  src={photo} 
-                                  alt={`Photo de véhicule ${index + 1}`} 
-                                  className="w-full h-full object-cover"
-                                />
-                              ) : (
-                                <div className="flex items-center justify-center h-full">
-                                  <Camera className="h-8 w-8 text-gray-400" />
-                                </div>
-                              )}
-                            </div>
-                          ))
-                        ) : (
-                          <div className="col-span-full text-center py-4">
-                            Format de données photos non supporté
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  )}
-                  
-                  {formData.damagePhotos?.length > 0 && (
-                    <div>
-                      <h3 className="font-medium mb-2">Photos des dommages</h3>
-                      <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                        {Array.isArray(formData.damagePhotos) ? (
-                          formData.damagePhotos.map((photo, index) => (
-                            <div key={index} className="aspect-square rounded-lg overflow-hidden bg-gray-100">
-                              {typeof photo === 'string' ? (
-                                <img 
-                                  src={photo} 
-                                  alt={`Photo de dommage ${index + 1}`} 
-                                  className="w-full h-full object-cover"
-                                />
-                              ) : (
-                                <div className="flex items-center justify-center h-full">
-                                  <Camera className="h-8 w-8 text-gray-400" />
-                                </div>
-                              )}
-                            </div>
-                          ))
-                        ) : (
-                          <div className="col-span-full text-center py-4">
-                            Format de données photos non supporté
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  )}
-                </div>
-              ) : (
-                <div className="text-center p-6 bg-gray-50 rounded-lg">
-                  <Camera className="h-12 w-12 text-gray-400 mx-auto mb-2" />
-                  <p>Aucune photo n'a été ajoutée au constat.</p>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        </TabsContent>
-      </Tabs>
-      
-      <Card className="bg-green-50 border-green-200">
-        <CardContent className="py-4 flex items-center">
-          <CheckCircle className="h-5 w-5 text-green-600 mr-2" />
-          <p className="text-green-800 text-sm">
-            Votre constat est prêt à être envoyé. Vérifiez les informations avant de continuer.
+    <div className="space-y-8">
+      <div className="bg-constalib-light-blue p-4 rounded-lg flex items-start space-x-3">
+        <AlertTriangle className="text-constalib-blue flex-shrink-0 mt-1" size={20} />
+        <div>
+          <h4 className="text-constalib-blue font-medium">Vérifiez vos informations</h4>
+          <p className="text-sm text-constalib-dark-gray">
+            Avant de soumettre votre constat amiable, assurez-vous que toutes les informations sont exactes et complètes.
           </p>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
+      
+      {/* Summary sections for the review step */}
+      
+      {/* Vehicle Scheme */}
+      <div className="mt-8 border rounded-lg p-4 bg-white">
+        <h3 className="text-lg font-medium mb-4">Schéma de l'accident</h3>
+        <VehicleScheme 
+          initialData={schemeData} 
+          onSchemeUpdate={handleUpdateScheme}
+        />
+      </div>
+      
+      {/* Buttons */}
+      <div className="flex flex-col md:flex-row gap-4 justify-between mt-8">
+        <Button
+          variant="outline"
+          onClick={handleDownloadPdf}
+          disabled={isGenerating}
+          className="flex items-center"
+        >
+          <Download className="mr-2 h-4 w-4" />
+          {isGenerating ? "Génération en cours..." : "Télécharger le PDF"}
+        </Button>
+        
+        <div className="space-x-4">
+          <Button
+            variant="outline"
+            onClick={handleOfficialSubmission}
+            disabled={isSubmitting || officialSubmission}
+            className="flex items-center"
+          >
+            <Send className="mr-2 h-4 w-4" />
+            Enregistrement officiel
+          </Button>
+          
+          <Button
+            onClick={handleSubmit}
+            disabled={isSubmitting}
+            className="flex items-center"
+          >
+            <CheckCircle className="mr-2 h-4 w-4" />
+            {isSubmitting ? "Traitement..." : "Enregistrer mon constat"}
+          </Button>
+        </div>
+      </div>
+      
+      {submissionError && (
+        <div className="bg-red-50 border border-red-200 text-red-800 p-4 rounded-md">
+          <p className="font-medium">Erreur lors de la soumission</p>
+          <p className="text-sm">{submissionError}</p>
+        </div>
+      )}
     </div>
   );
 };

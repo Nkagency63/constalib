@@ -49,3 +49,19 @@ export interface LookupError {
   status: number;
   message: string;
 }
+
+// Interface for vehicle scheme data
+export interface Vehicle {
+  id: string;
+  type: 'A' | 'B';
+  posX: number;
+  posY: number;
+  rotation: number;
+  width: number;
+  height: number;
+}
+
+export interface SchemeData {
+  vehicles: Vehicle[];
+  background?: string;
+}

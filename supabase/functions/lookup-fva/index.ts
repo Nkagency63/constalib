@@ -146,28 +146,58 @@ serve(async (req) => {
   }
 
   try {
-    const { licensePlate } = await req.json();
+    const { licensePlate, formattedPlate } = await req.json();
     
-    // Normalize the license plate
-    const normalizedPlate = normalizeLicensePlate(licensePlate, 'siv');
-    const formattedPlate = licensePlate.toUpperCase();
+    console.log(`Recherche dans le FVA avec:
+    - Plaque normalisée: ${licensePlate}
+    - Plaque formatée: ${formattedPlate}
+    `);
     
-    console.log(`Recherche dans le FVA avec plaque: ${normalizedPlate} ou ${formattedPlate}`);
+    // Try different formats to maximize chance of finding the vehicle
+    const searchFormats = [
+      licensePlate,  // Normalized (ex: AA123BB)
+      formattedPlate, // Original formatted (ex: AA-123-BB)
+    ];
     
-    // Check in the FVA database
-    let fvaData = fvaDatabase[normalizedPlate] || fvaDatabase[formattedPlate];
+    // Format to AA-123-BB if it's a 7-character plate
+    if (licensePlate && licensePlate.length === 7) {
+      searchFormats.push(`${licensePlate.substring(0, 2)}-${licensePlate.substring(2, 5)}-${licensePlate.substring(5, 7)}`);
+    }
     
-    // If not found with normalization, try with original format
+    // Also try without hyphens for all formats
+    const searchFormatsDehyphenated = searchFormats.map(format => 
+      format ? format.replace(/-/g, '') : ''
+    );
+    
+    console.log('Formats de recherche:', searchFormats);
+    console.log('Formats sans tirets:', searchFormatsDehyphenated);
+    
+    // Check all possible formats against the database
+    let fvaData = null;
+    let matchedFormat = '';
+    
+    // First try with the searchFormats
+    for (const format of searchFormats) {
+      if (format && fvaDatabase[format]) {
+        fvaData = fvaDatabase[format];
+        matchedFormat = format;
+        break;
+      }
+    }
+    
+    // If not found, try the dehyphenated formats
     if (!fvaData) {
-      // Format to AA-123-BB if it's a 7-character plate
-      if (normalizedPlate.length === 7) {
-        const formattedPlate = `${normalizedPlate.substring(0, 2)}-${normalizedPlate.substring(2, 5)}-${normalizedPlate.substring(5, 7)}`;
-        fvaData = fvaDatabase[formattedPlate];
+      for (const format of searchFormatsDehyphenated) {
+        if (format && fvaDatabase[format]) {
+          fvaData = fvaDatabase[format];
+          matchedFormat = format;
+          break;
+        }
       }
     }
     
     if (!fvaData) {
-      console.log(`Véhicule non trouvé dans le FVA: ${licensePlate}`);
+      console.log(`Véhicule non trouvé dans le FVA pour tous les formats testés`);
       return createResponse({ 
         success: false,
         error: 'Vehicle not found in FVA',
@@ -178,7 +208,8 @@ serve(async (req) => {
     // Simulate API delay
     await simulateApiDelay(300, 800);
     
-    console.log(`Véhicule trouvé dans le FVA: ${JSON.stringify(fvaData)}`);
+    console.log(`Véhicule trouvé dans le FVA avec le format: ${matchedFormat}`);
+    console.log(`Données: ${JSON.stringify(fvaData)}`);
     
     return createResponse({ 
       success: true,

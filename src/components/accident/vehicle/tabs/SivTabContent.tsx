@@ -4,8 +4,10 @@ import { Input } from "@/components/ui/input";
 import { Car, UserCheck, FileSearch } from 'lucide-react';
 import LookupButton from '../buttons/LookupButton';
 import ActionButton from '../buttons/ActionButton';
-import { formatSivLicensePlate } from '../../utils/licensePlateFormatters';
+import { formatSivLicensePlate, isValidLicensePlate } from '../../utils/licensePlateFormatters';
 import { Button } from "@/components/ui/button";
+import { validateLicensePlate } from '../../hooks/vehicle/vehicleLookupValidators';
+import { toast } from 'sonner';
 
 interface SivTabContentProps {
   licensePlate: string;
@@ -42,6 +44,22 @@ const SivTabContent = ({
     // Pass the synthetic event to the parent handler
     handleLicensePlateChange(syntheticEvent);
   };
+  
+  const handleLookupVehicle = () => {
+    if (!validateLicensePlate(licensePlate, 'siv')) {
+      toast.error("Format d'immatriculation invalide. Utilisez le format AB-123-CD");
+      return;
+    }
+    onLookupVehicle();
+  };
+  
+  const handleLookupFva = () => {
+    if (!validateLicensePlate(licensePlate, 'siv')) {
+      toast.error("Format d'immatriculation invalide. Utilisez le format AB-123-CD");
+      return;
+    }
+    onLookupFva();
+  };
 
   return (
     <div className="mt-4">
@@ -61,7 +79,7 @@ const SivTabContent = ({
           <LookupButton 
             isLoading={isLoading}
             lookupSuccess={lookupSuccess}
-            onClick={onLookupVehicle}
+            onClick={handleLookupVehicle}
             tooltip="Consulter le SIV (Système d'Immatriculation des Véhicules)"
           />
         </div>
@@ -70,7 +88,7 @@ const SivTabContent = ({
       <div className="flex justify-end mb-2">
         <ActionButton
           isLoading={isFvaLoading}
-          onClick={onLookupFva}
+          onClick={handleLookupFva}
           disabled={!licensePlate}
           Icon={FileSearch}
           label="Consulter le Fichier des Véhicules Assurés (FVA)"
