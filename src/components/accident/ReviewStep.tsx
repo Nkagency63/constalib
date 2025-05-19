@@ -10,6 +10,8 @@ import { toast } from "sonner";
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import InteractiveScheme from './InteractiveScheme';
+import DownloadButton from './pdf/DownloadButton';
+import { useGeneratePdf } from '@/hooks/accident/useGeneratePdf';
 
 interface ReviewStepProps {
   formData: FormData;
@@ -17,24 +19,17 @@ interface ReviewStepProps {
 
 const ReviewStep: React.FC<ReviewStepProps> = ({ formData }) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
   const [isSendingEmail, setIsSendingEmail] = useState(false);
   const [activeTab, setActiveTab] = useState("resume");
   
-  const handleGeneratePdf = async () => {
-    setIsGeneratingPdf(true);
-    try {
-      // PDF generation logic would go here
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      console.log('PDF generated successfully');
-      toast.success("PDF généré avec succès !");
-    } catch (error) {
-      console.error('Error generating PDF:', error);
-      toast.error("Erreur lors de la génération du PDF");
-    } finally {
-      setIsGeneratingPdf(false);
+  // Utilisation du hook de génération PDF
+  const { isGenerating, handleGenerateCerfa } = useGeneratePdf({ 
+    formData,
+    signatures: {
+      partyA: null,
+      partyB: null
     }
-  };
+  });
   
   const handleSendEmail = async () => {
     setIsSendingEmail(true);
@@ -113,19 +108,11 @@ const ReviewStep: React.FC<ReviewStepProps> = ({ formData }) => {
           </Card>
           
           <div className="flex flex-wrap gap-4">
-            <Button onClick={handleGeneratePdf} disabled={isGeneratingPdf} className="flex-1">
-              {isGeneratingPdf ? (
-                <>
-                  <Clock className="mr-2 h-4 w-4 animate-spin" />
-                  Génération en cours...
-                </>
-              ) : (
-                <>
-                  <File className="mr-2 h-4 w-4" />
-                  Télécharger le PDF
-                </>
-              )}
-            </Button>
+            <DownloadButton 
+              onClick={handleGenerateCerfa}
+              isGenerating={isGenerating}
+              className="flex-1"
+            />
             
             <Button variant="secondary" className="flex-1" onClick={handleSendEmail} disabled={isSendingEmail}>
               {isSendingEmail ? (
@@ -177,7 +164,7 @@ const ReviewStep: React.FC<ReviewStepProps> = ({ formData }) => {
             </CardContent>
           </Card>
           
-          {formData.circumstances && (
+          {formData.vehicleACircumstances && (
             <Card>
               <CardHeader>
                 <CardTitle>Circonstances</CardTitle>
@@ -187,27 +174,23 @@ const ReviewStep: React.FC<ReviewStepProps> = ({ formData }) => {
                   <div>
                     <h4 className="font-medium mb-2">Véhicule A</h4>
                     <ul className="list-disc list-inside space-y-1">
-                      {formData.circumstances && formData.circumstances.vehicleA && 
-                        Object.entries(formData.circumstances.vehicleA)
-                          .filter(([_, checked]) => checked)
-                          .map(([id]) => (
-                            <li key={`A-${id}`} className="text-sm">
-                              {id}
-                            </li>
-                          ))}
+                      {formData.vehicleACircumstances && 
+                        formData.vehicleACircumstances.map((circ, index) => (
+                          <li key={`A-${index}`} className="text-sm">
+                            {typeof circ === 'string' ? circ : circ.label}
+                          </li>
+                        ))}
                     </ul>
                   </div>
                   <div>
                     <h4 className="font-medium mb-2">Véhicule B</h4>
                     <ul className="list-disc list-inside space-y-1">
-                      {formData.circumstances && formData.circumstances.vehicleB && 
-                        Object.entries(formData.circumstances.vehicleB)
-                          .filter(([_, checked]) => checked)
-                          .map(([id]) => (
-                            <li key={`B-${id}`} className="text-sm">
-                              {id}
-                            </li>
-                          ))}
+                      {formData.vehicleBCircumstances && 
+                        formData.vehicleBCircumstances.map((circ, index) => (
+                          <li key={`B-${index}`} className="text-sm">
+                            {typeof circ === 'string' ? circ : circ.label}
+                          </li>
+                        ))}
                     </ul>
                   </div>
                 </div>

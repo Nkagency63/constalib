@@ -1,71 +1,76 @@
 
-import { saveAs } from 'file-saver';
+import { Stage } from 'konva/lib/Stage';
 import html2canvas from 'html2canvas';
-import L from 'leaflet';
 
-// Type definition for the mapRef parameter
-interface MapRefProps {
-  mapRef: React.MutableRefObject<L.Map | null>;
-}
-
-// Fonction pour exporter l'image de la carte
-export const handleExportImage = async ({ mapRef }: MapRefProps) => {
-  if (!mapRef.current) {
-    console.error("Map reference not available for export");
-    return;
-  }
-
-  try {
-    const dataUrl = await captureSchemeAsDataUrl();
-    if (dataUrl) {
-      // Convertir la base64 en blob pour le téléchargement
-      const blob = dataURItoBlob(dataUrl);
-      saveAs(blob, `accident-schema-${new Date().toISOString().slice(0, 10)}.png`);
+/**
+ * Capture the Konva stage as an image data URL
+ * @param stageRef Reference to the Konva stage
+ * @returns Promise resolving to a base64 image data URL
+ */
+export const captureStageAsDataUrl = (stageRef: React.RefObject<Stage>): Promise<string> => {
+  return new Promise((resolve, reject) => {
+    if (!stageRef.current) {
+      reject(new Error("No stage reference available"));
+      return;
     }
-  } catch (error) {
-    console.error("Error exporting image:", error);
-  }
+    
+    try {
+      // Use Konva's toDataURL method to capture the stage
+      const dataUrl = stageRef.current.toDataURL({ 
+        pixelRatio: 2, // Higher quality
+        mimeType: 'image/png' 
+      });
+      
+      resolve(dataUrl);
+    } catch (error) {
+      console.error("Error capturing stage as data URL:", error);
+      reject(error);
+    }
+  });
 };
 
-// Fonction pour capturer le schéma comme URL de données
+/**
+ * Capture the scheme container element as an image data URL
+ * @returns Promise resolving to a base64 image data URL
+ */
 export const captureSchemeAsDataUrl = async (): Promise<string | null> => {
   try {
-    // Récupérer l'élément de la carte
-    const mapElement = document.querySelector('.leaflet-container');
-    if (!mapElement) {
-      console.error("Map element not found in DOM");
-      return null;
+    // Try to find the scheme container in the DOM
+    const schemeContainer = document.querySelector('.scheme-container') as HTMLElement;
+    
+    if (!schemeContainer) {
+      console.warn("No scheme container found to capture");
+      
+      // Try to find any Konva container
+      const konvaContainer = document.querySelector('.konvajs-content') as HTMLElement;
+      
+      if (!konvaContainer) {
+        console.warn("No Konva container found to capture");
+        return null;
+      }
+      
+      // Use html2canvas to capture the Konva container
+      const canvas = await html2canvas(konvaContainer, {
+        scale: 2,
+        useCORS: true,
+        allowTaint: true,
+        logging: true
+      });
+      
+      return canvas.toDataURL('image/png');
     }
-
-    // Utiliser html2canvas pour capturer l'élément en image
-    const canvas = await html2canvas(mapElement as HTMLElement, {
-      useCORS: true, // Permettre CORS pour les tuiles de carte
-      allowTaint: true, // Permettre les éléments potentiellement contaminés
-      scale: 2, // Échelle x2 pour une meilleure qualité
-      logging: false, // Désactiver les logs pour la production
+    
+    // Use html2canvas to capture the container
+    const canvas = await html2canvas(schemeContainer, {
+      scale: 2,
+      useCORS: true,
+      allowTaint: true,
+      logging: true
     });
-
-    // Retourner l'URL de données de l'image
+    
     return canvas.toDataURL('image/png');
   } catch (error) {
-    console.error("Error capturing scheme:", error);
+    console.error("Error capturing scheme as data URL:", error);
     return null;
   }
 };
-
-// Fonction pour convertir une URL de données en Blob
-function dataURItoBlob(dataURI: string): Blob {
-  // Séparer le type MIME de la donnée
-  const byteString = atob(dataURI.split(',')[1]);
-  const mimeString = dataURI.split(',')[0].split(':')[1].split(';')[0];
-
-  // Écrire le contenu dans un tableau d'octets
-  const ab = new ArrayBuffer(byteString.length);
-  const ia = new Uint8Array(ab);
-  for (let i = 0; i < byteString.length; i++) {
-    ia[i] = byteString.charCodeAt(i);
-  }
-
-  // Créer un blob avec le type MIME approprié
-  return new Blob([ab], { type: mimeString });
-}

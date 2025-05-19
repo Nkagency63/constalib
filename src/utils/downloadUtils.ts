@@ -1,3 +1,4 @@
+
 // Add missing function
 export const uploadFileToStorage = async (file: File, path: string): Promise<string> => {
   // This is a placeholder implementation

@@ -76,12 +76,11 @@ export const useRegisterReport = () => {
 
       const response = await saveAccidentReport(apiData);
       
-      // Correction des erreurs TypeScript ici
       if (response && response.id) {
         setReportId(response.id);
         setRegistrationSuccess(true);
         toast.success('Votre constat a été enregistré avec succès');
-        return response.id;
+        return true;
       } else {
         throw new Error('La réponse du serveur ne contient pas d\'ID');
       }
@@ -90,7 +89,7 @@ export const useRegisterReport = () => {
       const errorMessage = error instanceof Error ? error.message : 'Une erreur est survenue lors de l\'enregistrement';
       setRegistrationError(errorMessage);
       toast.error(`Erreur: ${errorMessage}`);
-      return null;
+      return false;
     } finally {
       setIsRegistering(false);
     }
