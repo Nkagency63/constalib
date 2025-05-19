@@ -1,7 +1,6 @@
-
 import { useState } from 'react';
 import { v4 as uuidv4 } from 'uuid';
-import { WitnessInfo, SchemeData, Circumstance } from '@/components/accident/types';
+import { WitnessInfo, SchemeData, Circumstance, GeolocationData } from '@/components/accident/types';
 import { toast } from 'sonner';
 import { DEFAULT_CIRCUMSTANCES } from '@/components/accident/defaultCircumstances';
 
@@ -96,11 +95,22 @@ export const useAccidentForm = () => {
   };
 
   // Set geolocation
-  const setGeolocation = (location: { lat: number; lng: number; address: string; accuracy?: number; timestamp?: number }) => {
+  const setGeolocation = (location: GeolocationData) => {
     setFormData((prev: any) => ({
       ...prev,
       geolocation: location
     }));
+  };
+
+  // Clear geolocation
+  const clearGeolocation = () => {
+    setFormData((prev: any) => ({
+      ...prev,
+      geolocation: { lat: null, lng: null, address: '' }
+    }));
+    toast.info('Localisation réinitialisée', {
+      description: 'Les coordonnées GPS ont été effacées'
+    });
   };
 
   // Set insurance emails
@@ -244,6 +254,7 @@ export const useAccidentForm = () => {
     setVehicleInfo,
     setOtherVehicleInfo,
     setGeolocation,
+    clearGeolocation,
     setInsuranceEmails,
     setInvolvedPartyEmails,
     setPersonalEmail,

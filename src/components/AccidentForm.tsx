@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import ProgressBar from './accident/ProgressBar';
 import StepNavigation from './accident/StepNavigation';
@@ -27,6 +28,7 @@ const AccidentForm = ({ onEmergencyRequest, onStepChange }: AccidentFormProps) =
     setVehicleInfo,
     setOtherVehicleInfo,
     setGeolocation,
+    clearGeolocation,
     setInsuranceEmails,
     setInvolvedPartyEmails,
     setPersonalEmail,
@@ -114,6 +116,7 @@ const AccidentForm = ({ onEmergencyRequest, onStepChange }: AccidentFormProps) =
             setVehicleInfo={vehicleInfoAdapter}
             setOtherVehicleInfo={setOtherVehicleInfo}
             setGeolocation={setGeolocation}
+            clearGeolocation={clearGeolocation}
             setInsuranceEmails={setInsuranceEmails}
             setInvolvedPartyEmails={setInvolvedPartyEmails}
             setPersonalEmail={setPersonalEmail}

@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -5,6 +6,9 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { AlertCircle } from 'lucide-react';
+import FreeGeoLocation from './FreeGeoLocation';
+import { GeolocationData } from './types';
+import LocationDisplay from './LocationDisplay';
 
 export interface BasicInfoStepProps {
   date: string;
@@ -12,8 +16,11 @@ export interface BasicInfoStepProps {
   location: string;
   hasMaterialDamage?: boolean;
   materialDamageDescription?: string;
+  geolocation?: GeolocationData;
   handleInputChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   onEmergencyContacted: () => void;
+  setGeolocation: (data: GeolocationData) => void;
+  clearGeolocation?: () => void;
 }
 
 const BasicInfoStep: React.FC<BasicInfoStepProps> = ({
@@ -22,11 +29,18 @@ const BasicInfoStep: React.FC<BasicInfoStepProps> = ({
   location,
   hasMaterialDamage,
   materialDamageDescription,
+  geolocation,
   handleInputChange,
-  onEmergencyContacted
+  onEmergencyContacted,
+  setGeolocation,
+  clearGeolocation
 }) => {
   const today = new Date().toISOString().split('T')[0];
   const now = new Date().toTimeString().slice(0, 5);
+
+  const handleGeolocationSuccess = (data: GeolocationData) => {
+    setGeolocation(data);
+  };
 
   return (
     <div className="space-y-6">
@@ -58,19 +72,34 @@ const BasicInfoStep: React.FC<BasicInfoStepProps> = ({
 
       <div className="space-y-2">
         <Label htmlFor="location">Lieu de l'accident</Label>
-        <Input
-          type="text"
-          id="location"
-          name="location"
-          placeholder="Adresse, ville, code postal..."
-          value={location}
-          onChange={handleInputChange}
-          required
-        />
+        <div className="flex space-x-2">
+          <Input
+            type="text"
+            id="location"
+            name="location"
+            placeholder="Adresse, ville, code postal..."
+            value={location}
+            onChange={handleInputChange}
+            required
+            className="flex-1"
+          />
+        </div>
         <p className="text-sm text-constalib-dark-gray">
           Précisez l'adresse exacte ou une description du lieu (ex: intersection, autoroute, etc.)
         </p>
       </div>
+
+      <FreeGeoLocation 
+        setGeolocation={handleGeolocationSuccess}
+        address={location} 
+      />
+      
+      {geolocation && geolocation.lat && geolocation.lng && (
+        <LocationDisplay 
+          geolocation={geolocation} 
+          setMapVisible={() => {}} 
+        />
+      )}
 
       <div className="space-y-2">
         <div className="flex items-center space-x-2">

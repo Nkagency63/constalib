@@ -1,4 +1,3 @@
-
 import React from 'react';
 import BasicInfoStep from './BasicInfoStep';
 import LocationStep from './LocationStep';
@@ -10,7 +9,7 @@ import ReviewStep from './ReviewStep';
 import VehiclesStep from './VehiclesStep';
 import WitnessStep from './WitnessStep';
 import SchemeStep from './SchemeStep';
-import { WitnessInfo, SchemeData } from './types';
+import { WitnessInfo, SchemeData, GeolocationData } from './types';
 
 interface StepRendererProps {
   currentStepId: string;
@@ -20,7 +19,7 @@ interface StepRendererProps {
   handlePhotoUpload: (type: string, files: FileList) => void;
   setVehicleInfo: (data: any) => void;
   setOtherVehicleInfo: (data: any) => void;
-  setGeolocation: (location: { lat: number; lng: number; address: string }) => void;
+  setGeolocation: (location: GeolocationData) => void;
   setInsuranceEmails: (emails: string[]) => void;
   setInvolvedPartyEmails: (emails: string[]) => void;
   setPersonalEmail: (email: string) => void;
@@ -35,6 +34,7 @@ interface StepRendererProps {
   addWitness: () => void;
   removeWitness: (index: number) => void;
   onSchemeUpdate?: (schemeData: SchemeData) => void;
+  clearGeolocation?: () => void;
 }
 
 const StepRenderer: React.FC<StepRendererProps> = ({
@@ -59,7 +59,8 @@ const StepRenderer: React.FC<StepRendererProps> = ({
   updateWitness,
   addWitness,
   removeWitness,
-  onSchemeUpdate
+  onSchemeUpdate,
+  clearGeolocation
 }) => {
   // Render the appropriate step based on the current step ID
   switch (currentStepId) {
@@ -73,6 +74,9 @@ const StepRenderer: React.FC<StepRendererProps> = ({
           materialDamageDescription={formData.materialDamageDescription}
           handleInputChange={handleInputChange}
           onEmergencyContacted={onEmergencyContacted}
+          geolocation={formData.geolocation || { lat: null, lng: null, address: '' }}
+          setGeolocation={setGeolocation}
+          clearGeolocation={clearGeolocation}
         />
       );
       
@@ -86,6 +90,7 @@ const StepRenderer: React.FC<StepRendererProps> = ({
           geolocation={formData.geolocation || { lat: null, lng: null, address: '' }}
           handleInputChange={handleInputChange}
           setGeolocation={setGeolocation}
+          clearGeolocation={clearGeolocation}
         />
       );
       
