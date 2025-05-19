@@ -1,6 +1,6 @@
 
 import { useState } from 'react';
-import { registerAccidentReport } from '@/services/accidentReportService';
+import { saveAccidentReport } from '@/services/accidentReportService';
 import { toast } from 'sonner';
 
 export const useRegisterReport = () => {
@@ -8,6 +8,8 @@ export const useRegisterReport = () => {
   const [registrationError, setRegistrationError] = useState<string | null>(null);
   const [registrationSuccess, setRegistrationSuccess] = useState(false);
   const [reportId, setReportId] = useState<string | null>(null);
+  const [showOfficialDialog, setShowOfficialDialog] = useState(false);
+  const [referenceId, setReferenceId] = useState<string | null>(null);
 
   const registerReport = async (formData: any) => {
     setIsRegistering(true);
@@ -72,7 +74,7 @@ export const useRegisterReport = () => {
         schemeData: formData.schemeData
       };
 
-      const response = await registerAccidentReport(apiData);
+      const response = await saveAccidentReport(apiData);
       
       if (response.id) {
         setReportId(response.id);
@@ -98,6 +100,10 @@ export const useRegisterReport = () => {
     registrationError,
     registrationSuccess,
     reportId,
+    showOfficialDialog,
+    setShowOfficialDialog,
+    referenceId, 
+    setReferenceId,
     registerReport
   };
 };

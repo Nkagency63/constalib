@@ -47,7 +47,7 @@ export const useVehicleForm = (initialData?: any) => {
         break;
       default:
         // For other input fields that don't match specific cases
-        console.log(`Unhandled input field: ${name}`);
+        console.log(`Unhandled input field in useVehicleForm: ${name}`);
         break;
     }
   };

@@ -43,7 +43,7 @@ const VehiclesStep: React.FC<VehiclesStepProps> = ({
       lookupFva
     }
   ] = useVehicleLookup({
-    licensePlate: formData.licensePlate,
+    licensePlate: formData.licensePlate || '',
     handleInputChange,
     setVehicleInfo,
     setInsuranceInfo: (data: {company: string}) => {}
@@ -69,7 +69,7 @@ const VehiclesStep: React.FC<VehiclesStepProps> = ({
       lookupFva: lookupOtherFva
     }
   ] = useVehicleLookup({
-    licensePlate: formData.otherVehicle?.licensePlate,
+    licensePlate: formData.otherVehicle?.licensePlate || '',
     handleInputChange: handleOtherVehicleChange,
     setVehicleInfo: setOtherVehicleInfo,
     setInsuranceInfo: (data: {company: string}) => {}

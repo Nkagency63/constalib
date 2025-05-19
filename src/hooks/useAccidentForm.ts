@@ -81,6 +81,10 @@ export const useAccidentForm = () => {
       case 'materialDamageDescription':
         setMaterialDamageDescription(value);
         break;
+      case 'licensePlate':
+        // Handle license plate input directly here
+        vehicleForm.handleInputChange(e);
+        break;
       default:
         // Forward to vehicle form if not handled here
         vehicleForm.handleInputChange(e);
@@ -173,7 +177,7 @@ export const useAccidentForm = () => {
 
     // Fields for API compatibility
     userId: 'anonymous',
-    city: locationForm.city || '',
+    city: locationForm.city,
     country: locationForm.country || 'France',
   };
 
