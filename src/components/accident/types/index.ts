@@ -1,3 +1,4 @@
+
 // Vehicle types for the scheme
 export interface Vehicle {
   id: string;
@@ -55,7 +56,7 @@ export interface WitnessInfo {
   email?: string;
 }
 
-// Ajout d'une interface pour les données de géolocalisation
+// Geolocation data interface
 export interface GeolocationData {
   lat: number;
   lng: number;

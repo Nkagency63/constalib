@@ -1,93 +1,77 @@
 
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { Search, Loader2 } from 'lucide-react';
-import { supabase } from '@/integrations/supabase/client';
-import { toast } from 'sonner';
 import { Button } from "@/components/ui/button";
-import { GeolocationData } from '@/hooks/accident/useLocationForm';
+import { toast } from 'sonner';
+import { GeolocationData } from './types';
 
 interface GeocodingButtonProps {
   location: string;
   setGeolocation: (data: GeolocationData) => void;
 }
 
-const GeocodingButton = ({
-  location,
-  setGeolocation
-}: GeocodingButtonProps) => {
+const GeocodingButton = ({ location, setGeolocation }: GeocodingButtonProps) => {
   const [isLoading, setIsLoading] = useState(false);
-  
-  const geocodeAddress = async () => {
+
+  const handleGeocode = async () => {
     if (!location || location.trim() === '') {
-      toast.error("Adresse requise", {
-        description: "Veuillez saisir une adresse"
-      });
+      toast.error("Veuillez saisir une adresse à géolocaliser");
       return;
     }
 
     setIsLoading(true);
-    
+
     try {
-      const { data, error } = await supabase.functions.invoke('geocode-location', {
-        body: { 
-          address: location,
-          options: {
-            includeDetails: true,
-            language: 'fr'
-          }
-        }
-      });
-
-      if (error) {
-        toast.error("Erreur lors de la géolocalisation", {
-          description: error.message
-        });
-        console.error('Error geocoding address:', error);
-        return;
+      // Free geocoding using Nominatim OpenStreetMap API
+      const response = await fetch(
+        `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(location)}&format=json&limit=1`,
+        { headers: { 'Accept-Language': 'fr' } }
+      );
+      
+      if (!response.ok) {
+        throw new Error(`Error: ${response.status}`);
       }
-
-      if (data?.success && data?.data) {
-        const timestamp = Date.now();
+      
+      const data = await response.json();
+      
+      if (data && data.length > 0) {
+        const result = data[0];
+        const lat = parseFloat(result.lat);
+        const lng = parseFloat(result.lon);
+        
         setGeolocation({
-          lat: data.data.lat,
-          lng: data.data.lng,
-          address: data.data.formatted_address,
-          accuracy: data.data.accuracy,
-          timestamp
+          lat,
+          lng,
+          address: result.display_name,
+          timestamp: Date.now()
         });
-        toast.success("Localisation réussie", {
-          description: "Adresse géolocalisée avec succès"
-        });
+        
+        toast.success("Adresse géolocalisée avec succès!");
       } else {
-        toast.error("Erreur de géolocalisation", {
-          description: data?.message || "Impossible de géolocaliser cette adresse"
-        });
+        toast.error("Aucun résultat trouvé pour cette adresse");
       }
     } catch (err) {
       console.error('Error in geocoding:', err);
-      toast.error("Erreur", {
-        description: "Une erreur est survenue"
-      });
+      toast.error("Une erreur est survenue lors de la géolocalisation");
     } finally {
       setIsLoading(false);
     }
   };
 
   return (
-    <Button 
+    <Button
       type="button" 
       size="sm"
       variant="ghost"
-      onClick={geocodeAddress}
-      disabled={isLoading || !location}
-      className="h-8 px-2 text-xs"
-      data-geocode-button
+      onClick={handleGeocode}
+      disabled={isLoading || !location || location.trim() === ''}
+      title="Géolocaliser cette adresse"
     >
-      {isLoading ? 
-        <Loader2 className="h-4 w-4 mr-1 animate-spin" /> : 
-        <Search className="h-4 w-4 mr-1" />
-      }
-      Géolocaliser
+      {isLoading ? (
+        <Loader2 className="h-4 w-4 animate-spin" />
+      ) : (
+        <Search className="h-4 w-4" />
+      )}
     </Button>
   );
 };

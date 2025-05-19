@@ -3,8 +3,7 @@ import React, { useState } from 'react';
 import { MapPin, Loader2 } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { toast } from 'sonner';
-import { supabase } from '@/integrations/supabase/client';
-import { GeolocationData } from '@/hooks/accident/useLocationForm';
+import { GeolocationData } from './types';
 
 interface CurrentLocationButtonProps {
   setGeolocation: (data: GeolocationData) => void;
@@ -35,40 +34,30 @@ const CurrentLocationButton = ({ setGeolocation }: CurrentLocationButtonProps) =
         const timestamp = position.timestamp;
         
         try {
-          // Reverse geocoding to get the address
-          const { data, error } = await supabase.functions.invoke('geocode-location', {
-            body: { 
-              address: `${lat},${lng}`,
-              options: {
-                includeDetails: true
-              }
-            }
-          });
-
-          if (error) {
-            toast.error("Impossible d'obtenir l'adresse pour votre position");
-            console.error('Error reverse geocoding:', error);
-            
-            // Still set the geolocation with coordinates even if address lookup fails
-            setGeolocation({
-              lat,
-              lng,
-              address: `${lat.toFixed(6)}, ${lng.toFixed(6)}`,
-              accuracy,
-              timestamp
-            });
-          } else if (data?.success && data?.data) {
-            setGeolocation({
-              lat,
-              lng,
-              address: data.data.formatted_address,
-              accuracy,
-              timestamp
-            });
-            toast.success("Position localisée", {
-              description: "Votre position actuelle a été détectée"
-            });
+          // Free geocoding using Nominatim OpenStreetMap API (no API key required)
+          const response = await fetch(
+            `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json`,
+            { headers: { 'Accept-Language': 'fr' } }
+          );
+          
+          if (!response.ok) {
+            throw new Error(`Error: ${response.status}`);
           }
+          
+          const data = await response.json();
+          const address = data.display_name || `${lat.toFixed(6)}, ${lng.toFixed(6)}`;
+          
+          setGeolocation({
+            lat,
+            lng,
+            address,
+            accuracy,
+            timestamp
+          });
+          
+          toast.success("Position localisée", {
+            description: "Votre position actuelle a été détectée"
+          });
         } catch (err) {
           console.error('Error in reverse geocoding:', err);
           

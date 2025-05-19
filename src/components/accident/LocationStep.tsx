@@ -1,13 +1,12 @@
 
 import React, { useState } from 'react';
 import { MapPin, X } from 'lucide-react';
-import CurrentLocationButton from './CurrentLocationButton';
-import GeocodingButton from './GeocodingButton';
+import FreeGeoLocation from './FreeGeoLocation';
 import LocationDisplay from './LocationDisplay';
 import AccidentMap from './AccidentMap';
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { toast } from 'sonner';
-import { GeolocationData } from '@/hooks/accident/useLocationForm';
+import { GeolocationData } from './types';
 import { Button } from "@/components/ui/button";
 
 export interface LocationStepProps {
@@ -83,12 +82,9 @@ const LocationStep: React.FC<LocationStepProps> = ({
       </div>
 
       <div>
-        <div className="flex justify-between items-center">
-          <label htmlFor="location" className="block text-sm font-medium text-constalib-dark mb-1">
-            Lieu de l'accident
-          </label>
-          <GeocodingButton location={location} setGeolocation={handleGeolocationSuccess} />
-        </div>
+        <label htmlFor="location" className="block text-sm font-medium text-constalib-dark mb-1">
+          Lieu de l'accident
+        </label>
         <input
           type="text"
           id="location"
@@ -101,7 +97,10 @@ const LocationStep: React.FC<LocationStepProps> = ({
         />
       </div>
 
-      <CurrentLocationButton setGeolocation={handleGeolocationSuccess} />
+      <FreeGeoLocation 
+        setGeolocation={handleGeolocationSuccess}
+        address={location} 
+      />
       
       {geolocation.lat && geolocation.lng && (
         <div className="relative">
@@ -142,6 +141,7 @@ const LocationStep: React.FC<LocationStepProps> = ({
                 lat={geolocation.lat} 
                 lng={geolocation.lng}
                 address={geolocation.address}
+                accuracy={geolocation.accuracy}
               />
             )}
           </div>
@@ -152,8 +152,8 @@ const LocationStep: React.FC<LocationStepProps> = ({
         <h4 className="text-sm font-medium text-blue-800 mb-1">Conseil</h4>
         <p className="text-sm text-blue-700">
           Soyez aussi précis que possible concernant le lieu de l'accident. 
-          Utilisez le bouton "Utiliser ma position actuelle" pour localiser automatiquement votre position.
-          Vous pouvez également saisir manuellement une adresse et la géolocaliser.
+          Utilisez le bouton "Utiliser ma position actuelle" pour localiser automatiquement votre position
+          ou saisissez une adresse et cliquez sur "Géolocaliser cette adresse".
         </p>
       </div>
     </div>
