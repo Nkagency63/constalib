@@ -1,25 +1,24 @@
 
 import { useState } from 'react';
+import { DEFAULT_CIRCUMSTANCES } from '@/components/accident/defaultCircumstances';
+import { Circumstance } from '@/components/accident/types';
 
 export const useCircumstancesForm = (initialData?: any) => {
-  const [vehicleACircumstances, setVehicleACircumstances] = useState<string[]>(
-    initialData?.vehicleACircumstances || []
+  const [vehicleACircumstances, setVehicleACircumstances] = useState<Circumstance[]>(
+    initialData?.vehicleACircumstances || [...DEFAULT_CIRCUMSTANCES]
   );
-  const [vehicleBCircumstances, setVehicleBCircumstances] = useState<string[]>(
-    initialData?.vehicleBCircumstances || []
+  const [vehicleBCircumstances, setVehicleBCircumstances] = useState<Circumstance[]>(
+    initialData?.vehicleBCircumstances || [...DEFAULT_CIRCUMSTANCES]
   );
 
   const handleCircumstanceChange = (vehicleId: 'A' | 'B', circumstanceId: string, isChecked: boolean) => {
-    const field = vehicleId === 'A' ? vehicleACircumstances : vehicleBCircumstances;
-    const setField = vehicleId === 'A' ? setVehicleACircumstances : setVehicleBCircumstances;
+    const setCircumstances = vehicleId === 'A' ? setVehicleACircumstances : setVehicleBCircumstances;
     
-    if (isChecked) {
-      if (!field.includes(circumstanceId)) {
-        setField([...field, circumstanceId]);
-      }
-    } else {
-      setField(field.filter(id => id !== circumstanceId));
-    }
+    setCircumstances(prevCircumstances => 
+      prevCircumstances.map(item => 
+        item.id === circumstanceId ? { ...item, selected: isChecked } : item
+      )
+    );
   };
 
   return {

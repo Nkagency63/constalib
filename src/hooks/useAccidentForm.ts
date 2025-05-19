@@ -1,4 +1,3 @@
-
 import { useState, useCallback } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import { WitnessInfo, GeolocationData, SchemeData, Circumstance } from '@/components/accident/types';
@@ -143,8 +142,8 @@ export const useAccidentForm = () => {
     damagePhotos,
     
     // Circumstances - Cast to Circumstance[] to satisfy TypeScript
-    vehicleACircumstances: circumstancesForm.vehicleACircumstances as unknown as Circumstance[],
-    vehicleBCircumstances: circumstancesForm.vehicleBCircumstances as unknown as Circumstance[],
+    vehicleACircumstances: circumstancesForm.vehicleACircumstances,
+    vehicleBCircumstances: circumstancesForm.vehicleBCircumstances,
     
     // Emails
     personalEmail: emailForm.personalEmail,
@@ -164,7 +163,7 @@ export const useAccidentForm = () => {
     // Current vehicle ID for forms
     currentVehicleId: vehicleForm.currentVehicleId,
 
-    // Fields pour la compatibilité avec la FormData attendue par l'API
+    // Fields for API compatibility
     userId: 'anonymous',
     city: locationForm.city || '',
     country: locationForm.country || 'France',

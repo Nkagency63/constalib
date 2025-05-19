@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React from 'react';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Circumstance } from './types';
@@ -17,33 +17,13 @@ const CircumstancesStep: React.FC<CircumstancesStepProps> = ({
   setCurrentVehicleId,
   currentVehicleId
 }) => {
-  const circumstancesA = formData.circumstancesA || [];
-  const circumstancesB = formData.circumstancesB || [];
-  
-  // Liste des circonstances pour les deux véhicules
-  const commonCircumstances: Circumstance[] = [
-    { id: '1', code: '1', label: 'En stationnement', selected: false },
-    { id: '2', code: '2', label: 'Quittait un stationnement', selected: false },
-    { id: '3', code: '3', label: 'Prenait un stationnement', selected: false },
-    { id: '4', code: '4', label: 'Sortait d\'un parking, d\'un lieu privé, d\'un chemin de terre', selected: false },
-    { id: '5', code: '5', label: 'S\'engageait dans un parking, un lieu privé, un chemin de terre', selected: false },
-    { id: '6', code: '6', label: 'S\'engageait sur une place à sens giratoire', selected: false },
-    { id: '7', code: '7', label: 'Roulait sur une place à sens giratoire', selected: false },
-    { id: '8', code: '8', label: 'Heurtait à l\'arrière, en roulant dans le même sens et sur une même file', selected: false },
-    { id: '9', code: '9', label: 'Roulait dans le même sens et sur une file différente', selected: false },
-    { id: '10', code: '10', label: 'Changeait de file', selected: false },
-    { id: '11', code: '11', label: 'Doublait', selected: false },
-    { id: '12', code: '12', label: 'Virait à droite', selected: false },
-    { id: '13', code: '13', label: 'Virait à gauche', selected: false },
-    { id: '14', code: '14', label: 'Reculait', selected: false },
-    { id: '15', code: '15', label: 'Empiétait sur une voie réservée à la circulation en sens inverse', selected: false },
-    { id: '16', code: '16', label: 'Venait de droite (à un carrefour)', selected: false },
-    { id: '17', code: '17', label: 'N\'avait pas observé un signal de priorité ou un feu rouge', selected: false }
-  ];
+  // Use the circumstance arrays from formData 
+  const vehicleACircumstances = formData.vehicleACircumstances || [];
+  const vehicleBCircumstances = formData.vehicleBCircumstances || [];
 
   return (
     <div className="space-y-6">
-      <Tabs defaultValue="A" onValueChange={(value) => setCurrentVehicleId(value as "A" | "B")}>
+      <Tabs defaultValue={currentVehicleId} onValueChange={(value) => setCurrentVehicleId(value as "A" | "B")}>
         <TabsList className="grid grid-cols-2 mb-4">
           <TabsTrigger value="A">Véhicule A (Votre véhicule)</TabsTrigger>
           <TabsTrigger value="B">Véhicule B</TabsTrigger>
@@ -53,7 +33,7 @@ const CircumstancesStep: React.FC<CircumstancesStepProps> = ({
           <div className="bg-white p-4 rounded-lg border border-gray-200">
             <h3 className="text-lg font-medium mb-4">Circonstances pour le véhicule A</h3>
             <div className="grid gap-4">
-              {circumstancesA.map((circumstance: Circumstance) => (
+              {vehicleACircumstances.map((circumstance: Circumstance) => (
                 <div key={circumstance.id} className="flex items-start space-x-3">
                   <Checkbox 
                     id={`a-${circumstance.id}`} 
@@ -78,7 +58,7 @@ const CircumstancesStep: React.FC<CircumstancesStepProps> = ({
           <div className="bg-white p-4 rounded-lg border border-gray-200">
             <h3 className="text-lg font-medium mb-4">Circonstances pour le véhicule B</h3>
             <div className="grid gap-4">
-              {circumstancesB.map((circumstance: Circumstance) => (
+              {vehicleBCircumstances.map((circumstance: Circumstance) => (
                 <div key={circumstance.id} className="flex items-start space-x-3">
                   <Checkbox 
                     id={`b-${circumstance.id}`} 
