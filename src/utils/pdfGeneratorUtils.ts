@@ -1,22 +1,26 @@
 
+/**
+ * Utilitaires pour la génération et le téléchargement de PDF
+ */
+
 import { saveAs } from 'file-saver';
-import { PDFDocument } from 'pdf-lib';
+import { generateCerfaPdf } from './generateCerfaPdf';
 
 /**
  * Génère un PDF à partir des données du constat
  * @param formData Données du formulaire de constat
+ * @param schemeImageDataUrl Image du schéma (optionnel)
  * @returns URL de données du PDF généré
  */
 export async function generatePDF(formData: any, schemeImageDataUrl?: string | null): Promise<string> {
-  // Utilise la fonction existante de cerfa.ts pour la génération
-  const { generateCerfaPDF } = await import('./cerfa');
-  return generateCerfaPDF(formData, schemeImageDataUrl);
+  return generateCerfaPdf(formData, schemeImageDataUrl);
 }
 
 /**
  * Télécharge le PDF généré
  * @param pdfUrl URL de données du PDF à télécharger
  * @param fileName Nom du fichier PDF
+ * @returns Promise indiquant si le téléchargement a réussi
  */
 export async function downloadPDF(pdfUrl: string, fileName: string = 'constat-amiable.pdf'): Promise<boolean> {
   try {

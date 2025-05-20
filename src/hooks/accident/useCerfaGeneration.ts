@@ -2,8 +2,8 @@
 import { useState } from 'react';
 import { toast } from 'sonner';
 import { FormData } from '@/components/accident/types';
-import { useRegisterReport, RegisterReportResult } from '@/hooks/accident/useRegisterReport';
-import { generatePDF, downloadPDF } from '@/utils/pdfGeneratorUtils';
+import { useRegisterReport } from '@/hooks/accident/useRegisterReport';
+import { generateCerfaPdf, downloadCerfaPdf } from '@/utils/generateCerfaPdf';
 import { captureStageAsDataUrl } from '@/components/accident/scheme/SchemeExport';
 
 interface UseCerfaGenerationProps {
@@ -17,7 +17,7 @@ export const useCerfaGeneration = ({ formData, onSuccess, onError }: UseCerfaGen
   const [pdfUrl, setPdfUrl] = useState<string | null>(null);
   
   // Nous utilisons uniquement ce que nous avons besoin du hook useRegisterReport
-  const { isRegistering, registrationSuccess }: Partial<RegisterReportResult> = useRegisterReport();
+  const { isRegistering, registrationSuccess } = useRegisterReport();
 
   const generateCerfa = async (schemeImageDataUrl?: string | null): Promise<string> => {
     setIsGenerating(true);
@@ -29,8 +29,13 @@ export const useCerfaGeneration = ({ formData, onSuccess, onError }: UseCerfaGen
       }
       
       // Génère le PDF avec les données du formulaire
-      const url = await generatePDF(formData, schemeImageDataUrl);
+      const url = await generateCerfaPdf(formData, schemeImageDataUrl);
       setPdfUrl(url);
+      
+      if (onSuccess) {
+        onSuccess();
+      }
+      
       return url;
     } catch (error) {
       console.error('Erreur lors de la génération du CERFA:', error);
@@ -49,9 +54,17 @@ export const useCerfaGeneration = ({ formData, onSuccess, onError }: UseCerfaGen
       const url = pdfUrl || await generateCerfa();
       
       // Télécharger le PDF
-      return await downloadPDF(url, 'constat-amiable.pdf');
+      toast.info("Téléchargement du PDF en cours...");
+      const result = await downloadCerfaPdf(url, 'constat-amiable.pdf');
+      
+      if (result) {
+        toast.success("Le PDF a été téléchargé avec succès");
+      }
+      
+      return result;
     } catch (error) {
       console.error('Erreur lors du téléchargement du CERFA:', error);
+      toast.error("Impossible de télécharger le PDF");
       if (onError && error instanceof Error) {
         onError(error);
       }

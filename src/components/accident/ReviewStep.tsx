@@ -6,7 +6,6 @@ import { toast } from 'sonner';
 import VehicleScheme from '@/components/VehicleScheme';
 import { useRegisterReport } from '@/hooks/accident/useRegisterReport';
 import { captureStageAsDataUrl } from './scheme/SchemeExport';
-import usePdfGenerator from '@/hooks/accident/usePdfGenerator';
 import { SchemeData } from './types/vehicleTypes';
 import CerfaGenerationButton from './CerfaGenerationButton';
 
@@ -33,8 +32,6 @@ const ReviewStep = ({ formData, onSubmitSuccess }: ReviewStepProps) => {
     setReferenceId,
     registerReport
   } = useRegisterReport();
-  
-  const { generateAndDownloadPdf, isGenerating } = usePdfGenerator();
 
   const captureScheme = async (): Promise<string | null> => {
     try {
@@ -83,25 +80,6 @@ const ReviewStep = ({ formData, onSubmitSuccess }: ReviewStepProps) => {
     }
   };
 
-  const handleDownloadPdf = async () => {
-    try {
-      // Capture the scheme image if available
-      let schemeImageDataUrl = null;
-      try {
-        schemeImageDataUrl = await captureScheme();
-      } catch (error) {
-        console.error('Error capturing scheme:', error);
-      }
-      
-      // Generate PDF and download
-      await generateAndDownloadPdf(formData, schemeImageDataUrl);
-      toast.success("Le PDF a été généré et téléchargé avec succès");
-    } catch (error) {
-      console.error('Error downloading PDF:', error);
-      toast.error("Impossible de générer le PDF. Veuillez réessayer.");
-    }
-  };
-
   const handleOfficialSubmission = () => {
     setOfficialSubmission(true);
     setShowOfficialDialog(true);
@@ -136,7 +114,7 @@ const ReviewStep = ({ formData, onSubmitSuccess }: ReviewStepProps) => {
       
       {/* Buttons */}
       <div className="flex flex-col md:flex-row gap-4 justify-between mt-8">
-        {/* Ajout du CerfaGenerationButton */}
+        {/* CerfaGenerationButton avec les données du formulaire */}
         <CerfaGenerationButton 
           formData={formData} 
           className="flex-1"

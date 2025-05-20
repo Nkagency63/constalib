@@ -3,8 +3,8 @@ import React from 'react';
 import { Button } from "@/components/ui/button";
 import { FileText } from 'lucide-react';
 import { toast } from 'sonner';
-import { useGeneratePdf } from '@/hooks/accident/useGeneratePdf';
 import { FormData } from './types';
+import { useCerfaGeneration } from '@/hooks/accident/useCerfaGeneration';
 
 interface CerfaGenerationButtonProps {
   formData: FormData;
@@ -20,18 +20,18 @@ const CerfaGenerationButton: React.FC<CerfaGenerationButtonProps> = ({
   signatures,
   className = ""
 }) => {
-  const { handleGenerateCerfa, isGenerating } = useGeneratePdf({ 
-    formData, 
-    signatures 
+  const { isGenerating, downloadCerfa } = useCerfaGeneration({ 
+    formData,
+    onSuccess: () => toast.success("PDF généré avec succès"),
+    onError: (error) => toast.error(`Erreur: ${error.message}`)
   });
 
   const handleClick = async () => {
     try {
       toast.info("Préparation du constat CERFA...");
-      await handleGenerateCerfa();
+      await downloadCerfa();
     } catch (error) {
       console.error("Erreur lors de la génération du CERFA:", error);
-      toast.error("Impossible de générer le constat CERFA");
     }
   };
 

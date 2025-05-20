@@ -23,7 +23,7 @@ const AccidentForm = ({ onEmergencyRequest, onStepChange }: AccidentFormProps) =
     currentVehicleId,
     handleInputChange,
     handleOtherVehicleChange,
-    handleCircumstanceChange,
+    handleCircumstanceChange: originalHandleCircumstanceChange,
     handlePhotoUpload,
     setVehicleInfo,
     setOtherVehicleInfo,
@@ -45,6 +45,12 @@ const AccidentForm = ({ onEmergencyRequest, onStepChange }: AccidentFormProps) =
     addWitness,
     removeWitness: originalRemoveWitness
   } = useAccidentForm();
+
+  // Adapter pour handleCircumstanceChange pour être compatible avec la signature attendue
+  const handleCircumstanceChange = (vehicleId: "A" | "B", circumstanceId: string) => {
+    // Par défaut, on active la circonstance (isChecked = true)
+    originalHandleCircumstanceChange(vehicleId, circumstanceId, true);
+  };
 
   // Adapter function for witness management to match expected parameter types
   const updateWitness = (index: number, field: keyof WitnessInfo, value: string) => {
@@ -72,6 +78,13 @@ const AccidentForm = ({ onEmergencyRequest, onStepChange }: AccidentFormProps) =
     };
     
     setVehicleInfo(vehicleData as any);
+  };
+
+  const photoUploadAdapter = (type: string, files: FileList) => {
+    if (files.length > 0) {
+      if (type === "vehicle") handlePhotoUpload("vehiclePhotos", files[0]);
+      else if (type === "damage") handlePhotoUpload("damagePhotos", files[0]);
+    }
   };
 
   if (submitted) {
@@ -110,10 +123,7 @@ const AccidentForm = ({ onEmergencyRequest, onStepChange }: AccidentFormProps) =
             formData={formData}
             handleInputChange={handleInputChange}
             handleOtherVehicleChange={handleOtherVehicleChange}
-            handlePhotoUpload={(type, files) => {
-              if (type === "vehicle" && files.length > 0) handlePhotoUpload("vehiclePhotos", files[0]);
-              else if (type === "damage" && files.length > 0) handlePhotoUpload("damagePhotos", files[0]);
-            }}
+            handlePhotoUpload={photoUploadAdapter}
             setVehicleInfo={vehicleInfoAdapter}
             setOtherVehicleInfo={setOtherVehicleInfo}
             setGeolocation={setGeolocation}
