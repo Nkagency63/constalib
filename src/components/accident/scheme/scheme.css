@@ -6,7 +6,7 @@
   border-radius: 0.5rem;
   overflow: hidden;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-  position: relative; /* Assure que les enfants absolus sont contenus */
+  position: relative; /* Ensures absolutely positioned children are contained */
 }
 
 .leaflet-container {
@@ -17,19 +17,19 @@
 
 .leaflet-control-container {
   position: relative;
-  z-index: 1000; /* S'assure que les contrôles sont au-dessus des autres éléments */
+  z-index: 1000; /* Ensures controls are above other elements */
 }
 
 .scheme-container canvas {
   border-radius: 0.375rem;
 }
 
-/* Fix pour l'icône qui disparaît parfois */
+/* Fix for disappearing icon */
 .leaflet-default-icon-path {
   background-image: url(https://unpkg.com/leaflet@1.7.1/dist/images/marker-icon.png) !important;
 }
 
-/* Amélioration du contraste pour les popups */
+/* Improved contrast for popups */
 .leaflet-popup-content {
   color: #374151;
   font-weight: 500;
