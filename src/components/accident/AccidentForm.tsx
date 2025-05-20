@@ -7,7 +7,7 @@ import StepRenderer from './StepRenderer';
 import { accidentFormSteps } from './stepsConfig';
 import { useAccidentForm } from '@/hooks/useAccidentForm';
 import FormSubmissionHandler from './FormSubmissionHandler';
-import { WitnessInfo, SchemeData } from './types';
+import { WitnessInfo, SchemeData, GeolocationData } from './types';
 import { FormContext } from '@/context/FormContext';
 
 interface AccidentFormProps {
@@ -23,11 +23,12 @@ const AccidentForm = ({ onEmergencyRequest, onStepChange }: AccidentFormProps) =
     currentVehicleId,
     handleInputChange,
     handleOtherVehicleChange,
-    handleCircumstanceChange,
+    handleCircumstanceChange: originalHandleCircumstanceChange,
     handlePhotoUpload,
     setVehicleInfo,
     setOtherVehicleInfo,
     setGeolocation,
+    clearGeolocation,
     setInsuranceEmails,
     setInvolvedPartyEmails,
     setPersonalEmail,
@@ -39,11 +40,16 @@ const AccidentForm = ({ onEmergencyRequest, onStepChange }: AccidentFormProps) =
     setHasInjuries,
     setInjuriesDescription,
     setHasWitnesses,
+    setSchemeData,
     updateWitness: originalUpdateWitness,
     addWitness,
-    removeWitness: originalRemoveWitness,
-    setSchemeData
+    removeWitness: originalRemoveWitness
   } = useAccidentForm();
+
+  // Modified adapter for handleCircumstanceChange that includes the checked parameter
+  const handleCircumstanceChange = (vehicleId: "A" | "B", circumstanceId: string, checked: boolean) => {
+    originalHandleCircumstanceChange(vehicleId, circumstanceId, checked);
+  };
 
   // Adapter function for witness management to match expected parameter types
   const updateWitness = (index: number, field: keyof WitnessInfo, value: string) => {
@@ -72,10 +78,10 @@ const AccidentForm = ({ onEmergencyRequest, onStepChange }: AccidentFormProps) =
     
     setVehicleInfo(vehicleData as any);
   };
-  
-  // Scheme data handler
-  const handleSchemeUpdate = (updatedSchemeData: SchemeData) => {
-    setSchemeData(updatedSchemeData);
+
+  // Handle form submission completion
+  const handleFormSubmitted = () => {
+    setSubmitted(true);
   };
 
   if (submitted) {
@@ -115,12 +121,15 @@ const AccidentForm = ({ onEmergencyRequest, onStepChange }: AccidentFormProps) =
             handleInputChange={handleInputChange}
             handleOtherVehicleChange={handleOtherVehicleChange}
             handlePhotoUpload={(type, files) => {
-              if (type === "vehicle" && files.length > 0) handlePhotoUpload("vehiclePhotos", files[0]);
-              else if (type === "damage" && files.length > 0) handlePhotoUpload("damagePhotos", files[0]);
+              if (files.length > 0) {
+                const filesArray = Array.from(files);
+                handlePhotoUpload(type === "vehicle" ? "vehiclePhotos" : "damagePhotos", filesArray[0]);
+              }
             }}
             setVehicleInfo={vehicleInfoAdapter}
             setOtherVehicleInfo={setOtherVehicleInfo}
             setGeolocation={setGeolocation}
+            clearGeolocation={clearGeolocation}
             setInsuranceEmails={setInsuranceEmails}
             setInvolvedPartyEmails={setInvolvedPartyEmails}
             setPersonalEmail={setPersonalEmail}
@@ -134,7 +143,8 @@ const AccidentForm = ({ onEmergencyRequest, onStepChange }: AccidentFormProps) =
             updateWitness={updateWitness}
             addWitness={addWitness}
             removeWitness={removeWitness}
-            onSchemeUpdate={handleSchemeUpdate}
+            onSchemeUpdate={setSchemeData}
+            onFormSubmitted={handleFormSubmitted}
           />
         </form>
         

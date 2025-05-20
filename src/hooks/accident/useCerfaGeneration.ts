@@ -56,7 +56,7 @@ export const useCerfaGeneration = ({ formData, signatures, onSuccess }: UseCerfa
       console.log("Schéma capturé:", schemeImageDataUrl ? "Oui" : "Non");
       
       // Générer le PDF
-      const pdfBlob = await generatePDF(formData, schemeImageDataUrl);
+      const pdfResult = await generatePDF(formData, schemeImageDataUrl);
       
       if (onSuccess) {
         onSuccess();
@@ -65,13 +65,18 @@ export const useCerfaGeneration = ({ formData, signatures, onSuccess }: UseCerfa
       toast.success("PDF généré avec succès");
       
       // Create a Blob from the response
-      if (typeof pdfBlob === 'string') {
+      if (typeof pdfResult === 'string') {
         // Convert base64 or data URL to Blob
-        const base64Response = await fetch(pdfBlob);
-        return await base64Response.blob();
+        try {
+          const base64Response = await fetch(pdfResult);
+          return await base64Response.blob();
+        } catch (error) {
+          console.error("Erreur lors de la conversion en Blob:", error);
+          return null;
+        }
       }
       
-      return pdfBlob;
+      return pdfResult as Blob;
     } catch (error: any) {
       console.error("Erreur de génération du PDF:", error);
       const message = error?.message || "Erreur de génération du PDF";
