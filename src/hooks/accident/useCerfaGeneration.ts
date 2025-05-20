@@ -60,7 +60,7 @@ export const useCerfaGeneration = ({ formData, signatures, onSuccess }: UseCerfa
       const signatureA = signatures?.partyA || null;
       
       // Générer le PDF avec le schéma et la signature
-      const pdfUrl = await generatePDF(formData, schemeImageDataUrl, signatureA);
+      const pdfUrl = await generatePDF(formData, schemeImageDataUrl);
       
       if (onSuccess) {
         onSuccess();
