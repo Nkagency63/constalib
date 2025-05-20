@@ -1,18 +1,44 @@
 
 import React from 'react';
-import { SchemeData, GeolocationData } from '../types';
+import { SchemeData as BaseSchemeData, GeolocationData } from '../types';
+import { SchemeData as TypesSchemeData } from '../types/types';
 import { useSchemeContainer } from './hooks/useSchemeContainer';
 import SchemeContent from './components/SchemeContent';
 import VehicleScheme from '../../VehicleScheme';
 
 interface SchemeContainerProps {
-  initialData?: SchemeData;
+  initialData?: BaseSchemeData;
   formData?: any;
-  onUpdateSchemeData?: (data: SchemeData) => void;
-  onSchemeUpdate?: (data: SchemeData) => void;
+  onUpdateSchemeData?: (data: BaseSchemeData) => void;
+  onSchemeUpdate?: (data: BaseSchemeData) => void;
   readOnly?: boolean;
   activeTab?: string;
 }
+
+// Helper function to convert between different SchemeData types
+const convertSchemeData = (data: BaseSchemeData): TypesSchemeData => {
+  return {
+    vehicles: data.vehicles.map(v => ({
+      ...v,
+      label: v.label || `Véhicule ${v.type || ''}`,
+      type: v.type || 'car',
+    })),
+    paths: data.paths || [],
+    annotations: data.annotations || [],
+    center: data.center || [0, 0],
+    zoom: data.zoom || 13
+  };
+};
+
+const convertBackSchemeData = (data: TypesSchemeData): BaseSchemeData => {
+  return {
+    vehicles: data.vehicles,
+    paths: data.paths,
+    annotations: data.annotations,
+    center: data.center,
+    zoom: data.zoom
+  };
+};
 
 const SchemeContainer: React.FC<SchemeContainerProps> = ({
   initialData,
@@ -35,8 +61,10 @@ const SchemeContainer: React.FC<SchemeContainerProps> = ({
   const schemeState = useSchemeContainer({
     initialData,
     formData,
-    onUpdateSchemeData,
-    onSchemeUpdate,
+    onUpdateSchemeData: onUpdateSchemeData ? 
+      (data: TypesSchemeData) => onUpdateSchemeData(convertBackSchemeData(data)) : undefined,
+    onSchemeUpdate: onSchemeUpdate ? 
+      (data: TypesSchemeData) => onSchemeUpdate(convertBackSchemeData(data)) : undefined,
     readOnly,
     geolocationData
   });
@@ -50,7 +78,8 @@ const SchemeContainer: React.FC<SchemeContainerProps> = ({
         x: vehicle.position[0],
         y: vehicle.position[1],
         width: 80,
-        height: 40
+        height: 40,
+        label: vehicle.label || `Véhicule ${vehicle.type || ''}`
       }));
       schemeState.setVehicles(konvaVehicles);
     }
@@ -87,8 +116,9 @@ const SchemeContainer: React.FC<SchemeContainerProps> = ({
     <>
       {activeTab === 'scheme' ? (
         <VehicleScheme
-          initialData={initialData}
-          onSchemeUpdate={onUpdateSchemeData}
+          initialData={initialData ? convertSchemeData(initialData) : undefined}
+          onSchemeUpdate={onUpdateSchemeData ? 
+            (data: TypesSchemeData) => onUpdateSchemeData(convertBackSchemeData(data)) : undefined}
         />
       ) : (
         <SchemeContent
