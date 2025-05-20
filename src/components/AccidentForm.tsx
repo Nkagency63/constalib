@@ -80,11 +80,15 @@ const AccidentForm = ({ onEmergencyRequest, onStepChange }: AccidentFormProps) =
     setVehicleInfo(vehicleData as any);
   };
 
+  // Photo upload adapter that converts FileList to File[]
   const photoUploadAdapter = (type: string, files: FileList) => {
-    if (files.length > 0) {
-      if (type === "vehicle") handlePhotoUpload("vehiclePhotos", files[0]);
-      else if (type === "damage") handlePhotoUpload("damagePhotos", files[0]);
+    // Convertir FileList en File[]
+    const filesArray: File[] = [];
+    for (let i = 0; i < files.length; i++) {
+      filesArray.push(files[i]);
     }
+    
+    handlePhotoUpload(type, filesArray);
   };
 
   if (submitted) {

@@ -1,97 +1,89 @@
 
 import { useState } from 'react';
-import { toast } from 'sonner';
-import { FormData } from '@/components/accident/types';
-import { v4 as uuidv4 } from 'uuid';
-import { captureStageAsDataUrl } from '@/components/accident/scheme/SchemeExport';
+import { useMutation } from '@tanstack/react-query';
 
-export interface RegisterReportResult {
-  isRegistering: boolean;
-  registrationError: string | null;
-  registrationSuccess: boolean;
-  reportId: string | null;
-  showOfficialDialog: boolean;
-  setShowOfficialDialog: (show: boolean) => void;
-  referenceId: string;
-  setReferenceId: (id: string) => void;
-  registerReport: (formData: FormData) => Promise<boolean>;
+interface FormData {
+  // Définir les propriétés nécessaires pour le hook
+  userId?: string;
+  geolocation?: {
+    lat: number;
+    lng: number;
+    address: string;
+    accuracy?: number;
+    timestamp?: string;
+  };
+  // Autres propriétés du formulaire
 }
 
-export const useRegisterReport = (): RegisterReportResult => {
-  const [isRegistering, setIsRegistering] = useState(false);
-  const [registrationError, setRegistrationError] = useState<string | null>(null);
-  const [registrationSuccess, setRegistrationSuccess] = useState(false);
-  const [reportId, setReportId] = useState<string | null>(null);
-  const [showOfficialDialog, setShowOfficialDialog] = useState(false);
-  const [referenceId, setReferenceId] = useState<string>('');
+interface RegisterReportParams {
+  formData: FormData;
+  onSuccess?: () => void;
+  onError?: (error: Error) => void;
+}
 
-  const registerReport = async (formData: FormData): Promise<boolean> => {
-    setIsRegistering(true);
-    setRegistrationError(null);
-    setRegistrationSuccess(false);
-    
-    try {
-      // Capture du schéma comme image
-      const schemeImageDataUrl = await captureStageAsDataUrl();
+interface RegisterAccidentResponse {
+  success: boolean;
+  reportId: string;
+  message: string;
+}
+
+/**
+ * Hook pour l'enregistrement officiel du rapport d'accident
+ */
+export const useRegisterReport = ({ formData, onSuccess, onError }: RegisterReportParams) => {
+  const [isRegistering, setIsRegistering] = useState(false);
+  const [reportId, setReportId] = useState<string | null>(null);
+  
+  const registerMutation = useMutation({
+    mutationFn: async (): Promise<RegisterAccidentResponse> => {
+      // Récupérer l'userId depuis formData ou utiliser "anonymous" comme valeur par défaut
+      const userId = formData.userId || 'anonymous';
       
-      // Construction des données pour l'API
-      const payload = {
-        ...formData,
-        reportId: uuidv4(),
-        schemeImageDataUrl,
-        // Ajout des propriétés manquantes
-        userId: formData.userId || 'anonymous',
-        geolocation: {
-          ...formData.geolocation,
-          accuracy: formData.geolocation?.accuracy || 0,
-          timestamp: formData.geolocation?.timestamp || new Date().toISOString()
-        }
-      };
+      // Construire les données de géolocalisation en incluant accuracy et timestamp
+      const geoData = formData.geolocation ? {
+        lat: formData.geolocation.lat,
+        lng: formData.geolocation.lng,
+        address: formData.geolocation.address,
+        accuracy: formData.geolocation.accuracy || 0,
+        timestamp: formData.geolocation.timestamp || new Date().toISOString()
+      } : null;
       
-      // Simulation d'un appel API réussi
-      console.log("Enregistrement du rapport:", payload);
-      
-      // Simuler un délai réseau
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      
-      // Simuler une réponse d'API
-      const simulatedResponse = {
-        success: true,
-        data: {
-          reportId: payload.reportId,
-          referenceNumber: 'CONST-' + Math.random().toString(36).substring(2, 10).toUpperCase(),
-        }
-      };
-      
-      if (simulatedResponse.success) {
-        setReportId(simulatedResponse.data.reportId);
-        setReferenceId(simulatedResponse.data.referenceNumber);
-        setRegistrationSuccess(true);
-        toast.success('Votre constat a été enregistré avec succès!');
-        return true;
-      } else {
-        throw new Error('Erreur lors de l\'enregistrement du constat');
-      }
-    } catch (error) {
-      console.error("Erreur lors de l'enregistrement:", error);
-      const errorMessage = error instanceof Error ? error.message : 'Une erreur inconnue est survenue';
-      setRegistrationError(errorMessage);
-      toast.error(`Échec de l'enregistrement: ${errorMessage}`);
-      return false;
-    } finally {
+      // Simuler une requête API réussie
+      return new Promise((resolve) => {
+        setTimeout(() => {
+          const generatedReportId = `R-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
+          setReportId(generatedReportId);
+          
+          resolve({
+            success: true,
+            reportId: generatedReportId,
+            message: "Rapport d'accident enregistré avec succès"
+          });
+        }, 1500);
+      });
+    },
+    onSuccess: (data) => {
+      if (onSuccess) onSuccess();
+    },
+    onError: (error: Error) => {
+      if (onError) onError(error);
+    },
+    onSettled: () => {
       setIsRegistering(false);
     }
+  });
+  
+  const registerReport = async () => {
+    setIsRegistering(true);
+    return registerMutation.mutateAsync();
   };
-
+  
   return {
+    registerReport,
     isRegistering,
-    registrationError,
-    registrationSuccess,
     reportId,
-    showOfficialDialog,
-    setShowOfficialDialog,
-    referenceId,
-    setReferenceId,
-    registerReport
+    isSuccess: registerMutation.isSuccess,
+    isError: registerMutation.isError,
+    error: registerMutation.error
   };
 };

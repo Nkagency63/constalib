@@ -5,6 +5,7 @@
 import { useState } from 'react';
 import BasicInfoStep from './BasicInfoStep';
 import VehiclesStep from './VehiclesStep';
+import DriverAndInsuredStep from './DriverAndInsuredStep';
 import LocationStep from './LocationStep';
 import PhotosStep from './PhotosStep';
 import CircumstancesStep from './CircumstancesStep';
@@ -13,7 +14,6 @@ import InjuriesStep from './InjuriesStep';
 import EmailStep from './EmailStep';
 import SchemeStep from './SchemeStep';
 import ReviewStep from './ReviewStep';
-// ... gardez les autres imports
 
 interface StepRendererProps {
   currentStepId: string;
@@ -68,7 +68,6 @@ const StepRenderer: React.FC<StepRendererProps> = ({
   onSchemeUpdate,
   onFormSubmitted
 }) => {
-  // ... keep existing code
   
   switch (currentStepId) {
     case "basics":
@@ -88,8 +87,14 @@ const StepRenderer: React.FC<StepRendererProps> = ({
           handleOtherVehicleChange={handleOtherVehicleChange}
           setVehicleInfo={setVehicleInfo}
           setOtherVehicleInfo={setOtherVehicleInfo}
-          setCurrentVehicleId={setCurrentVehicleId}
-          currentVehicleId={currentVehicleId}
+          handlePhotoUpload={handlePhotoUpload}
+        />
+      );
+    case "drivers":
+      return (
+        <DriverAndInsuredStep
+          formData={formData}
+          handleInputChange={handleInputChange}
         />
       );
     case "location":
@@ -112,6 +117,8 @@ const StepRenderer: React.FC<StepRendererProps> = ({
         <CircumstancesStep
           formData={formData}
           handleCircumstanceChange={handleCircumstanceChange}
+          setCurrentVehicleId={setCurrentVehicleId}
+          currentVehicleId={currentVehicleId}
         />
       );
     case "witnesses":
@@ -157,7 +164,6 @@ const StepRenderer: React.FC<StepRendererProps> = ({
         />
       );
     
-    // ... keep existing code (default case)
     default:
       return (
         <div>
