@@ -1,7 +1,7 @@
-
 import React, { useState, useEffect, useMemo } from 'react';
 import { MapContainer, TileLayer } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
+import './scheme.css';
 import MapInitializer from '../MapInitializer';
 import { Vehicle, Path, Annotation } from '../types';
 import VehiclesLayer from './VehiclesLayer';

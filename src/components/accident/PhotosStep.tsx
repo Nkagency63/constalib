@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Button } from "@/components/ui/button";
 import { Camera } from 'lucide-react';
@@ -77,6 +78,12 @@ const PhotosStep: React.FC<PhotosStepProps> = ({ handlePhotoUpload }) => {
           Prenez des photos sous plusieurs angles et avec un bon éclairage si possible.
         </p>
       </div>
+      
+      <style jsx>{`
+        .map-container {
+          height: 500px;
+        }
+      `}</style>
     </div>
   );
 };

@@ -18,7 +18,7 @@ interface StepRendererProps {
   formData: AccidentFormData;
   handleInputChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
   handleOtherVehicleChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
-  handlePhotoUpload: (type: string, files: File[]) => void;
+  handlePhotoUpload: (type: string, files: FileList | File[]) => void;
   setVehicleInfo: (data: { brand: string; model: string; year?: string; firstRegistration?: string }) => void;
   setOtherVehicleInfo: (data: any) => void;
   setGeolocation: (location: GeolocationData) => void;
@@ -67,7 +67,7 @@ const StepRenderer: React.FC<StepRendererProps> = ({
   onFormSubmitted
 }) => {
   
-  // Create a wrapper function for handlePhotoUpload that converts FileList to File[]
+  // Create a wrapper function for handlePhotoUpload that handles both FileList and File[]
   const photoUploadHandler = (type: string, fileList: FileList | File[]) => {
     if (fileList) {
       const filesArray = fileList instanceof FileList ? Array.from(fileList) : fileList;
