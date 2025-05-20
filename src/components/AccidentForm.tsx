@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import ProgressBar from './accident/ProgressBar';
 import StepNavigation from './accident/StepNavigation';
@@ -80,12 +79,9 @@ const AccidentForm = ({ onEmergencyRequest, onStepChange }: AccidentFormProps) =
   };
 
   // Photo upload adapter that converts FileList to File[]
-  const photoUploadAdapter = (type: string, fileList: FileList) => {
-    // Convert FileList to File array
-    const files = Array.from(fileList);
-    
-    if (files.length > 0) {
-      handlePhotoUpload(type === "vehicle" ? "vehiclePhotos" : "damagePhotos", files[0]);
+  const photoUploadAdapter = (type: string, fileList: File[]) => {
+    if (fileList.length > 0) {
+      handlePhotoUpload(type === "vehicle" ? "vehiclePhotos" : "damagePhotos", fileList[0]);
     }
   };
 

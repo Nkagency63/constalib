@@ -1,107 +1,90 @@
 
-import { useState } from 'react';
-import { useRegisterReport } from '@/hooks/accident/useRegisterReport';
-import { Button } from '@/components/ui/button';
-import { toast } from 'sonner';
-import OfficialReportDialog from './pdf/OfficialReportDialog';
-import { Check, FileText, Shield, Upload } from 'lucide-react';
-import { useCerfaGeneration } from '@/hooks/accident/useCerfaGeneration';
+import React, { useState } from 'react';
+import { Button } from "@/components/ui/button";
+import { useRegisterReport } from "@/hooks/accident/useRegisterReport";
+import { toast } from "sonner";
+import { FormData } from "./types";
+import { AlertDialog } from "@/components/ui/alert-dialog";
+import SignatureDialog from "./SignatureDialog";
+import OfficialReportDialog from "./pdf/OfficialReportDialog";
+import useCerfaGeneration from "@/hooks/accident/useCerfaGeneration";
 
 interface FormSubmissionHandlerProps {
-  formData: any;
+  formData: FormData;
   onSubmitSuccess: () => void;
 }
 
-const FormSubmissionHandler = ({ formData, onSubmitSuccess }: FormSubmissionHandlerProps) => {
-  const [showOfficialDialog, setShowOfficialDialog] = useState(false);
-  const [referenceId, setReferenceId] = useState<string | null>(null);
+const FormSubmissionHandler: React.FC<FormSubmissionHandlerProps> = ({
+  formData,
+  onSubmitSuccess
+}) => {
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showSignatureModal, setShowSignatureModal] = useState(false);
+  const [signatures, setSignatures] = useState<{ partyA: string | null, partyB: string | null }>({
+    partyA: null,
+    partyB: null
+  });
+  const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const [registrationSuccess, setRegistrationSuccess] = useState(false);
-  const [registrationError, setRegistrationError] = useState<Error | null>(null);
+  const [referenceId, setReferenceId] = useState("");
+  
+  const { registerReport } = useRegisterReport();
 
-  const { 
-    registerReport, 
-    isRegistering, 
-    reportId,
-    isSuccess,
-    isError,
-    error
-  } = useRegisterReport({
-    formData,
-    onSuccess: () => {
+  const handleGenerateReport = async () => {
+    setIsSubmitting(true);
+    try {
+      // Register the report
+      const result = await registerReport(formData);
+      
+      // Show success toast and set success state
+      toast.success("Votre constat a été enregistré avec succès!");
       setRegistrationSuccess(true);
-      setReferenceId(reportId);
-      onSubmitSuccess();
-    },
-    onError: (err) => {
-      setRegistrationError(err);
+      setReferenceId("REF-" + Math.random().toString(36).substring(2, 10).toUpperCase());
+      
+      // Call the success callback
+      if (onSubmitSuccess) {
+        onSubmitSuccess();
+      }
+    } catch (error) {
+      console.error('Erreur lors de l\'enregistrement du constat:', error);
+      const errorMessage = error instanceof Error ? error.message : "Erreur lors de l'enregistrement du constat";
+      toast.error(errorMessage);
+    } finally {
+      setIsSubmitting(false);
     }
-  });
-
-  const { generatePdf, isGenerating } = useCerfaGeneration({ 
-    formData,
-    onSuccess: () => {
-      toast.success('Document PDF généré', {
-        description: 'Le constat amiable a été téléchargé'
-      });
-    }
-  });
-
-  const handleRegistrationClick = async () => {
-    setShowOfficialDialog(true);
   };
 
-  const handleConfirmRegistration = async () => {
-    try {
-      await registerReport();
-      // Remarque: onSuccess du hook useRegisterReport sera appelé en cas de succès
-    } catch (error) {
-      console.error('Erreur lors de l\'enregistrement:', error);
-      toast.error('Erreur d\'enregistrement', {
-        description: 'Une erreur est survenue lors de l\'enregistrement du constat'
-      });
-    } finally {
-      setShowOfficialDialog(false);
-    }
+  const handleOpenSignatureModal = () => {
+    setShowSignatureModal(true);
+  };
+
+  const handleSignaturesComplete = (signatures: { partyA: string, partyB: string }) => {
+    setSignatures(signatures);
+    setShowSignatureModal(false);
+    setShowConfirmDialog(true);
   };
 
   return (
-    <div className="space-y-6">
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <Button 
-          onClick={generatePdf} 
-          className="flex items-center justify-center"
-          disabled={isGenerating}
-          variant="outline"
-        >
-          <FileText className="h-5 w-5 mr-2" />
-          {isGenerating ? 'Génération...' : 'Télécharger le CERFA'}
-        </Button>
-        
-        <Button 
-          onClick={handleRegistrationClick}
-          className="flex items-center justify-center"
-          disabled={isRegistering || registrationSuccess}
-          variant="default"
-        >
-          {registrationSuccess ? (
-            <>
-              <Check className="h-5 w-5 mr-2" />
-              Enregistrement confirmé
-            </>
-          ) : (
-            <>
-              <Shield className="h-5 w-5 mr-2" />
-              {isRegistering ? 'Enregistrement...' : 'Enregistrer officiellement'}
-            </>
-          )}
-        </Button>
-      </div>
+    <div className="space-y-4">
+      <Button 
+        onClick={handleOpenSignatureModal}
+        className="w-full"
+        disabled={isSubmitting}
+      >
+        {isSubmitting ? "Enregistrement en cours..." : "Finaliser le constat"}
+      </Button>
       
-      <OfficialReportDialog 
-        open={showOfficialDialog}
-        onOpenChange={setShowOfficialDialog}
-        onConfirm={handleConfirmRegistration}
-        isProcessing={isRegistering}
+      <SignatureDialog 
+        open={showSignatureModal} 
+        onOpenChange={setShowSignatureModal}
+        onComplete={handleSignaturesComplete}
+      />
+      
+      <OfficialReportDialog
+        open={showConfirmDialog}
+        onOpenChange={setShowConfirmDialog}
+        onConfirmSend={handleGenerateReport}
+        isProcessing={isSubmitting}
         referenceId={referenceId}
         isSuccess={registrationSuccess}
       />

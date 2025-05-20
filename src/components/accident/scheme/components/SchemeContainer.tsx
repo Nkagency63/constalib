@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Stage, Layer, Rect, Line } from 'react-konva';
 import { toast } from 'sonner';
@@ -78,7 +79,12 @@ const SchemeContainer: React.FC<SchemeContainerProps> = ({
           />
 
           {/* Véhicules */}
-          {vehicles.map((vehicle) => {
+          {Array.isArray(vehicles) && vehicles.map((vehicle) => {
+            if (!vehicle || !vehicle.id) {
+              console.warn('Vehicle with missing id detected');
+              return null;
+            }
+            
             // Convertir position [lat, lng] en x, y pour Konva ou utiliser x, y s'ils existent
             const vehicleX = vehicle.x !== undefined ? vehicle.x : (vehicle.position ? vehicle.position[1] * 10 : width / 2);
             const vehicleY = vehicle.y !== undefined ? vehicle.y : (vehicle.position ? vehicle.position[0] * 10 : height / 2);
@@ -93,13 +99,10 @@ const SchemeContainer: React.FC<SchemeContainerProps> = ({
                 height={vehicle.height || 40}
                 rotation={vehicle.rotation || 0}
                 color={vehicle.color || (vehicle.type === 'A' ? 'blue' : 'red')}
-                label={vehicle.label || vehicle.type}
+                label={vehicle.label || vehicle.type || ''}
                 isSelected={selectedId === vehicle.id}
                 onSelect={() => handleSelect(vehicle.id)}
                 onChange={(newProps) => handleVehicleChange(vehicle.id, newProps)}
-                onTransformEnd={() => {
-                  toast("Position mise à jour", { duration: 1000 });
-                }}
               />
             );
           })}

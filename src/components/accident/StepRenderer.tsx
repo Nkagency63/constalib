@@ -18,7 +18,7 @@ interface StepRendererProps {
   formData: any;
   handleInputChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
   handleOtherVehicleChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
-  handlePhotoUpload: (type: string, files: FileList) => void;
+  handlePhotoUpload: (type: string, files: File[]) => void;
   setVehicleInfo: (data: any) => void;
   setOtherVehicleInfo: (data: any) => void;
   setGeolocation: (location: GeolocationData) => void;
@@ -116,7 +116,9 @@ const StepRenderer: React.FC<StepRendererProps> = ({
       );
     case "photos":
       return (
-        <PhotosStep handlePhotoUpload={handlePhotoUpload} />
+        <PhotosStep 
+          handlePhotoUpload={(type, files) => handlePhotoUpload(type, Array.from(files))} 
+        />
       );
     case "circumstances":
       return (

@@ -1,7 +1,7 @@
 
 import { Button } from "@/components/ui/button";
 import { Download } from "lucide-react";
-import { useCerfaGeneration } from "@/hooks/accident/useCerfaGeneration";
+import useCerfaGeneration from "@/hooks/accident/useCerfaGeneration";
 import { useState } from "react";
 
 interface CerfaGenerationButtonProps {
@@ -30,20 +30,20 @@ const CerfaGenerationButton = ({
 
   const handleGeneratePdf = async () => {
     try {
-      const blob = await generatePdf();
-      if (blob) {
-        const url = URL.createObjectURL(blob);
+      const pdfBlob = await generatePdf();
+      
+      if (pdfBlob) {
+        // Créer une URL pour le blob
+        const url = URL.createObjectURL(pdfBlob);
         setPdfUrl(url);
         
-        // Create a download link for the PDF and click it
+        // Créer un lien de téléchargement et cliquer dessus
         const downloadLink = document.createElement('a');
         downloadLink.href = url;
         downloadLink.download = `Constat_Amiable_${new Date().toISOString().slice(0, 10)}.pdf`;
         document.body.appendChild(downloadLink);
         downloadLink.click();
         document.body.removeChild(downloadLink);
-        
-        if (onSuccess) onSuccess();
       }
     } catch (error) {
       console.error("Erreur lors de la génération du PDF:", error);

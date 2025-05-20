@@ -5,16 +5,18 @@ import { FormData } from "@/components/accident/types";
 import { generatePDF, downloadPDF } from "@/utils/pdfGeneratorUtils";
 import { captureStageAsDataUrl } from "@/components/accident/scheme/SchemeExport";
 
-interface UseGeneratePdfProps {
+interface UseCerfaGenerationProps {
   formData: FormData;
+  onSuccess?: () => void;
   signatures?: {
     partyA: string | null;
     partyB: string | null;
   };
 }
 
-export const useGeneratePdf = ({ formData, signatures }: UseGeneratePdfProps) => {
+export const useCerfaGeneration = ({ formData, signatures, onSuccess }: UseCerfaGenerationProps) => {
   const [isGenerating, setIsGenerating] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const captureSchemeImage = async (): Promise<string | null> => {
     try {
@@ -40,36 +42,33 @@ export const useGeneratePdf = ({ formData, signatures }: UseGeneratePdfProps) =>
     }
   };
 
-  // Convert a string URL to a Blob
-  const urlToBlob = async (url: string): Promise<Blob> => {
-    const response = await fetch(url);
-    return await response.blob();
-  };
-
-  const handleGenerateCerfa = async () => {
+  // Fonction pour générer le PDF
+  const generatePdf = async (): Promise<Blob | null> => {
     setIsGenerating(true);
+    setErrorMessage(null);
+    
     try {
-      // Capture the scheme as an image
+      // Capture du schéma
       toast.info("Préparation du document PDF...", { duration: 3000 });
       
       console.log("Capture du schéma en cours...");
       const schemeImageDataUrl = await captureSchemeImage();
       console.log("Schéma capturé:", schemeImageDataUrl ? "Oui" : "Non");
       
-      // Générer le PDF avec les données du formulaire et l'image du schéma
-      const pdfUrl = await generatePDF(formData, schemeImageDataUrl);
+      // Générer le PDF
+      const pdfBlob = await generatePDF(formData, schemeImageDataUrl);
       
-      // Convert URL to Blob if it's a string
-      const pdfBlob = typeof pdfUrl === 'string' ? await urlToBlob(pdfUrl) : pdfUrl;
+      if (onSuccess) {
+        onSuccess();
+      }
       
-      // Télécharger le PDF généré
-      await downloadPDF(pdfBlob, "constat-amiable.pdf");
-      toast.success("Votre constat amiable PDF a été téléchargé");
-      
-      return { pdfUrl, schemeImageDataUrl };
+      toast.success("PDF généré avec succès");
+      return pdfBlob;
     } catch (error: any) {
-      console.error("Erreur de génération du CERFA:", error);
-      toast.error(error.message || "Erreur de génération du PDF");
+      console.error("Erreur de génération du PDF:", error);
+      const message = error?.message || "Erreur de génération du PDF";
+      setErrorMessage(message);
+      toast.error(message);
       return null;
     } finally {
       setIsGenerating(false);
@@ -78,6 +77,9 @@ export const useGeneratePdf = ({ formData, signatures }: UseGeneratePdfProps) =>
 
   return {
     isGenerating,
-    handleGenerateCerfa
+    errorMessage,
+    generatePdf
   };
 };
+
+export default useCerfaGeneration;
