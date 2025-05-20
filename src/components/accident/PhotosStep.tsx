@@ -2,6 +2,9 @@
 import React from 'react';
 import { Button } from "@/components/ui/button";
 import { Camera } from 'lucide-react';
+import { MapContainer, TileLayer } from 'react-leaflet';
+import MapComponent from './MapComponent';
+import 'leaflet/dist/leaflet.css';
 
 interface PhotosStepProps {
   handlePhotoUpload: (type: string, files: FileList | File[]) => void;
@@ -79,8 +82,19 @@ const PhotosStep: React.FC<PhotosStepProps> = ({ handlePhotoUpload }) => {
         </p>
       </div>
       
-      {/* Use the map-container class from our CSS file instead of inline styles */}
-      <div className="map-container"></div>
+      <div className="map-container">
+        <MapContainer
+          center={[48.8566, 2.3522]} {/* Default to Paris */}
+          zoom={13}
+          className="h-full w-full"
+        >
+          <TileLayer
+            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+          />
+          <MapComponent />
+        </MapContainer>
+      </div>
     </div>
   );
 };

@@ -1,10 +1,11 @@
 
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useMemo } from 'react';
 import { MapContainer, TileLayer } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import './scheme.css';
+import MapComponent from '../MapComponent';
 import MapInitializer from '../MapInitializer';
-import { Vehicle, Path, Annotation } from '../types';
+import { Vehicle } from '../types';
 import VehiclesLayer from './VehiclesLayer';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -31,7 +32,7 @@ const SchemeMapWrapper: React.FC<SchemeMapWrapperProps> = ({
   onMapReady,
   children
 }) => {
-  // Créer une clé stable pour le centre actuel
+  // Create a stable key for the current center
   const mapKey = useMemo(() => {
     // Ensure center is valid
     if (!center || !Array.isArray(center) || center.length !== 2) {
@@ -41,8 +42,8 @@ const SchemeMapWrapper: React.FC<SchemeMapWrapperProps> = ({
     return `map-${center[0].toFixed(6)}-${center[1].toFixed(6)}-${zoom}-${uuidv4().substring(0, 8)}`;
   }, [center, zoom]);
   
-  // Log pour debug
-  useEffect(() => {
+  // Debug log
+  React.useEffect(() => {
     console.log("SchemeMapWrapper rendered with center:", center, "and key:", mapKey);
   }, [center, mapKey]);
 
@@ -65,6 +66,9 @@ const SchemeMapWrapper: React.FC<SchemeMapWrapperProps> = ({
         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
       />
+      
+      {/* Add MapComponent for size invalidation */}
+      <MapComponent />
       
       {onMapReady && (
         <MapInitializer onMapReady={onMapReady} />
