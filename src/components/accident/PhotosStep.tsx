@@ -79,11 +79,8 @@ const PhotosStep: React.FC<PhotosStepProps> = ({ handlePhotoUpload }) => {
         </p>
       </div>
       
-      <style jsx>{`
-        .map-container {
-          height: 500px;
-        }
-      `}</style>
+      {/* Use the map-container class from our CSS file instead of inline styles */}
+      <div className="map-container"></div>
     </div>
   );
 };
