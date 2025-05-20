@@ -7,7 +7,7 @@ import StepRenderer from './accident/StepRenderer';
 import { accidentFormSteps } from './accident/stepsConfig';
 import { useAccidentForm } from '@/hooks/useAccidentForm';
 import FormSubmissionHandler from './accident/FormSubmissionHandler';
-import { WitnessInfo, SchemeData } from './accident/types';
+import { WitnessInfo, SchemeData, GeolocationData } from './accident/types';
 import { FormContext } from '@/context/FormContext';
 
 interface AccidentFormProps {
@@ -81,14 +81,8 @@ const AccidentForm = ({ onEmergencyRequest, onStepChange }: AccidentFormProps) =
   };
 
   // Photo upload adapter that converts FileList to File[]
-  const photoUploadAdapter = (type: string, files: FileList) => {
-    // Convertir FileList en File[]
-    const filesArray: File[] = [];
-    for (let i = 0; i < files.length; i++) {
-      filesArray.push(files[i]);
-    }
-    
-    handlePhotoUpload(type, filesArray);
+  const photoUploadAdapter = (type: string, files: File[]) => {
+    handlePhotoUpload(type === "vehicle" ? "vehiclePhotos" : "damagePhotos", files[0]);
   };
 
   if (submitted) {

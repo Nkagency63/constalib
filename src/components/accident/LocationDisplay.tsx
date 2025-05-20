@@ -2,7 +2,7 @@
 import { MapPin, Navigation, Calendar, Clock } from 'lucide-react';
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { GeolocationData } from '@/hooks/accident/useLocationForm';
+import { GeolocationData } from './types';
 
 interface LocationDisplayProps {
   geolocation: GeolocationData;
@@ -13,11 +13,11 @@ const LocationDisplay = ({
   geolocation,
   setMapVisible
 }: LocationDisplayProps) => {
-  if (!geolocation.lat || !geolocation.lng) return null;
+  if (!geolocation || !geolocation.lat || !geolocation.lng) return null;
 
-  const formatTimestamp = (timestamp?: number) => {
+  const formatTimestamp = (timestamp?: number | string) => {
     if (!timestamp) return '';
-    const date = new Date(timestamp);
+    const date = typeof timestamp === 'number' ? new Date(timestamp) : new Date(timestamp);
     return date.toLocaleString('fr-FR');
   };
 

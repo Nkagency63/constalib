@@ -12,7 +12,7 @@ export interface GeolocationData {
   lng: number;
   address: string;
   accuracy?: number;
-  timestamp?: string;
+  timestamp?: number | string;
 }
 
 export interface SchemeData {

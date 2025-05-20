@@ -102,7 +102,7 @@ const LocationStep: React.FC<LocationStepProps> = ({
         address={location} 
       />
       
-      {geolocation.lat && geolocation.lng && (
+      {geolocation && geolocation.lat && geolocation.lng && (
         <div className="relative">
           <LocationDisplay geolocation={geolocation} setMapVisible={setIsMapVisible} />
           {clearGeolocation && (

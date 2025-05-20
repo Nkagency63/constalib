@@ -1,97 +1,110 @@
 
-import React from 'react';
-import { Button } from "@/components/ui/button";
-import { AlertCircle, CheckCircle2 } from 'lucide-react';
-import { toast } from 'sonner';
+import { useState } from 'react';
 import { useRegisterReport } from '@/hooks/accident/useRegisterReport';
-import { FormData } from './types';
-import CerfaGenerationButton from './CerfaGenerationButton';
+import { Button } from '@/components/ui/button';
+import { toast } from 'sonner';
+import OfficialReportDialog from './pdf/OfficialReportDialog';
+import { Check, FileText, Shield, Upload } from 'lucide-react';
+import { useCerfaGeneration } from '@/hooks/accident/useCerfaGeneration';
 
 interface FormSubmissionHandlerProps {
-  formData: FormData;
-  onSubmitSuccess?: () => void;
+  formData: any;
+  onSubmitSuccess: () => void;
 }
 
-const FormSubmissionHandler: React.FC<FormSubmissionHandlerProps> = ({ 
-  formData,
-  onSubmitSuccess 
-}) => {
-  const { 
-    isRegistering, 
-    registrationError, 
-    registrationSuccess,
-    showOfficialDialog, 
-    setShowOfficialDialog,
-    referenceId,
-    registerReport
-  } = useRegisterReport();
+const FormSubmissionHandler = ({ formData, onSubmitSuccess }: FormSubmissionHandlerProps) => {
+  const [showOfficialDialog, setShowOfficialDialog] = useState(false);
+  const [referenceId, setReferenceId] = useState<string | null>(null);
+  const [registrationSuccess, setRegistrationSuccess] = useState(false);
+  const [registrationError, setRegistrationError] = useState<Error | null>(null);
 
-  const handleSubmit = async () => {
-    const success = await registerReport(formData);
-    
-    if (success && onSubmitSuccess) {
+  const { 
+    registerReport, 
+    isRegistering, 
+    reportId,
+    isSuccess,
+    isError,
+    error
+  } = useRegisterReport({
+    formData,
+    onSuccess: () => {
+      setRegistrationSuccess(true);
+      setReferenceId(reportId);
       onSubmitSuccess();
+    },
+    onError: (err) => {
+      setRegistrationError(err);
+    }
+  });
+
+  const { generatePdf, isGenerating } = useCerfaGeneration({ 
+    formData,
+    onSuccess: () => {
+      toast.success('Document PDF généré', {
+        description: 'Le constat amiable a été téléchargé'
+      });
+    }
+  });
+
+  const handleRegistrationClick = async () => {
+    setShowOfficialDialog(true);
+  };
+
+  const handleConfirmRegistration = async () => {
+    try {
+      await registerReport();
+      // Remarque: onSuccess du hook useRegisterReport sera appelé en cas de succès
+    } catch (error) {
+      console.error('Erreur lors de l\'enregistrement:', error);
+      toast.error('Erreur d\'enregistrement', {
+        description: 'Une erreur est survenue lors de l\'enregistrement du constat'
+      });
+    } finally {
+      setShowOfficialDialog(false);
     }
   };
 
   return (
-    <div className="space-y-6 py-4">
-      <div className="bg-blue-50 p-4 rounded-lg flex items-start space-x-3">
-        <CheckCircle2 className="h-5 w-5 text-constalib-blue flex-shrink-0 mt-1" />
-        <div className="space-y-1">
-          <h4 className="font-medium text-constalib-dark">Prêt à générer votre constat amiable</h4>
-          <p className="text-sm text-constalib-dark-gray">
-            Vérifiez que toutes les informations saisies sont correctes avant de générer 
-            votre constat. Après génération, vous recevrez une copie par email et pourrez 
-            le télécharger au format PDF.
-          </p>
-        </div>
-      </div>
-      
-      {registrationError && (
-        <div className="bg-red-50 border-l-4 border-red-500 p-4 rounded">
-          <div className="flex items-start">
-            <AlertCircle className="h-5 w-5 text-red-500 mr-2 mt-0.5" />
-            <p className="text-sm text-red-700">{registrationError}</p>
-          </div>
-        </div>
-      )}
-      
-      <div className="space-y-4">
-        {/* Ajout du bouton de génération du CERFA */}
-        <CerfaGenerationButton 
-          formData={formData}
-          className="w-full" 
-        />
+    <div className="space-y-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <Button 
+          onClick={generatePdf} 
+          className="flex items-center justify-center"
+          disabled={isGenerating}
+          variant="outline"
+        >
+          <FileText className="h-5 w-5 mr-2" />
+          {isGenerating ? 'Génération...' : 'Télécharger le CERFA'}
+        </Button>
         
-        {!registrationSuccess ? (
-          <Button
-            onClick={handleSubmit}
-            disabled={isRegistering}
-            className="w-full bg-constalib-blue hover:bg-constalib-dark-blue"
-            size="lg"
-          >
-            {isRegistering ? 'Génération en cours...' : 'Générer mon constat amiable'}
-          </Button>
-        ) : (
-          <div className="bg-green-50 p-4 rounded-lg flex items-start space-x-3">
-            <CheckCircle2 className="h-5 w-5 text-green-600 flex-shrink-0 mt-1" />
-            <div className="space-y-1">
-              <h4 className="font-medium text-constalib-dark">Constat généré avec succès</h4>
-              <p className="text-sm text-constalib-dark-gray">
-                Votre constat a été généré avec succès. Votre numéro de référence est: <strong>{referenceId}</strong>
-              </p>
-              <Button 
-                className="mt-2"
-                variant="outline"
-                onClick={() => toast.success("Le constat a été envoyé à votre adresse email")}
-              >
-                Télécharger mon constat
-              </Button>
-            </div>
-          </div>
-        )}
+        <Button 
+          onClick={handleRegistrationClick}
+          className="flex items-center justify-center"
+          disabled={isRegistering || registrationSuccess}
+          variant="default"
+        >
+          {registrationSuccess ? (
+            <>
+              <Check className="h-5 w-5 mr-2" />
+              Enregistrement confirmé
+            </>
+          ) : (
+            <>
+              <Shield className="h-5 w-5 mr-2" />
+              {isRegistering ? 'Enregistrement...' : 'Enregistrer officiellement'}
+            </>
+          )}
+        </Button>
       </div>
+      
+      <OfficialReportDialog 
+        open={showOfficialDialog}
+        onOpenChange={setShowOfficialDialog}
+        onConfirm={handleConfirmRegistration}
+        isProcessing={isRegistering}
+        referenceId={referenceId}
+        isSuccess={registrationSuccess}
+      />
     </div>
   );
 };

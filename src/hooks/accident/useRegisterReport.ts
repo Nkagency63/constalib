@@ -2,16 +2,17 @@
 import { useState } from 'react';
 import { useMutation } from '@tanstack/react-query';
 
+export interface GeolocationData {
+  lat: number;
+  lng: number;
+  address: string;
+  accuracy?: number;
+  timestamp?: string | number;
+}
+
 interface FormData {
-  // Définir les propriétés nécessaires pour le hook
   userId?: string;
-  geolocation?: {
-    lat: number;
-    lng: number;
-    address: string;
-    accuracy?: number;
-    timestamp?: string;
-  };
+  geolocation?: GeolocationData;
   // Autres propriétés du formulaire
 }
 
@@ -21,7 +22,7 @@ interface RegisterReportParams {
   onError?: (error: Error) => void;
 }
 
-interface RegisterAccidentResponse {
+export interface RegisterAccidentResponse {
   success: boolean;
   reportId: string;
   message: string;
@@ -33,6 +34,10 @@ interface RegisterAccidentResponse {
 export const useRegisterReport = ({ formData, onSuccess, onError }: RegisterReportParams) => {
   const [isRegistering, setIsRegistering] = useState(false);
   const [reportId, setReportId] = useState<string | null>(null);
+  const [referenceId, setReferenceId] = useState<string | null>(null);
+  const [registrationSuccess, setRegistrationSuccess] = useState(false);
+  const [registrationError, setRegistrationError] = useState<Error | null>(null);
+  const [showOfficialDialog, setShowOfficialDialog] = useState(false);
   
   const registerMutation = useMutation({
     mutationFn: async (): Promise<RegisterAccidentResponse> => {
@@ -53,6 +58,8 @@ export const useRegisterReport = ({ formData, onSuccess, onError }: RegisterRepo
         setTimeout(() => {
           const generatedReportId = `R-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
           setReportId(generatedReportId);
+          setReferenceId(generatedReportId);
+          setRegistrationSuccess(true);
           
           resolve({
             success: true,
@@ -63,9 +70,11 @@ export const useRegisterReport = ({ formData, onSuccess, onError }: RegisterRepo
       });
     },
     onSuccess: (data) => {
+      setRegistrationSuccess(true);
       if (onSuccess) onSuccess();
     },
     onError: (error: Error) => {
+      setRegistrationError(error);
       if (onError) onError(error);
     },
     onSettled: () => {
@@ -82,8 +91,14 @@ export const useRegisterReport = ({ formData, onSuccess, onError }: RegisterRepo
     registerReport,
     isRegistering,
     reportId,
+    referenceId,
     isSuccess: registerMutation.isSuccess,
     isError: registerMutation.isError,
-    error: registerMutation.error
+    error: registerMutation.error,
+    registrationSuccess,
+    registrationError,
+    showOfficialDialog,
+    setShowOfficialDialog,
+    setReferenceId
   };
 };

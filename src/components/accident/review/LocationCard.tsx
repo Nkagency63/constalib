@@ -1,25 +1,20 @@
 
 import { MapPin, Navigation, Clock } from 'lucide-react';
 import ReviewCard from './ReviewCard';
-import { GeolocationData } from '@/hooks/accident/useLocationForm';
+import { GeolocationData } from '@/components/accident/types';
 
 interface LocationCardProps {
   location: {
     address?: string;
-    coordinates?: {
-      lat?: number;
-      lng?: number;
-      accuracy?: number;
-      timestamp?: number;
-    };
+    coordinates?: GeolocationData;
     locationText?: string;
   };
 }
 
 const LocationCard = ({ location }: LocationCardProps) => {
-  const formatTimestamp = (timestamp?: number) => {
+  const formatTimestamp = (timestamp?: number | string) => {
     if (!timestamp) return '';
-    const date = new Date(timestamp);
+    const date = typeof timestamp === 'number' ? new Date(timestamp) : new Date(timestamp);
     return date.toLocaleString('fr-FR');
   };
 

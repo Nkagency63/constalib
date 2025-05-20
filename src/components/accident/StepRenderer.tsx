@@ -1,3 +1,4 @@
+
 // Dans StepRenderer.tsx, modifiez la partie qui renvoie le composant ReviewStep
 // pour passer la propriété onSubmitSuccess
 
@@ -14,6 +15,7 @@ import InjuriesStep from './InjuriesStep';
 import EmailStep from './EmailStep';
 import SchemeStep from './SchemeStep';
 import ReviewStep from './ReviewStep';
+import { GeolocationData } from './types';
 
 interface StepRendererProps {
   currentStepId: string;
@@ -23,7 +25,7 @@ interface StepRendererProps {
   handlePhotoUpload: (type: string, files: File[]) => void;
   setVehicleInfo: (data: any) => void;
   setOtherVehicleInfo: (data: any) => void;
-  setGeolocation: (location: any) => void;
+  setGeolocation: (location: GeolocationData) => void;
   clearGeolocation: () => void;
   setInsuranceEmails: (emails: string[]) => void;
   setInvolvedPartyEmails: (emails: string[]) => void;
@@ -73,8 +75,14 @@ const StepRenderer: React.FC<StepRendererProps> = ({
     case "basics":
       return (
         <BasicInfoStep
-          formData={formData}
+          date={formData.date}
+          time={formData.time}
+          location={formData.location}
+          hasMaterialDamage={formData.hasMaterialDamage}
+          materialDamageDescription={formData.materialDamageDescription}
+          geolocation={formData.geolocation}
           handleInputChange={handleInputChange}
+          onEmergencyContacted={onEmergencyContacted}
           setGeolocation={setGeolocation}
           clearGeolocation={clearGeolocation}
         />
@@ -87,7 +95,11 @@ const StepRenderer: React.FC<StepRendererProps> = ({
           handleOtherVehicleChange={handleOtherVehicleChange}
           setVehicleInfo={setVehicleInfo}
           setOtherVehicleInfo={setOtherVehicleInfo}
-          handlePhotoUpload={handlePhotoUpload}
+          handlePhotoUpload={(type, files) => {
+            if (files.length > 0) {
+              handlePhotoUpload(type, files);
+            }
+          }}
         />
       );
     case "drivers":
@@ -100,7 +112,12 @@ const StepRenderer: React.FC<StepRendererProps> = ({
     case "location":
       return (
         <LocationStep
-          formData={formData}
+          date={formData.date}
+          time={formData.time}
+          location={formData.location}
+          description={formData.description}
+          geolocation={formData.geolocation}
+          handleInputChange={handleInputChange}
           setGeolocation={setGeolocation}
           clearGeolocation={clearGeolocation}
         />
@@ -109,7 +126,11 @@ const StepRenderer: React.FC<StepRendererProps> = ({
       return (
         <PhotosStep
           formData={formData}
-          handlePhotoUpload={handlePhotoUpload}
+          handlePhotoUpload={(type, files) => {
+            if (files.length > 0) {
+              handlePhotoUpload(type, files);
+            }
+          }}
         />
       );
     case "circumstances":
@@ -117,8 +138,8 @@ const StepRenderer: React.FC<StepRendererProps> = ({
         <CircumstancesStep
           formData={formData}
           handleCircumstanceChange={handleCircumstanceChange}
-          setCurrentVehicleId={setCurrentVehicleId}
-          currentVehicleId={currentVehicleId}
+          setCurrentVehicleId={(id) => setCurrentVehicleId(id as 'A' | 'B')}
+          currentVehicleId={currentVehicleId as 'A' | 'B'}
         />
       );
     case "witnesses":
@@ -142,7 +163,9 @@ const StepRenderer: React.FC<StepRendererProps> = ({
     case "emails":
       return (
         <EmailStep
-          formData={formData}
+          personalEmail={formData.personalEmail}
+          insuranceEmails={formData.insuranceEmails}
+          involvedPartyEmails={formData.involvedPartyEmails}
           setInsuranceEmails={setInsuranceEmails}
           setInvolvedPartyEmails={setInvolvedPartyEmails}
           setPersonalEmail={setPersonalEmail}

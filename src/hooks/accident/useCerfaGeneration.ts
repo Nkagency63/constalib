@@ -1,81 +1,96 @@
 
 import { useState } from 'react';
+import { generateCerfaPDF } from '@/utils/cerfa';
+import { useRegisterReport } from './useRegisterReport';
 import { toast } from 'sonner';
-import { FormData } from '@/components/accident/types';
-import { useRegisterReport } from '@/hooks/accident/useRegisterReport';
-import { generateCerfaPdf, downloadCerfaPdf } from '@/utils/generateCerfaPdf';
-import { captureStageAsDataUrl } from '@/components/accident/scheme/SchemeExport';
+import { saveAs } from 'file-saver';
 
 interface UseCerfaGenerationProps {
-  formData: FormData;
+  formData: any;
   onSuccess?: () => void;
-  onError?: (error: Error) => void;
 }
 
-export const useCerfaGeneration = ({ formData, onSuccess, onError }: UseCerfaGenerationProps) => {
+export const useCerfaGeneration = ({ formData, onSuccess }: UseCerfaGenerationProps) => {
   const [isGenerating, setIsGenerating] = useState(false);
   const [pdfUrl, setPdfUrl] = useState<string | null>(null);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
   
-  // Nous utilisons uniquement ce que nous avons besoin du hook useRegisterReport
-  const { isRegistering, registrationSuccess } = useRegisterReport();
+  // Utiliser le hook pour l'enregistrement officiel du rapport
+  const { 
+    registerReport, 
+    isRegistering, 
+    reportId, 
+    isSuccess, 
+    isError, 
+    error, 
+    registrationSuccess, 
+    registrationError,
+    referenceId,
+    showOfficialDialog,
+    setShowOfficialDialog,
+    setReferenceId
+  } = useRegisterReport({ 
+    formData,
+    onSuccess: () => {
+      if (onSuccess) onSuccess();
+    },
+    onError: (error) => {
+      toast.error('Erreur lors de l\'enregistrement officiel', { 
+        description: error.message 
+      });
+    }
+  });
 
-  const generateCerfa = async (schemeImageDataUrl?: string | null): Promise<string> => {
-    setIsGenerating(true);
-    
+  // Générer le PDF du constat
+  const generatePdf = async () => {
     try {
-      // Si aucune image n'est fournie, tenter de capturer le schéma
-      if (!schemeImageDataUrl) {
-        schemeImageDataUrl = await captureStageAsDataUrl();
-      }
+      setIsGenerating(true);
+      setErrorMessage(null);
       
-      // Génère le PDF avec les données du formulaire
-      const url = await generateCerfaPdf(formData, schemeImageDataUrl);
+      const pdfBlob = await generateCerfaPDF(formData);
+      
+      // Créer une URL pour le blob
+      const url = URL.createObjectURL(pdfBlob);
       setPdfUrl(url);
       
-      if (onSuccess) {
-        onSuccess();
-      }
+      // Télécharger automatiquement le PDF
+      saveAs(pdfBlob, `Constat_Amiable_${new Date().toISOString().slice(0, 10)}.pdf`);
       
-      return url;
+      toast.success('PDF généré avec succès', {
+        description: 'Le document a été téléchargé automatiquement'
+      });
+      
+      return pdfBlob;
     } catch (error) {
-      console.error('Erreur lors de la génération du CERFA:', error);
-      if (onError && error instanceof Error) {
-        onError(error);
-      }
-      throw error;
+      console.error('Erreur lors de la génération du PDF:', error);
+      setErrorMessage('Une erreur est survenue lors de la génération du PDF');
+      
+      toast.error('Erreur de génération', {
+        description: 'Impossible de générer le PDF. Veuillez réessayer.'
+      });
+      
+      return null;
     } finally {
       setIsGenerating(false);
     }
   };
 
-  const downloadCerfa = async (): Promise<boolean> => {
-    try {
-      // Utiliser l'URL existant ou en générer un nouveau
-      const url = pdfUrl || await generateCerfa();
-      
-      // Télécharger le PDF
-      toast.info("Téléchargement du PDF en cours...");
-      const result = await downloadCerfaPdf(url, 'constat-amiable.pdf');
-      
-      if (result) {
-        toast.success("Le PDF a été téléchargé avec succès");
-      }
-      
-      return result;
-    } catch (error) {
-      console.error('Erreur lors du téléchargement du CERFA:', error);
-      toast.error("Impossible de télécharger le PDF");
-      if (onError && error instanceof Error) {
-        onError(error);
-      }
-      throw error;
-    }
-  };
-
   return {
+    generatePdf,
+    registerReport,
     isGenerating,
+    isRegistering,
     pdfUrl,
-    generateCerfa,
-    downloadCerfa
+    errorMessage,
+    reportId,
+    isSuccess,
+    isError,
+    error,
+    registrationSuccess,
+    registrationError,
+    showOfficialDialog,
+    setShowOfficialDialog,
+    referenceId,
+    setReferenceId
   };
 };
