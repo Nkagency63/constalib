@@ -29,6 +29,11 @@ const FormSubmissionHandler: React.FC<FormSubmissionHandlerProps> = ({
   const [referenceId, setReferenceId] = useState("");
   
   const { registerReport } = useRegisterReport();
+  const { generatePdf } = useCerfaGeneration({ 
+    formData,
+    signatures,
+    onSuccess: onSubmitSuccess
+  });
 
   const handleGenerateReport = async () => {
     setIsSubmitting(true);
@@ -40,6 +45,9 @@ const FormSubmissionHandler: React.FC<FormSubmissionHandlerProps> = ({
       toast.success("Votre constat a été enregistré avec succès!");
       setRegistrationSuccess(true);
       setReferenceId("REF-" + Math.random().toString(36).substring(2, 10).toUpperCase());
+      
+      // Generate PDF with signatures
+      await generatePdf();
       
       // Call the success callback
       if (onSubmitSuccess) {

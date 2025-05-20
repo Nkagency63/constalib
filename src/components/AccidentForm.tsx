@@ -79,15 +79,6 @@ const AccidentForm = ({ onEmergencyRequest, onStepChange }: AccidentFormProps) =
     setVehicleInfo(vehicleData as any);
   };
 
-  // Photo upload adapter that converts FileList to File[]
-  const photoUploadAdapter = (type: string, fileList: FileList) => {
-    if (fileList.length > 0) {
-      // Convert FileList to array of Files and pass first file
-      const file = fileList[0];
-      handlePhotoUpload(type === "vehicle" ? "vehiclePhotos" : "damagePhotos", file);
-    }
-  };
-
   // Handle form submission completion
   const handleFormSubmitted = () => {
     setSubmitted(true);
@@ -103,6 +94,15 @@ const AccidentForm = ({ onEmergencyRequest, onStepChange }: AccidentFormProps) =
   if (onStepChange) {
     onStepChange(currentStep.id);
   }
+
+  // Photo upload adapter that handles FileList
+  const photoUploadAdapter = (type: string, fileList: FileList) => {
+    if (fileList && fileList.length > 0) {
+      // Get first file from FileList
+      const file = fileList[0];
+      handlePhotoUpload(type === "vehicle" ? "vehiclePhotos" : "damagePhotos", file);
+    }
+  };
 
   return (
     <FormContext.Provider value={{ formData, currentVehicleId }}>
@@ -129,12 +129,7 @@ const AccidentForm = ({ onEmergencyRequest, onStepChange }: AccidentFormProps) =
             formData={formData}
             handleInputChange={handleInputChange}
             handleOtherVehicleChange={handleOtherVehicleChange}
-            handlePhotoUpload={(type, files) => {
-              if (files.length > 0) {
-                const filesArray = Array.from(files);
-                handlePhotoUpload(type === "vehicle" ? "vehiclePhotos" : "damagePhotos", filesArray[0]);
-              }
-            }}
+            handlePhotoUpload={photoUploadAdapter}
             setVehicleInfo={vehicleInfoAdapter}
             setOtherVehicleInfo={setOtherVehicleInfo}
             setGeolocation={setGeolocation}

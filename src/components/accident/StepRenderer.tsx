@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import BasicInfoStep from './BasicInfoStep';
 import VehiclesStep from './VehiclesStep';
@@ -18,7 +17,7 @@ interface StepRendererProps {
   formData: any;
   handleInputChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
   handleOtherVehicleChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
-  handlePhotoUpload: (type: string, files: File[]) => void;
+  handlePhotoUpload: (type: string, files: FileList) => void;
   setVehicleInfo: (data: any) => void;
   setOtherVehicleInfo: (data: any) => void;
   setGeolocation: (location: GeolocationData) => void;
@@ -66,6 +65,13 @@ const StepRenderer: React.FC<StepRendererProps> = ({
   onSchemeUpdate,
   onFormSubmitted
 }) => {
+  
+  // Create a wrapper function for handlePhotoUpload that converts FileList to File[]
+  const photoUploadHandler = (type: string, fileList: FileList) => {
+    if (fileList && fileList.length > 0) {
+      handlePhotoUpload(type, fileList);
+    }
+  };
   
   switch (currentStepId) {
     case "basics":
@@ -117,7 +123,7 @@ const StepRenderer: React.FC<StepRendererProps> = ({
     case "photos":
       return (
         <PhotosStep 
-          handlePhotoUpload={handlePhotoUpload}
+          handlePhotoUpload={photoUploadHandler}
         />
       );
     case "circumstances":
