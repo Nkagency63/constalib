@@ -77,13 +77,13 @@ const FormSubmissionHandler: React.FC<FormSubmissionHandlerProps> = ({
       <SignatureDialog 
         open={showSignatureModal} 
         onOpenChange={setShowSignatureModal}
-        onComplete={handleSignaturesComplete}
+        onSignaturesComplete={handleSignaturesComplete}
       />
       
       <OfficialReportDialog
         open={showConfirmDialog}
         onOpenChange={setShowConfirmDialog}
-        onConfirmSend={handleGenerateReport}
+        onConfirm={handleGenerateReport}
         isProcessing={isSubmitting}
         referenceId={referenceId}
         isSuccess={registrationSuccess}

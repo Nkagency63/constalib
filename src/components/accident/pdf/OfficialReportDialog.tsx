@@ -16,7 +16,7 @@ interface OfficialReportDialogProps {
   onOpenChange: (open: boolean) => void;
   onConfirm: () => Promise<void>;
   isProcessing: boolean;
-  referenceId: string | null;
+  referenceId: string;
   isSuccess: boolean;
 }
 

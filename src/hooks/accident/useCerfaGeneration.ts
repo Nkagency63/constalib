@@ -2,7 +2,7 @@
 import { useState } from 'react';
 import { toast } from "sonner";
 import { FormData } from "@/components/accident/types";
-import { generatePDF, downloadPDF } from "@/utils/pdfGeneratorUtils";
+import { generatePDF } from "@/utils/pdfGeneratorUtils";
 import { captureStageAsDataUrl } from "@/components/accident/scheme/SchemeExport";
 
 interface UseCerfaGenerationProps {
@@ -63,6 +63,14 @@ export const useCerfaGeneration = ({ formData, signatures, onSuccess }: UseCerfa
       }
       
       toast.success("PDF généré avec succès");
+      
+      // Create a Blob from the response
+      if (typeof pdfBlob === 'string') {
+        // Convert base64 or data URL to Blob
+        const base64Response = await fetch(pdfBlob);
+        return await base64Response.blob();
+      }
+      
       return pdfBlob;
     } catch (error: any) {
       console.error("Erreur de génération du PDF:", error);

@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import { toast } from 'sonner';
-import { FormData, SchemeData } from './types';
+import { FormData } from './types';
 import { useRegisterReport } from '@/hooks/accident/useRegisterReport';
 import CerfaGenerationButton from './CerfaGenerationButton';
 

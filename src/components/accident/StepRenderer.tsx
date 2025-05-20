@@ -11,7 +11,7 @@ import InjuriesStep from './InjuriesStep';
 import EmailStep from './EmailStep';
 import SchemeStep from './SchemeStep';
 import ReviewStep from './ReviewStep';
-import { GeolocationData } from './types';
+import { GeolocationData, SchemeData } from './types';
 
 interface StepRendererProps {
   currentStepId: string;
@@ -36,7 +36,7 @@ interface StepRendererProps {
   updateWitness: (index: number, field: string, value: string) => void;
   addWitness: () => void;
   removeWitness: (index: number) => void;
-  onSchemeUpdate: (schemeData: any) => void;
+  onSchemeUpdate: (schemeData: SchemeData) => void;
   onFormSubmitted: () => void;
 }
 
@@ -117,7 +117,13 @@ const StepRenderer: React.FC<StepRendererProps> = ({
     case "photos":
       return (
         <PhotosStep 
-          handlePhotoUpload={(type, files) => handlePhotoUpload(type, Array.from(files))} 
+          handlePhotoUpload={(type, fileList) => {
+            // Convert FileList to array of Files
+            if (fileList.length > 0) {
+              const filesArray = Array.from(fileList);
+              handlePhotoUpload(type, filesArray);
+            }
+          }} 
         />
       );
     case "circumstances":

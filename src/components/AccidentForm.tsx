@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import ProgressBar from './accident/ProgressBar';
 import StepNavigation from './accident/StepNavigation';
@@ -79,10 +80,17 @@ const AccidentForm = ({ onEmergencyRequest, onStepChange }: AccidentFormProps) =
   };
 
   // Photo upload adapter that converts FileList to File[]
-  const photoUploadAdapter = (type: string, fileList: File[]) => {
+  const photoUploadAdapter = (type: string, fileList: FileList) => {
     if (fileList.length > 0) {
-      handlePhotoUpload(type === "vehicle" ? "vehiclePhotos" : "damagePhotos", fileList[0]);
+      // Convert FileList to array of Files and pass first file
+      const file = fileList[0];
+      handlePhotoUpload(type === "vehicle" ? "vehiclePhotos" : "damagePhotos", file);
     }
+  };
+
+  // Handle form submission completion
+  const handleFormSubmitted = () => {
+    setSubmitted(true);
   };
 
   if (submitted) {
@@ -121,7 +129,12 @@ const AccidentForm = ({ onEmergencyRequest, onStepChange }: AccidentFormProps) =
             formData={formData}
             handleInputChange={handleInputChange}
             handleOtherVehicleChange={handleOtherVehicleChange}
-            handlePhotoUpload={photoUploadAdapter}
+            handlePhotoUpload={(type, files) => {
+              if (files.length > 0) {
+                const filesArray = Array.from(files);
+                handlePhotoUpload(type === "vehicle" ? "vehiclePhotos" : "damagePhotos", filesArray[0]);
+              }
+            }}
             setVehicleInfo={vehicleInfoAdapter}
             setOtherVehicleInfo={setOtherVehicleInfo}
             setGeolocation={setGeolocation}
@@ -140,7 +153,7 @@ const AccidentForm = ({ onEmergencyRequest, onStepChange }: AccidentFormProps) =
             addWitness={addWitness}
             removeWitness={removeWitness}
             onSchemeUpdate={setSchemeData}
-            onFormSubmitted={() => setSubmitted(true)}
+            onFormSubmitted={handleFormSubmitted}
           />
         </form>
         
