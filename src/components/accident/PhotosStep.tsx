@@ -1,8 +1,10 @@
+
 import React from 'react';
 import { Button } from "@/components/ui/button";
 import { Camera } from 'lucide-react';
 import { MapContainer, TileLayer } from 'react-leaflet';
 import MapComponent from './MapComponent';
+import MapResizer from './MapResizer';
 import 'leaflet/dist/leaflet.css';
 
 interface PhotosStepProps {
@@ -23,6 +25,9 @@ const PhotosStep: React.FC<PhotosStepProps> = ({ handlePhotoUpload }) => {
       handlePhotoUpload('damage', e.target.files);
     }
   };
+
+  // Default coordinates (Paris, France)
+  const defaultPosition: [number, number] = [48.8566, 2.3522];
 
   return (
     <div className="space-y-6">
@@ -83,14 +88,15 @@ const PhotosStep: React.FC<PhotosStepProps> = ({ handlePhotoUpload }) => {
       
       <div className="map-container h-[500px] w-full rounded-lg overflow-hidden">
         <MapContainer
-          center={[48.8566, 2.3522]}
-          zoom={13}
+          center={defaultPosition}
+          zoom={17}
           className="h-full w-full"
         >
           <TileLayer
             url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
             attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
           />
+          <MapResizer />
           <MapComponent />
         </MapContainer>
       </div>
