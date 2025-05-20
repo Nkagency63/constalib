@@ -1,56 +1,50 @@
 
 import React from 'react';
 import { Button } from "@/components/ui/button";
-import { AlertCircle } from 'lucide-react';
+import { FileText } from 'lucide-react';
 import { toast } from 'sonner';
-import { useRegisterReport } from '@/hooks/accident/useRegisterReport';
+import { useGeneratePdf } from '@/hooks/accident/useGeneratePdf';
 import { FormData } from './types';
 
 interface CerfaGenerationButtonProps {
   formData: FormData;
-  onSuccess?: () => void;
+  signatures?: {
+    partyA: string | null;
+    partyB: string | null;
+  };
+  className?: string;
 }
 
 const CerfaGenerationButton: React.FC<CerfaGenerationButtonProps> = ({ 
-  formData,
-  onSuccess 
+  formData, 
+  signatures,
+  className = ""
 }) => {
-  const { 
-    registerReport, 
-    isRegistering, 
-    registrationError,
-    showOfficialDialog, 
-    setShowOfficialDialog,
-    referenceId
-  } = useRegisterReport();
+  const { handleGenerateCerfa, isGenerating } = useGeneratePdf({ 
+    formData, 
+    signatures 
+  });
 
-  const handleSubmitReport = async () => {
-    const success = await registerReport(formData);
-    
-    if (success && onSuccess) {
-      onSuccess();
+  const handleClick = async () => {
+    try {
+      toast.info("Préparation du constat CERFA...");
+      await handleGenerateCerfa();
+    } catch (error) {
+      console.error("Erreur lors de la génération du CERFA:", error);
+      toast.error("Impossible de générer le constat CERFA");
     }
   };
 
   return (
-    <div className="space-y-4">
-      {registrationError && (
-        <div className="bg-red-50 border-l-4 border-red-500 p-4 rounded">
-          <div className="flex items-start">
-            <AlertCircle className="h-5 w-5 text-red-500 mr-2 mt-0.5" />
-            <p className="text-sm text-red-700">{registrationError}</p>
-          </div>
-        </div>
-      )}
-      
-      <Button
-        onClick={handleSubmitReport}
-        disabled={isRegistering}
-        className="w-full bg-constalib-blue hover:bg-constalib-dark-blue"
-      >
-        {isRegistering ? 'Génération en cours...' : 'Générer mon constat amiable'}
-      </Button>
-    </div>
+    <Button
+      onClick={handleClick}
+      disabled={isGenerating}
+      className={`${className} flex items-center`}
+      variant="outline"
+    >
+      <FileText className="mr-2 h-4 w-4" />
+      {isGenerating ? "Génération en cours..." : "Télécharger le constat CERFA"}
+    </Button>
   );
 };
 

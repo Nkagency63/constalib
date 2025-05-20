@@ -18,7 +18,7 @@ export async function generatePDF(formData: any, schemeImageDataUrl?: string | n
  * @param pdfUrl URL de données du PDF à télécharger
  * @param fileName Nom du fichier PDF
  */
-export async function downloadPDF(pdfUrl: string, fileName: string = 'constat-amiable.pdf') {
+export async function downloadPDF(pdfUrl: string, fileName: string = 'constat-amiable.pdf'): Promise<boolean> {
   try {
     // Convertir l'URL de données en blob
     const response = await fetch(pdfUrl);
@@ -32,4 +32,3 @@ export async function downloadPDF(pdfUrl: string, fileName: string = 'constat-am
     throw new Error('Impossible de télécharger le PDF');
   }
 }
-

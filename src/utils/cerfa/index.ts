@@ -3,11 +3,29 @@
  * Main exports for the CERFA module
  */
 
-import { generateCerfaWithPdfLib } from './generators/cerfa-generator';
-import { generatePlaceholderPdf } from './generators/placeholder-generator';
+import { generateCerfaPDF as generateCerfaWithPdfLib } from '../cerfa';
 
 // Export helper functions
-export { splitTextIntoLines } from './pdf-utils';
+export function splitTextIntoLines(text: string, maxCharsPerLine: number): string[] {
+  const words = text.split(' ');
+  const lines: string[] = [];
+  let currentLine = '';
+  
+  words.forEach(word => {
+    if (currentLine.length + word.length + 1 <= maxCharsPerLine) {
+      currentLine += (currentLine ? ' ' : '') + word;
+    } else {
+      lines.push(currentLine);
+      currentLine = word;
+    }
+  });
+  
+  if (currentLine) {
+    lines.push(currentLine);
+  }
+  
+  return lines;
+}
 
 /**
  * Generate a PDF CERFA document from the provided form data
@@ -22,11 +40,10 @@ export async function generateCerfaPDF(
   signatures: { partyA: string | null; partyB: string | null } | null = null
 ): Promise<string> {
   try {
-    // Try to generate with PDF-Lib first (more complete solution)
+    // Use the pdf-lib generator
     return await generateCerfaWithPdfLib(formData, schemeImageDataUrl, signatures || undefined);
   } catch (error) {
-    console.error("Failed to generate PDF with pdf-lib:", error);
-    // Fall back to placeholder if the main generator fails
-    return await generatePlaceholderPdf(formData);
+    console.error("Failed to generate PDF:", error);
+    throw new Error("Impossible de générer le PDF du constat amiable");
   }
 }

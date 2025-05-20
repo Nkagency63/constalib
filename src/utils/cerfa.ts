@@ -10,7 +10,11 @@ export async function generateCerfaPDF(
 ): Promise<string> {
   try {
     // Charger le fichier PDF du constat amiable vierge
-    const response = await fetch('/pdf/constat-amiable-vierge.pdf');
+    const response = await fetch('/assets/pdf/constat-amiable-vierge.pdf');
+    if (!response.ok) {
+      throw new Error(`Impossible de charger le modèle PDF: ${response.status} ${response.statusText}`);
+    }
+    
     const pdfBytes = await response.arrayBuffer();
     const pdfDoc = await PDFDocument.load(pdfBytes);
     
@@ -21,6 +25,8 @@ export async function generateCerfaPDF(
     // Obtenir la première page du document
     const page = pdfDoc.getPages()[0];
     const { width, height } = page.getSize();
+    
+    console.log("Dimensions du PDF:", width, height);
     
     // Ajouter les informations de base de l'accident
     if (formData.date) {
@@ -141,7 +147,7 @@ export async function generateCerfaPDF(
     if (formData.vehicleACircumstances?.length) {
       formData.vehicleACircumstances.forEach(circId => {
         // Convert to string if it's a Circumstance object
-        const circIdStr = typeof circId === 'string' ? circId : circId.id;
+        const circIdStr = typeof circId === 'string' ? circId : (circId as any).id;
         const circIndex = parseInt(circIdStr);
         if (!isNaN(circIndex) && circIndex >= 1 && circIndex <= 17) {
           const y = height - 430 - (circIndex - 1) * 15;
@@ -158,7 +164,7 @@ export async function generateCerfaPDF(
     if (formData.vehicleBCircumstances?.length) {
       formData.vehicleBCircumstances.forEach(circId => {
         // Convert to string if it's a Circumstance object
-        const circIdStr = typeof circId === 'string' ? circId : circId.id;
+        const circIdStr = typeof circId === 'string' ? circId : (circId as any).id;
         const circIndex = parseInt(circIdStr);
         if (!isNaN(circIndex) && circIndex >= 1 && circIndex <= 17) {
           const y = height - 430 - (circIndex - 1) * 15;

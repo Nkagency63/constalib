@@ -1,9 +1,8 @@
-
 import { useState } from 'react';
 import { PDFDocument, StandardFonts, rgb } from 'pdf-lib';
 import { toast } from 'sonner';
-import { captureSchemeAsDataUrl } from '@/components/accident/scheme/SchemeExport';
-import { downloadPDF } from '@/utils/downloadUtils';
+import { captureStageAsDataUrl } from '@/components/accident/scheme/SchemeExport';
+import { downloadPDF } from '@/utils/pdfGeneratorUtils';
 
 const usePdfGenerator = () => {
   const [isGenerating, setIsGenerating] = useState(false);
@@ -12,6 +11,15 @@ const usePdfGenerator = () => {
     setIsGenerating(true);
     
     try {
+      // Si aucune image du schéma n'est fournie, essayer de la capturer
+      if (!schemeImageDataUrl) {
+        try {
+          schemeImageDataUrl = await captureStageAsDataUrl();
+        } catch (err) {
+          console.error("Erreur lors de la capture du schéma:", err);
+        }
+      }
+      
       // Créer un document PDF vide
       const pdfDoc = await PDFDocument.create();
       
@@ -270,10 +278,11 @@ const usePdfGenerator = () => {
       // Ajouter le schéma s'il est disponible
       if (schemeImageDataUrl) {
         try {
-          const schemeY = Math.min(vehicleAY, vehicleBY) - 40;
+          const schemeY = Math.min(vehicleAY, 300) - 40;
           
           // Conversion de Data URL en bytes
-          const imageBytes = dataUrlToBytes(schemeImageDataUrl);
+          const base64Data = schemeImageDataUrl.split(',')[1];
+          const imageBytes = Uint8Array.from(atob(base64Data), c => c.charCodeAt(0));
           const image = await pdfDoc.embedPng(imageBytes);
           
           // Calculer la taille de l'image pour qu'elle tienne dans la page mais reste lisible
