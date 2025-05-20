@@ -95,11 +95,11 @@ const AccidentForm = ({ onEmergencyRequest, onStepChange }: AccidentFormProps) =
     onStepChange(currentStep.id);
   }
 
-  // Photo upload adapter that handles FileList
-  const photoUploadAdapter = (type: string, fileList: FileList) => {
-    if (fileList && fileList.length > 0) {
-      // Get first file from FileList
-      const file = fileList[0];
+  // Create a photo upload adapter function that conforms to StepRenderer expectations
+  const photoUploadAdapter = (type: string, files: File[]) => {
+    if (files && files.length > 0) {
+      // Take first file from array
+      const file = files[0];
       handlePhotoUpload(type === "vehicle" ? "vehiclePhotos" : "damagePhotos", file);
     }
   };

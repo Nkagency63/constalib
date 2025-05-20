@@ -58,9 +58,10 @@ export const useCerfaGeneration = ({ formData, signatures, onSuccess }: UseCerfa
       // Ajout des signatures
       console.log("Signatures:", signatures);
       const signatureA = signatures?.partyA || null;
+      const signatureB = signatures?.partyB || null;
       
       // Générer le PDF avec le schéma et la signature
-      const pdfUrl = await generatePDF(formData, schemeImageDataUrl);
+      const pdfUrl = await generatePDF(formData, schemeImageDataUrl, signatureA);
       
       if (onSuccess) {
         onSuccess();
