@@ -6,25 +6,23 @@ const MapResizer = () => {
   const map = useMap();
 
   useEffect(() => {
-    // Ensure the map is properly sized when component mounts and on window resize
+    // Ensure the map is properly sized when component mounts
     if (map) {
-      // Initial resize
-      const initialTimer = setTimeout(() => {
-        console.log("Initial map size invalidation from MapResizer");
+      const timer = setTimeout(() => {
+        console.log("Invalidating map size");
         map.invalidateSize(true);
       }, 300);
-
-      // Add window resize handler
+      
+      // Add window resize handler for responsive behavior
       const handleResize = () => {
-        console.log("Window resize detected, invalidating map size");
         map.invalidateSize(true);
       };
-
+      
       window.addEventListener('resize', handleResize);
-
+      
       // Clean up
       return () => {
-        clearTimeout(initialTimer);
+        clearTimeout(timer);
         window.removeEventListener('resize', handleResize);
       };
     }
