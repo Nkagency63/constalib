@@ -7,7 +7,7 @@ import StepRenderer from './StepRenderer';
 import { accidentFormSteps } from './stepsConfig';
 import { useAccidentForm } from '@/hooks/useAccidentForm';
 import FormSubmissionHandler from './FormSubmissionHandler';
-import { WitnessInfo, SchemeData, GeolocationData } from './types';
+import { WitnessInfo, SchemeData, GeolocationData, FormData as AccidentFormData } from './types';
 import { FormContext } from '@/context/FormContext';
 
 interface AccidentFormProps {
@@ -96,11 +96,16 @@ const AccidentForm = ({ onEmergencyRequest, onStepChange }: AccidentFormProps) =
   }
 
   // Photo upload adapter that handles FileList and converts to File[]
-  const photoUploadAdapter = (type: string, files: File[]) => {
-    if (files && files.length > 0) {
-      // Take first file from array
-      const file = files[0];
-      handlePhotoUpload(type === "vehicle" ? "vehiclePhotos" : "damagePhotos", file);
+  const photoUploadAdapter = (type: string, files: File[] | FileList) => {
+    if (files && (files instanceof FileList ? files.length > 0 : files.length > 0)) {
+      // Convert FileList to File[] if needed
+      const filesArray = files instanceof FileList ? Array.from(files) : files;
+      
+      if (filesArray.length > 0) {
+        // Take first file from array
+        const file = filesArray[0];
+        handlePhotoUpload(type === "vehicle" ? "vehiclePhotos" : "damagePhotos", file);
+      }
     }
   };
 
@@ -126,7 +131,7 @@ const AccidentForm = ({ onEmergencyRequest, onStepChange }: AccidentFormProps) =
         <form onSubmit={(e) => e.preventDefault()} className="mb-8">
           <StepRenderer
             currentStepId={currentStep.id}
-            formData={formData}
+            formData={formData as AccidentFormData}
             handleInputChange={handleInputChange}
             handleOtherVehicleChange={handleOtherVehicleChange}
             handlePhotoUpload={photoUploadAdapter}
@@ -154,7 +159,7 @@ const AccidentForm = ({ onEmergencyRequest, onStepChange }: AccidentFormProps) =
         
         {currentStep.id === "review" ? (
           <FormSubmissionHandler 
-            formData={formData} 
+            formData={formData as AccidentFormData} 
             onSubmitSuccess={() => setSubmitted(true)}
           />
         ) : (

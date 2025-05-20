@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import BasicInfoStep from './BasicInfoStep';
 import VehiclesStep from './VehiclesStep';
@@ -10,11 +11,11 @@ import InjuriesStep from './InjuriesStep';
 import EmailStep from './EmailStep';
 import SchemeStep from './SchemeStep';
 import ReviewStep from './ReviewStep';
-import { GeolocationData, SchemeData } from './types';
+import { GeolocationData, SchemeData, FormData as AccidentFormData } from './types';
 
 interface StepRendererProps {
   currentStepId: string;
-  formData: FormData;
+  formData: AccidentFormData;
   handleInputChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
   handleOtherVehicleChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
   handlePhotoUpload: (type: string, files: File[]) => void;
@@ -67,9 +68,9 @@ const StepRenderer: React.FC<StepRendererProps> = ({
 }) => {
   
   // Create a wrapper function for handlePhotoUpload that converts FileList to File[]
-  const photoUploadHandler = (type: string, fileList: FileList) => {
-    if (fileList && fileList.length > 0) {
-      const filesArray = Array.from(fileList);
+  const photoUploadHandler = (type: string, fileList: FileList | File[]) => {
+    if (fileList) {
+      const filesArray = fileList instanceof FileList ? Array.from(fileList) : fileList;
       handlePhotoUpload(type, filesArray);
     }
   };
