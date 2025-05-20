@@ -1,3 +1,4 @@
+
 import React from 'react';
 import BasicInfoStep from './BasicInfoStep';
 import LocationStep from './LocationStep';
@@ -35,6 +36,7 @@ interface StepRendererProps {
   removeWitness: (index: number) => void;
   onSchemeUpdate?: (schemeData: SchemeData) => void;
   clearGeolocation?: () => void;
+  onFormSubmitted?: () => void;
 }
 
 const StepRenderer: React.FC<StepRendererProps> = ({
@@ -60,7 +62,8 @@ const StepRenderer: React.FC<StepRendererProps> = ({
   addWitness,
   removeWitness,
   onSchemeUpdate,
-  clearGeolocation
+  clearGeolocation,
+  onFormSubmitted
 }) => {
   // Render the appropriate step based on the current step ID
   switch (currentStepId) {
@@ -167,6 +170,7 @@ const StepRenderer: React.FC<StepRendererProps> = ({
       return (
         <ReviewStep
           formData={formData}
+          onSubmitSuccess={onFormSubmitted || (() => {})}
         />
       );
       

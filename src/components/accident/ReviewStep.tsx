@@ -43,24 +43,10 @@ const ReviewStep = ({ formData, onSubmitSuccess }: ReviewStepProps) => {
         return null;
       }
       
-      // Try html2canvas first
-      try {
-        const canvas = await html2canvas(schemeContainer as HTMLElement, {
-          scale: 2,
-          useCORS: true,
-          allowTaint: true,
-          logging: true
-        });
-        
-        return canvas.toDataURL('image/png');
-      } catch (error) {
-        console.error('Error with html2canvas, trying Konva method:', error);
-        
-        // Fallback to Konva method
-        const stageElement = schemeContainer.querySelector('canvas');
-        if (stageElement) {
-          return stageElement.toDataURL();
-        }
+      // Méthode Konva
+      const stageElement = schemeContainer.querySelector('canvas');
+      if (stageElement) {
+        return stageElement.toDataURL();
       }
       
       return null;

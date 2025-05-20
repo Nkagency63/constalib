@@ -132,6 +132,7 @@ const AccidentForm = ({ onEmergencyRequest, onStepChange }: AccidentFormProps) =
             addWitness={addWitness}
             removeWitness={removeWitness}
             onSchemeUpdate={setSchemeData}
+            onFormSubmitted={() => setSubmitted(true)}
           />
         </form>
         

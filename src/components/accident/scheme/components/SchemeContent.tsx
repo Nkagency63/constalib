@@ -82,7 +82,6 @@ const SchemeContent: React.FC<SchemeContentProps> = ({
     const newVehicle = {
       id: `vehicle-${Date.now()}`,
       type: 'car',
-      position: [0, 0], // We'll convert this for Konva
       x: stageWidth / 2 - 40,
       y: stageHeight / 2 - 20,
       width: 80,
@@ -150,11 +149,24 @@ const SchemeContent: React.FC<SchemeContentProps> = ({
             {vehicles.map(vehicle => (
               <VehicleNode
                 key={vehicle.id}
-                vehicle={vehicle}
+                id={vehicle.id}
+                x={vehicle.x}
+                y={vehicle.y}
+                width={vehicle.width}
+                height={vehicle.height}
+                rotation={vehicle.rotation}
+                color={vehicle.color || 'blue'}
                 isSelected={vehicle.id === selectedVehicle}
-                onChange={handleVehicleChange}
-                onClick={() => selectVehicle(vehicle.id)}
-                readOnly={readOnly}
+                isDraggable={!readOnly}
+                onSelect={() => selectVehicle(vehicle.id)}
+                onMove={(x, y) => {
+                  const updatedVehicle = { ...vehicle, x, y };
+                  handleVehicleChange(updatedVehicle);
+                }}
+                onRotate={(angle) => {
+                  const updatedVehicle = { ...vehicle, rotation: angle };
+                  handleVehicleChange(updatedVehicle);
+                }}
               />
             ))}
           </Layer>
