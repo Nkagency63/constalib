@@ -52,6 +52,32 @@ const SchemeContainer: React.FC<SchemeContainerProps> = ({
       schemeState.setVehicles(konvaVehicles);
     }
   }, [initialData, schemeState.vehicles.length]);
+
+  // Force map size invalidation when component mounts
+  React.useEffect(() => {
+    // Allow DOM to fully render
+    const timer = setTimeout(() => {
+      if (schemeState.mapRef.current) {
+        console.log("SchemeContainer: Forcing map size invalidation");
+        schemeState.mapRef.current.invalidateSize(true);
+      }
+    }, 300);
+    
+    // Handle window resize events
+    const handleResize = () => {
+      if (schemeState.mapRef.current) {
+        schemeState.mapRef.current.invalidateSize(true);
+      }
+    };
+    
+    window.addEventListener('resize', handleResize);
+    
+    // Clean up
+    return () => {
+      clearTimeout(timer);
+      window.removeEventListener('resize', handleResize);
+    };
+  }, [schemeState.mapRef]);
   
   return (
     <SchemeContent
