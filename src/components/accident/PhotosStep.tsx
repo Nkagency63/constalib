@@ -4,21 +4,25 @@ import { Button } from "@/components/ui/button";
 import { Camera } from 'lucide-react';
 
 interface PhotosStepProps {
-  handlePhotoUpload: (type: string, files: FileList) => void;
+  handlePhotoUpload: (type: string, files: File[]) => void;
 }
 
 const PhotosStep: React.FC<PhotosStepProps> = ({ handlePhotoUpload }) => {
   // Handle vehicle photo upload
   const handleVehiclePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
-      handlePhotoUpload('vehicle', e.target.files);
+      // Convert FileList to File array
+      const filesArray = Array.from(e.target.files);
+      handlePhotoUpload('vehicle', filesArray);
     }
   };
   
   // Handle damage photo upload
   const handleDamagePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
-      handlePhotoUpload('damage', e.target.files);
+      // Convert FileList to File array
+      const filesArray = Array.from(e.target.files);
+      handlePhotoUpload('damage', filesArray);
     }
   };
 

@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import BasicInfoStep from './BasicInfoStep';
 import VehiclesStep from './VehiclesStep';
@@ -116,13 +117,7 @@ const StepRenderer: React.FC<StepRendererProps> = ({
     case "photos":
       return (
         <PhotosStep 
-          handlePhotoUpload={(type, fileList) => {
-            // Convert FileList to array of Files
-            if (fileList.length > 0) {
-              const filesArray = Array.from(fileList);
-              handlePhotoUpload(type, filesArray);
-            }
-          }} 
+          handlePhotoUpload={handlePhotoUpload}
         />
       );
     case "circumstances":

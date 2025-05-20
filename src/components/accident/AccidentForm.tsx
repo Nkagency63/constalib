@@ -122,8 +122,7 @@ const AccidentForm = ({ onEmergencyRequest, onStepChange }: AccidentFormProps) =
             handleOtherVehicleChange={handleOtherVehicleChange}
             handlePhotoUpload={(type, files) => {
               if (files.length > 0) {
-                const filesArray = Array.from(files);
-                handlePhotoUpload(type === "vehicle" ? "vehiclePhotos" : "damagePhotos", filesArray[0]);
+                handlePhotoUpload(type === "vehicle" ? "vehiclePhotos" : "damagePhotos", files[0]);
               }
             }}
             setVehicleInfo={vehicleInfoAdapter}
