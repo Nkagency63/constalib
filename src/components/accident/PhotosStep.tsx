@@ -82,7 +82,7 @@ const PhotosStep: React.FC<PhotosStepProps> = ({ handlePhotoUpload }) => {
         </p>
       </div>
       
-      <div className="map-container">
+      <div className="map-container h-[500px] w-full rounded-lg overflow-hidden">
         <MapContainer
           center={[48.8566, 2.3522]}
           zoom={13}

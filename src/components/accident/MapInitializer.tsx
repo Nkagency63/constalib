@@ -32,8 +32,11 @@ const MapInitializer: React.FC<MapInitializerProps> = ({
       console.log("Map initializer: map object is ready");
       initDoneRef.current = true;
       
+      // Émettre un événement de redimensionnement global pour aider tous les composants de carte
+      window.dispatchEvent(new Event('resize'));
+      
       // Forcer invalidateSize avec un délai pour assurer un rendu correct
-      setTimeout(() => {
+      const mainTimer = setTimeout(() => {
         if (!map) {
           console.error("Map object is null or undefined after timeout");
           return;
@@ -44,6 +47,9 @@ const MapInitializer: React.FC<MapInitializerProps> = ({
           if (typeof map.invalidateSize === 'function') {
             console.log("Invalidating map size");
             map.invalidateSize(true);
+            
+            // Invalider à nouveau après un petit délai pour être sûr
+            setTimeout(() => map.invalidateSize(true), 200);
           }
           
           // Safely bind event handlers
@@ -101,31 +107,41 @@ const MapInitializer: React.FC<MapInitializerProps> = ({
         }
       }, 300);
       
+      // Créer un gestionnaire d'événements de fenêtre pour réinitialiser la carte
+      const handleWindowResize = () => {
+        if (map && typeof map.invalidateSize === 'function') {
+          map.invalidateSize(true);
+        }
+      };
+      
+      window.addEventListener('resize', handleWindowResize);
+      
+      return () => {
+        clearTimeout(mainTimer);
+        window.removeEventListener('resize', handleWindowResize);
+        
+        try {
+          if (map && typeof map.off === 'function') {
+            console.log("Map initializer: safely cleaning up");
+            
+            // Only remove handlers we explicitly added
+            const handlers = boundEventHandlersRef.current;
+            if (handlers.click) map.off('click');
+            if (handlers.dblclick) map.off('dblclick');
+            if (handlers.mousemove) map.off('mousemove');
+            if (handlers.moveend) map.off('moveend');
+            if (handlers.zoomend) map.off('zoomend');
+            
+            // Reset handler tracking
+            boundEventHandlersRef.current = {};
+          }
+        } catch (error) {
+          console.error("Error cleaning up map event handlers:", error);
+        }
+      };
     } catch (error) {
       console.error("Error in map initialization:", error);
     }
-    
-    // Clean up event handlers on unmount
-    return () => {
-      try {
-        if (map && typeof map.off === 'function') {
-          console.log("Map initializer: safely cleaning up");
-          
-          // Only remove handlers we explicitly added
-          const handlers = boundEventHandlersRef.current;
-          if (handlers.click) map.off('click');
-          if (handlers.dblclick) map.off('dblclick');
-          if (handlers.mousemove) map.off('mousemove');
-          if (handlers.moveend) map.off('moveend');
-          if (handlers.zoomend) map.off('zoomend');
-          
-          // Reset handler tracking
-          boundEventHandlersRef.current = {};
-        }
-      } catch (error) {
-        console.error("Error cleaning up map event handlers:", error);
-      }
-    };
   }, [map, onMapReady, setCenter, setZoom, onMapClick, onMapDoubleClick, onMapMove]);
   
   return null;
