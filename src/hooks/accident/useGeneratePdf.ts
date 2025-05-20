@@ -2,8 +2,7 @@
 import { useState } from 'react';
 import { toast } from "sonner";
 import { FormData } from "@/components/accident/types";
-import { generatePDF } from "@/utils/pdfGeneratorUtils";
-import { downloadPDF } from "@/utils/pdfGeneratorUtils";
+import { generatePDF, downloadPDF } from "@/utils/pdfGeneratorUtils";
 import { captureStageAsDataUrl } from "@/components/accident/scheme/SchemeExport";
 
 interface UseGeneratePdfProps {

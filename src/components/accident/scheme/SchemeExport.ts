@@ -1,29 +1,45 @@
 
 /**
- * Capture le contenu du stage Konva en tant que dataURL
- * @returns Promise<string | null> - DataURL de l'image ou null si la capture échoue
+ * Utility to export the accident scheme as a data URL or image
  */
+
+// Capture the Konva stage as a data URL
 export async function captureStageAsDataUrl(): Promise<string | null> {
   try {
-    // Rechercher le conteneur du schéma
-    const schemeContainer = document.querySelector('.scheme-container');
-    if (!schemeContainer) {
-      console.error('Conteneur de schéma non trouvé');
-      return null;
+    // Get the Konva stage from the DOM
+    const stageContainer = document.querySelector('.konvajs-content canvas');
+    
+    if (stageContainer instanceof HTMLCanvasElement) {
+      return stageContainer.toDataURL('image/png');
     }
     
-    // Rechercher le canvas Konva
-    const canvas = schemeContainer.querySelector('canvas');
-    if (!canvas) {
-      console.error('Canvas Konva non trouvé');
-      return null;
+    // Fallback if the Konva stage is not found
+    console.warn('Konva stage not found, trying to find any canvas element');
+    const anyCanvas = document.querySelector('canvas');
+    
+    if (anyCanvas instanceof HTMLCanvasElement) {
+      return anyCanvas.toDataURL('image/png');
     }
     
-    // Récupérer l'image du canvas
-    const dataUrl = canvas.toDataURL('image/png');
-    return dataUrl;
+    console.error('No canvas element found to capture scheme');
+    return null;
   } catch (error) {
-    console.error('Erreur lors de la capture du schéma:', error);
+    console.error('Error capturing scheme as data URL:', error);
     return null;
   }
+}
+
+// Helper function to convert a data URL to a File object
+export function dataURLtoFile(dataURL: string, filename: string): File {
+  const arr = dataURL.split(',');
+  const mime = arr[0].match(/:(.*?);/)![1];
+  const bstr = atob(arr[1]);
+  let n = bstr.length;
+  const u8arr = new Uint8Array(n);
+  
+  while (n--) {
+    u8arr[n] = bstr.charCodeAt(n);
+  }
+  
+  return new File([u8arr], filename, { type: mime });
 }

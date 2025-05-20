@@ -3,12 +3,12 @@ import { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { AlertTriangle, Download, CheckCircle, Send } from 'lucide-react';
 import { toast } from 'sonner';
-import { generatePDF } from '@/utils/pdfGeneratorUtils';
 import VehicleScheme from '@/components/VehicleScheme';
-import { useRegisterReport, RegisterReportResult } from '@/hooks/accident/useRegisterReport';
+import { useRegisterReport } from '@/hooks/accident/useRegisterReport';
 import { captureStageAsDataUrl } from './scheme/SchemeExport';
 import usePdfGenerator from '@/hooks/accident/usePdfGenerator';
 import { SchemeData } from './types/vehicleTypes';
+import CerfaGenerationButton from './CerfaGenerationButton';
 
 interface ReviewStepProps {
   formData: any;
@@ -38,18 +38,7 @@ const ReviewStep = ({ formData, onSubmitSuccess }: ReviewStepProps) => {
 
   const captureScheme = async (): Promise<string | null> => {
     try {
-      const schemeContainer = document.querySelector('.scheme-container');
-      if (!schemeContainer) {
-        return null;
-      }
-      
-      // Méthode Konva
-      const stageElement = schemeContainer.querySelector('canvas');
-      if (stageElement) {
-        return stageElement.toDataURL();
-      }
-      
-      return null;
+      return await captureStageAsDataUrl();
     } catch (error) {
       console.error('Error capturing scheme:', error);
       return null;
@@ -147,17 +136,13 @@ const ReviewStep = ({ formData, onSubmitSuccess }: ReviewStepProps) => {
       
       {/* Buttons */}
       <div className="flex flex-col md:flex-row gap-4 justify-between mt-8">
-        <Button
-          variant="outline"
-          onClick={handleDownloadPdf}
-          disabled={isGenerating}
-          className="flex items-center"
-        >
-          <Download className="mr-2 h-4 w-4" />
-          {isGenerating ? "Génération en cours..." : "Télécharger le PDF"}
-        </Button>
+        {/* Ajout du CerfaGenerationButton */}
+        <CerfaGenerationButton 
+          formData={formData} 
+          className="flex-1"
+        />
         
-        <div className="space-x-4">
+        <div className="space-x-4 flex-1 flex justify-end">
           <Button
             variant="outline"
             onClick={handleOfficialSubmission}

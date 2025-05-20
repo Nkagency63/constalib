@@ -17,13 +17,13 @@ const FormSubmissionHandler: React.FC<FormSubmissionHandlerProps> = ({
   onSubmitSuccess 
 }) => {
   const { 
-    registerReport, 
     isRegistering, 
     registrationError, 
     registrationSuccess,
     showOfficialDialog, 
     setShowOfficialDialog,
-    referenceId
+    referenceId,
+    registerReport
   } = useRegisterReport();
 
   const handleSubmit = async () => {
@@ -57,7 +57,13 @@ const FormSubmissionHandler: React.FC<FormSubmissionHandlerProps> = ({
         </div>
       )}
       
-      <div className="space-y-2">
+      <div className="space-y-4">
+        {/* Ajout du bouton de génération du CERFA */}
+        <CerfaGenerationButton 
+          formData={formData}
+          className="w-full" 
+        />
+        
         {!registrationSuccess ? (
           <Button
             onClick={handleSubmit}
