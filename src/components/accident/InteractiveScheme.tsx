@@ -61,10 +61,6 @@ const InteractiveScheme: React.FC<InteractiveSchemeProps> = ({
 
   return (
     <div className="w-full h-full relative">
-      {/* Overlay pour déboguer */}
-      <div className="absolute top-0 right-0 bg-white/75 z-[1000] text-xs p-1 rounded">
-        Map visibility debug
-      </div>
       <SchemeContainer
         formData={formData}
         onUpdateSchemeData={onUpdateSchemeData}

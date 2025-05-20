@@ -6,6 +6,7 @@ import { toast } from 'sonner';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { Car, Info } from 'lucide-react';
 import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 interface SchemeStepProps {
   formData: FormData;
@@ -14,6 +15,7 @@ interface SchemeStepProps {
 
 const SchemeStep: React.FC<SchemeStepProps> = ({ formData, onSchemeUpdate }) => {
   const [hasShownUpdateToast, setHasShownUpdateToast] = useState(false);
+  const [activeTab, setActiveTab] = useState("scheme");
   const [schemeData, setSchemeData] = useState<SchemeData>({
     vehicles: [],
     paths: [],
@@ -63,25 +65,51 @@ const SchemeStep: React.FC<SchemeStepProps> = ({ formData, onSchemeUpdate }) => 
           </AlertDescription>
         </Alert>
         
-        <div className="bg-white p-4 rounded-lg border border-gray-200">
-          <div className="flex items-center gap-2 mb-3 text-sm text-constalib-dark-gray">
-            <Car className="h-4 w-4 text-blue-600" />
-            <span>Véhicule A (votre véhicule) - <span className="font-semibold">{formData.vehicleBrand} {formData.vehicleModel}</span></span>
-          </div>
+        <Tabs defaultValue="scheme" onValueChange={setActiveTab}>
+          <TabsList className="grid w-full grid-cols-2 mb-4">
+            <TabsTrigger value="scheme">Vue Schématique</TabsTrigger>
+            <TabsTrigger value="map">Vue Carte</TabsTrigger>
+          </TabsList>
           
-          <div className="flex items-center gap-2 mb-4 text-sm text-constalib-dark-gray">
-            <Car className="h-4 w-4 text-red-600" />
-            <span>Véhicule B (autre partie) - <span className="font-semibold">{formData.otherVehicle?.brand} {formData.otherVehicle?.model}</span></span>
-          </div>
+          <TabsContent value="scheme" className="p-0 border-0">
+            <div className="bg-white p-4 rounded-lg border border-gray-200">
+              <div className="flex items-center gap-2 mb-3 text-sm text-constalib-dark-gray">
+                <Car className="h-4 w-4 text-blue-600" />
+                <span>Véhicule A (votre véhicule) - <span className="font-semibold">{formData.vehicleBrand} {formData.vehicleModel}</span></span>
+              </div>
+              
+              <div className="flex items-center gap-2 mb-4 text-sm text-constalib-dark-gray">
+                <Car className="h-4 w-4 text-red-600" />
+                <span>Véhicule B (autre partie) - <span className="font-semibold">{formData.otherVehicle?.brand} {formData.otherVehicle?.model}</span></span>
+              </div>
+              
+              <div className="h-[500px] rounded-lg overflow-hidden relative border border-gray-200">
+                <InteractiveScheme
+                  formData={formData}
+                  onUpdateSchemeData={handleSchemeUpdate}
+                  initialData={schemeData}
+                />
+              </div>
+            </div>
+          </TabsContent>
           
-          <div className="h-[500px] rounded-lg overflow-hidden relative">
-            <InteractiveScheme
-              formData={formData}
-              onUpdateSchemeData={handleSchemeUpdate}
-              initialData={schemeData}
-            />
-          </div>
-        </div>
+          <TabsContent value="map" className="p-0 border-0">
+            <div className="bg-white p-4 rounded-lg border border-gray-200">
+              <p className="text-sm text-gray-600 mb-4">
+                Visualisez l'emplacement de l'accident sur la carte. Vous pouvez zoomer et vous déplacer pour mieux voir les détails.
+              </p>
+              
+              {/* La carte sera rendue ici à l'intérieur du composant InteractiveScheme */}
+              <div className="h-[500px] rounded-lg overflow-hidden relative border border-gray-200">
+                <InteractiveScheme
+                  formData={formData}
+                  onUpdateSchemeData={handleSchemeUpdate}
+                  initialData={schemeData}
+                />
+              </div>
+            </div>
+          </TabsContent>
+        </Tabs>
       </div>
     </TooltipProvider>
   );
