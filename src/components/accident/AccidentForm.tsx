@@ -95,6 +95,13 @@ const AccidentForm = ({ onEmergencyRequest, onStepChange }: AccidentFormProps) =
     onStepChange(currentStep.id);
   }
 
+  // Create a photo upload adapter function that conforms to StepRenderer expectations
+  const photoUploadAdapter = (type: string, files: File[]) => {
+    if (files.length > 0) {
+      handlePhotoUpload(type === "vehicle" ? "vehiclePhotos" : "damagePhotos", files[0]);
+    }
+  };
+
   return (
     <FormContext.Provider value={{ formData, currentVehicleId }}>
       <div className="max-w-3xl mx-auto">
@@ -120,11 +127,7 @@ const AccidentForm = ({ onEmergencyRequest, onStepChange }: AccidentFormProps) =
             formData={formData}
             handleInputChange={handleInputChange}
             handleOtherVehicleChange={handleOtherVehicleChange}
-            handlePhotoUpload={(type, files) => {
-              if (files.length > 0) {
-                handlePhotoUpload(type === "vehicle" ? "vehiclePhotos" : "damagePhotos", files[0]);
-              }
-            }}
+            handlePhotoUpload={photoUploadAdapter}
             setVehicleInfo={vehicleInfoAdapter}
             setOtherVehicleInfo={setOtherVehicleInfo}
             setGeolocation={setGeolocation}
