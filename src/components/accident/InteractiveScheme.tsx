@@ -1,5 +1,5 @@
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import 'leaflet/dist/leaflet.css';
 import 'leaflet';
 import L from 'leaflet';
@@ -25,21 +25,29 @@ interface InteractiveSchemeProps {
   onUpdateSchemeData: (data: SchemeData) => void;
   initialData?: SchemeData;
   readOnly?: boolean;
+  activeTab?: string;
 }
 
 const InteractiveScheme: React.FC<InteractiveSchemeProps> = ({ 
   formData, 
   onUpdateSchemeData, 
   initialData,
-  readOnly = false 
+  readOnly = false,
+  activeTab = 'scheme'
 }) => {
+  const [mapKey, setMapKey] = useState<string>(`map-${Date.now()}`);
+  
   // Log pour déboguer le composant
   useEffect(() => {
     console.log('InteractiveScheme mounted with:', {
       formData,
       initialData,
-      readOnly
+      readOnly,
+      activeTab
     });
+
+    // Reset map key when tab changes to force remount
+    setMapKey(`map-${activeTab}-${Date.now()}`);
 
     // Force invalidation de taille de la carte après le montage
     const timer = setTimeout(() => {
@@ -57,15 +65,17 @@ const InteractiveScheme: React.FC<InteractiveSchemeProps> = ({
     }, 500);
 
     return () => clearTimeout(timer);
-  }, [formData, initialData, readOnly]);
+  }, [formData, initialData, readOnly, activeTab]);
 
   return (
     <div className="w-full h-full relative">
       <SchemeContainer
+        key={mapKey}
         formData={formData}
         onUpdateSchemeData={onUpdateSchemeData}
         initialData={initialData}
         readOnly={readOnly}
+        activeTab={activeTab}
       />
     </div>
   );

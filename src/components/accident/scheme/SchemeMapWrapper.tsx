@@ -1,12 +1,14 @@
 
 import React, { useMemo } from 'react';
-import { MapContainer, TileLayer } from 'react-leaflet';
+import { MapContainer, TileLayer, Circle, Popup } from 'react-leaflet';
+import { TooltipProvider } from '@/components/ui/tooltip';
 import 'leaflet/dist/leaflet.css';
-import './scheme.css';
-import MapComponent from '../MapComponent';
-import MapInitializer from '../MapInitializer';
-import { Vehicle } from '../types';
+import { Vehicle, Path, Annotation, GeolocationData } from '../types';
 import VehiclesLayer from './VehiclesLayer';
+import PathsLayer from '../PathsLayer';
+import AnnotationsLayer from '../AnnotationsLayer';
+import MapResizer from '../MapResizer';
+import MapInitializer from '../MapInitializer';
 import { v4 as uuidv4 } from 'uuid';
 
 interface SchemeMapWrapperProps {
@@ -19,6 +21,7 @@ interface SchemeMapWrapperProps {
   onVehicleMove?: (id: string, position: [number, number]) => void;
   onMapReady?: (map: L.Map) => void;
   children?: React.ReactNode;
+  geolocationData?: GeolocationData;
 }
 
 const SchemeMapWrapper: React.FC<SchemeMapWrapperProps> = ({
@@ -30,7 +33,8 @@ const SchemeMapWrapper: React.FC<SchemeMapWrapperProps> = ({
   onVehicleSelect,
   onVehicleMove,
   onMapReady,
-  children
+  children,
+  geolocationData
 }) => {
   // Create a stable key for the current center
   const mapKey = useMemo(() => {
@@ -67,11 +71,32 @@ const SchemeMapWrapper: React.FC<SchemeMapWrapperProps> = ({
         attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
       />
       
-      {/* Add MapComponent for size invalidation */}
-      <MapComponent />
+      {/* Add MapResizer for size invalidation */}
+      <MapResizer />
       
       {onMapReady && (
         <MapInitializer onMapReady={onMapReady} />
+      )}
+      
+      {/* Show geolocation accuracy circle if available */}
+      {geolocationData?.accuracy && geolocationData.accuracy > 0 && (
+        <Circle 
+          center={[geolocationData.lat, geolocationData.lng]}
+          radius={geolocationData.accuracy}
+          pathOptions={{ 
+            fillColor: '#3388ff', 
+            fillOpacity: 0.1, 
+            weight: 1,
+            color: '#3388ff',
+            opacity: 0.3
+          }}
+        >
+          <Popup>
+            Précision: ~{geolocationData.accuracy < 1000 ? 
+              `${Math.round(geolocationData.accuracy)} m` : 
+              `${(geolocationData.accuracy/1000).toFixed(1)} km`}
+          </Popup>
+        </Circle>
       )}
       
       <VehiclesLayer

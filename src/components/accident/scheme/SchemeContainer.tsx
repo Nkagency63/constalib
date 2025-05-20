@@ -3,6 +3,7 @@ import React from 'react';
 import { SchemeData, GeolocationData } from '../types';
 import { useSchemeContainer } from './hooks/useSchemeContainer';
 import SchemeContent from './components/SchemeContent';
+import VehicleScheme from '../../VehicleScheme';
 
 interface SchemeContainerProps {
   initialData?: SchemeData;
@@ -10,6 +11,7 @@ interface SchemeContainerProps {
   onUpdateSchemeData?: (data: SchemeData) => void;
   onSchemeUpdate?: (data: SchemeData) => void;
   readOnly?: boolean;
+  activeTab?: string;
 }
 
 const SchemeContainer: React.FC<SchemeContainerProps> = ({
@@ -18,6 +20,7 @@ const SchemeContainer: React.FC<SchemeContainerProps> = ({
   onUpdateSchemeData,
   onSchemeUpdate,
   readOnly = false,
+  activeTab = 'scheme'
 }) => {
   // Extract geolocation data from formData if available
   const geolocationData: GeolocationData | undefined = formData?.geolocation ? {
@@ -53,7 +56,7 @@ const SchemeContainer: React.FC<SchemeContainerProps> = ({
     }
   }, [initialData, schemeState.vehicles.length]);
 
-  // Force map size invalidation when component mounts
+  // Force map size invalidation when component mounts or tab changes
   React.useEffect(() => {
     // Allow DOM to fully render
     const timer = setTimeout(() => {
@@ -77,54 +80,64 @@ const SchemeContainer: React.FC<SchemeContainerProps> = ({
       clearTimeout(timer);
       window.removeEventListener('resize', handleResize);
     };
-  }, [schemeState.mapRef]);
-  
+  }, [schemeState.mapRef, activeTab]);
+
+  // Render the appropriate content based on the active tab
   return (
-    <SchemeContent
-      // Map state
-      mapCenter={schemeState.mapCenter}
-      mapZoom={schemeState.mapZoom}
-      drawingLayerRef={schemeState.drawingLayerRef}
-      
-      // UI state
-      currentTool={schemeState.currentTool}
-      setCurrentTool={schemeState.setCurrentTool}
-      pathColor={schemeState.pathColor}
-      setPathColor={schemeState.setPathColor}
-      isEmpty={schemeState.isEmpty}
-      
-      // Hooks data and methods
-      vehicles={schemeState.vehicles}
-      setVehicles={schemeState.setVehicles}
-      selectedVehicle={schemeState.selectedVehicle}
-      currentVehicleType={schemeState.currentVehicleType}
-      onChangeVehicleType={schemeState.onChangeVehicleType}
-      selectVehicle={schemeState.selectVehicle}
-      removeVehicle={schemeState.removeVehicle}
-      rotateVehicle={schemeState.rotateVehicle}
-      
-      paths={schemeState.paths}
-      setPaths={schemeState.setPaths}
-      currentPathPoints={schemeState.currentPathPoints}
-      
-      annotations={schemeState.annotations}
-      setAnnotations={schemeState.setAnnotations}
-      updateAnnotation={schemeState.updateAnnotation}
-      removeAnnotation={schemeState.removeAnnotation}
-      
-      // Handlers
-      handleMapReadyFromHook={schemeState.handleMapReadyFromHook}
-      handleCenterOnVehicles={schemeState.handleCenterOnVehicles}
-      
-      // Read-only state
-      readOnly={readOnly}
-      
-      // Map refs
-      mapRef={schemeState.mapRef}
-      
-      // Geolocation data
-      geolocationData={geolocationData}
-    />
+    <>
+      {activeTab === 'scheme' ? (
+        <VehicleScheme
+          initialData={initialData}
+          onSchemeUpdate={onUpdateSchemeData}
+        />
+      ) : (
+        <SchemeContent
+          // Map state
+          mapCenter={schemeState.mapCenter}
+          mapZoom={schemeState.mapZoom}
+          drawingLayerRef={schemeState.drawingLayerRef}
+          
+          // UI state
+          currentTool={schemeState.currentTool}
+          setCurrentTool={schemeState.setCurrentTool}
+          pathColor={schemeState.pathColor}
+          setPathColor={schemeState.setPathColor}
+          isEmpty={schemeState.isEmpty}
+          
+          // Hooks data and methods
+          vehicles={schemeState.vehicles}
+          setVehicles={schemeState.setVehicles}
+          selectedVehicle={schemeState.selectedVehicle}
+          currentVehicleType={schemeState.currentVehicleType}
+          onChangeVehicleType={schemeState.onChangeVehicleType}
+          selectVehicle={schemeState.selectVehicle}
+          removeVehicle={schemeState.removeVehicle}
+          rotateVehicle={schemeState.rotateVehicle}
+          
+          paths={schemeState.paths}
+          setPaths={schemeState.setPaths}
+          currentPathPoints={schemeState.currentPathPoints}
+          
+          annotations={schemeState.annotations}
+          setAnnotations={schemeState.setAnnotations}
+          updateAnnotation={schemeState.updateAnnotation}
+          removeAnnotation={schemeState.removeAnnotation}
+          
+          // Handlers
+          handleMapReadyFromHook={schemeState.handleMapReadyFromHook}
+          handleCenterOnVehicles={schemeState.handleCenterOnVehicles}
+          
+          // Read-only state
+          readOnly={readOnly}
+          
+          // Map refs
+          mapRef={schemeState.mapRef}
+          
+          // Geolocation data
+          geolocationData={geolocationData}
+        />
+      )}
+    </>
   );
 };
 

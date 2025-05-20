@@ -52,6 +52,14 @@ const SchemeStep: React.FC<SchemeStepProps> = ({ formData, onSchemeUpdate }) => 
       onSchemeUpdate(updatedSchemeData);
     }
   };
+
+  // Force map resize when tab changes
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      window.dispatchEvent(new Event('resize'));
+    }, 100);
+    return () => clearTimeout(timer);
+  }, [activeTab]);
   
   return (
     <TooltipProvider>
@@ -65,7 +73,7 @@ const SchemeStep: React.FC<SchemeStepProps> = ({ formData, onSchemeUpdate }) => 
           </AlertDescription>
         </Alert>
         
-        <Tabs defaultValue="scheme" onValueChange={setActiveTab}>
+        <Tabs defaultValue="scheme" value={activeTab} onValueChange={setActiveTab}>
           <TabsList className="grid w-full grid-cols-2 mb-4">
             <TabsTrigger value="scheme">Vue Schématique</TabsTrigger>
             <TabsTrigger value="map">Vue Carte</TabsTrigger>
@@ -88,6 +96,7 @@ const SchemeStep: React.FC<SchemeStepProps> = ({ formData, onSchemeUpdate }) => 
                   formData={formData}
                   onUpdateSchemeData={handleSchemeUpdate}
                   initialData={schemeData}
+                  activeTab={activeTab}
                 />
               </div>
             </div>
@@ -99,12 +108,12 @@ const SchemeStep: React.FC<SchemeStepProps> = ({ formData, onSchemeUpdate }) => 
                 Visualisez l'emplacement de l'accident sur la carte. Vous pouvez zoomer et vous déplacer pour mieux voir les détails.
               </p>
               
-              {/* La carte sera rendue ici à l'intérieur du composant InteractiveScheme */}
               <div className="h-[500px] rounded-lg overflow-hidden relative border border-gray-200">
                 <InteractiveScheme
                   formData={formData}
                   onUpdateSchemeData={handleSchemeUpdate}
                   initialData={schemeData}
+                  activeTab={activeTab}
                 />
               </div>
             </div>

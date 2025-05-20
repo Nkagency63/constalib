@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import { SchemeData, VehicleSchemeData } from './accident/types/types';
 import SchemeContainer from './accident/scheme/components/SchemeContainer';
 import { v4 as uuidv4 } from 'uuid';
+import { toast } from 'sonner';
 
 interface VehicleSchemeProps {
   initialData?: SchemeData | null;
@@ -43,6 +44,17 @@ const VehicleScheme = ({ initialData, onSchemeUpdate }: VehicleSchemeProps) => {
     zoom: initialData?.zoom || 1
   });
 
+  useEffect(() => {
+    // Update scheme with initialData if provided and not already set
+    if (initialData && 
+        initialData.vehicles && 
+        initialData.vehicles.length > 0 && 
+        (!schemeData.vehicles || schemeData.vehicles.length === 0)) {
+      console.log("Updating VehicleScheme with initialData", initialData);
+      setSchemeData(initialData);
+    }
+  }, [initialData]);
+
   const handleVehicleMove = (id: string, x: number, y: number) => {
     const updatedVehicles = schemeData.vehicles.map(vehicle => {
       if (vehicle.id === id) {
@@ -75,7 +87,10 @@ const VehicleScheme = ({ initialData, onSchemeUpdate }: VehicleSchemeProps) => {
   };
   
   const addVehicle = () => {
-    if (schemeData.vehicles.length >= 4) return; // Maximum 4 vehicles
+    if (schemeData.vehicles.length >= 4) {
+      toast("Maximum de 4 véhicules atteint");
+      return;
+    }
     
     const colors = ['#3b82f6', '#ef4444', '#10b981', '#f59e0b'];
     const newVehicle: VehicleSchemeData = {
@@ -95,28 +110,32 @@ const VehicleScheme = ({ initialData, onSchemeUpdate }: VehicleSchemeProps) => {
     const updatedScheme = { ...schemeData, vehicles: updatedVehicles };
     setSchemeData(updatedScheme);
     if (onSchemeUpdate) onSchemeUpdate(updatedScheme);
+    
+    toast(`Véhicule ${newVehicle.type} ajouté`);
   };
   
   const removeVehicle = (id: string) => {
+    const vehicleToRemove = schemeData.vehicles.find(v => v.id === id);
     const updatedVehicles = schemeData.vehicles.filter(vehicle => vehicle.id !== id);
     const updatedScheme = { ...schemeData, vehicles: updatedVehicles };
     setSchemeData(updatedScheme);
     if (onSchemeUpdate) onSchemeUpdate(updatedScheme);
+    
+    if (vehicleToRemove) {
+      toast(`Véhicule ${vehicleToRemove.type} supprimé`);
+    }
   };
 
   return (
-    <div className="w-full">
-      <h3 className="text-lg font-medium mb-4">Schéma de l'accident</h3>
-      <p className="text-sm text-gray-600 mb-4">
-        Déplacez et tournez les véhicules pour représenter l'accident.
-      </p>
-      
+    <div className="w-full h-full">
       <SchemeContainer
         vehicles={schemeData.vehicles}
         onVehicleMove={handleVehicleMove}
         onVehicleRotate={handleVehicleRotate}
         onAddVehicle={addVehicle}
         onRemoveVehicle={removeVehicle}
+        width={500}
+        height={500}
       />
     </div>
   );

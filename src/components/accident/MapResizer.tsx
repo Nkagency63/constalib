@@ -9,12 +9,13 @@ const MapResizer = () => {
     // Ensure the map is properly sized when component mounts
     if (map) {
       const timer = setTimeout(() => {
-        console.log("Invalidating map size");
+        console.log("Invalidating map size from MapResizer");
         map.invalidateSize(true);
       }, 300);
       
       // Add window resize handler for responsive behavior
       const handleResize = () => {
+        console.log("Window resized, invalidating map size");
         map.invalidateSize(true);
       };
       
