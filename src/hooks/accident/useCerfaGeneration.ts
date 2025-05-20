@@ -33,11 +33,6 @@ export const useCerfaGeneration = ({ formData, onSuccess }: UseCerfaGenerationPr
     formData,
     onSuccess: () => {
       if (onSuccess) onSuccess();
-    },
-    onError: (error) => {
-      toast.error('Erreur lors de l\'enregistrement officiel', { 
-        description: error.message 
-      });
     }
   });
 

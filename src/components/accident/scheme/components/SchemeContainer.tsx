@@ -1,95 +1,109 @@
 
-import { Stage, Layer } from 'react-konva';
-import { useState, useRef } from 'react';
-import VehicleNode from './VehicleNode';
-import { Vehicle } from '../../types/vehicleTypes';
+import React, { useState } from 'react';
+import { Stage, Layer, Rect, Line } from 'react-konva';
+import { toast } from 'sonner';
+import { VehicleSchemeData } from '../../types/types';
+import VehicleShape from './VehicleShape';
 
 interface SchemeContainerProps {
-  vehicles: Vehicle[];
+  vehicles: VehicleSchemeData[];
   onVehicleMove: (id: string, x: number, y: number) => void;
   onVehicleRotate: (id: string, rotation: number) => void;
+  width?: number;
+  height?: number;
 }
 
-const SchemeContainer = ({ vehicles, onVehicleMove, onVehicleRotate }: SchemeContainerProps) => {
-  const stageRef = useRef<any>(null);
+const SchemeContainer: React.FC<SchemeContainerProps> = ({
+  vehicles = [],
+  onVehicleMove,
+  onVehicleRotate,
+  width = 500,
+  height = 500,
+}) => {
   const [selectedId, setSelectedId] = useState<string | null>(null);
-  
-  const containerWidth = 500;
-  const containerHeight = 500;
-  
+
   const handleSelect = (id: string) => {
     setSelectedId(id);
   };
-  
-  const handleDeselect = () => {
-    setSelectedId(null);
+
+  const checkDeselect = (e: any) => {
+    // Désélectionner si on clique sur le fond du canvas
+    const clickedOnEmpty = e.target === e.target.getStage();
+    if (clickedOnEmpty) {
+      setSelectedId(null);
+    }
+  };
+
+  const handleVehicleChange = (id: string, newProps: { x?: number; y?: number; rotation?: number }) => {
+    if (newProps.x !== undefined && newProps.y !== undefined) {
+      onVehicleMove(id, newProps.x, newProps.y);
+    }
+    
+    if (newProps.rotation !== undefined) {
+      onVehicleRotate(id, newProps.rotation);
+    }
   };
 
   return (
     <div className="scheme-container border border-gray-300 rounded-lg shadow-sm bg-white">
       <Stage
-        ref={stageRef}
-        width={containerWidth}
-        height={containerHeight}
-        onClick={(e) => {
-          // Check if clicked on empty space
-          if (e.target === e.currentTarget) {
-            handleDeselect();
-          }
-        }}
+        width={width}
+        height={height}
+        onClick={checkDeselect}
+        onTap={checkDeselect}
         className="bg-gray-50"
       >
         <Layer>
-          {/* Road markings (simple version) */}
-          <VehicleNode
-            key="road"
-            id="road"
-            x={containerWidth / 2}
-            y={containerHeight / 2}
-            width={400}
-            height={4}
-            rotation={0}
-            color="gray"
-            isSelected={false}
-            isDraggable={false}
-            onSelect={() => {}}
-            onMove={() => {}}
-            onRotate={() => {}}
-          />
-          <VehicleNode
-            key="road-vertical"
-            id="road-vertical"
-            x={containerWidth / 2}
-            y={containerHeight / 2}
-            width={4}
-            height={400}
-            rotation={0}
-            color="gray"
-            isSelected={false}
-            isDraggable={false}
-            onSelect={() => {}}
-            onMove={() => {}}
-            onRotate={() => {}}
+          {/* Fond de carte avec routes */}
+          <Rect x={0} y={0} width={width} height={height} fill="#f3f4f6" />
+          
+          {/* Route horizontale */}
+          <Rect x={50} y={height/2 - 15} width={width - 100} height={30} fill="#e0e0e0" />
+          
+          {/* Route verticale */}
+          <Rect x={width/2 - 15} y={50} width={30} height={height - 100} fill="#e0e0e0" />
+          
+          {/* Lignes de route */}
+          <Line
+            points={[50, height/2, width - 50, height/2]}
+            stroke="#ffffff"
+            strokeWidth={2}
+            dash={[15, 10]}
           />
           
-          {/* Vehicles */}
-          {vehicles.map((vehicle) => (
-            <VehicleNode
-              key={vehicle.id}
-              id={vehicle.id}
-              x={vehicle.posX}
-              y={vehicle.posY}
-              width={vehicle.width}
-              height={vehicle.height}
-              rotation={vehicle.rotation}
-              color={vehicle.type === 'A' ? 'blue' : 'red'}
-              isSelected={selectedId === vehicle.id}
-              isDraggable
-              onSelect={() => handleSelect(vehicle.id)}
-              onMove={(x, y) => onVehicleMove(vehicle.id, x, y)}
-              onRotate={(angle) => onVehicleRotate(vehicle.id, angle)}
-            />
-          ))}
+          <Line
+            points={[width/2, 50, width/2, height - 50]}
+            stroke="#ffffff"
+            strokeWidth={2}
+            dash={[15, 10]}
+          />
+
+          {/* Véhicules */}
+          {vehicles.map((vehicle) => {
+            // Convertir position [lat, lng] en x, y pour Konva ou utiliser x, y s'ils existent
+            const vehicleX = vehicle.x !== undefined ? vehicle.x : (vehicle.position ? vehicle.position[1] * 10 : width / 2);
+            const vehicleY = vehicle.y !== undefined ? vehicle.y : (vehicle.position ? vehicle.position[0] * 10 : height / 2);
+            
+            return (
+              <VehicleShape
+                key={vehicle.id}
+                id={vehicle.id}
+                x={vehicleX}
+                y={vehicleY}
+                width={vehicle.width || 80}
+                height={vehicle.height || 40}
+                rotation={vehicle.rotation || 0}
+                color={vehicle.color || (vehicle.type === 'A' ? 'blue' : 'red')}
+                label={vehicle.label || vehicle.type}
+                isSelected={selectedId === vehicle.id}
+                onSelect={() => handleSelect(vehicle.id)}
+                onChange={(newProps) => handleVehicleChange(vehicle.id, newProps)}
+                onTransformEnd={() => {
+                  toast("Position mise à jour", { duration: 1000 });
+                }}
+              />
+            );
+          })}
         </Layer>
       </Stage>
     </div>

@@ -44,26 +44,45 @@ const VehicleNode: React.FC<VehicleNodeProps> = ({
     if (!readOnly) onSelect();
   };
 
+  // Convertir les coordonnées pour être compatibles avec le nouveau système
+  const handleDrag = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (readOnly || !isDraggable) return;
+    
+    // Cette fonction ne déclenche pas réellement le drag, 
+    // mais elle peut être utilisée pour des traitements supplémentaires
+    console.log("Drag initiated on vehicle", id);
+  };
+
   return (
     <div
       className={`vehicle-node ${isSelected ? 'selected' : ''}`}
       style={{
         position: 'absolute',
-        left: `${x}px`,
-        top: `${y}px`,
+        left: `${x - width / 2}px`,
+        top: `${y - height / 2}px`,
         width: `${width}px`,
         height: `${height}px`,
         transform: `rotate(${rotation}deg)`,
         backgroundColor: color,
         border: isSelected ? '2px solid yellow' : '1px solid black',
-        cursor: isDraggable ? 'move' : 'pointer'
+        cursor: isDraggable ? 'move' : 'pointer',
+        borderRadius: '5px',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        color: 'white',
+        fontWeight: 'bold',
+        fontSize: '14px',
+        transition: 'box-shadow 0.2s ease',
+        boxShadow: isSelected ? '0 0 0 2px yellow, 0 0 10px rgba(0,0,0,0.3)' : 'none',
+        transformOrigin: 'center center',
+        zIndex: isSelected ? 100 : 10
       }}
       onClick={handleClick}
+      onMouseDown={handleDrag}
     >
       {/* Label du véhicule */}
-      <div className="vehicle-label" style={{ padding: '2px', textAlign: 'center', fontSize: '12px', color: 'white' }}>
-        {vehicle?.label || (id?.includes('a') ? 'A' : 'B')}
-      </div>
+      {vehicle?.label || (id?.includes('a') ? 'A' : 'B')}
     </div>
   );
 };

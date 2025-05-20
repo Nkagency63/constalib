@@ -29,8 +29,12 @@ export interface VehicleSchemeData {
   position: [number, number];
   color: string;
   rotation: number;
-  isSelected: boolean;
+  isSelected?: boolean;
   label: string;
+  width?: number;
+  height?: number;
+  x?: number;
+  y?: number;
 }
 
 export interface PathData {
@@ -69,3 +73,6 @@ export interface InsuredInfo {
   phone: string;
   address: string;
 }
+
+// Ajout d'alias pour la compatibilité avec les anciennes références
+export type Vehicle = VehicleSchemeData;

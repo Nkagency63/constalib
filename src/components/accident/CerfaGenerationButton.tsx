@@ -1,49 +1,55 @@
 
-import React from 'react';
 import { Button } from "@/components/ui/button";
-import { FileText } from 'lucide-react';
-import { toast } from 'sonner';
-import { FormData } from './types';
-import { useCerfaGeneration } from '@/hooks/accident/useCerfaGeneration';
+import { Download } from "lucide-react";
+import { useCerfaGeneration } from "@/hooks/accident/useCerfaGeneration";
+import { useState } from "react";
 
 interface CerfaGenerationButtonProps {
-  formData: FormData;
-  signatures?: {
-    partyA: string | null;
-    partyB: string | null;
-  };
+  formData: any;
   className?: string;
+  onSuccess?: () => void;
+  text?: string;
 }
 
-const CerfaGenerationButton: React.FC<CerfaGenerationButtonProps> = ({ 
+const CerfaGenerationButton = ({ 
   formData, 
-  signatures,
-  className = ""
-}) => {
-  const { isGenerating, downloadCerfa } = useCerfaGeneration({ 
+  className = "", 
+  onSuccess, 
+  text = "Télécharger le PDF" 
+}: CerfaGenerationButtonProps) => {
+  const [pdfUrl, setPdfUrl] = useState<string | null>(null);
+
+  const { 
+    generatePdf, 
+    isGenerating,
+    errorMessage 
+  } = useCerfaGeneration({ 
     formData,
-    onSuccess: () => toast.success("PDF généré avec succès"),
-    onError: (error) => toast.error(`Erreur: ${error.message}`)
+    onSuccess
   });
 
-  const handleClick = async () => {
+  const handleGeneratePdf = async () => {
     try {
-      toast.info("Préparation du constat CERFA...");
-      await downloadCerfa();
+      const blob = await generatePdf();
+      if (blob) {
+        const url = URL.createObjectURL(blob);
+        setPdfUrl(url);
+        if (onSuccess) onSuccess();
+      }
     } catch (error) {
-      console.error("Erreur lors de la génération du CERFA:", error);
+      console.error("Erreur lors de la génération du PDF:", error);
     }
   };
 
   return (
-    <Button
-      onClick={handleClick}
+    <Button 
+      onClick={handleGeneratePdf}
       disabled={isGenerating}
-      className={`${className} flex items-center`}
+      className={className}
       variant="outline"
     >
-      <FileText className="mr-2 h-4 w-4" />
-      {isGenerating ? "Génération en cours..." : "Télécharger le constat CERFA"}
+      <Download className="w-4 h-4 mr-2" />
+      {isGenerating ? "Génération en cours..." : text}
     </Button>
   );
 };

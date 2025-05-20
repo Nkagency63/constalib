@@ -1,8 +1,8 @@
 
 import { useState, useEffect } from 'react';
-import { Vehicle, SchemeData } from './accident/types/vehicleTypes';
+import { SchemeData, VehicleSchemeData } from './accident/types/types';
 import SchemeContainer from './accident/scheme/components/SchemeContainer';
-import { Stage, Layer, Rect, Group } from 'react-konva';
+import { v4 as uuidv4 } from 'uuid';
 
 interface VehicleSchemeProps {
   initialData?: SchemeData | null;
@@ -15,28 +15,43 @@ const VehicleScheme = ({ initialData, onSchemeUpdate }: VehicleSchemeProps) => {
       {
         id: 'vehicle-a',
         type: 'A',
-        posX: 150,
-        posY: 200,
+        position: [200, 150],
+        x: 150,
+        y: 200,
         rotation: 0,
         width: 80,
-        height: 40
+        height: 40,
+        color: '#3b82f6',
+        label: 'Véhicule A'
       },
       {
         id: 'vehicle-b',
         type: 'B',
-        posX: 250,
-        posY: 300,
+        position: [300, 250],
+        x: 250,
+        y: 300,
         rotation: 45,
         width: 80,
-        height: 40
+        height: 40,
+        color: '#ef4444',
+        label: 'Véhicule B'
       }
-    ]
+    ],
+    paths: [],
+    annotations: [],
+    center: [50, 50],
+    zoom: 1
   });
 
-  const handleVehicleMove = (id: string, posX: number, posY: number) => {
+  const handleVehicleMove = (id: string, x: number, y: number) => {
     const updatedVehicles = schemeData.vehicles.map(vehicle => {
       if (vehicle.id === id) {
-        return { ...vehicle, posX, posY };
+        return { 
+          ...vehicle, 
+          x, 
+          y, 
+          position: [y, x] as [number, number]  // Mise à jour de la position compatible avec la carte
+        };
       }
       return vehicle;
     });
@@ -58,14 +73,46 @@ const VehicleScheme = ({ initialData, onSchemeUpdate }: VehicleSchemeProps) => {
     setSchemeData(updatedScheme);
     if (onSchemeUpdate) onSchemeUpdate(updatedScheme);
   };
+  
+  const addVehicle = () => {
+    if (schemeData.vehicles.length >= 4) return; // Maximum 4 véhicules
+    
+    const colors = ['#3b82f6', '#ef4444', '#10b981', '#f59e0b'];
+    const newVehicle: VehicleSchemeData = {
+      id: uuidv4(),
+      type: `${String.fromCharCode(65 + schemeData.vehicles.length)}`, // A, B, C, D, etc.
+      position: [200, 200], // Position par défaut
+      x: 200,
+      y: 200,
+      rotation: 0,
+      width: 80,
+      height: 40,
+      color: colors[schemeData.vehicles.length % colors.length],
+      label: `Véhicule ${String.fromCharCode(65 + schemeData.vehicles.length)}`
+    };
+    
+    const updatedVehicles = [...schemeData.vehicles, newVehicle];
+    const updatedScheme = { ...schemeData, vehicles: updatedVehicles };
+    setSchemeData(updatedScheme);
+    if (onSchemeUpdate) onSchemeUpdate(updatedScheme);
+  };
 
   return (
     <div className="w-full">
       <h3 className="text-lg font-medium mb-4">Schéma de l'accident</h3>
       <p className="text-sm text-gray-600 mb-4">
-        Déplacez et tournez les véhicules pour représenter l'accident. 
-        Le véhicule A est bleu, le véhicule B est rouge.
+        Déplacez et tournez les véhicules pour représenter l'accident.
       </p>
+      
+      <div className="mb-4">
+        <button 
+          onClick={addVehicle}
+          className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+          disabled={schemeData.vehicles.length >= 4}
+        >
+          + Ajouter un véhicule
+        </button>
+      </div>
       
       <SchemeContainer
         vehicles={schemeData.vehicles}
