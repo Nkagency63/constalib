@@ -1,9 +1,10 @@
 
 import React, { useState } from 'react';
 import { Stage, Layer, Rect, Line } from 'react-konva';
-import { toast } from 'sonner';
+import VehicleNode from './VehicleNode';
 import { VehicleSchemeData } from '../../types/types';
-import VehicleShape from './VehicleShape';
+import { Button } from '@/components/ui/button';
+import { RotateCcw, RotateCw, Plus, Trash } from 'lucide-react';
 
 interface SchemeContainerProps {
   vehicles: VehicleSchemeData[];
@@ -11,6 +12,8 @@ interface SchemeContainerProps {
   onVehicleRotate: (id: string, rotation: number) => void;
   width?: number;
   height?: number;
+  onAddVehicle?: () => void;
+  onRemoveVehicle?: (id: string) => void;
 }
 
 const SchemeContainer: React.FC<SchemeContainerProps> = ({
@@ -19,6 +22,8 @@ const SchemeContainer: React.FC<SchemeContainerProps> = ({
   onVehicleRotate,
   width = 500,
   height = 500,
+  onAddVehicle,
+  onRemoveVehicle
 }) => {
   const [selectedId, setSelectedId] = useState<string | null>(null);
 
@@ -27,87 +32,144 @@ const SchemeContainer: React.FC<SchemeContainerProps> = ({
   };
 
   const checkDeselect = (e: any) => {
-    // Désélectionner si on clique sur le fond du canvas
+    // Deselect if clicking on empty canvas
     const clickedOnEmpty = e.target === e.target.getStage();
     if (clickedOnEmpty) {
       setSelectedId(null);
     }
   };
 
-  const handleVehicleChange = (id: string, newProps: { x?: number; y?: number; rotation?: number }) => {
-    if (newProps.x !== undefined && newProps.y !== undefined) {
-      onVehicleMove(id, newProps.x, newProps.y);
-    }
+  const handleRotate = (direction: 'clockwise' | 'counterclockwise') => {
+    if (!selectedId) return;
     
-    if (newProps.rotation !== undefined) {
-      onVehicleRotate(id, newProps.rotation);
-    }
+    const vehicle = vehicles.find(v => v.id === selectedId);
+    if (!vehicle) return;
+    
+    const delta = direction === 'clockwise' ? 15 : -15;
+    const newRotation = (vehicle.rotation || 0) + delta;
+    
+    onVehicleRotate(selectedId, newRotation);
   };
 
   return (
-    <div className="scheme-container border border-gray-300 rounded-lg shadow-sm bg-white">
-      <Stage
-        width={width}
-        height={height}
-        onClick={checkDeselect}
-        onTap={checkDeselect}
-        className="bg-gray-50"
-      >
-        <Layer>
-          {/* Fond de carte avec routes */}
-          <Rect x={0} y={0} width={width} height={height} fill="#f3f4f6" />
-          
-          {/* Route horizontale */}
-          <Rect x={50} y={height/2 - 15} width={width - 100} height={30} fill="#e0e0e0" />
-          
-          {/* Route verticale */}
-          <Rect x={width/2 - 15} y={50} width={30} height={height - 100} fill="#e0e0e0" />
-          
-          {/* Lignes de route */}
-          <Line
-            points={[50, height/2, width - 50, height/2]}
-            stroke="#ffffff"
-            strokeWidth={2}
-            dash={[15, 10]}
-          />
-          
-          <Line
-            points={[width/2, 50, width/2, height - 50]}
-            stroke="#ffffff"
-            strokeWidth={2}
-            dash={[15, 10]}
-          />
+    <div className="scheme-container space-y-3">
+      <div className="flex gap-2">
+        <Button 
+          variant="outline" 
+          size="sm" 
+          onClick={onAddVehicle}
+          disabled={!onAddVehicle || vehicles.length >= 4}
+        >
+          <Plus className="h-4 w-4 mr-1" /> Ajouter véhicule
+        </Button>
 
-          {/* Véhicules */}
-          {Array.isArray(vehicles) && vehicles.map((vehicle) => {
-            if (!vehicle || !vehicle.id) {
-              console.warn('Vehicle with missing id detected');
-              return null;
-            }
+        {selectedId && (
+          <>
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={() => handleRotate('counterclockwise')}
+            >
+              <RotateCcw className="h-4 w-4" />
+            </Button>
             
-            // Convertir position [lat, lng] en x, y pour Konva ou utiliser x, y s'ils existent
-            const vehicleX = vehicle.x !== undefined ? vehicle.x : (vehicle.position ? vehicle.position[1] * 10 : width / 2);
-            const vehicleY = vehicle.y !== undefined ? vehicle.y : (vehicle.position ? vehicle.position[0] * 10 : height / 2);
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={() => handleRotate('clockwise')}
+            >
+              <RotateCw className="h-4 w-4" />
+            </Button>
             
-            return (
-              <VehicleShape
-                key={vehicle.id}
-                id={vehicle.id}
-                x={vehicleX}
-                y={vehicleY}
-                width={vehicle.width || 80}
-                height={vehicle.height || 40}
-                rotation={vehicle.rotation || 0}
-                color={vehicle.color || (vehicle.type === 'A' ? 'blue' : 'red')}
-                label={vehicle.label || vehicle.type || ''}
-                isSelected={selectedId === vehicle.id}
-                onSelect={() => handleSelect(vehicle.id)}
-                onChange={(newProps) => handleVehicleChange(vehicle.id, newProps)}
-              />
-            );
-          })}
-        </Layer>
-      </Stage>
+            {onRemoveVehicle && (
+              <Button 
+                variant="outline" 
+                size="sm"
+                className="text-red-600 hover:text-red-700" 
+                onClick={() => {
+                  onRemoveVehicle(selectedId);
+                  setSelectedId(null);
+                }}
+              >
+                <Trash className="h-4 w-4 mr-1" /> Supprimer
+              </Button>
+            )}
+          </>
+        )}
+      </div>
+      
+      <div className="border border-gray-300 rounded-lg overflow-hidden">
+        <Stage
+          width={width}
+          height={height}
+          onClick={checkDeselect}
+          onTap={checkDeselect}
+          className="bg-gray-100"
+        >
+          <Layer>
+            {/* Background with roads */}
+            {/* Horizontal road */}
+            <Rect
+              x={50}
+              y={height/2 - 15}
+              width={width - 100}
+              height={30}
+              fill="#e0e0e0"
+            />
+            
+            {/* Vertical road */}
+            <Rect
+              x={width/2 - 15}
+              y={50}
+              width={30}
+              height={height - 100}
+              fill="#e0e0e0"
+            />
+            
+            {/* Road lines */}
+            <Line
+              points={[50, height/2, width - 50, height/2]}
+              stroke="#ffffff"
+              strokeWidth={2}
+              dash={[15, 10]}
+            />
+            
+            <Line
+              points={[width/2, 50, width/2, height - 50]}
+              stroke="#ffffff"
+              strokeWidth={2}
+              dash={[15, 10]}
+            />
+            
+            {/* Render vehicles */}
+            {Array.isArray(vehicles) && vehicles.map((vehicle) => {
+              if (!vehicle || !vehicle.id) {
+                console.warn('Vehicle with missing id detected');
+                return null;
+              }
+              
+              return (
+                <VehicleNode
+                  key={vehicle.id}
+                  id={vehicle.id}
+                  x={vehicle.x !== undefined ? vehicle.x : width / 2}
+                  y={vehicle.y !== undefined ? vehicle.y : height / 2}
+                  width={vehicle.width || 80}
+                  height={vehicle.height || 40}
+                  rotation={vehicle.rotation || 0}
+                  color={vehicle.color || (vehicle.type === 'A' ? '#3b82f6' : '#ef4444')}
+                  label={vehicle.label || `Véhicule ${vehicle.type || ''}`}
+                  isSelected={selectedId === vehicle.id}
+                  isDraggable={true}
+                  onSelect={() => handleSelect(vehicle.id)}
+                  onMove={(x, y) => onVehicleMove(vehicle.id, x, y)}
+                  onRotate={(angle) => onVehicleRotate(vehicle.id, angle)}
+                />
+              );
+            })}
+          </Layer>
+        </Stage>
+      </div>
     </div>
   );
 };

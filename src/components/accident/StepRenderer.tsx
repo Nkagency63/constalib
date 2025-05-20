@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import BasicInfoStep from './BasicInfoStep';
 import VehiclesStep from './VehiclesStep';
@@ -15,11 +14,11 @@ import { GeolocationData, SchemeData } from './types';
 
 interface StepRendererProps {
   currentStepId: string;
-  formData: any;
+  formData: FormData;
   handleInputChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
   handleOtherVehicleChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
   handlePhotoUpload: (type: string, files: File[]) => void;
-  setVehicleInfo: (data: any) => void;
+  setVehicleInfo: (data: { brand: string; model: string; year?: string; firstRegistration?: string }) => void;
   setOtherVehicleInfo: (data: any) => void;
   setGeolocation: (location: GeolocationData) => void;
   clearGeolocation: () => void;

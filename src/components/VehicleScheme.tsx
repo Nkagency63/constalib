@@ -50,7 +50,7 @@ const VehicleScheme = ({ initialData, onSchemeUpdate }: VehicleSchemeProps) => {
           ...vehicle, 
           x, 
           y, 
-          position: [x, y] as [number, number]  // Mise à jour de la position compatible avec la carte
+          position: [x, y] as [number, number]  // Update position for compatibility with map
         };
       }
       return vehicle;
@@ -75,13 +75,13 @@ const VehicleScheme = ({ initialData, onSchemeUpdate }: VehicleSchemeProps) => {
   };
   
   const addVehicle = () => {
-    if (schemeData.vehicles.length >= 4) return; // Maximum 4 véhicules
+    if (schemeData.vehicles.length >= 4) return; // Maximum 4 vehicles
     
     const colors = ['#3b82f6', '#ef4444', '#10b981', '#f59e0b'];
     const newVehicle: VehicleSchemeData = {
       id: uuidv4(),
       type: `${String.fromCharCode(65 + schemeData.vehicles.length)}`, // A, B, C, D, etc.
-      position: [200, 200], // Position par défaut
+      position: [200, 200], // Default position
       x: 200,
       y: 200,
       rotation: 0,
@@ -96,6 +96,13 @@ const VehicleScheme = ({ initialData, onSchemeUpdate }: VehicleSchemeProps) => {
     setSchemeData(updatedScheme);
     if (onSchemeUpdate) onSchemeUpdate(updatedScheme);
   };
+  
+  const removeVehicle = (id: string) => {
+    const updatedVehicles = schemeData.vehicles.filter(vehicle => vehicle.id !== id);
+    const updatedScheme = { ...schemeData, vehicles: updatedVehicles };
+    setSchemeData(updatedScheme);
+    if (onSchemeUpdate) onSchemeUpdate(updatedScheme);
+  };
 
   return (
     <div className="w-full">
@@ -104,20 +111,12 @@ const VehicleScheme = ({ initialData, onSchemeUpdate }: VehicleSchemeProps) => {
         Déplacez et tournez les véhicules pour représenter l'accident.
       </p>
       
-      <div className="mb-4">
-        <button 
-          onClick={addVehicle}
-          className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
-          disabled={schemeData.vehicles.length >= 4}
-        >
-          + Ajouter un véhicule
-        </button>
-      </div>
-      
       <SchemeContainer
         vehicles={schemeData.vehicles}
         onVehicleMove={handleVehicleMove}
         onVehicleRotate={handleVehicleRotate}
+        onAddVehicle={addVehicle}
+        onRemoveVehicle={removeVehicle}
       />
     </div>
   );
