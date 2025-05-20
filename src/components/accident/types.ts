@@ -1,3 +1,4 @@
+
 import { Dispatch, SetStateAction } from 'react';
 import L from 'leaflet';
 
@@ -50,6 +51,9 @@ export interface Vehicle {
   color: string;
   label?: string;
   width?: number;
+  height?: number;
+  x?: number;
+  y?: number;
   isSelected?: boolean;
 }
 
@@ -67,6 +71,7 @@ export interface Annotation {
   id: string;
   position: [number, number]; // LatLng coordinates
   text: string;
+  color?: string;
 }
 
 export interface SchemeData {

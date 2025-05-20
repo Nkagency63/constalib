@@ -1,7 +1,6 @@
-
 import React from 'react';
-import { SchemeData as BaseSchemeData, GeolocationData } from '../types';
-import { SchemeData as TypesSchemeData } from '../types/types';
+import { SchemeData as BaseSchemeData, GeolocationData, Vehicle as BaseVehicle, Path as BasePath, Annotation as BaseAnnotation } from '../types';
+import { SchemeData as TypesSchemeData, VehicleSchemeData, PathData, AnnotationData } from '../types/types';
 import { useSchemeContainer } from './hooks/useSchemeContainer';
 import SchemeContent from './components/SchemeContent';
 import VehicleScheme from '../../VehicleScheme';
@@ -15,16 +14,62 @@ interface SchemeContainerProps {
   activeTab?: string;
 }
 
+// Helper functions to map between different type formats
+const convertVehicle = (v: BaseVehicle): VehicleSchemeData => ({
+  ...v,
+  type: v.type || 'car', // Ensure type is a string (could be 'car', 'truck', 'bike', 'A', 'B', etc.)
+  label: v.label || `Véhicule ${v.type || ''}`,
+  x: v.x || (v.position ? v.position[0] : 0),
+  y: v.y || (v.position ? v.position[1] : 0),
+  width: v.width || 80,
+  height: v.height || 40,
+});
+
+const convertPath = (p: BasePath): PathData => ({
+  ...p,
+  vehicleId: p.vehicleId || '',  // Ensure vehicleId is always present
+  width: p.width || 3,
+  dashArray: p.dashed ? '10, 10' : undefined,
+});
+
+const convertAnnotation = (a: BaseAnnotation): AnnotationData => ({
+  ...a,
+  color: a.color || '#10b981',  // Default color for annotations
+});
+
+const convertBackVehicle = (v: VehicleSchemeData): BaseVehicle => ({
+  ...v,
+  // Ensure type is compatible with 'car' | 'truck' | 'bike'
+  type: (v.type === 'car' || v.type === 'truck' || v.type === 'bike') 
+    ? v.type as 'car' | 'truck' | 'bike' 
+    : 'car',
+  position: [v.x || v.position[0], v.y || v.position[1]] as [number, number],
+  label: v.label,
+  isSelected: v.isSelected || false,
+});
+
+const convertBackPath = (p: PathData): BasePath => ({
+  ...p,
+  dashed: !!p.dashArray,  // Convert dashArray to boolean dashed property
+  width: p.width || 3,
+  isSelected: p.isSelected || false,
+  vehicleId: p.vehicleId,
+});
+
+const convertBackAnnotation = (a: AnnotationData): BaseAnnotation => ({
+  ...a,
+  // Only keep compatible properties
+  id: a.id,
+  position: a.position,
+  text: a.text,
+});
+
 // Helper function to convert between different SchemeData types
 const convertSchemeData = (data: BaseSchemeData): TypesSchemeData => {
   return {
-    vehicles: data.vehicles.map(v => ({
-      ...v,
-      label: v.label || `Véhicule ${v.type || ''}`,
-      type: v.type || 'car',
-    })),
-    paths: data.paths || [],
-    annotations: data.annotations || [],
+    vehicles: data.vehicles.map(convertVehicle),
+    paths: data.paths.map(convertPath) || [],
+    annotations: data.annotations.map(convertAnnotation) || [],
     center: data.center || [0, 0],
     zoom: data.zoom || 13
   };
@@ -32,9 +77,9 @@ const convertSchemeData = (data: BaseSchemeData): TypesSchemeData => {
 
 const convertBackSchemeData = (data: TypesSchemeData): BaseSchemeData => {
   return {
-    vehicles: data.vehicles,
-    paths: data.paths,
-    annotations: data.annotations,
+    vehicles: data.vehicles.map(convertBackVehicle),
+    paths: data.paths.map(convertBackPath),
+    annotations: data.annotations.map(convertBackAnnotation),
     center: data.center,
     zoom: data.zoom
   };
@@ -62,9 +107,9 @@ const SchemeContainer: React.FC<SchemeContainerProps> = ({
     initialData,
     formData,
     onUpdateSchemeData: onUpdateSchemeData ? 
-      (data: TypesSchemeData) => onUpdateSchemeData(convertBackSchemeData(data)) : undefined,
+      (data: BaseSchemeData) => onUpdateSchemeData(data) : undefined,
     onSchemeUpdate: onSchemeUpdate ? 
-      (data: TypesSchemeData) => onSchemeUpdate(convertBackSchemeData(data)) : undefined,
+      (data: BaseSchemeData) => onSchemeUpdate(data) : undefined,
     readOnly,
     geolocationData
   });
@@ -77,7 +122,7 @@ const SchemeContainer: React.FC<SchemeContainerProps> = ({
         ...vehicle,
         x: vehicle.position[0],
         y: vehicle.position[1],
-        width: 80,
+        width: vehicle.width || 80,
         height: 40,
         label: vehicle.label || `Véhicule ${vehicle.type || ''}`
       }));
