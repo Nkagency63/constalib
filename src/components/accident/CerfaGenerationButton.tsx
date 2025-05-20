@@ -34,6 +34,15 @@ const CerfaGenerationButton = ({
       if (blob) {
         const url = URL.createObjectURL(blob);
         setPdfUrl(url);
+        
+        // Create a download link for the PDF and click it
+        const downloadLink = document.createElement('a');
+        downloadLink.href = url;
+        downloadLink.download = `Constat_Amiable_${new Date().toISOString().slice(0, 10)}.pdf`;
+        document.body.appendChild(downloadLink);
+        downloadLink.click();
+        document.body.removeChild(downloadLink);
+        
         if (onSuccess) onSuccess();
       }
     } catch (error) {

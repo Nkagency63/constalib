@@ -16,8 +16,8 @@ const VehicleScheme = ({ initialData, onSchemeUpdate }: VehicleSchemeProps) => {
         id: 'vehicle-a',
         type: 'A',
         position: [200, 150],
-        x: 150,
-        y: 200,
+        x: 200,
+        y: 150,
         rotation: 0,
         width: 80,
         height: 40,
@@ -28,8 +28,8 @@ const VehicleScheme = ({ initialData, onSchemeUpdate }: VehicleSchemeProps) => {
         id: 'vehicle-b',
         type: 'B',
         position: [300, 250],
-        x: 250,
-        y: 300,
+        x: 300,
+        y: 250,
         rotation: 45,
         width: 80,
         height: 40,
@@ -37,10 +37,10 @@ const VehicleScheme = ({ initialData, onSchemeUpdate }: VehicleSchemeProps) => {
         label: 'Véhicule B'
       }
     ],
-    paths: [],
-    annotations: [],
-    center: [50, 50],
-    zoom: 1
+    paths: initialData?.paths || [],
+    annotations: initialData?.annotations || [],
+    center: initialData?.center || [50, 50],
+    zoom: initialData?.zoom || 1
   });
 
   const handleVehicleMove = (id: string, x: number, y: number) => {
@@ -50,7 +50,7 @@ const VehicleScheme = ({ initialData, onSchemeUpdate }: VehicleSchemeProps) => {
           ...vehicle, 
           x, 
           y, 
-          position: [y, x] as [number, number]  // Mise à jour de la position compatible avec la carte
+          position: [x, y] as [number, number]  // Mise à jour de la position compatible avec la carte
         };
       }
       return vehicle;

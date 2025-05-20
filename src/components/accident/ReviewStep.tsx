@@ -1,12 +1,12 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { AlertTriangle, Download, CheckCircle, Send } from 'lucide-react';
 import { toast } from 'sonner';
 import VehicleScheme from '@/components/VehicleScheme';
 import { useRegisterReport } from '@/hooks/accident/useRegisterReport';
 import { captureStageAsDataUrl } from './scheme/SchemeExport';
-import { SchemeData } from './types/vehicleTypes';
+import { SchemeData } from './types/types';
 import CerfaGenerationButton from './CerfaGenerationButton';
 
 interface ReviewStepProps {
@@ -19,7 +19,13 @@ const ReviewStep = ({ formData, onSubmitSuccess }: ReviewStepProps) => {
   const [officialSubmission, setOfficialSubmission] = useState(false);
   const [submissionSuccess, setSubmissionSuccess] = useState(false);
   const [submissionError, setSubmissionError] = useState<string | null>(null);
-  const [schemeData, setSchemeData] = useState<SchemeData | null>(formData.schemeData);
+  const [schemeData, setSchemeData] = useState<SchemeData | null>(formData.schemeData || {
+    vehicles: [],
+    paths: [],
+    annotations: [],
+    center: [0, 0],
+    zoom: 1
+  });
   
   const {
     isRegistering,
@@ -31,7 +37,9 @@ const ReviewStep = ({ formData, onSubmitSuccess }: ReviewStepProps) => {
     referenceId,
     setReferenceId,
     registerReport
-  } = useRegisterReport();
+  } = useRegisterReport({
+    formData
+  });
 
   const captureScheme = async (): Promise<string | null> => {
     try {
@@ -63,17 +71,17 @@ const ReviewStep = ({ formData, onSubmitSuccess }: ReviewStepProps) => {
       };
       
       // Register the report
-      const success = await registerReport(dataToSubmit);
+      await registerReport(dataToSubmit);
       
-      if (success) {
+      if (registrationSuccess) {
         setSubmissionSuccess(true);
         onSubmitSuccess();
-      } else {
-        throw new Error(registrationError || 'Erreur lors de l\'enregistrement du constat');
+      } else if (registrationError) {
+        throw new Error(registrationError);
       }
     } catch (error) {
       console.error('Error submitting report:', error);
-      setSubmissionError(error instanceof Error ? error.message : 'Une erreur inconnue est survenue');
+      setSubmissionError(typeof error === 'string' ? error : error instanceof Error ? error.message : 'Une erreur inconnue est survenue');
       toast.error(`Erreur: ${submissionError}`);
     } finally {
       setIsSubmitting(false);
@@ -86,7 +94,14 @@ const ReviewStep = ({ formData, onSubmitSuccess }: ReviewStepProps) => {
   };
 
   const handleUpdateScheme = (newSchemeData: SchemeData) => {
-    setSchemeData(newSchemeData);
+    const updatedScheme: SchemeData = {
+      ...newSchemeData,
+      paths: newSchemeData.paths || [],
+      annotations: newSchemeData.annotations || [],
+      center: newSchemeData.center || [0, 0],
+      zoom: newSchemeData.zoom || 1
+    };
+    setSchemeData(updatedScheme);
   };
 
   return (
@@ -106,10 +121,12 @@ const ReviewStep = ({ formData, onSubmitSuccess }: ReviewStepProps) => {
       {/* Vehicle Scheme */}
       <div className="mt-8 border rounded-lg p-4 bg-white">
         <h3 className="text-lg font-medium mb-4">Schéma de l'accident</h3>
-        <VehicleScheme 
-          initialData={schemeData} 
-          onSchemeUpdate={handleUpdateScheme}
-        />
+        {schemeData && (
+          <VehicleScheme 
+            initialData={schemeData} 
+            onSchemeUpdate={handleUpdateScheme}
+          />
+        )}
       </div>
       
       {/* Buttons */}

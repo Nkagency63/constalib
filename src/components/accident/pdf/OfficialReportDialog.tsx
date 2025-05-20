@@ -2,7 +2,6 @@
 import React from 'react';
 import { 
   Dialog, 
-  DialogTrigger, 
   DialogContent, 
   DialogHeader,
   DialogTitle,
@@ -15,19 +14,19 @@ import { Button } from "@/components/ui/button";
 interface OfficialReportDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  onConfirm: () => Promise<void>;
+  isProcessing: boolean;
   referenceId: string | null;
-  isRegistering: boolean;
-  handleRegisterOfficial: () => void;
-  canRegisterOfficial: boolean;
+  isSuccess: boolean;
 }
 
 const OfficialReportDialog = ({
   open,
   onOpenChange,
+  onConfirm,
+  isProcessing,
   referenceId,
-  isRegistering,
-  handleRegisterOfficial,
-  canRegisterOfficial
+  isSuccess
 }: OfficialReportDialogProps) => {
   return (
     <DialogContent className="sm:max-w-md">
@@ -70,12 +69,12 @@ const OfficialReportDialog = ({
           </Button>
         </DialogClose>
         
-        {!referenceId && canRegisterOfficial && (
+        {!referenceId && (
           <Button 
-            onClick={handleRegisterOfficial} 
-            disabled={isRegistering}
+            onClick={onConfirm} 
+            disabled={isProcessing}
           >
-            {isRegistering ? "Enregistrement..." : "Enregistrer"}
+            {isProcessing ? "Enregistrement..." : "Enregistrer"}
           </Button>
         )}
       </DialogFooter>

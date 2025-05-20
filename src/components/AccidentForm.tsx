@@ -46,10 +46,9 @@ const AccidentForm = ({ onEmergencyRequest, onStepChange }: AccidentFormProps) =
     removeWitness: originalRemoveWitness
   } = useAccidentForm();
 
-  // Adapter pour handleCircumstanceChange pour être compatible avec la signature attendue
-  const handleCircumstanceChange = (vehicleId: "A" | "B", circumstanceId: string) => {
-    // Par défaut, on active la circonstance (isChecked = true)
-    originalHandleCircumstanceChange(vehicleId, circumstanceId, true);
+  // Modified adapter for handleCircumstanceChange that includes the checked parameter
+  const handleCircumstanceChange = (vehicleId: "A" | "B", circumstanceId: string, checked: boolean) => {
+    originalHandleCircumstanceChange(vehicleId, circumstanceId, checked);
   };
 
   // Adapter function for witness management to match expected parameter types
@@ -81,8 +80,13 @@ const AccidentForm = ({ onEmergencyRequest, onStepChange }: AccidentFormProps) =
   };
 
   // Photo upload adapter that converts FileList to File[]
-  const photoUploadAdapter = (type: string, files: File[]) => {
-    handlePhotoUpload(type === "vehicle" ? "vehiclePhotos" : "damagePhotos", files[0]);
+  const photoUploadAdapter = (type: string, fileList: FileList) => {
+    // Convert FileList to File array
+    const files = Array.from(fileList);
+    
+    if (files.length > 0) {
+      handlePhotoUpload(type === "vehicle" ? "vehiclePhotos" : "damagePhotos", files[0]);
+    }
   };
 
   if (submitted) {

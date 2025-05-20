@@ -1,8 +1,4 @@
 
-// Dans StepRenderer.tsx, modifiez la partie qui renvoie le composant ReviewStep
-// pour passer la propriété onSubmitSuccess
-
-// Importez correctement les types et composants nécessaires en haut du fichier
 import { useState } from 'react';
 import BasicInfoStep from './BasicInfoStep';
 import VehiclesStep from './VehiclesStep';
@@ -22,7 +18,7 @@ interface StepRendererProps {
   formData: any;
   handleInputChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
   handleOtherVehicleChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
-  handlePhotoUpload: (type: string, files: File[]) => void;
+  handlePhotoUpload: (type: string, files: FileList) => void;
   setVehicleInfo: (data: any) => void;
   setOtherVehicleInfo: (data: any) => void;
   setGeolocation: (location: GeolocationData) => void;
@@ -31,7 +27,7 @@ interface StepRendererProps {
   setInvolvedPartyEmails: (emails: string[]) => void;
   setPersonalEmail: (email: string) => void;
   onEmergencyContacted: () => void;
-  handleCircumstanceChange: (vehicleId: 'A' | 'B', circumstanceId: string) => void;
+  handleCircumstanceChange: (vehicleId: 'A' | 'B', circumstanceId: string, checked: boolean) => void;
   setCurrentVehicleId: (id: string) => void;
   currentVehicleId: string;
   setHasInjuries: (hasInjuries: boolean) => void;
@@ -95,11 +91,7 @@ const StepRenderer: React.FC<StepRendererProps> = ({
           handleOtherVehicleChange={handleOtherVehicleChange}
           setVehicleInfo={setVehicleInfo}
           setOtherVehicleInfo={setOtherVehicleInfo}
-          handlePhotoUpload={(type, files) => {
-            if (files.length > 0) {
-              handlePhotoUpload(type, files);
-            }
-          }}
+          handlePhotoUpload={handlePhotoUpload}
         />
       );
     case "drivers":
@@ -124,14 +116,7 @@ const StepRenderer: React.FC<StepRendererProps> = ({
       );
     case "photos":
       return (
-        <PhotosStep
-          formData={formData}
-          handlePhotoUpload={(type, files) => {
-            if (files.length > 0) {
-              handlePhotoUpload(type, files);
-            }
-          }}
-        />
+        <PhotosStep handlePhotoUpload={handlePhotoUpload} />
       );
     case "circumstances":
       return (
