@@ -6,9 +6,13 @@ const MapResizer = () => {
   const map = useMap();
 
   useEffect(() => {
-    setTimeout(() => {
-      map.invalidateSize();
-    }, 300);
+    if (map && typeof map.invalidateSize === 'function') {
+      const timer = setTimeout(() => {
+        map.invalidateSize(true);
+      }, 300);
+      
+      return () => clearTimeout(timer);
+    }
   }, [map]);
 
   return null;
