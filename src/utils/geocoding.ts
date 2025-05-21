@@ -4,7 +4,8 @@
  */
 
 // Proxy CORS pour éviter les erreurs de requêtes cross-origin
-const CORS_PROXY = 'https://corsproxy.io/?';
+// Utilisons un proxy plus fiable
+const CORS_PROXY = 'https://api.allorigins.win/raw?url=';
 
 /**
  * Effectue une requête de géocodage inverse (coordonnées vers adresse)
@@ -14,8 +15,10 @@ const CORS_PROXY = 'https://corsproxy.io/?';
  */
 export const reverseGeocode = async (lat: number, lng: number): Promise<string> => {
   try {
-    // Utilisez le proxy CORS pour contourner les restrictions CORS
-    const url = `${CORS_PROXY}https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json`;
+    // Utiliser le proxy CORS amélioré pour contourner les restrictions CORS
+    const url = `${CORS_PROXY}${encodeURIComponent(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json`)}`;
+    
+    console.log("Requête de géocodage inverse avec URL:", url);
     
     const response = await fetch(url, {
       headers: { 
@@ -29,6 +32,7 @@ export const reverseGeocode = async (lat: number, lng: number): Promise<string> 
     }
     
     const data = await response.json();
+    console.log("Réponse du géocodage inverse:", data);
     return data.display_name || `${lat.toFixed(6)}, ${lng.toFixed(6)}`;
   } catch (error) {
     console.error('Erreur de géocodage inverse:', error);
@@ -44,8 +48,10 @@ export const reverseGeocode = async (lat: number, lng: number): Promise<string> 
  */
 export const forwardGeocode = async (address: string): Promise<{lat: number, lng: number, display_name: string} | null> => {
   try {
-    // Utilisez le proxy CORS pour contourner les restrictions CORS
-    const url = `${CORS_PROXY}https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(address)}&format=json&limit=1`;
+    // Utiliser le proxy CORS amélioré pour contourner les restrictions CORS
+    const url = `${CORS_PROXY}${encodeURIComponent(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(address)}&format=json&limit=1`)}`;
+    
+    console.log("Requête de géocodage avec URL:", url);
     
     const response = await fetch(url, {
       headers: { 
@@ -59,6 +65,7 @@ export const forwardGeocode = async (address: string): Promise<{lat: number, lng
     }
     
     const data = await response.json();
+    console.log("Réponse du géocodage:", data);
     
     if (data && data.length > 0) {
       const result = data[0];
@@ -89,28 +96,38 @@ export const getAddressFromCoordinates = async (lat: number, lng: number): Promi
     
     if (edgeFunctionUrl) {
       const url = `${edgeFunctionUrl}/geocode-location`;
-      const response = await fetch(url, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          address: `${lat},${lng}`,
-          options: {
-            includeDetails: true,
-            language: 'fr'
-          }
-        })
-      });
+      console.log("Tentative d'utilisation de l'EdgeFunction pour le géocodage:", url);
       
-      if (response.ok) {
-        const result = await response.json();
-        if (result.success && result.data && result.data.formatted_address) {
-          return result.data.formatted_address;
+      try {
+        const response = await fetch(url, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            address: `${lat},${lng}`,
+            options: {
+              includeDetails: true,
+              language: 'fr'
+            }
+          })
+        });
+        
+        if (response.ok) {
+          const result = await response.json();
+          console.log("Résultat de l'EdgeFunction:", result);
+          if (result.success && result.data && result.data.formatted_address) {
+            return result.data.formatted_address;
+          }
+        } else {
+          console.warn("L'EdgeFunction a échoué, utilisation du fallback");
         }
+      } catch (edgeError) {
+        console.error("Erreur avec l'EdgeFunction:", edgeError);
       }
     }
     
+    console.log("Utilisation du fallback Nominatim pour le géocodage inverse");
     // Fallback sur Nominatim si l'EdgeFunction échoue
     return reverseGeocode(lat, lng);
   } catch (error) {

@@ -20,6 +20,7 @@ const CurrentLocationButton = ({ setGeolocation }: CurrentLocationButtonProps) =
     }
 
     setIsLoading(true);
+    toast.info("Détection de votre position en cours...");
 
     const geoOptions = {
       enableHighAccuracy: true,
@@ -34,9 +35,13 @@ const CurrentLocationButton = ({ setGeolocation }: CurrentLocationButtonProps) =
         const accuracy = position.coords.accuracy;
         const timestamp = position.timestamp;
         
+        console.log("Position géolocalisée:", { lat, lng, accuracy });
+        
         try {
+          toast.info("Récupération de l'adresse en cours...");
           // Utiliser notre utilitaire amélioré pour le géocodage inverse
           const address = await getAddressFromCoordinates(lat, lng);
+          console.log("Adresse récupérée:", address);
           
           setGeolocation({
             lat,
@@ -47,7 +52,7 @@ const CurrentLocationButton = ({ setGeolocation }: CurrentLocationButtonProps) =
           });
           
           toast.success("Position localisée", {
-            description: "Votre position actuelle a été détectée"
+            description: address || "Votre position actuelle a été détectée"
           });
         } catch (err) {
           console.error('Error in reverse geocoding:', err);

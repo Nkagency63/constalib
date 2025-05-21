@@ -17,6 +17,7 @@ const LocationDisplay = ({
   setMapVisible
 }: LocationDisplayProps) => {
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [address, setAddress] = useState<string | undefined>(geolocation?.address);
   
   if (!geolocation || !geolocation.lat || !geolocation.lng) return null;
 
@@ -38,10 +39,11 @@ const LocationDisplay = ({
     
     setIsRefreshing(true);
     try {
-      const address = await getAddressFromCoordinates(geolocation.lat, geolocation.lng);
-      // Mettre à jour l'affichage sans modifier l'objet original
+      const newAddress = await getAddressFromCoordinates(geolocation.lat, geolocation.lng);
+      // Mettre à jour l'affichage
+      setAddress(newAddress);
       toast.success("Adresse actualisée", {
-        description: address
+        description: newAddress
       });
     } catch (error) {
       console.error("Erreur lors de l'actualisation de l'adresse:", error);
@@ -62,7 +64,7 @@ const LocationDisplay = ({
             </Badge>
           </h4>
           <p className="text-sm text-constalib-dark break-words">
-            {geolocation.address || `Lat: ${geolocation.lat.toFixed(6)}, Lng: ${geolocation.lng.toFixed(6)}`}
+            {address || geolocation.address || `Lat: ${geolocation.lat.toFixed(6)}, Lng: ${geolocation.lng.toFixed(6)}`}
           </p>
           <div className="text-xs text-constalib-dark-gray mt-1 flex items-center gap-1">
             <Navigation className="h-3 w-3" />
@@ -85,6 +87,16 @@ const LocationDisplay = ({
         </div>
         
         <div className="flex flex-col gap-2">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={handleRefreshAddress}
+            disabled={isRefreshing}
+            className="text-xs flex items-center gap-1"
+            title="Actualiser l'adresse"
+          >
+            {isRefreshing ? "..." : "Actualiser"}
+          </Button>
           <Button
             variant="ghost"
             size="sm"
