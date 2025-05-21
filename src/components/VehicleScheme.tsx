@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { SchemeData, VehicleSchemeData } from './accident/types/types';
 import SchemeContainer from './accident/scheme/components/SchemeContainer';
@@ -43,22 +44,55 @@ const VehicleScheme = ({ initialData, onSchemeUpdate }: VehicleSchemeProps) => {
     zoom: initialData?.zoom || 1
   });
 
-  // Use geolocation to update center coordinates
+  // Use geolocation to update center coordinates and get address
   useEffect(() => {
     // Check if geolocation is supported by the browser
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
-        (position) => {
+        async (position) => {
           const { latitude, longitude } = position.coords;
           console.log("Geolocation successful:", latitude, longitude);
           
+          // Update map center with current position
           setSchemeData((prev) => ({
             ...prev,
             center: [latitude, longitude],
             zoom: 17 // Set a better zoom level for location viewing
           }));
           
-          toast("Position géographique détectée");
+          // Perform reverse geocoding with Nominatim
+          try {
+            const response = await fetch(
+              `https://nominatim.openstreetmap.org/reverse?lat=${latitude}&lon=${longitude}&format=json`,
+              { headers: { 'accept-language': 'fr' } }
+            );
+            
+            if (response.ok) {
+              const data = await response.json();
+              const address = data.display_name;
+              console.log("Reverse geocoding successful:", address);
+              
+              // If onSchemeUpdate is provided, we can send the geolocation data
+              if (onSchemeUpdate) {
+                const updatedScheme = {
+                  ...schemeData,
+                  center: [latitude, longitude],
+                  zoom: 17,
+                  // You might want to add address to your scheme data structure
+                  // This is optional and depends on your application's needs
+                };
+                onSchemeUpdate(updatedScheme);
+              }
+              
+              toast("Position géographique détectée: " + address);
+            } else {
+              console.error("Reverse geocoding failed:", response.statusText);
+              toast("Position géographique détectée");
+            }
+          } catch (error) {
+            console.error("Error during reverse geocoding:", error);
+            toast("Position géographique détectée");
+          }
         },
         (error) => {
           console.error("Erreur de géolocalisation:", error);
