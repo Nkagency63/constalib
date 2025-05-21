@@ -4,6 +4,7 @@ import { Search, Loader2 } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { toast } from 'sonner';
 import { GeolocationData } from './types';
+import { forwardGeocode } from '@/utils/geocoding';
 
 interface GeocodingButtonProps {
   location: string;
@@ -22,26 +23,13 @@ const GeocodingButton = ({ location, setGeolocation }: GeocodingButtonProps) => 
     setIsLoading(true);
 
     try {
-      // Free geocoding using Nominatim OpenStreetMap API
-      const response = await fetch(
-        `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(location)}&format=json&limit=1`,
-        { headers: { 'Accept-Language': 'fr' } }
-      );
+      // Utiliser notre utilitaire pour le géocodage
+      const result = await forwardGeocode(location);
       
-      if (!response.ok) {
-        throw new Error(`Error: ${response.status}`);
-      }
-      
-      const data = await response.json();
-      
-      if (data && data.length > 0) {
-        const result = data[0];
-        const lat = parseFloat(result.lat);
-        const lng = parseFloat(result.lon);
-        
+      if (result) {
         setGeolocation({
-          lat,
-          lng,
+          lat: result.lat,
+          lng: result.lng,
           address: result.display_name,
           timestamp: Date.now()
         });

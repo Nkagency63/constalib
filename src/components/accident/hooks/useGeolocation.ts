@@ -1,6 +1,7 @@
 
 import { useState, useEffect } from 'react';
 import { toast } from 'sonner';
+import { reverseGeocode } from '@/utils/geocoding';
 
 interface GeolocationHookResult {
   center: [number, number];
@@ -41,32 +42,17 @@ export const useGeolocation = ({
           setCenter(newCenter);
           setZoom(newZoom);
           
-          // Effectuer le géocodage inverse avec Nominatim
+          // Effectuer le géocodage inverse avec notre utilitaire
           try {
-            const response = await fetch(
-              `https://nominatim.openstreetmap.org/reverse?lat=${latitude}&lon=${longitude}&format=json`,
-              { headers: { 'accept-language': 'fr' } }
-            );
+            const address = await reverseGeocode(latitude, longitude);
+            console.log("Reverse geocoding successful:", address);
             
-            if (response.ok) {
-              const data = await response.json();
-              const address = data.display_name;
-              console.log("Reverse geocoding successful:", address);
-              
-              // Appeler le callback si fourni
-              if (onLocationUpdate) {
-                onLocationUpdate(newCenter, newZoom, address);
-              }
-              
-              toast("Position géographique détectée: " + address);
-            } else {
-              console.error("Reverse geocoding failed:", response.statusText);
-              toast("Position géographique détectée");
-              
-              if (onLocationUpdate) {
-                onLocationUpdate(newCenter, newZoom);
-              }
+            // Appeler le callback si fourni
+            if (onLocationUpdate) {
+              onLocationUpdate(newCenter, newZoom, address);
             }
+            
+            toast("Position géographique détectée: " + address);
           } catch (error) {
             console.error("Error during reverse geocoding:", error);
             toast("Position géographique détectée");

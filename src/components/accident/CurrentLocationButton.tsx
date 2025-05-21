@@ -4,6 +4,7 @@ import { MapPin, Loader2 } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { toast } from 'sonner';
 import { GeolocationData } from './types';
+import { reverseGeocode } from '@/utils/geocoding';
 
 interface CurrentLocationButtonProps {
   setGeolocation: (data: GeolocationData) => void;
@@ -34,18 +35,8 @@ const CurrentLocationButton = ({ setGeolocation }: CurrentLocationButtonProps) =
         const timestamp = position.timestamp;
         
         try {
-          // Free geocoding using Nominatim OpenStreetMap API (no API key required)
-          const response = await fetch(
-            `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json`,
-            { headers: { 'Accept-Language': 'fr' } }
-          );
-          
-          if (!response.ok) {
-            throw new Error(`Error: ${response.status}`);
-          }
-          
-          const data = await response.json();
-          const address = data.display_name || `${lat.toFixed(6)}, ${lng.toFixed(6)}`;
+          // Utiliser notre utilitaire pour le géocodage inverse
+          const address = await reverseGeocode(lat, lng);
           
           setGeolocation({
             lat,

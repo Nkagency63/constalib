@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { MapPin, Loader2, Search } from 'lucide-react';
 import { toast } from 'sonner';
 import { GeolocationData } from './types';
+import { reverseGeocode, forwardGeocode } from '@/utils/geocoding';
 
 interface FreeGeoLocationProps {
   setGeolocation: (data: GeolocationData) => void;
@@ -39,18 +40,8 @@ const FreeGeoLocation: React.FC<FreeGeoLocationProps> = ({
         const timestamp = position.timestamp;
         
         try {
-          // Free geocoding using Nominatim OpenStreetMap API (no API key needed)
-          const response = await fetch(
-            `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json`,
-            { headers: { 'Accept-Language': 'fr' } }
-          );
-          
-          if (!response.ok) {
-            throw new Error(`Error: ${response.status}`);
-          }
-          
-          const data = await response.json();
-          const address = data.display_name || `${lat.toFixed(6)}, ${lng.toFixed(6)}`;
+          // Utiliser notre utilitaire pour le géocodage inverse
+          const address = await reverseGeocode(lat, lng);
           
           setGeolocation({
             lat,
@@ -100,7 +91,7 @@ const FreeGeoLocation: React.FC<FreeGeoLocationProps> = ({
     );
   };
 
-  // Handle geocoding using Nominatim OpenStreetMap API
+  // Handle geocoding using our utility
   const handleGeocode = async () => {
     if (!address || address.trim() === '') {
       toast.error("Veuillez saisir une adresse à géolocaliser");
@@ -110,26 +101,13 @@ const FreeGeoLocation: React.FC<FreeGeoLocationProps> = ({
     setIsLoading(true);
 
     try {
-      // Free geocoding using Nominatim OpenStreetMap API
-      const response = await fetch(
-        `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(address)}&format=json&limit=1`,
-        { headers: { 'Accept-Language': 'fr' } }
-      );
+      // Utiliser notre utilitaire pour le géocodage
+      const result = await forwardGeocode(address);
       
-      if (!response.ok) {
-        throw new Error(`Error: ${response.status}`);
-      }
-      
-      const data = await response.json();
-      
-      if (data && data.length > 0) {
-        const result = data[0];
-        const lat = parseFloat(result.lat);
-        const lng = parseFloat(result.lon);
-        
+      if (result) {
         setGeolocation({
-          lat,
-          lng,
+          lat: result.lat,
+          lng: result.lng,
           address: result.display_name,
           timestamp: Date.now()
         });
