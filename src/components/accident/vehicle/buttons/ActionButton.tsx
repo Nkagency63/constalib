@@ -1,16 +1,15 @@
 
 import React from 'react';
-import { Loader2 } from 'lucide-react';
+import { Loader2, LucideIcon } from 'lucide-react';
 import { Button } from "@/components/ui/button";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 interface ActionButtonProps {
   isLoading: boolean;
   onClick: () => void;
   disabled?: boolean;
-  Icon: React.ElementType;
+  Icon: LucideIcon;
   label: string;
-  variant?: "outline" | "default" | "secondary" | "destructive" | "ghost" | "link";
+  variant?: "default" | "outline";
   tooltip?: string;
 }
 
@@ -23,38 +22,23 @@ const ActionButton = ({
   variant = "outline",
   tooltip
 }: ActionButtonProps) => {
-  const button = (
-    <Button 
-      type="button" 
+  return (
+    <Button
+      type="button"
       variant={variant}
       onClick={onClick}
       disabled={isLoading || disabled}
-      className="flex items-center gap-2"
+      className="shrink-0"
+      title={tooltip}
     >
-      {isLoading ? 
-        <Loader2 className="h-4 w-4 animate-spin" /> : 
-        <Icon className="h-4 w-4" />
-      }
-      <span>{label}</span>
+      {isLoading ? (
+        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+      ) : (
+        <Icon className="h-4 w-4 mr-2" />
+      )}
+      {label}
     </Button>
   );
-
-  if (tooltip) {
-    return (
-      <TooltipProvider>
-        <Tooltip>
-          <TooltipTrigger asChild>
-            {button}
-          </TooltipTrigger>
-          <TooltipContent>
-            <p>{tooltip}</p>
-          </TooltipContent>
-        </Tooltip>
-      </TooltipProvider>
-    );
-  }
-
-  return button;
 };
 
 export default ActionButton;

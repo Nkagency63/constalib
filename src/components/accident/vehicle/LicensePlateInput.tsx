@@ -42,8 +42,8 @@ const LicensePlateInput = ({
   fniError,
   fvaError
 }: LicensePlateInputProps) => {
+  
   const handleLicensePlateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    // Create a new synthetic event with the name set to 'licensePlate'
     const syntheticEvent = {
       ...e,
       target: {
@@ -54,16 +54,15 @@ const LicensePlateInput = ({
     
     handleInputChange(syntheticEvent);
   };
-  
+
   const handleTabChange = (value: string) => {
     onSearchTab(value as 'siv' | 'fni');
     
-    // Format the license plate according to the selected tab format
     if (licensePlate) {
-      const formattedValue = value === 'siv' ? 
-        formatSivLicensePlate(licensePlate) : 
-        formatFniLicensePlate(licensePlate);
-      
+      const formattedValue = value === 'siv' 
+        ? formatSivLicensePlate(licensePlate)
+        : formatFniLicensePlate(licensePlate);
+        
       const syntheticEvent = {
         target: {
           name: 'licensePlate',
@@ -82,45 +81,45 @@ const LicensePlateInput = ({
       </label>
       
       <Tabs value={searchTab} onValueChange={handleTabChange} className="w-full">
-        <TabsList className="grid w-full grid-cols-2 mb-4">
-          <TabsTrigger value="siv" className="flex items-center gap-2">
-            <Car className="h-4 w-4" />
-            <span>SIV (Après 2009)</span>
+        <TabsList className="grid grid-cols-2 mb-6">
+          <TabsTrigger value="siv" className="flex items-center">
+            <Car className="mr-2 h-4 w-4" />
+            SIV (Depuis 2009)
           </TabsTrigger>
-          <TabsTrigger value="fni" className="flex items-center gap-2">
-            <FileText className="h-4 w-4" />
-            <span>FNI (Avant 2009)</span>
+          <TabsTrigger value="fni" className="flex items-center">
+            <FileText className="mr-2 h-4 w-4" />
+            FNI (Avant 2009)
           </TabsTrigger>
         </TabsList>
         
         <TabsContent value="siv">
           <SivTabContent 
-            licensePlate={licensePlate} 
-            handleLicensePlateChange={handleLicensePlateChange} 
-            onLookupVehicle={onLookupVehicle} 
-            onLookupFva={onLookupFva} 
-            isLoading={isLoading} 
-            isFvaLoading={isFvaLoading} 
-            lookupSuccess={lookupSuccess} 
+            licensePlate={licensePlate}
+            handleLicensePlateChange={handleLicensePlateChange}
+            onLookupVehicle={onLookupVehicle}
+            onLookupFva={onLookupFva}
+            isLoading={isLoading}
+            isFvaLoading={isFvaLoading}
+            lookupSuccess={lookupSuccess}
           />
         </TabsContent>
         
         <TabsContent value="fni">
           <FniTabContent 
-            licensePlate={licensePlate} 
-            handleLicensePlateChange={handleLicensePlateChange} 
-            onLookupFni={onLookupFni} 
-            isFniLoading={isFniLoading} 
-            fniLookupSuccess={fniLookupSuccess} 
+            licensePlate={licensePlate}
+            handleLicensePlateChange={handleLicensePlateChange}
+            onLookupFni={onLookupFni}
+            isFniLoading={isFniLoading}
+            fniLookupSuccess={fniLookupSuccess}
           />
         </TabsContent>
       </Tabs>
       
       <ErrorAlerts 
-        searchError={searchError} 
-        fniError={fniError} 
-        fvaError={fvaError} 
-        searchTab={searchTab} 
+        searchError={searchError}
+        fniError={fniError}
+        fvaError={fvaError}
+        searchTab={searchTab}
       />
     </div>
   );

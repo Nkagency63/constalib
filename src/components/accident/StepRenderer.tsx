@@ -1,46 +1,31 @@
 
-import { useState } from 'react';
+import { FormData } from './types';
 import BasicInfoStep from './BasicInfoStep';
-import VehiclesStep from './VehiclesStep';
-import DriverAndInsuredStep from './DriverAndInsuredStep';
-import LocationStep from './LocationStep';
+import DetailsStep from './DetailsStep';
 import PhotosStep from './PhotosStep';
-import CircumstancesStep from './CircumstancesStep';
-import WitnessStep from './WitnessStep';
-import InjuriesStep from './InjuriesStep';
-import EmailStep from './EmailStep';
 import SchemeStep from './SchemeStep';
 import ReviewStep from './ReviewStep';
-import { GeolocationData, SchemeData, FormData as AccidentFormData } from './types';
+import VehicleIdentificationStep from './VehicleIdentificationStep';
+import LocationStep from './LocationStep';
+import MultiVehicleStep from './MultiVehicleStep';
+import EmailStep from './EmailStep';
 
 interface StepRendererProps {
   currentStepId: string;
-  formData: AccidentFormData;
+  formData: FormData;
   handleInputChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
   handleOtherVehicleChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
-  handlePhotoUpload: (type: string, files: FileList | File[]) => void;
-  setVehicleInfo: (data: { brand: string; model: string; year?: string; firstRegistration?: string }) => void;
-  setOtherVehicleInfo: (data: any) => void;
-  setGeolocation: (location: GeolocationData) => void;
-  clearGeolocation: () => void;
+  handlePhotoUpload: (type: 'vehiclePhotos' | 'damagePhotos', file: File) => void;
+  setVehicleInfo: (data: {brand: string, model: string, year: string, firstRegistration?: string}) => void;
+  setOtherVehicleInfo: (data: {brand: string, model: string, year: string, firstRegistration?: string}) => void;
+  setGeolocation: (data: {lat: number, lng: number, address: string}) => void;
   setInsuranceEmails: (emails: string[]) => void;
   setInvolvedPartyEmails: (emails: string[]) => void;
   setPersonalEmail: (email: string) => void;
-  onEmergencyContacted: () => void;
-  handleCircumstanceChange: (vehicleId: 'A' | 'B', circumstanceId: string, checked: boolean) => void;
-  setCurrentVehicleId: (id: string) => void;
-  currentVehicleId: string;
-  setHasInjuries: (hasInjuries: boolean) => void;
-  setInjuriesDescription: (description: string) => void;
-  setHasWitnesses: (hasWitnesses: boolean) => void;
-  updateWitness: (index: number, field: string, value: string) => void;
-  addWitness: () => void;
-  removeWitness: (index: number) => void;
-  onSchemeUpdate: (schemeData: SchemeData) => void;
-  onFormSubmitted: () => void;
+  onEmergencyContacted?: () => void;
 }
 
-const StepRenderer: React.FC<StepRendererProps> = ({
+const StepRenderer = ({
   currentStepId,
   formData,
   handleInputChange,
@@ -49,146 +34,85 @@ const StepRenderer: React.FC<StepRendererProps> = ({
   setVehicleInfo,
   setOtherVehicleInfo,
   setGeolocation,
-  clearGeolocation,
   setInsuranceEmails,
   setInvolvedPartyEmails,
   setPersonalEmail,
-  onEmergencyContacted,
-  handleCircumstanceChange,
-  setCurrentVehicleId,
-  currentVehicleId,
-  setHasInjuries,
-  setInjuriesDescription,
-  setHasWitnesses,
-  updateWitness,
-  addWitness,
-  removeWitness,
-  onSchemeUpdate,
-  onFormSubmitted
-}) => {
-  
-  // Create a wrapper function for handlePhotoUpload that handles both FileList and File[]
-  const photoUploadHandler = (type: string, fileList: FileList | File[]) => {
-    if (fileList) {
-      const filesArray = fileList instanceof FileList ? Array.from(fileList) : fileList;
-      handlePhotoUpload(type, filesArray);
-    }
-  };
-  
+  onEmergencyContacted
+}: StepRendererProps) => {
   switch (currentStepId) {
-    case "basics":
+    case 'basics':
       return (
-        <BasicInfoStep
+        <BasicInfoStep 
           date={formData.date}
           time={formData.time}
-          location={formData.location}
-          hasMaterialDamage={formData.hasMaterialDamage}
-          materialDamageDescription={formData.materialDamageDescription}
-          geolocation={formData.geolocation}
           handleInputChange={handleInputChange}
-          onEmergencyContacted={onEmergencyContacted}
-          setGeolocation={setGeolocation}
-          clearGeolocation={clearGeolocation}
         />
       );
-    case "vehicles":
+    
+    case 'location':
       return (
-        <VehiclesStep
-          formData={formData}
+        <LocationStep
+          location={formData.location}
+          handleInputChange={handleInputChange}
+          setGeolocation={setGeolocation}
+        />
+      );
+      
+    case 'vehicles':
+      return (
+        <MultiVehicleStep
+          licensePlate={formData.licensePlate}
+          vehicleBrand={formData.vehicleBrand}
+          vehicleModel={formData.vehicleModel}
+          vehicleYear={formData.vehicleYear}
+          vehicleDescription={formData.vehicleDescription}
+          insurancePolicy={formData.insurancePolicy}
+          insuranceCompany={formData.insuranceCompany}
+          otherVehicle={formData.otherVehicle}
           handleInputChange={handleInputChange}
           handleOtherVehicleChange={handleOtherVehicleChange}
           setVehicleInfo={setVehicleInfo}
           setOtherVehicleInfo={setOtherVehicleInfo}
-          handlePhotoUpload={handlePhotoUpload}
         />
       );
-    case "drivers":
+      
+    case 'details':
       return (
-        <DriverAndInsuredStep
-          formData={formData}
-          handleInputChange={handleInputChange}
-        />
-      );
-    case "location":
-      return (
-        <LocationStep
-          date={formData.date}
-          time={formData.time}
-          location={formData.location}
+        <DetailsStep
           description={formData.description}
-          geolocation={formData.geolocation}
           handleInputChange={handleInputChange}
-          setGeolocation={setGeolocation}
-          clearGeolocation={clearGeolocation}
         />
       );
-    case "photos":
+      
+    case 'photos':
       return (
-        <PhotosStep 
-          handlePhotoUpload={photoUploadHandler}
-        />
+        <PhotosStep handlePhotoUpload={handlePhotoUpload} />
       );
-    case "circumstances":
+      
+    case 'scheme':
       return (
-        <CircumstancesStep
-          formData={formData}
-          handleCircumstanceChange={handleCircumstanceChange}
-          setCurrentVehicleId={(id) => setCurrentVehicleId(id as 'A' | 'B')}
-          currentVehicleId={currentVehicleId as 'A' | 'B'}
-        />
+        <SchemeStep formData={formData} />
       );
-    case "witnesses":
-      return (
-        <WitnessStep
-          formData={formData}
-          setHasWitnesses={setHasWitnesses}
-          updateWitness={updateWitness}
-          addWitness={addWitness}
-          removeWitness={removeWitness}
-        />
-      );
-    case "injuries":
-      return (
-        <InjuriesStep
-          formData={formData}
-          setHasInjuries={setHasInjuries}
-          setInjuriesDescription={setInjuriesDescription}
-        />
-      );
-    case "emails":
+      
+    case 'email':
       return (
         <EmailStep
-          personalEmail={formData.personalEmail}
           insuranceEmails={formData.insuranceEmails}
-          involvedPartyEmails={formData.involvedPartyEmails}
           setInsuranceEmails={setInsuranceEmails}
+          involvedPartyEmails={formData.involvedPartyEmails}
           setInvolvedPartyEmails={setInvolvedPartyEmails}
+          personalEmail={formData.personalEmail}
           setPersonalEmail={setPersonalEmail}
         />
       );
-    case "scheme":
+      
+    case 'review':
       return (
-        <SchemeStep
-          formData={formData}
-          onSchemeUpdate={onSchemeUpdate}
-        />
+        <ReviewStep formData={formData} />
       );
-    
-    case "review":
-      return (
-        <ReviewStep 
-          formData={formData} 
-          onSubmitSuccess={onFormSubmitted}
-        />
-      );
-    
+      
     default:
-      return (
-        <div>
-          <h2>Étape inconnue</h2>
-          <p>Veuillez contacter l'assistance.</p>
-        </div>
-      );
+      return null;
   }
 };
 

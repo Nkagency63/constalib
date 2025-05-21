@@ -2,7 +2,7 @@
 export interface VehicleData {
   brand: string;
   model: string;
-  year?: string;
+  year: string;
   firstRegistration?: string;
   insurance?: {
     company: string;
@@ -10,10 +10,6 @@ export interface VehicleData {
     name: string;
   };
   source?: string;
-  licensePlate?: string;
-  insuranceCompany?: string;
-  insurancePolicy?: string;
-  description?: string;
 }
 
 export interface InsuranceData {
@@ -48,20 +44,4 @@ export interface FvaData {
 export interface LookupError {
   status: number;
   message: string;
-}
-
-// Interface for vehicle scheme data
-export interface Vehicle {
-  id: string;
-  type: 'A' | 'B';
-  posX: number;
-  posY: number;
-  rotation: number;
-  width: number;
-  height: number;
-}
-
-export interface SchemeData {
-  vehicles: Vehicle[];
-  background?: string;
 }

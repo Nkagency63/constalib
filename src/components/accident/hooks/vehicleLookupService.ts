@@ -1,8 +1,7 @@
 
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import { VehicleData, InsuranceData, FvaData, LookupError } from '../types/vehicleTypes';
-import { normalizeLicensePlate } from '../utils/licensePlateFormatters';
+import { VehicleData, InsuranceData, FvaData } from '../types/vehicleTypes';
 
 /**
  * Generic interface for lookup responses
@@ -22,8 +21,6 @@ const performLookup = async <T>(
   errorMessage: string
 ): Promise<LookupResponse<T>> => {
   try {
-    console.log(`Performing lookup with ${functionName}:`, data);
-    
     const { data: responseData, error } = await supabase.functions.invoke(functionName, {
       body: data
     });
@@ -49,9 +46,6 @@ const performLookup = async <T>(
         error: `Une erreur technique est survenue lors de la consultation. Veuillez réessayer plus tard.` 
       };
     }
-    
-    // Log full response for debugging
-    console.log(`Response from ${functionName}:`, responseData);
 
     return { 
       success: responseData.success, 
@@ -77,8 +71,6 @@ const processInsuranceData = (
   setInsuranceInfo?: (data: {company: string}) => void
 ): boolean => {
   if (!insuranceData) return false;
-  
-  console.log('Processing insurance data:', insuranceData);
   
   const policyEvent = {
     target: {
@@ -109,7 +101,7 @@ const processInsuranceData = (
  */
 export const lookupVehicleFromSiv = async (
   licensePlate: string,
-  setVehicleInfo: (data: {brand: string, model: string, year?: string, firstRegistration?: string}) => void,
+  setVehicleInfo: (data: {brand: string, model: string, year: string, firstRegistration?: string}) => void,
   handleInputChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void,
   setInsuranceInfo?: (data: {company: string}) => void
 ): Promise<{ 
@@ -121,12 +113,9 @@ export const lookupVehicleFromSiv = async (
 }> => {
   console.log(`Tentative de recherche du véhicule: ${licensePlate}`);
   
-  // Normalize the license plate before sending
-  const normalizedPlate = normalizeLicensePlate(licensePlate, 'siv');
-  
   const result = await performLookup<VehicleData>(
     'lookup-vehicle', 
-    { licensePlate: normalizedPlate }, 
+    { licensePlate }, 
     "Erreur lors de la consultation du SIV"
   );
   
@@ -143,14 +132,8 @@ export const lookupVehicleFromSiv = async (
   const vehicleData = result.data;
   console.log('Véhicule trouvé:', vehicleData);
   
-  // Make sure the year property has a value before passing to setVehicleInfo
-  const dataWithYear = {
-    ...vehicleData,
-    year: vehicleData.year || '' 
-  };
-  
   // Update form with vehicle information
-  setVehicleInfo(dataWithYear);
+  setVehicleInfo(vehicleData);
   
   let insuranceDetails = null;
   let autoInsuranceFound = false;
@@ -181,7 +164,7 @@ export const lookupVehicleFromSiv = async (
  */
 export const lookupVehicleFromFni = async (
   licensePlate: string,
-  setVehicleInfo: (data: {brand: string, model: string, year?: string, firstRegistration?: string}) => void,
+  setVehicleInfo: (data: {brand: string, model: string, year: string, firstRegistration?: string}) => void,
   handleInputChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void,
   setInsuranceInfo?: (data: {company: string}) => void
 ): Promise<{ 
@@ -193,12 +176,9 @@ export const lookupVehicleFromFni = async (
 }> => {
   console.log(`Tentative de recherche du véhicule dans le FNI: ${licensePlate}`);
   
-  // Normalize the license plate before sending
-  const normalizedPlate = normalizeLicensePlate(licensePlate, 'fni');
-  
   const result = await performLookup<VehicleData>(
     'lookup-fni', 
-    { licensePlate: normalizedPlate }, 
+    { licensePlate }, 
     "Erreur lors de la consultation du FNI"
   );
   
@@ -215,14 +195,8 @@ export const lookupVehicleFromFni = async (
   const vehicleData = result.data;
   console.log('Véhicule trouvé dans le FNI:', vehicleData);
   
-  // Make sure the year property has a value before passing to setVehicleInfo
-  const dataWithYear = {
-    ...vehicleData,
-    year: vehicleData.year || '' 
-  };
-  
   // Update form with vehicle information
-  setVehicleInfo(dataWithYear);
+  setVehicleInfo(vehicleData);
   
   let insuranceDetails = null;
   let autoInsuranceFound = false;
@@ -264,50 +238,28 @@ export const lookupVehicleFromFva = async (
 }> => {
   console.log(`Tentative de recherche du véhicule dans le FVA: ${licensePlate}`);
   
-  // Normalize the license plate before sending - try both with and without dashes
-  const normalizedPlate = normalizeLicensePlate(licensePlate, 'siv');
-  const formattedPlate = licensePlate.toUpperCase().trim();
-  
-  console.log(`Envoi au FVA: normalisé=${normalizedPlate}, formatté=${formattedPlate}`);
-  
   const result = await performLookup<FvaData>(
     'lookup-fva', 
-    { 
-      licensePlate: normalizedPlate,
-      formattedPlate: formattedPlate 
-    }, 
+    { licensePlate }, 
     "Erreur lors de la consultation du FVA"
   );
   
   if (!result.success || !result.data) {
-    const errorMessage = result.error || "Aucun véhicule trouvé avec cette immatriculation dans le FVA. Vérifiez votre saisie.";
-    toast.error(errorMessage);
     return { 
       success: false, 
       vehicleDetails: null, 
       fvaData: null,
-      error: errorMessage
+      error: result.error || "Aucun véhicule trouvé avec cette immatriculation dans le FVA. Vérifiez votre saisie."
     };
   }
 
   const fvaData = result.data;
   console.log('Véhicule trouvé dans le FVA:', fvaData);
   
-  if (!fvaData.vehicleInfo || !fvaData.insuranceInfo) {
-    const errorMessage = "Les données retournées par le FVA sont incomplètes.";
-    toast.error(errorMessage);
-    return {
-      success: false,
-      vehicleDetails: null,
-      fvaData: null,
-      error: errorMessage
-    };
-  }
-  
   const vehicleInfo = {
     brand: fvaData.vehicleInfo.brand,
     model: fvaData.vehicleInfo.model,
-    year: fvaData.vehicleInfo.firstRegistration ? fvaData.vehicleInfo.firstRegistration.substring(0, 4) : new Date().getFullYear().toString(),
+    year: fvaData.vehicleInfo.firstRegistration.substring(0, 4),
     firstRegistration: fvaData.vehicleInfo.firstRegistration,
   };
   
@@ -339,56 +291,22 @@ export const lookupVehicleFromFva = async (
   const yearEvent = {
     target: {
       name: 'vehicleYear',
-      value: fvaData.vehicleInfo.firstRegistration ? fvaData.vehicleInfo.firstRegistration.substring(0, 4) : ''
+      value: fvaData.vehicleInfo.firstRegistration.substring(0, 4)
     }
   } as React.ChangeEvent<HTMLInputElement>;
   handleInputChange(yearEvent);
   
   // Update insurance information if available
-  if (fvaData.insuranceInfo && setInsuranceInfo) {
+  if (setInsuranceInfo) {
     setInsuranceInfo({ company: fvaData.insuranceInfo.company });
   }
   
-  // Traitement des informations d'assurance
-  if (fvaData.insuranceInfo) {
-    const insuranceInfo = {
-      policy: fvaData.insuranceInfo.policyNumber,
-      company: fvaData.insuranceInfo.company
-    };
-    
-    processInsuranceData(insuranceInfo, handleInputChange, setInsuranceInfo);
-    
-    // Mise à jour des informations du conducteur et de l'assuré si disponibles
-    if (fvaData.insuranceInfo.insuredName) {
-      const insuredNameEvent = {
-        target: {
-          name: 'insuredName',
-          value: fvaData.insuranceInfo.insuredName
-        }
-      } as React.ChangeEvent<HTMLInputElement>;
-      handleInputChange(insuredNameEvent);
-    }
-    
-    if (fvaData.insuranceInfo.insuredAddress) {
-      const insuredAddressEvent = {
-        target: {
-          name: 'insuredAddress',
-          value: fvaData.insuranceInfo.insuredAddress
-        }
-      } as React.ChangeEvent<HTMLInputElement>;
-      handleInputChange(insuredAddressEvent);
-    }
-    
-    if (fvaData.insuranceInfo.insuredPhone) {
-      const insuredPhoneEvent = {
-        target: {
-          name: 'insuredPhone',
-          value: fvaData.insuranceInfo.insuredPhone
-        }
-      } as React.ChangeEvent<HTMLInputElement>;
-      handleInputChange(insuredPhoneEvent);
-    }
-  }
+  const insuranceInfo = {
+    policy: fvaData.insuranceInfo.policyNumber,
+    company: fvaData.insuranceInfo.company
+  };
+  
+  processInsuranceData(insuranceInfo, handleInputChange, setInsuranceInfo);
   
   toast.success("Informations complètes récupérées du FVA avec succès");
   

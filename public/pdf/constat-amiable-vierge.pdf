@@ -1,5 +1,5 @@
 
-// This is a placeholder for the blank accident report PDF
-// For this to work properly, you need to upload a real PDF file 
-// to this folder "public/pdf/"
-// The file should be named "constat-amiable-vierge.pdf"
+// Ce fichier est un placeholder pour le PDF du constat amiable
+// Pour que cela fonctionne correctement, vous devez télécharger un vrai fichier PDF 
+// de constat amiable dans ce dossier "public/pdf/"
+// Le fichier doit être nommé "constat-amiable-vierge.pdf"

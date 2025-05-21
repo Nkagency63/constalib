@@ -1,93 +1,48 @@
 
-import React from 'react';
-import { Button } from "@/components/ui/button";
-import { Camera } from 'lucide-react';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Info } from 'lucide-react';
+import PhotoCapture from '../PhotoCapture';
 
 interface PhotosStepProps {
-  handlePhotoUpload: (type: string, files: FileList | File[]) => void;
+  handlePhotoUpload: (type: 'vehiclePhotos' | 'damagePhotos', file: File) => void;
 }
 
-const PhotosStep: React.FC<PhotosStepProps> = ({ handlePhotoUpload }) => {
-  // Handle vehicle photo upload
-  const handleVehiclePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files.length > 0) {
-      handlePhotoUpload('vehicle', e.target.files);
-    }
-  };
-  
-  // Handle damage photo upload
-  const handleDamagePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files.length > 0) {
-      handlePhotoUpload('damage', e.target.files);
-    }
-  };
-
+const PhotosStep = ({ handlePhotoUpload }: PhotosStepProps) => {
   return (
-    <div className="space-y-6">
-      <div className="bg-white p-4 rounded-lg border border-gray-200">
-        <h3 className="text-lg font-medium mb-4">Photos des véhicules</h3>
-        <p className="text-sm text-gray-600 mb-4">
-          Prenez des photos des véhicules impliqués dans l'accident sous différents angles.
+    <div className="space-y-8">
+      <div className="space-y-4">
+        <h3 className="text-lg font-medium text-constalib-dark">Photos des véhicules</h3>
+        <p className="text-sm text-constalib-dark-gray">
+          Prenez des photos de l'ensemble des véhicules impliqués dans l'accident.
         </p>
         
-        <div className="flex justify-center">
-          <div className="relative">
-            <input
-              type="file"
-              id="vehiclePhotos"
-              accept="image/*"
-              multiple
-              onChange={handleVehiclePhotoChange}
-              className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-            />
-            <Button variant="outline" className="flex items-center gap-2">
-              <Camera className="h-5 w-5" />
-              Ajouter des photos des véhicules
-            </Button>
-          </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <PhotoCapture 
+            onPhotoCapture={(file) => handlePhotoUpload('vehiclePhotos', file)} 
+            label="Photo du véhicule (vue d'ensemble)"
+          />
+          <PhotoCapture 
+            onPhotoCapture={(file) => handlePhotoUpload('vehiclePhotos', file)} 
+            label="Photo de la plaque d'immatriculation"
+          />
         </div>
-      </div>
-
-      <div className="bg-white p-4 rounded-lg border border-gray-200">
-        <h3 className="text-lg font-medium mb-4">Photos des dommages</h3>
-        <p className="text-sm text-gray-600 mb-4">
-          Prenez des photos détaillées des dommages causés aux véhicules et à d'autres biens.
-        </p>
-        
-        <div className="flex justify-center">
-          <div className="relative">
-            <input
-              type="file"
-              id="damagePhotos"
-              accept="image/*"
-              multiple
-              onChange={handleDamagePhotoChange}
-              className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-            />
-            <Button variant="outline" className="flex items-center gap-2">
-              <Camera className="h-5 w-5" />
-              Ajouter des photos des dommages
-            </Button>
-          </div>
-        </div>
-      </div>
-
-      <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
-        <p className="text-sm text-blue-800">
-          <strong>Conseil:</strong> Assurez-vous que vos photos sont claires et montrent bien l'étendue des dégâts.
-          Prenez des photos sous plusieurs angles et avec un bon éclairage si possible.
-        </p>
       </div>
       
-      <Alert variant="default" className="bg-amber-50 border-amber-200 mt-6">
-        <Info className="h-4 w-4 text-amber-600" />
-        <AlertDescription className="text-amber-800 text-sm">
-          <strong>Astuce:</strong> Vous pouvez ajouter des photos supplémentaires de la scène d'accident 
-          et des détails environnants dans l'onglet "Schéma d'accident".
-        </AlertDescription>
-      </Alert>
+      <div className="space-y-4">
+        <h3 className="text-lg font-medium text-constalib-dark">Photos des dégâts</h3>
+        <p className="text-sm text-constalib-dark-gray">
+          Prenez des photos détaillées des dommages subis par les véhicules.
+        </p>
+        
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <PhotoCapture 
+            onPhotoCapture={(file) => handlePhotoUpload('damagePhotos', file)} 
+            label="Photo des dégâts (vue rapprochée)"
+          />
+          <PhotoCapture 
+            onPhotoCapture={(file) => handlePhotoUpload('damagePhotos', file)} 
+            label="Photo supplémentaire (si nécessaire)"
+          />
+        </div>
+      </div>
     </div>
   );
 };

@@ -1,6 +1,5 @@
 
 import { useState } from 'react';
-import { FormData } from './types';
 import { VehicleData, InsuranceData, FvaData } from './types/vehicleTypes';
 import LicensePlateInput from './vehicle/LicensePlateInput';
 import VehicleDetailsAlerts from './vehicle/VehicleDetailsAlerts';
@@ -11,23 +10,29 @@ import VehicleHelpText from './vehicle/VehicleHelpText';
 import { useVehicleLookup } from './hooks/useVehicleLookup';
 
 interface VehicleIdentificationStepProps {
-  formData: FormData;
+  licensePlate: string;
+  vehicleBrand: string;
+  vehicleModel: string;
+  vehicleYear: string;
+  vehicleDescription: string;
+  insurancePolicy?: string;
+  insuranceCompany?: string;
   handleInputChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
-  handleOtherVehicleChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
   setVehicleInfo: (data: {brand: string, model: string, year: string, firstRegistration?: string}) => void;
-  setOtherVehicleInfo: (data: {brand: string, model: string, year: string, firstRegistration?: string}) => void;
-  onEmergencyContacted: () => void;
-  vehicleId: 'A' | 'B';
+  setInsuranceInfo?: (data: {company: string}) => void;
 }
 
 const VehicleIdentificationStep = ({
-  formData,
+  licensePlate,
+  vehicleBrand,
+  vehicleModel,
+  vehicleYear,
+  vehicleDescription,
+  insurancePolicy = '',
+  insuranceCompany = '',
   handleInputChange,
-  handleOtherVehicleChange,
   setVehicleInfo,
-  setOtherVehicleInfo,
-  onEmergencyContacted,
-  vehicleId
+  setInsuranceInfo
 }: VehicleIdentificationStepProps) => {
   const [searchTab, setSearchTab] = useState<'siv' | 'fni'>('siv');
   
@@ -59,10 +64,10 @@ const VehicleIdentificationStep = ({
       resetLookups
     }
   ] = useVehicleLookup({
-    licensePlate: formData.licensePlate,
+    licensePlate,
     handleInputChange,
     setVehicleInfo,
-    setInsuranceInfo: (data: {company: string}) => {}
+    setInsuranceInfo
   });
 
   const handleSearchTabChange = (tab: 'siv' | 'fni') => {
@@ -72,17 +77,8 @@ const VehicleIdentificationStep = ({
 
   return (
     <div className="space-y-6">
-      <div className="mb-4">
-        <h3 className="text-lg font-medium text-constalib-dark">
-          Véhicule {vehicleId}
-        </h3>
-        <p className="text-sm text-constalib-dark-gray">
-          {vehicleId === 'A' ? 'Votre véhicule' : 'Véhicule adverse'}
-        </p>
-      </div>
-      
       <LicensePlateInput
-        licensePlate={formData.licensePlate}
+        licensePlate={licensePlate}
         handleInputChange={handleInputChange}
         onSearchTab={handleSearchTabChange}
         searchTab={searchTab}
@@ -116,24 +112,24 @@ const VehicleIdentificationStep = ({
       {showFvaDetails && fvaData && <FvaDetailsCard fvaData={fvaData} />}
       
       <VehicleInfoFields
-        vehicleBrand={formData.vehicleBrand}
-        vehicleModel={formData.vehicleModel}
-        vehicleYear={formData.vehicleYear}
-        vehicleDescription={formData.vehicleDescription}
+        vehicleBrand={vehicleBrand}
+        vehicleModel={vehicleModel}
+        vehicleYear={vehicleYear}
+        vehicleDescription={vehicleDescription}
         handleInputChange={handleInputChange}
         readOnly={lookupSuccess || fvaLookupSuccess}
       />
       
       <InsuranceInfoFields
-        insurancePolicy={formData.insurancePolicy}
-        insuranceCompany={formData.insuranceCompany}
+        insurancePolicy={insurancePolicy}
+        insuranceCompany={insuranceCompany}
         handleInputChange={handleInputChange}
         insuranceLookupSuccess={insuranceLookupSuccess}
         insuranceDetails={insuranceDetails}
         autoInsuranceFound={autoInsuranceFound}
         setInsuranceLookupSuccess={(success) => {}}
         setInsuranceDetails={() => {}}
-        setInsuranceInfo={(data: {company: string}) => {}}
+        setInsuranceInfo={setInsuranceInfo}
       />
     </div>
   );

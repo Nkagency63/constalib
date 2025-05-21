@@ -1,126 +1,67 @@
 
-import React, { useState, useEffect } from 'react';
-import { FormData, SchemeData } from './types';
-import InteractiveScheme from './InteractiveScheme';
-import { toast } from 'sonner';
-import { TooltipProvider } from '@/components/ui/tooltip';
-import { Car, Info } from 'lucide-react';
-import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
+import { useRef } from 'react';
+import VehicleScheme from '../VehicleScheme';
+import LocationMap from './LocationMap';
+import { FormData } from './types';
+import { MapPin, Map as MapIcon, Car } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 interface SchemeStepProps {
   formData: FormData;
-  onSchemeUpdate?: (schemeData: SchemeData) => void;
 }
 
-const SchemeStep: React.FC<SchemeStepProps> = ({ formData, onSchemeUpdate }) => {
-  const [hasShownUpdateToast, setHasShownUpdateToast] = useState(false);
-  const [activeTab, setActiveTab] = useState("scheme");
-  const [schemeData, setSchemeData] = useState<SchemeData>({
-    vehicles: [],
-    paths: [],
-    annotations: [],
-    center: formData?.geolocation?.lat && formData?.geolocation?.lng 
-      ? [formData.geolocation.lat, formData.geolocation.lng] 
-      : [48.8566, 2.3522],
-    zoom: 17
-  });
-  
-  // Initialize with existing scheme data if available in formData
-  useEffect(() => {
-    if (formData.schemeData) {
-      setSchemeData(formData.schemeData);
-    }
-  }, [formData.schemeData]);
+const SchemeStep = ({ formData }: SchemeStepProps) => {
+  const { geolocation } = formData;
 
-  const handleSchemeUpdate = (updatedSchemeData: SchemeData) => {
-    console.log('Scheme data saved:', updatedSchemeData);
-    setSchemeData(updatedSchemeData);
-    
-    // Show toast only on first meaningful update
-    if (!hasShownUpdateToast && (
-      updatedSchemeData.vehicles.length > 0 || 
-      updatedSchemeData.paths.length > 0 || 
-      updatedSchemeData.annotations.length > 0
-    )) {
-      toast("Les modifications sont enregistrées automatiquement");
-      setHasShownUpdateToast(true);
-    }
-    
-    // If a handler was provided, call it with the updated scheme data
-    if (onSchemeUpdate) {
-      onSchemeUpdate(updatedSchemeData);
-    }
-  };
-
-  // Force map resize when tab changes
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      window.dispatchEvent(new Event('resize'));
-    }, 100);
-    return () => clearTimeout(timer);
-  }, [activeTab]);
-  
   return (
-    <TooltipProvider>
-      <div className="space-y-6">
-        <Alert className="bg-blue-50 border-blue-200">
-          <Info className="h-5 w-5 text-blue-600" />
-          <AlertTitle>Schéma d'accident</AlertTitle>
-          <AlertDescription className="text-sm text-blue-700">
-            Positionnez les véhicules A et B sur la carte pour illustrer l'accident. 
-            Vous pouvez les déplacer en glissant-déposant, et les faire pivoter avec les contrôles.
-          </AlertDescription>
-        </Alert>
-        
-        <Tabs defaultValue="scheme" value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="grid w-full grid-cols-2 mb-4">
-            <TabsTrigger value="scheme">Vue Schématique</TabsTrigger>
-            <TabsTrigger value="map">Vue Carte</TabsTrigger>
-          </TabsList>
-          
-          <TabsContent value="scheme" className="p-0 border-0">
-            <div className="bg-white p-4 rounded-lg border border-gray-200">
-              <div className="flex items-center gap-2 mb-3 text-sm text-constalib-dark-gray">
-                <Car className="h-4 w-4 text-blue-600" />
-                <span>Véhicule A (votre véhicule) - <span className="font-semibold">{formData.vehicleBrand} {formData.vehicleModel}</span></span>
-              </div>
-              
-              <div className="flex items-center gap-2 mb-4 text-sm text-constalib-dark-gray">
-                <Car className="h-4 w-4 text-red-600" />
-                <span>Véhicule B (autre partie) - <span className="font-semibold">{formData.otherVehicle?.brand} {formData.otherVehicle?.model}</span></span>
-              </div>
-              
-              <div className="h-[500px] rounded-lg overflow-hidden relative border border-gray-200">
-                <InteractiveScheme
-                  formData={formData}
-                  onUpdateSchemeData={handleSchemeUpdate}
-                  initialData={schemeData}
-                  activeTab={activeTab}
-                />
-              </div>
-            </div>
-          </TabsContent>
-          
-          <TabsContent value="map" className="p-0 border-0">
-            <div className="bg-white p-4 rounded-lg border border-gray-200">
-              <p className="text-sm text-gray-600 mb-4">
-                Visualisez l'emplacement de l'accident sur la carte. Vous pouvez zoomer et vous déplacer pour mieux voir les détails.
-              </p>
-              
-              <div className="h-[500px] rounded-lg overflow-hidden relative border border-gray-200">
-                <InteractiveScheme
-                  formData={formData}
-                  onUpdateSchemeData={handleSchemeUpdate}
-                  initialData={schemeData}
-                  activeTab={activeTab}
-                />
-              </div>
-            </div>
-          </TabsContent>
-        </Tabs>
+    <div className="space-y-6">
+      <div className="space-y-2">
+        <h3 className="text-lg font-medium text-constalib-dark">Schéma de l'accident</h3>
+        <p className="text-sm text-constalib-dark-gray">
+          Positionnez les véhicules pour représenter visuellement l'accident.
+        </p>
       </div>
-    </TooltipProvider>
+      
+      <Tabs defaultValue="scheme" className="w-full">
+        <TabsList className="grid w-full grid-cols-2">
+          <TabsTrigger value="scheme" className="flex items-center">
+            <Car className="w-4 h-4 mr-2" />
+            Positionnement
+          </TabsTrigger>
+          <TabsTrigger value="map" className="flex items-center">
+            <MapPin className="w-4 h-4 mr-2" />
+            Carte du lieu
+          </TabsTrigger>
+        </TabsList>
+        
+        <TabsContent value="scheme" className="pt-4">
+          <VehicleScheme />
+        </TabsContent>
+        
+        <TabsContent value="map" className="pt-4">
+          <div className="space-y-4">
+            <div className="p-4 bg-constalib-light-blue/10 rounded-lg">
+              <div className="flex items-start">
+                <MapIcon className="w-5 h-5 text-constalib-blue mt-0.5 mr-2 flex-shrink-0" />
+                <p className="text-sm">
+                  <span className="font-medium text-constalib-dark">Localisation de l'accident</span><br />
+                  <span className="text-constalib-dark-gray">
+                    Voici la carte précise du lieu de l'accident. Elle vous permettra de mieux visualiser
+                    la configuration des lieux et de positionner les véhicules de manière plus précise.
+                  </span>
+                </p>
+              </div>
+            </div>
+            
+            <LocationMap 
+              lat={geolocation.lat} 
+              lng={geolocation.lng} 
+              address={geolocation.address} 
+            />
+          </div>
+        </TabsContent>
+      </Tabs>
+    </div>
   );
 };
 

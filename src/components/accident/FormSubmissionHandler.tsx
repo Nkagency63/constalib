@@ -1,102 +1,105 @@
 
-import React, { useState } from 'react';
-import { Button } from "@/components/ui/button";
-import { useRegisterReport } from "@/hooks/accident/useRegisterReport";
-import { toast } from "sonner";
-import { FormData } from "./types";
-import { AlertDialog } from "@/components/ui/alert-dialog";
-import SignatureDialog from "./SignatureDialog";
-import OfficialReportDialog from "./pdf/OfficialReportDialog";
-import useCerfaGeneration from "@/hooks/accident/useCerfaGeneration";
+import { useState } from 'react';
+import { FormData } from './types';
+import { useToast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
+import { saveVehicleData, uploadPhotos, saveAccidentReport, sendEmails } from '@/services/accidentReportService';
 
 interface FormSubmissionHandlerProps {
   formData: FormData;
+  children: (props: {
+    handleSubmit: (e: React.FormEvent) => Promise<void>;
+    isSubmitting: boolean;
+  }) => React.ReactNode;
   onSubmitSuccess: () => void;
 }
 
-const FormSubmissionHandler: React.FC<FormSubmissionHandlerProps> = ({
-  formData,
-  onSubmitSuccess
-}) => {
+const FormSubmissionHandler = ({ 
+  formData, 
+  children, 
+  onSubmitSuccess 
+}: FormSubmissionHandlerProps) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [showSignatureModal, setShowSignatureModal] = useState(false);
-  const [signatures, setSignatures] = useState<{ partyA: string | null, partyB: string | null }>({
-    partyA: null,
-    partyB: null
-  });
-  const [showConfirmDialog, setShowConfirmDialog] = useState(false);
-  const [registrationSuccess, setRegistrationSuccess] = useState(false);
-  const [referenceId, setReferenceId] = useState("");
-  
-  const { registerReport } = useRegisterReport();
-  const { generatePdf } = useCerfaGeneration({ 
-    formData,
-    signatures,
-    onSuccess: onSubmitSuccess
-  });
+  const { toast: uiToast } = useToast();
 
-  const handleGenerateReport = async () => {
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
     setIsSubmitting(true);
+    
     try {
-      // Register the report
-      const result = await registerReport(formData);
+      const vehicleId = await saveVehicleData({
+        license_plate: formData.licensePlate,
+        brand: formData.vehicleBrand,
+        model: formData.vehicleModel,
+        year: formData.vehicleYear,
+        first_registration: formData.firstRegistration,
+        insurance_policy: formData.insurancePolicy,
+        insurance_company: formData.insuranceCompany
+      });
       
-      // Show success toast and set success state
-      toast.success("Votre constat a été enregistré avec succès!");
-      setRegistrationSuccess(true);
-      setReferenceId("REF-" + Math.random().toString(36).substring(2, 10).toUpperCase());
+      const otherVehicleId = await saveVehicleData({
+        license_plate: formData.otherVehicle.licensePlate,
+        brand: formData.otherVehicle.brand,
+        model: formData.otherVehicle.model,
+        year: formData.otherVehicle.year,
+        first_registration: formData.otherVehicle.firstRegistration,
+        insurance_policy: formData.otherVehicle.insurancePolicy,
+        insurance_company: formData.otherVehicle.insuranceCompany
+      });
       
-      // Generate PDF with signatures
-      await generatePdf();
+      const vehiclePhotoUrls = await uploadPhotos(formData.vehiclePhotos, 'vehicle');
+      const damagePhotoUrls = await uploadPhotos(formData.damagePhotos, 'damage');
       
-      // Call the success callback
-      if (onSubmitSuccess) {
-        onSubmitSuccess();
+      const data = await saveAccidentReport(
+        formData,
+        vehicleId,
+        otherVehicleId,
+        vehiclePhotoUrls,
+        damagePhotoUrls
+      );
+      
+      console.log('Accident report saved:', data);
+      
+      if (data && data[0] && (formData.personalEmail || formData.insuranceEmails.length > 0 || formData.involvedPartyEmails.length > 0)) {
+        try {
+          await sendEmails(data[0].id, formData);
+          uiToast({
+            title: "Emails envoyés",
+            description: "Le constat a été envoyé par email aux destinataires spécifiés.",
+            variant: "default"
+          });
+        } catch (emailError: any) {
+          console.error("Error sending emails:", emailError);
+          uiToast({
+            title: "Alerte",
+            description: `La déclaration a été enregistrée mais l'envoi des emails a échoué: ${emailError.message}`,
+            variant: "destructive"
+          });
+        }
       }
-    } catch (error) {
-      console.error('Erreur lors de l\'enregistrement du constat:', error);
-      const errorMessage = error instanceof Error ? error.message : "Erreur lors de l'enregistrement du constat";
-      toast.error(errorMessage);
+      
+      uiToast({
+        title: "Succès",
+        description: "Votre déclaration a été envoyée avec succès.",
+        variant: "default"
+      });
+      toast.success("Votre déclaration a été envoyée avec succès.");
+      onSubmitSuccess();
+    } catch (err: any) {
+      console.error('Error in submission process:', err);
+      uiToast({
+        title: "Erreur",
+        description: err.message || "Une erreur est survenue lors de la soumission de votre déclaration.",
+        variant: "destructive"
+      });
+      toast.error("Une erreur est survenue lors de la soumission de votre déclaration.");
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  const handleOpenSignatureModal = () => {
-    setShowSignatureModal(true);
-  };
-
-  const handleSignaturesComplete = (signatures: { partyA: string, partyB: string }) => {
-    setSignatures(signatures);
-    setShowSignatureModal(false);
-    setShowConfirmDialog(true);
-  };
-
   return (
-    <div className="space-y-4">
-      <Button 
-        onClick={handleOpenSignatureModal}
-        className="w-full"
-        disabled={isSubmitting}
-      >
-        {isSubmitting ? "Enregistrement en cours..." : "Finaliser le constat"}
-      </Button>
-      
-      <SignatureDialog 
-        open={showSignatureModal} 
-        onOpenChange={setShowSignatureModal}
-        onSignaturesComplete={handleSignaturesComplete}
-      />
-      
-      <OfficialReportDialog
-        open={showConfirmDialog}
-        onOpenChange={setShowConfirmDialog}
-        onConfirm={handleGenerateReport}
-        isProcessing={isSubmitting}
-        referenceId={referenceId}
-        isSuccess={registrationSuccess}
-      />
-    </div>
+    <>{children({ handleSubmit, isSubmitting })}</>
   );
 };
 

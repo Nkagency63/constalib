@@ -1,21 +1,8 @@
 
-import React from 'react';
-import { Toaster } from 'sonner';
+import { Toaster } from "sonner";
 
 const ToastHandler = () => {
-  return (
-    <Toaster 
-      position="top-right" 
-      toastOptions={{
-        style: {
-          background: '#fff',
-          color: '#363636',
-        },
-        duration: 4000,
-        className: 'my-toast-class',
-      }}
-    />
-  );
+  return <Toaster position="top-right" richColors closeButton />;
 };
 
 export default ToastHandler;

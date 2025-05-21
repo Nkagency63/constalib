@@ -1,97 +1,87 @@
 
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { MapPin, Loader2 } from 'lucide-react';
-import { Button } from "@/components/ui/button";
+import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import { GeolocationData } from './types';
+import { Button } from "@/components/ui/button";
 
 interface CurrentLocationButtonProps {
-  setGeolocation: (data: GeolocationData) => void;
+  onLocationSuccess: (data: {lat: number, lng: number, address: string}) => void;
+  onLocationError: () => void;
+  onLocationStart: () => void;
 }
 
-const CurrentLocationButton = ({ setGeolocation }: CurrentLocationButtonProps) => {
-  const [isLoading, setIsLoading] = useState(false);
+const CurrentLocationButton = ({
+  onLocationSuccess,
+  onLocationError,
+  onLocationStart
+}: CurrentLocationButtonProps) => {
+  const [isGettingCurrentLocation, setIsGettingCurrentLocation] = useState(false);
 
-  const handleGetCurrentLocation = () => {
+  const reverseGeocode = async (latitude: number, longitude: number) => {
+    try {
+      const { data, error } = await supabase.functions.invoke('geocode-location', {
+        body: { address: `${latitude},${longitude}` }
+      });
+      
+      if (error || !data.success) {
+        console.error('Error in reverse geocoding:', error || data.error);
+        return `Position: ${latitude.toFixed(6)}, ${longitude.toFixed(6)}`;
+      }
+      
+      return data.data.formatted_address;
+    } catch (err) {
+      console.error('Error in reverse geocoding:', err);
+      return `Position: ${latitude.toFixed(6)}, ${longitude.toFixed(6)}`;
+    }
+  };
+
+  const getCurrentLocation = () => {
     if (!navigator.geolocation) {
       toast.error("La géolocalisation n'est pas supportée par votre navigateur");
       return;
     }
 
-    setIsLoading(true);
-
-    const geoOptions = {
-      enableHighAccuracy: true,
-      timeout: 10000,
-      maximumAge: 0
-    };
-
+    setIsGettingCurrentLocation(true);
+    onLocationStart();
+    
     navigator.geolocation.getCurrentPosition(
-      async (position) => {
-        const lat = position.coords.latitude;
-        const lng = position.coords.longitude;
-        const accuracy = position.coords.accuracy;
-        const timestamp = position.timestamp;
+      async position => {
+        const { latitude, longitude } = position.coords;
         
-        try {
-          // Free geocoding using Nominatim OpenStreetMap API (no API key required)
-          const response = await fetch(
-            `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json`,
-            { headers: { 'Accept-Language': 'fr' } }
-          );
-          
-          if (!response.ok) {
-            throw new Error(`Error: ${response.status}`);
-          }
-          
-          const data = await response.json();
-          const address = data.display_name || `${lat.toFixed(6)}, ${lng.toFixed(6)}`;
-          
-          setGeolocation({
-            lat,
-            lng,
-            address,
-            accuracy,
-            timestamp
-          });
-          
-          toast.success("Position localisée", {
-            description: "Votre position actuelle a été détectée"
-          });
-        } catch (err) {
-          console.error('Error in reverse geocoding:', err);
-          
-          // Fallback to just coordinates if error occurs
-          setGeolocation({
-            lat,
-            lng,
-            address: `${lat.toFixed(6)}, ${lng.toFixed(6)}`,
-            accuracy,
-            timestamp
-          });
-          
-          toast.error("Une erreur est survenue mais les coordonnées ont été enregistrées");
-        } finally {
-          setIsLoading(false);
-        }
+        // Perform reverse geocoding to get address from coordinates
+        const address = await reverseGeocode(latitude, longitude);
+        
+        onLocationSuccess({
+          lat: latitude,
+          lng: longitude,
+          address: address
+        });
+        
+        toast.success("Position actuelle récupérée");
+        setIsGettingCurrentLocation(false);
       },
-      (error) => {
-        setIsLoading(false);
-        switch(error.code) {
-          case error.PERMISSION_DENIED:
-            toast.error("Vous avez refusé l'accès à votre position");
-            break;
-          case error.POSITION_UNAVAILABLE:
-            toast.error("Les informations de position ne sont pas disponibles");
-            break;
-          case error.TIMEOUT:
-            toast.error("La demande de position a expiré");
-            break;
-          default:
-            toast.error("Une erreur inconnue s'est produite");
+      error => {
+        console.error('Error getting current location:', error);
+        
+        let message = "Impossible de récupérer votre position";
+        if (error.code === 1) {
+          message = "Vous avez refusé l'accès à votre position";
+        } else if (error.code === 2) {
+          message = "Votre position n'est pas disponible";
+        } else if (error.code === 3) {
+          message = "La demande a expiré";
         }
+        
+        toast.error(message);
+        onLocationError();
+        setIsGettingCurrentLocation(false);
       },
-      geoOptions
+      {
+        enableHighAccuracy: true,
+        timeout: 10000,
+        maximumAge: 0
+      }
     );
   };
 
@@ -99,22 +89,15 @@ const CurrentLocationButton = ({ setGeolocation }: CurrentLocationButtonProps) =
     <Button
       type="button"
       variant="outline"
-      onClick={handleGetCurrentLocation}
-      disabled={isLoading}
-      className="w-full"
-      data-location-button
+      onClick={getCurrentLocation}
+      disabled={isGettingCurrentLocation}
+      className="w-full flex items-center justify-center"
     >
-      {isLoading ? (
-        <>
-          <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-          Détection en cours...
-        </>
-      ) : (
-        <>
-          <MapPin className="h-4 w-4 mr-2" />
-          Utiliser ma position actuelle
-        </>
-      )}
+      {isGettingCurrentLocation ? 
+        <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : 
+        <MapPin className="h-4 w-4 mr-2" />
+      }
+      Utiliser ma position actuelle
     </Button>
   );
 };

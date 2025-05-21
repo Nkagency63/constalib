@@ -1,48 +1,45 @@
 
-export const accidentFormSteps = [
+import { Step } from './types';
+
+export const accidentFormSteps: Step[] = [
   {
     id: 'basics',
     title: 'Informations de base',
-    description: 'Date, heure et lieu de l\'accident'
+    description: 'Date et heure de l\'accident'
+  },
+  {
+    id: 'location',
+    title: 'Localisation',
+    description: 'Adresse précise de l\'accident'
   },
   {
     id: 'vehicles',
-    title: 'Véhicules impliqués',
-    description: 'Identification des véhicules concernés'
+    title: 'Véhicules',
+    description: 'Identification des véhicules impliqués'
   },
   {
-    id: 'drivers',
-    title: 'Conducteurs et assurés',
-    description: 'Informations sur les conducteurs et les assurés'
+    id: 'details',
+    title: 'Détails',
+    description: 'Description de l\'accident'
   },
   {
     id: 'photos',
     title: 'Photos',
-    description: 'Photos des véhicules et des dommages'
-  },
-  {
-    id: 'circumstances',
-    title: 'Circonstances',
-    description: 'Détails sur les circonstances de l\'accident'
+    description: 'Photographies des véhicules et des dégâts'
   },
   {
     id: 'scheme',
-    title: 'Schéma d\'accident',
-    description: 'Créer un schéma de l\'accident'
+    title: 'Schéma',
+    description: 'Positionnement des véhicules'
   },
   {
-    id: 'witnesses',
-    title: 'Témoins',
-    description: 'Informations sur les témoins de l\'accident'
-  },
-  {
-    id: 'injuries',
-    title: 'Blessures',
-    description: 'Informations sur les personnes blessées'
+    id: 'email',
+    title: 'Envoi',
+    description: 'Destinataires du constat'
   },
   {
     id: 'review',
     title: 'Vérification',
-    description: 'Vérifier et finaliser le constat'
+    description: 'Vérifiez les informations avant de soumettre'
   }
 ];
