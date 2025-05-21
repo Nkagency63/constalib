@@ -1,12 +1,11 @@
+
 import { useState, useEffect } from 'react';
-import { SchemeData, VehicleSchemeData } from './accident/types/types';
-import SchemeContainer from './accident/scheme/components/SchemeContainer';
+import { SchemeData } from './accident/types/types';
 import { v4 as uuidv4 } from 'uuid';
 import { toast } from 'sonner';
-import 'leaflet/dist/leaflet.css';
-import '../components/accident/scheme/scheme.css';
-import { MapContainer, TileLayer } from 'react-leaflet';
-import MapResizer from './accident/MapResizer';
+import './accident/scheme/scheme.css';
+import { useGeolocation } from './accident/hooks/useGeolocation';
+import VehicleSchemeMap from './accident/scheme/components/VehicleSchemeMap';
 
 interface VehicleSchemeProps {
   initialData?: SchemeData | null;
@@ -47,83 +46,31 @@ const VehicleScheme = ({ initialData, onSchemeUpdate }: VehicleSchemeProps) => {
     zoom: initialData?.zoom || 1
   });
 
-  // Use geolocation to update center coordinates and get address
-  useEffect(() => {
-    // Check if geolocation is supported by the browser
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        async (position) => {
-          const { latitude, longitude } = position.coords;
-          console.log("Geolocation successful:", latitude, longitude);
-          
-          // Update map center with current position
-          setSchemeData((prev) => ({
-            ...prev,
-            center: [latitude, longitude] as [number, number],
-            zoom: 17 // Set a better zoom level for location viewing
-          }));
-          
-          // Perform reverse geocoding with Nominatim
-          try {
-            const response = await fetch(
-              `https://nominatim.openstreetmap.org/reverse?lat=${latitude}&lon=${longitude}&format=json`,
-              { headers: { 'accept-language': 'fr' } }
-            );
-            
-            if (response.ok) {
-              const data = await response.json();
-              const address = data.display_name;
-              console.log("Reverse geocoding successful:", address);
-              
-              // If onSchemeUpdate is provided, we can send the geolocation data
-              if (onSchemeUpdate) {
-                const updatedScheme = {
-                  ...schemeData,
-                  center: [latitude, longitude] as [number, number],
-                  zoom: 17,
-                  // You might want to add address to your scheme data structure
-                  // This is optional and depends on your application's needs
-                };
-                onSchemeUpdate(updatedScheme);
-              }
-              
-              toast("Position géographique détectée: " + address);
-            } else {
-              console.error("Reverse geocoding failed:", response.statusText);
-              toast("Position géographique détectée");
-            }
-          } catch (error) {
-            console.error("Error during reverse geocoding:", error);
-            toast("Position géographique détectée");
-          }
-        },
-        (error) => {
-          console.error("Erreur de géolocalisation:", error);
-          toast.error("Impossible d'obtenir votre position. Utilisation des coordonnées par défaut.");
-          
-          // Keep default coordinates if user denies permission or any other error
-          if (!initialData?.center) {
-            setSchemeData(prev => ({
-              ...prev,
-              center: [48.8566, 2.3522] as [number, number], // Paris coordinates as fallback
-              zoom: 13
-            }));
-          }
-        },
-        {
-          enableHighAccuracy: true,
-          timeout: 5000,
-          maximumAge: 0
-        }
-      );
-    } else {
-      console.warn("Geolocation is not supported by this browser");
-      toast.error("La géolocalisation n'est pas supportée par votre navigateur");
+  // Utiliser le hook de géolocalisation
+  const { center, zoom } = useGeolocation({
+    initialCenter: initialData?.center as [number, number] || [48.8566, 2.3522],
+    initialZoom: initialData?.zoom || 17,
+    onLocationUpdate: (newCenter, newZoom, address) => {
+      setSchemeData((prev) => ({
+        ...prev,
+        center: newCenter,
+        zoom: newZoom
+      }));
+      
+      // Si onSchemeUpdate est fourni, on peut envoyer les données de géolocalisation
+      if (onSchemeUpdate) {
+        const updatedScheme = {
+          ...schemeData,
+          center: newCenter,
+          zoom: newZoom,
+        };
+        onSchemeUpdate(updatedScheme);
+      }
     }
-  }, [initialData?.center]);
+  });
 
   useEffect(() => {
-    // Update scheme with initialData if provided and not already set
+    // Mettre à jour le schéma avec initialData si fourni et pas déjà défini
     if (initialData && 
         initialData.vehicles && 
         initialData.vehicles.length > 0 && 
@@ -133,6 +80,15 @@ const VehicleScheme = ({ initialData, onSchemeUpdate }: VehicleSchemeProps) => {
     }
   }, [initialData]);
 
+  // Mettre à jour le centre et le zoom de la carte lorsqu'ils changent
+  useEffect(() => {
+    setSchemeData(prev => ({
+      ...prev,
+      center,
+      zoom
+    }));
+  }, [center, zoom]);
+
   const handleVehicleMove = (id: string, x: number, y: number) => {
     const updatedVehicles = schemeData.vehicles.map(vehicle => {
       if (vehicle.id === id) {
@@ -140,7 +96,7 @@ const VehicleScheme = ({ initialData, onSchemeUpdate }: VehicleSchemeProps) => {
           ...vehicle, 
           x, 
           y, 
-          position: [x, y] as [number, number]  // Update position for compatibility with map
+          position: [x, y] as [number, number]  // Mettre à jour position pour la compatibilité avec la carte
         };
       }
       return vehicle;
@@ -171,10 +127,10 @@ const VehicleScheme = ({ initialData, onSchemeUpdate }: VehicleSchemeProps) => {
     }
     
     const colors = ['#3b82f6', '#ef4444', '#10b981', '#f59e0b'];
-    const newVehicle: VehicleSchemeData = {
+    const newVehicle = {
       id: uuidv4(),
       type: `${String.fromCharCode(65 + schemeData.vehicles.length)}`, // A, B, C, D, etc.
-      position: [200, 200], // Default position
+      position: [200, 200] as [number, number], // Position par défaut
       x: 200,
       y: 200,
       rotation: 0,
@@ -206,29 +162,13 @@ const VehicleScheme = ({ initialData, onSchemeUpdate }: VehicleSchemeProps) => {
 
   return (
     <div className="w-full h-full">
-      <MapContainer
-        center={schemeData.center as [number, number]}
-        zoom={schemeData.zoom || 17}
-        className="map-container"
-        attributionControl={false}
-        zoomControl={true}
-      >
-        <TileLayer
-          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-        />
-        <MapResizer />
-        
-        <SchemeContainer
-          vehicles={schemeData.vehicles}
-          onVehicleMove={handleVehicleMove}
-          onVehicleRotate={handleVehicleRotate}
-          onAddVehicle={addVehicle}
-          onRemoveVehicle={removeVehicle}
-          width={500}
-          height={500}
-        />
-      </MapContainer>
+      <VehicleSchemeMap 
+        schemeData={schemeData}
+        onVehicleMove={handleVehicleMove}
+        onVehicleRotate={handleVehicleRotate}
+        onAddVehicle={addVehicle}
+        onRemoveVehicle={removeVehicle}
+      />
     </div>
   );
 };
