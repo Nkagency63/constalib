@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { SchemeData, VehicleSchemeData } from './accident/types/types';
 import SchemeContainer from './accident/scheme/components/SchemeContainer';
@@ -43,6 +42,48 @@ const VehicleScheme = ({ initialData, onSchemeUpdate }: VehicleSchemeProps) => {
     center: initialData?.center || [50, 50],
     zoom: initialData?.zoom || 1
   });
+
+  // Use geolocation to update center coordinates
+  useEffect(() => {
+    // Check if geolocation is supported by the browser
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          const { latitude, longitude } = position.coords;
+          console.log("Geolocation successful:", latitude, longitude);
+          
+          setSchemeData((prev) => ({
+            ...prev,
+            center: [latitude, longitude],
+            zoom: 17 // Set a better zoom level for location viewing
+          }));
+          
+          toast("Position géographique détectée");
+        },
+        (error) => {
+          console.error("Erreur de géolocalisation:", error);
+          toast.error("Impossible d'obtenir votre position. Utilisation des coordonnées par défaut.");
+          
+          // Keep default coordinates if user denies permission or any other error
+          if (!initialData?.center) {
+            setSchemeData(prev => ({
+              ...prev,
+              center: [48.8566, 2.3522], // Paris coordinates as fallback
+              zoom: 13
+            }));
+          }
+        },
+        {
+          enableHighAccuracy: true,
+          timeout: 5000,
+          maximumAge: 0
+        }
+      );
+    } else {
+      console.warn("Geolocation is not supported by this browser");
+      toast.error("La géolocalisation n'est pas supportée par votre navigateur");
+    }
+  }, [initialData?.center]);
 
   useEffect(() => {
     // Update scheme with initialData if provided and not already set
