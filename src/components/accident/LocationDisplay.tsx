@@ -38,6 +38,8 @@ const LocationDisplay = ({
     if (!geolocation || !geolocation.lat || !geolocation.lng) return;
     
     setIsRefreshing(true);
+    toast.info("Actualisation de l'adresse en cours...");
+    
     try {
       const newAddress = await getAddressFromCoordinates(geolocation.lat, geolocation.lng);
       // Mettre à jour l'affichage
@@ -66,10 +68,6 @@ const LocationDisplay = ({
           <p className="text-sm text-constalib-dark break-words">
             {address || geolocation.address || `Lat: ${geolocation.lat.toFixed(6)}, Lng: ${geolocation.lng.toFixed(6)}`}
           </p>
-          <div className="text-xs text-constalib-dark-gray mt-1 flex items-center gap-1">
-            <Navigation className="h-3 w-3" />
-            Coordonnées: {geolocation.lat.toFixed(6)}, {geolocation.lng.toFixed(6)}
-          </div>
           
           {geolocation.accuracy && (
             <div className="text-xs text-constalib-dark-gray mt-1 flex items-center gap-1">
@@ -84,6 +82,11 @@ const LocationDisplay = ({
               Enregistrée le: {formatTimestamp(geolocation.timestamp)}
             </div>
           )}
+          
+          <div className="text-xs text-constalib-dark-gray mt-1 flex items-center gap-1">
+            <Navigation className="h-3 w-3" />
+            Coordonnées: {geolocation.lat.toFixed(6)}, {geolocation.lng.toFixed(6)}
+          </div>
         </div>
         
         <div className="flex flex-col gap-2">

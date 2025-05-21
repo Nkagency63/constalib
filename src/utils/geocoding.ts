@@ -3,9 +3,8 @@
  * Utilitaire pour les requêtes de géocodage avec gestion CORS
  */
 
-// Proxy CORS pour éviter les erreurs de requêtes cross-origin
-// Utilisons un proxy plus fiable
-const CORS_PROXY = 'https://api.allorigins.win/raw?url=';
+// Utiliser un proxy CORS plus fiable pour éviter les erreurs de requêtes cross-origin
+const CORS_PROXY = 'https://corsproxy.io/?';
 
 /**
  * Effectue une requête de géocodage inverse (coordonnées vers adresse)
@@ -15,7 +14,7 @@ const CORS_PROXY = 'https://api.allorigins.win/raw?url=';
  */
 export const reverseGeocode = async (lat: number, lng: number): Promise<string> => {
   try {
-    // Utiliser le proxy CORS amélioré pour contourner les restrictions CORS
+    // Utiliser le proxy CORS pour contourner les restrictions CORS
     const url = `${CORS_PROXY}${encodeURIComponent(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json`)}`;
     
     console.log("Requête de géocodage inverse avec URL:", url);
@@ -48,7 +47,7 @@ export const reverseGeocode = async (lat: number, lng: number): Promise<string> 
  */
 export const forwardGeocode = async (address: string): Promise<{lat: number, lng: number, display_name: string} | null> => {
   try {
-    // Utiliser le proxy CORS amélioré pour contourner les restrictions CORS
+    // Utiliser le proxy CORS pour contourner les restrictions CORS
     const url = `${CORS_PROXY}${encodeURIComponent(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(address)}&format=json&limit=1`)}`;
     
     console.log("Requête de géocodage avec URL:", url);

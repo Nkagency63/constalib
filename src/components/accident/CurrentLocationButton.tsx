@@ -61,12 +61,12 @@ const CurrentLocationButton = ({ setGeolocation }: CurrentLocationButtonProps) =
           setGeolocation({
             lat,
             lng,
-            address: `${lat.toFixed(6)}, ${lng.toFixed(6)}`,
+            address: `Coordonnées: ${lat.toFixed(6)}, ${lng.toFixed(6)}`,
             accuracy,
             timestamp
           });
           
-          toast.error("Une erreur est survenue mais les coordonnées ont été enregistrées");
+          toast.error("Une erreur est survenue dans la récupération de l'adresse");
         } finally {
           setIsLoading(false);
         }

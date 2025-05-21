@@ -25,6 +25,7 @@ const FreeGeoLocation: React.FC<FreeGeoLocationProps> = ({
     }
 
     setIsLoading(true);
+    toast.info("Détection de votre position en cours...");
 
     const geoOptions = {
       enableHighAccuracy: true,
@@ -40,8 +41,10 @@ const FreeGeoLocation: React.FC<FreeGeoLocationProps> = ({
         const timestamp = position.timestamp;
         
         try {
+          toast.info("Récupération de l'adresse en cours...");
           // Utiliser notre utilitaire amélioré pour le géocodage inverse
           const address = await getAddressFromCoordinates(lat, lng);
+          console.log("Adresse récupérée:", address);
           
           setGeolocation({
             lat,
@@ -52,7 +55,7 @@ const FreeGeoLocation: React.FC<FreeGeoLocationProps> = ({
           });
           
           toast.success("Position localisée", {
-            description: "Votre position actuelle a été détectée"
+            description: address || "Votre position actuelle a été détectée"
           });
         } catch (err) {
           console.error('Error in reverse geocoding:', err);
@@ -61,12 +64,12 @@ const FreeGeoLocation: React.FC<FreeGeoLocationProps> = ({
           setGeolocation({
             lat,
             lng,
-            address: `${lat.toFixed(6)}, ${lng.toFixed(6)}`,
+            address: `Coordonnées: ${lat.toFixed(6)}, ${lng.toFixed(6)}`,
             accuracy,
             timestamp
           });
           
-          toast.error("Une erreur est survenue mais les coordonnées ont été enregistrées");
+          toast.error("Une erreur est survenue dans la récupération de l'adresse");
         } finally {
           setIsLoading(false);
         }
@@ -99,6 +102,7 @@ const FreeGeoLocation: React.FC<FreeGeoLocationProps> = ({
     }
 
     setIsLoading(true);
+    toast.info("Géolocalisation de l'adresse en cours...");
 
     try {
       // Utiliser notre utilitaire pour le géocodage

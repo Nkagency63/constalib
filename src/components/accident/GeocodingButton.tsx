@@ -21,6 +21,7 @@ const GeocodingButton = ({ location, setGeolocation }: GeocodingButtonProps) => 
     }
 
     setIsLoading(true);
+    toast.info("Géolocalisation de l'adresse en cours...");
 
     try {
       // Utiliser notre utilitaire pour le géocodage

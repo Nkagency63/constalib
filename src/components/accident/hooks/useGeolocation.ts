@@ -29,6 +29,7 @@ export const useGeolocation = ({
   useEffect(() => {
     if (navigator.geolocation) {
       setIsLoading(true);
+      toast.info("Détection de votre position en cours...");
       
       navigator.geolocation.getCurrentPosition(
         async (position) => {
@@ -44,6 +45,7 @@ export const useGeolocation = ({
           
           // Effectuer le géocodage inverse avec notre utilitaire amélioré
           try {
+            toast.info("Récupération de l'adresse en cours...");
             const address = await getAddressFromCoordinates(latitude, longitude);
             console.log("Reverse geocoding successful:", address);
             
@@ -52,14 +54,17 @@ export const useGeolocation = ({
               onLocationUpdate(newCenter, newZoom, address);
             }
             
-            toast("Position géographique détectée: " + address);
+            toast.success("Position géographique détectée", {
+              description: address
+            });
           } catch (error) {
             console.error("Error during reverse geocoding:", error);
-            toast("Position géographique détectée");
             
             if (onLocationUpdate) {
-              onLocationUpdate(newCenter, newZoom);
+              onLocationUpdate(newCenter, newZoom, `Coordonnées: ${latitude.toFixed(6)}, ${longitude.toFixed(6)}`);
             }
+            
+            toast.error("Erreur lors de la récupération de l'adresse");
           } finally {
             setIsLoading(false);
           }
