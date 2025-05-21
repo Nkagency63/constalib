@@ -24,7 +24,7 @@ const SchemeInfo: React.FC<SchemeInfoProps> = ({
       {geolocationAddress && (
         <div className="flex items-center mb-1">
           <MapPin className="w-3 h-3 mr-1" />
-          <span className="truncate max-w-[200px]">{geolocationAddress}</span>
+          <span className="truncate max-w-[300px] md:max-w-[400px]">{geolocationAddress}</span>
         </div>
       )}
       <div className="flex items-center gap-2">

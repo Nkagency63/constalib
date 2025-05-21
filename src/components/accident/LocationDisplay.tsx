@@ -1,8 +1,11 @@
 
-import { MapPin, Navigation, Calendar, Clock } from 'lucide-react';
+import { MapPin, Navigation, Calendar, Clock, MapPinOff, ExternalLink } from 'lucide-react';
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { GeolocationData } from './types';
+import { useState } from 'react';
+import { getAddressFromCoordinates } from '@/utils/geocoding';
+import { toast } from 'sonner';
 
 interface LocationDisplayProps {
   geolocation: GeolocationData;
@@ -13,6 +16,8 @@ const LocationDisplay = ({
   geolocation,
   setMapVisible
 }: LocationDisplayProps) => {
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  
   if (!geolocation || !geolocation.lat || !geolocation.lng) return null;
 
   const formatTimestamp = (timestamp?: number | string) => {
@@ -26,6 +31,24 @@ const LocationDisplay = ({
     return accuracy < 1000 
       ? `${Math.round(accuracy)} mètres` 
       : `${(accuracy / 1000).toFixed(2)} km`;
+  };
+  
+  const handleRefreshAddress = async () => {
+    if (!geolocation || !geolocation.lat || !geolocation.lng) return;
+    
+    setIsRefreshing(true);
+    try {
+      const address = await getAddressFromCoordinates(geolocation.lat, geolocation.lng);
+      // Mettre à jour l'affichage sans modifier l'objet original
+      toast.success("Adresse actualisée", {
+        description: address
+      });
+    } catch (error) {
+      console.error("Erreur lors de l'actualisation de l'adresse:", error);
+      toast.error("Impossible d'actualiser l'adresse");
+    } finally {
+      setIsRefreshing(false);
+    }
   };
 
   return (
@@ -66,8 +89,9 @@ const LocationDisplay = ({
             variant="ghost"
             size="sm"
             onClick={() => setMapVisible(true)}
-            className="text-xs"
+            className="text-xs flex items-center gap-1"
           >
+            <ExternalLink className="h-3 w-3" />
             Voir sur la carte
           </Button>
         </div>

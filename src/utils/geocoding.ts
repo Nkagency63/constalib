@@ -20,6 +20,7 @@ export const reverseGeocode = async (lat: number, lng: number): Promise<string> 
     const response = await fetch(url, {
       headers: { 
         'Accept-Language': 'fr',
+        'User-Agent': 'ConstaLib/1.0'
       }
     });
     
@@ -49,6 +50,7 @@ export const forwardGeocode = async (address: string): Promise<{lat: number, lng
     const response = await fetch(url, {
       headers: { 
         'Accept-Language': 'fr',
+        'User-Agent': 'ConstaLib/1.0'
       }
     });
     
@@ -71,5 +73,48 @@ export const forwardGeocode = async (address: string): Promise<{lat: number, lng
   } catch (error) {
     console.error('Erreur de géocodage:', error);
     return null;
+  }
+};
+
+/**
+ * Utilise l'API Supabase Geocoding Edge Function si disponible, sinon utilise Nominatim directement
+ * @param lat Latitude
+ * @param lng Longitude
+ * @returns Adresse complète
+ */
+export const getAddressFromCoordinates = async (lat: number, lng: number): Promise<string> => {
+  try {
+    // Tentative d'utilisation de l'EdgeFunction de Supabase
+    const edgeFunctionUrl = import.meta.env.VITE_SUPABASE_EDGE_FUNCTION_URL;
+    
+    if (edgeFunctionUrl) {
+      const url = `${edgeFunctionUrl}/geocode-location`;
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          address: `${lat},${lng}`,
+          options: {
+            includeDetails: true,
+            language: 'fr'
+          }
+        })
+      });
+      
+      if (response.ok) {
+        const result = await response.json();
+        if (result.success && result.data && result.data.formatted_address) {
+          return result.data.formatted_address;
+        }
+      }
+    }
+    
+    // Fallback sur Nominatim si l'EdgeFunction échoue
+    return reverseGeocode(lat, lng);
+  } catch (error) {
+    console.error('Erreur lors de la récupération de l\'adresse:', error);
+    return reverseGeocode(lat, lng);
   }
 };

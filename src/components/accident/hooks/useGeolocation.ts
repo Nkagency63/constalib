@@ -1,7 +1,7 @@
 
 import { useState, useEffect } from 'react';
 import { toast } from 'sonner';
-import { reverseGeocode } from '@/utils/geocoding';
+import { getAddressFromCoordinates } from '@/utils/geocoding';
 
 interface GeolocationHookResult {
   center: [number, number];
@@ -42,9 +42,9 @@ export const useGeolocation = ({
           setCenter(newCenter);
           setZoom(newZoom);
           
-          // Effectuer le géocodage inverse avec notre utilitaire
+          // Effectuer le géocodage inverse avec notre utilitaire amélioré
           try {
-            const address = await reverseGeocode(latitude, longitude);
+            const address = await getAddressFromCoordinates(latitude, longitude);
             console.log("Reverse geocoding successful:", address);
             
             // Appeler le callback si fourni

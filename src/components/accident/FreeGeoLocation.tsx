@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { MapPin, Loader2, Search } from 'lucide-react';
 import { toast } from 'sonner';
 import { GeolocationData } from './types';
-import { reverseGeocode, forwardGeocode } from '@/utils/geocoding';
+import { getAddressFromCoordinates, forwardGeocode } from '@/utils/geocoding';
 
 interface FreeGeoLocationProps {
   setGeolocation: (data: GeolocationData) => void;
@@ -40,8 +40,8 @@ const FreeGeoLocation: React.FC<FreeGeoLocationProps> = ({
         const timestamp = position.timestamp;
         
         try {
-          // Utiliser notre utilitaire pour le géocodage inverse
-          const address = await reverseGeocode(lat, lng);
+          // Utiliser notre utilitaire amélioré pour le géocodage inverse
+          const address = await getAddressFromCoordinates(lat, lng);
           
           setGeolocation({
             lat,
