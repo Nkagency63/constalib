@@ -35,7 +35,7 @@ const LocationStep: React.FC<LocationStepProps> = ({
   const handleGeolocationSuccess = (data: GeolocationData) => {
     setGeolocation(data);
     toast.success('Position localisée', {
-      description: 'La position a été correctement géolocalisée'
+      description: data.address || 'La position a été correctement géolocalisée'
     });
   };
 

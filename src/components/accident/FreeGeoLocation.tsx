@@ -42,7 +42,7 @@ const FreeGeoLocation: React.FC<FreeGeoLocationProps> = ({
         
         try {
           toast.info("Récupération de l'adresse en cours...");
-          // Utiliser notre utilitaire amélioré pour le géocodage inverse
+          // Récupérer l'adresse à partir des coordonnées
           const address = await getAddressFromCoordinates(lat, lng);
           console.log("Adresse récupérée:", address);
           
@@ -60,7 +60,7 @@ const FreeGeoLocation: React.FC<FreeGeoLocationProps> = ({
         } catch (err) {
           console.error('Error in reverse geocoding:', err);
           
-          // Fallback to just coordinates if error occurs
+          // Fallback en cas d'erreur
           setGeolocation({
             lat,
             lng,

@@ -61,7 +61,7 @@ export const useGeolocation = ({
             console.error("Error during reverse geocoding:", error);
             
             if (onLocationUpdate) {
-              onLocationUpdate(newCenter, newZoom, `Coordonnées: ${latitude.toFixed(6)}, ${longitude.toFixed(6)}`);
+              onLocationUpdate(newCenter, newZoom);
             }
             
             toast.error("Erreur lors de la récupération de l'adresse");

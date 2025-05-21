@@ -32,12 +32,58 @@ export const reverseGeocode = async (lat: number, lng: number): Promise<string> 
     
     const data = await response.json();
     console.log("Réponse du géocodage inverse:", data);
+    
+    // Formater l'adresse de manière plus lisible
+    if (data.address) {
+      const address = formatAddress(data.address);
+      return address || data.display_name || `${lat.toFixed(6)}, ${lng.toFixed(6)}`;
+    }
+    
     return data.display_name || `${lat.toFixed(6)}, ${lng.toFixed(6)}`;
   } catch (error) {
     console.error('Erreur de géocodage inverse:', error);
     // Retourner les coordonnées formatées en cas d'erreur
     return `${lat.toFixed(6)}, ${lng.toFixed(6)}`;
   }
+};
+
+/**
+ * Formate une adresse à partir des éléments d'adresse de Nominatim
+ * @param addressObj Objet contenant les éléments d'adresse
+ * @returns Adresse formatée
+ */
+const formatAddress = (addressObj: any): string => {
+  // Éléments d'adresse à inclure dans l'ordre
+  const elements = [];
+  
+  // Ajouter le numéro de rue et la rue si disponibles
+  if (addressObj.house_number && addressObj.road) {
+    elements.push(`${addressObj.house_number} ${addressObj.road}`);
+  } else if (addressObj.road) {
+    elements.push(addressObj.road);
+  }
+  
+  // Ajouter le code postal et la ville
+  if (addressObj.postcode && addressObj.city) {
+    elements.push(`${addressObj.postcode} ${addressObj.city}`);
+  } else if (addressObj.postcode && addressObj.town) {
+    elements.push(`${addressObj.postcode} ${addressObj.town}`);
+  } else if (addressObj.postcode && addressObj.village) {
+    elements.push(`${addressObj.postcode} ${addressObj.village}`);
+  } else if (addressObj.city) {
+    elements.push(addressObj.city);
+  } else if (addressObj.town) {
+    elements.push(addressObj.town);
+  } else if (addressObj.village) {
+    elements.push(addressObj.village);
+  }
+  
+  // Ajouter le pays
+  if (addressObj.country) {
+    elements.push(addressObj.country);
+  }
+  
+  return elements.join(', ');
 };
 
 /**
