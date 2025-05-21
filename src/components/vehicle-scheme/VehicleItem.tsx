@@ -1,7 +1,8 @@
 
 import React from 'react';
-import { Car, X } from 'lucide-react';
+import { RotateCw, RotateCcw, X } from 'lucide-react';
 import { Vehicle } from './types';
+import { Button } from '@/components/ui/button';
 
 interface VehicleItemProps {
   vehicle: Vehicle;
@@ -18,58 +19,77 @@ const VehicleItem = ({
   onRotate, 
   onRemove 
 }: VehicleItemProps) => {
+  const vehicleStyle: React.CSSProperties = {
+    position: 'absolute',
+    left: `${vehicle.x}px`,
+    top: `${vehicle.y}px`,
+    transform: `rotate(${vehicle.rotation}deg)`,
+    backgroundColor: vehicle.color,
+    padding: '10px 15px',
+    borderRadius: '5px',
+    cursor: 'move',
+    userSelect: 'none',
+    boxShadow: isSelected ? '0 0 0 2px #000, 0 0 0 4px #fff' : 'none',
+    zIndex: isSelected ? 10 : 1
+  };
+
+  const controlsStyle: React.CSSProperties = {
+    position: 'absolute',
+    top: '-40px',
+    left: '50%',
+    transform: 'translateX(-50%)',
+    display: 'flex',
+    gap: '5px',
+    backgroundColor: 'white',
+    padding: '2px',
+    borderRadius: '4px',
+    boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+  };
+
   return (
-    <div
-      key={vehicle.id}
-      className={`absolute cursor-move ${isSelected ? 'ring-2 ring-constalib-blue' : ''}`}
-      style={{
-        left: `${vehicle.x}px`,
-        top: `${vehicle.y}px`,
-        transform: `translate(-50%, -50%) rotate(${vehicle.rotation}deg)`,
-        zIndex: isSelected ? 10 : 1
-      }}
+    <div 
+      style={vehicleStyle}
       onMouseDown={(e) => onMouseDown(vehicle.id, e)}
     >
-      {/* Car icon */}
-      <div
-        className="w-16 h-32 flex items-center justify-center rounded-lg"
-        style={{ backgroundColor: vehicle.color }}
-      >
-        <Car className="w-8 h-8 text-white" />
-      </div>
+      {vehicle.label}
       
-      {/* Label */}
-      <div className="absolute -bottom-6 left-1/2 transform -translate-x-1/2 text-xs text-constalib-dark-gray bg-white px-1 rounded">
-        {vehicle.label}
-      </div>
-      
-      {/* Controls (visible when selected) */}
       {isSelected && (
-        <div className="absolute -top-10 left-1/2 transform -translate-x-1/2 flex gap-1">
-          <button
-            className="bg-white p-1 rounded-full shadow-sm text-constalib-dark-gray hover:bg-constalib-light-blue"
-            onClick={() => onRotate(vehicle.id, -45)}
+        <div style={controlsStyle}>
+          <Button
+            variant="outline"
+            size="icon"
+            className="h-8 w-8"
+            onClick={(e) => {
+              e.stopPropagation();
+              onRotate(vehicle.id, -45);
+            }}
           >
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M4 15L8 11L4 7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-              <path d="M12 19C16.4183 19 20 15.4183 20 11C20 6.58172 16.4183 3 12 3" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
-            </svg>
-          </button>
-          <button
-            className="bg-white p-1 rounded-full shadow-sm text-constalib-dark-gray hover:bg-constalib-light-blue"
-            onClick={() => onRotate(vehicle.id, 45)}
+            <RotateCcw className="h-4 w-4" />
+          </Button>
+          
+          <Button
+            variant="outline"
+            size="icon" 
+            className="h-8 w-8"
+            onClick={(e) => {
+              e.stopPropagation();
+              onRemove(vehicle.id);
+            }}
           >
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M20 15L16 11L20 7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-              <path d="M12 19C7.58172 19 4 15.4183 4 11C4 6.58172 7.58172 3 12 3" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
-            </svg>
-          </button>
-          <button
-            className="bg-white p-1 rounded-full shadow-sm text-red-500 hover:bg-red-50"
-            onClick={() => onRemove(vehicle.id)}
+            <X className="h-4 w-4" />
+          </Button>
+          
+          <Button
+            variant="outline"
+            size="icon"
+            className="h-8 w-8"
+            onClick={(e) => {
+              e.stopPropagation();
+              onRotate(vehicle.id, 45);
+            }}
           >
-            <X className="w-3 h-3" />
-          </button>
+            <RotateCw className="h-4 w-4" />
+          </Button>
         </div>
       )}
     </div>

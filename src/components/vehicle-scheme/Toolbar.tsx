@@ -1,7 +1,7 @@
 
 import React from 'react';
-import Button from '../Button';
-import { Car, Undo, Redo, Plus, Minus } from 'lucide-react';
+import { Car, Undo2, Redo2, ZoomIn, ZoomOut } from 'lucide-react';
+import { Button } from "@/components/ui/button";
 
 interface ToolbarProps {
   onAddVehicle: () => void;
@@ -23,37 +23,56 @@ const Toolbar = ({
   canRedo
 }: ToolbarProps) => {
   return (
-    <div className="flex flex-wrap items-center gap-2 mb-4">
-      <Button variant="outline" onClick={onAddVehicle}>
-        <Car className="w-4 h-4 mr-2" />
-        Ajouter un véhicule
+    <div className="flex items-center gap-2 mb-4">
+      <Button 
+        variant="outline"
+        size="sm" 
+        onClick={onAddVehicle}
+        className="flex items-center"
+      >
+        <Car className="h-4 w-4 mr-2" />
+        Ajouter véhicule
       </Button>
       
-      <div className="ml-auto flex items-center gap-2">
-        <Button 
-          variant="ghost" 
-          size="sm" 
-          onClick={onUndo} 
+      <div className="grow"></div>
+      
+      <div className="flex items-center gap-1">
+        <Button
+          variant="outline"
+          size="icon"
+          onClick={onUndo}
           disabled={!canUndo}
+          className="h-8 w-8"
         >
-          <Undo className="w-4 h-4" />
+          <Undo2 className="h-4 w-4" />
         </Button>
         
-        <Button 
-          variant="ghost" 
-          size="sm" 
-          onClick={onRedo} 
+        <Button
+          variant="outline"
+          size="icon"
+          onClick={onRedo}
           disabled={!canRedo}
+          className="h-8 w-8"
         >
-          <Redo className="w-4 h-4" />
+          <Redo2 className="h-4 w-4" />
         </Button>
         
-        <Button variant="ghost" size="sm" onClick={onZoomIn}>
-          <Plus className="w-4 h-4" />
+        <Button
+          variant="outline"
+          size="icon"
+          onClick={onZoomOut}
+          className="h-8 w-8"
+        >
+          <ZoomOut className="h-4 w-4" />
         </Button>
         
-        <Button variant="ghost" size="sm" onClick={onZoomOut}>
-          <Minus className="w-4 h-4" />
+        <Button
+          variant="outline"
+          size="icon"
+          onClick={onZoomIn}
+          className="h-8 w-8"
+        >
+          <ZoomIn className="h-4 w-4" />
         </Button>
       </div>
     </div>
