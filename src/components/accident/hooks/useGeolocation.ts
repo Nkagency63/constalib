@@ -55,11 +55,12 @@ export const useGeolocation = ({
             }
             
             toast.success("Position géographique détectée", {
-              description: address
+              description: address || `Coordonnées: ${latitude.toFixed(6)}, ${longitude.toFixed(6)}`
             });
           } catch (error) {
             console.error("Error during reverse geocoding:", error);
             
+            // Même en cas d'erreur, on met à jour la position
             if (onLocationUpdate) {
               onLocationUpdate(newCenter, newZoom);
             }

@@ -24,7 +24,7 @@ const GeocodingButton = ({ location, setGeolocation }: GeocodingButtonProps) => 
     toast.info("Géolocalisation de l'adresse en cours...");
 
     try {
-      // Utiliser notre utilitaire pour le géocodage
+      // Utiliser notre utilitaire amélioré pour le géocodage
       const result = await forwardGeocode(location);
       
       if (result) {
@@ -35,7 +35,9 @@ const GeocodingButton = ({ location, setGeolocation }: GeocodingButtonProps) => 
           timestamp: Date.now()
         });
         
-        toast.success("Adresse géolocalisée avec succès!");
+        toast.success("Adresse géolocalisée avec succès!", {
+          description: result.display_name
+        });
       } else {
         toast.error("Aucun résultat trouvé pour cette adresse");
       }

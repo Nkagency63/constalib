@@ -3,8 +3,20 @@
  * Utilitaire pour les requêtes de géocodage avec gestion CORS
  */
 
-// Utiliser un proxy CORS plus fiable pour éviter les erreurs de requêtes cross-origin
-const CORS_PROXY = 'https://corsproxy.io/?';
+// Utiliser plusieurs proxies CORS pour avoir une meilleure fiabilité
+const CORS_PROXIES = [
+  'https://corsproxy.io/?',
+  'https://api.allorigins.win/raw?url='
+];
+
+// Index du proxy actuel
+let currentProxyIndex = 0;
+
+// Obtenir le prochain proxy dans la liste
+const getNextProxy = () => {
+  currentProxyIndex = (currentProxyIndex + 1) % CORS_PROXIES.length;
+  return CORS_PROXIES[currentProxyIndex];
+};
 
 /**
  * Effectue une requête de géocodage inverse (coordonnées vers adresse)
@@ -13,38 +25,76 @@ const CORS_PROXY = 'https://corsproxy.io/?';
  * @returns Adresse correspondante aux coordonnées
  */
 export const reverseGeocode = async (lat: number, lng: number): Promise<string> => {
-  try {
-    // Utiliser le proxy CORS pour contourner les restrictions CORS
-    const url = `${CORS_PROXY}${encodeURIComponent(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json`)}`;
+  // Essayer avec plusieurs proxies en cas d'échec
+  for (let attempt = 0; attempt < CORS_PROXIES.length; attempt++) {
+    const proxy = CORS_PROXIES[(currentProxyIndex + attempt) % CORS_PROXIES.length];
     
-    console.log("Requête de géocodage inverse avec URL:", url);
-    
-    const response = await fetch(url, {
-      headers: { 
-        'Accept-Language': 'fr',
-        'User-Agent': 'ConstaLib/1.0'
+    try {
+      const url = `${proxy}${encodeURIComponent(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json`)}`;
+      
+      console.log(`Tentative de géocodage inverse avec proxy ${attempt+1}/${CORS_PROXIES.length}:`, proxy);
+      
+      const response = await fetch(url, {
+        headers: { 
+          'Accept-Language': 'fr',
+          'User-Agent': 'ConstaLib/1.0'
+        }
+      });
+      
+      if (!response.ok) {
+        throw new Error(`Erreur de géocodage (${response.status}): ${response.statusText}`);
       }
-    });
-    
-    if (!response.ok) {
-      throw new Error(`Erreur de géocodage: ${response.statusText}`);
+      
+      const data = await response.json();
+      
+      // Si la réponse contient une adresse valide
+      if (data && (data.display_name || data.address)) {
+        // Formater l'adresse de manière plus lisible
+        if (data.address) {
+          const address = formatAddress(data.address);
+          console.log("Adresse formatée:", address);
+          return address || data.display_name || `${lat.toFixed(6)}, ${lng.toFixed(6)}`;
+        }
+        
+        return data.display_name || `${lat.toFixed(6)}, ${lng.toFixed(6)}`;
+      }
+    } catch (error) {
+      console.error(`Échec avec proxy ${attempt+1}/${CORS_PROXIES.length}:`, error);
+      // Continuer avec le prochain proxy si échec
+      continue;
     }
-    
-    const data = await response.json();
-    console.log("Réponse du géocodage inverse:", data);
-    
-    // Formater l'adresse de manière plus lisible
-    if (data.address) {
-      const address = formatAddress(data.address);
-      return address || data.display_name || `${lat.toFixed(6)}, ${lng.toFixed(6)}`;
-    }
-    
-    return data.display_name || `${lat.toFixed(6)}, ${lng.toFixed(6)}`;
-  } catch (error) {
-    console.error('Erreur de géocodage inverse:', error);
-    // Retourner les coordonnées formatées en cas d'erreur
-    return `${lat.toFixed(6)}, ${lng.toFixed(6)}`;
   }
+  
+  // Tous les proxies ont échoué, utiliser l'API de secours ou retourner juste les coordonnées
+  try {
+    // Tentative avec l'API MapQuest (qui ne nécessite pas de proxy CORS)
+    const mapQuestKey = import.meta.env.VITE_MAPQUEST_API_KEY;
+    if (mapQuestKey) {
+      const url = `https://www.mapquestapi.com/geocoding/v1/reverse?key=${mapQuestKey}&location=${lat},${lng}&outFormat=json`;
+      
+      console.log("Tentative avec l'API MapQuest");
+      
+      const response = await fetch(url);
+      if (response.ok) {
+        const data = await response.json();
+        if (data.results && data.results[0].locations && data.results[0].locations.length > 0) {
+          const location = data.results[0].locations[0];
+          const formattedAddress = [
+            location.street,
+            [location.postalCode, location.adminArea5].filter(Boolean).join(' '),
+            location.adminArea1
+          ].filter(Boolean).join(', ');
+          
+          return formattedAddress || `${lat.toFixed(6)}, ${lng.toFixed(6)}`;
+        }
+      }
+    }
+  } catch (error) {
+    console.error("Échec de l'API de secours:", error);
+  }
+  
+  // En dernier recours, retourner les coordonnées formatées
+  return `${lat.toFixed(6)}, ${lng.toFixed(6)}`;
 };
 
 /**
@@ -92,40 +142,74 @@ const formatAddress = (addressObj: any): string => {
  * @returns Coordonnées correspondantes à l'adresse
  */
 export const forwardGeocode = async (address: string): Promise<{lat: number, lng: number, display_name: string} | null> => {
-  try {
-    // Utiliser le proxy CORS pour contourner les restrictions CORS
-    const url = `${CORS_PROXY}${encodeURIComponent(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(address)}&format=json&limit=1`)}`;
+  // Essayer avec plusieurs proxies en cas d'échec
+  for (let attempt = 0; attempt < CORS_PROXIES.length; attempt++) {
+    const proxy = CORS_PROXIES[(currentProxyIndex + attempt) % CORS_PROXIES.length];
     
-    console.log("Requête de géocodage avec URL:", url);
-    
-    const response = await fetch(url, {
-      headers: { 
-        'Accept-Language': 'fr',
-        'User-Agent': 'ConstaLib/1.0'
+    try {
+      const url = `${proxy}${encodeURIComponent(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(address)}&format=json&limit=1`)}`;
+      
+      console.log(`Tentative de géocodage avec proxy ${attempt+1}/${CORS_PROXIES.length}:`, proxy);
+      
+      const response = await fetch(url, {
+        headers: { 
+          'Accept-Language': 'fr',
+          'User-Agent': 'ConstaLib/1.0'
+        }
+      });
+      
+      if (!response.ok) {
+        throw new Error(`Erreur de géocodage (${response.status}): ${response.statusText}`);
       }
-    });
-    
-    if (!response.ok) {
-      throw new Error(`Erreur de géocodage: ${response.statusText}`);
+      
+      const data = await response.json();
+      
+      if (data && data.length > 0) {
+        const result = data[0];
+        return {
+          lat: parseFloat(result.lat),
+          lng: parseFloat(result.lon),
+          display_name: result.display_name
+        };
+      }
+      
+      // Aucun résultat trouvé, essayer le prochain proxy
+      continue;
+      
+    } catch (error) {
+      console.error(`Échec avec proxy ${attempt+1}/${CORS_PROXIES.length}:`, error);
+      // Continuer avec le prochain proxy
+      continue;
     }
-    
-    const data = await response.json();
-    console.log("Réponse du géocodage:", data);
-    
-    if (data && data.length > 0) {
-      const result = data[0];
-      return {
-        lat: parseFloat(result.lat),
-        lng: parseFloat(result.lon),
-        display_name: result.display_name
-      };
-    }
-    
-    return null;
-  } catch (error) {
-    console.error('Erreur de géocodage:', error);
-    return null;
   }
+  
+  // Tous les proxies ont échoué, utiliser l'API de secours
+  try {
+    // Tentative avec l'API MapQuest
+    const mapQuestKey = import.meta.env.VITE_MAPQUEST_API_KEY;
+    if (mapQuestKey) {
+      const url = `https://www.mapquestapi.com/geocoding/v1/address?key=${mapQuestKey}&location=${encodeURIComponent(address)}`;
+      
+      console.log("Tentative avec l'API MapQuest");
+      
+      const response = await fetch(url);
+      if (response.ok) {
+        const data = await response.json();
+        if (data.results && data.results[0].locations && data.results[0].locations.length > 0) {
+          const location = data.results[0].locations[0];
+          return {
+            lat: location.latLng.lat,
+            lng: location.latLng.lng,
+            display_name: location.street + ', ' + location.adminArea5 + ', ' + location.adminArea1
+          };
+        }
+      }
+    }
+  } catch (error) {
+    console.error("Échec de l'API de secours:", error);
+  }
+  
+  return null;
 };
 
 /**
@@ -172,7 +256,7 @@ export const getAddressFromCoordinates = async (lat: number, lng: number): Promi
       }
     }
     
-    console.log("Utilisation du fallback Nominatim pour le géocodage inverse");
+    console.log("Utilisation de Nominatim pour le géocodage inverse");
     // Fallback sur Nominatim si l'EdgeFunction échoue
     return reverseGeocode(lat, lng);
   } catch (error) {

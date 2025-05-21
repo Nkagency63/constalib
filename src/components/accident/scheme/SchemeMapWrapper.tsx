@@ -92,9 +92,17 @@ const SchemeMapWrapper: React.FC<SchemeMapWrapperProps> = ({
           }}
         >
           <Popup>
-            Précision: ~{geolocationData.accuracy < 1000 ? 
-              `${Math.round(geolocationData.accuracy)} m` : 
-              `${(geolocationData.accuracy/1000).toFixed(1)} km`}
+            <div className="text-sm">
+              <p className="font-medium">Position détectée</p>
+              {geolocationData.address && (
+                <p className="mt-1">{geolocationData.address}</p>
+              )}
+              <p className="mt-1 text-xs text-gray-600">
+                Précision: ~{geolocationData.accuracy < 1000 ? 
+                  `${Math.round(geolocationData.accuracy)} m` : 
+                  `${(geolocationData.accuracy/1000).toFixed(1)} km`}
+              </p>
+            </div>
           </Popup>
         </Circle>
       )}

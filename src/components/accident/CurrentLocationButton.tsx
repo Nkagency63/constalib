@@ -39,7 +39,8 @@ const CurrentLocationButton = ({ setGeolocation }: CurrentLocationButtonProps) =
         
         try {
           toast.info("Récupération de l'adresse en cours...");
-          // Récupérer l'adresse à partir des coordonnées
+          
+          // Récupérer l'adresse à partir des coordonnées avec notre service amélioré
           const address = await getAddressFromCoordinates(lat, lng);
           console.log("Adresse récupérée:", address);
           
@@ -52,7 +53,7 @@ const CurrentLocationButton = ({ setGeolocation }: CurrentLocationButtonProps) =
           });
           
           toast.success("Position localisée", {
-            description: address
+            description: address || `Coordonnées: ${lat.toFixed(6)}, ${lng.toFixed(6)}`
           });
         } catch (err) {
           console.error('Error in reverse geocoding:', err);

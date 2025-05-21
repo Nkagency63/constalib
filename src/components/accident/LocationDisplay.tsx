@@ -41,11 +41,15 @@ const LocationDisplay = ({
     toast.info("Actualisation de l'adresse en cours...");
     
     try {
+      // Utiliser notre utilitaire amélioré pour le géocodage inverse
       const newAddress = await getAddressFromCoordinates(geolocation.lat, geolocation.lng);
+      
       // Mettre à jour l'affichage
       setAddress(newAddress);
+      
+      // Afficher un toast de succès avec la nouvelle adresse
       toast.success("Adresse actualisée", {
-        description: newAddress
+        description: newAddress || `Coordonnées: ${geolocation.lat.toFixed(6)}, ${geolocation.lng.toFixed(6)}`
       });
     } catch (error) {
       console.error("Erreur lors de l'actualisation de l'adresse:", error);
@@ -66,7 +70,7 @@ const LocationDisplay = ({
             </Badge>
           </h4>
           <p className="text-sm text-constalib-dark break-words">
-            {address || geolocation.address || `Lat: ${geolocation.lat.toFixed(6)}, Lng: ${geolocation.lng.toFixed(6)}`}
+            {address || geolocation.address || `Coordonnées: ${geolocation.lat.toFixed(6)}, ${geolocation.lng.toFixed(6)}`}
           </p>
           
           {geolocation.accuracy && (
