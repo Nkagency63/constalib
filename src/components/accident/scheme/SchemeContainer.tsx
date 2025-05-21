@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { SchemeData as BaseSchemeData, GeolocationData, Vehicle as BaseVehicle, Path as BasePath, Annotation as BaseAnnotation } from '../types';
 import { SchemeData as TypesSchemeData, VehicleSchemeData, PathData, AnnotationData } from '../types/types';
@@ -30,6 +31,7 @@ const convertPath = (p: BasePath): PathData => ({
   vehicleId: p.vehicleId || '',  // Ensure vehicleId is always present
   width: p.width || 3,
   dashArray: p.dashed ? '10, 10' : undefined,
+  isSelected: p.isSelected || false, // Make sure isSelected is included
 });
 
 const convertAnnotation = (a: BaseAnnotation): AnnotationData => ({
@@ -62,6 +64,7 @@ const convertBackAnnotation = (a: AnnotationData): BaseAnnotation => ({
   id: a.id,
   position: a.position,
   text: a.text,
+  color: a.color,
 });
 
 // Helper function to convert between different SchemeData types

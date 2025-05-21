@@ -16,7 +16,7 @@ export const usePaths = () => {
       width: 3,
       dashed: false,
       vehicleId: vehicleId || '',
-      isSelected: true,
+      isSelected: true, // Make sure isSelected is included when adding a new path
     };
 
     setPaths(prevPaths => [...prevPaths, newPath]);

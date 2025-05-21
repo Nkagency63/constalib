@@ -41,7 +41,7 @@ const PathsLayer = ({
           pathOptions={{
             color: path.color,
             weight: path.width || 4,
-            opacity: 0.7,
+            opacity: path.isSelected ? 1.0 : 0.7,
             dashArray: path.dashed ? '10, 10' : undefined,
           }}
         />
