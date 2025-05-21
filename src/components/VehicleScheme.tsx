@@ -1,10 +1,10 @@
-
 import { useState, useEffect } from 'react';
 import { SchemeData, VehicleSchemeData } from './accident/types/types';
 import SchemeContainer from './accident/scheme/components/SchemeContainer';
 import { v4 as uuidv4 } from 'uuid';
 import { toast } from 'sonner';
 import 'leaflet/dist/leaflet.css';
+import '../components/accident/scheme/scheme.css';
 
 interface VehicleSchemeProps {
   initialData?: SchemeData | null;
