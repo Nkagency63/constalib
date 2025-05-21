@@ -5,6 +5,8 @@ import { v4 as uuidv4 } from 'uuid';
 import { toast } from 'sonner';
 import 'leaflet/dist/leaflet.css';
 import '../components/accident/scheme/scheme.css';
+import { MapContainer, TileLayer } from 'react-leaflet';
+import MapResizer from './accident/MapResizer';
 
 interface VehicleSchemeProps {
   initialData?: SchemeData | null;
@@ -204,15 +206,29 @@ const VehicleScheme = ({ initialData, onSchemeUpdate }: VehicleSchemeProps) => {
 
   return (
     <div className="w-full h-full">
-      <SchemeContainer
-        vehicles={schemeData.vehicles}
-        onVehicleMove={handleVehicleMove}
-        onVehicleRotate={handleVehicleRotate}
-        onAddVehicle={addVehicle}
-        onRemoveVehicle={removeVehicle}
-        width={500}
-        height={500}
-      />
+      <MapContainer
+        center={schemeData.center as [number, number]}
+        zoom={schemeData.zoom || 17}
+        className="map-container"
+        attributionControl={false}
+        zoomControl={true}
+      >
+        <TileLayer
+          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+        />
+        <MapResizer />
+        
+        <SchemeContainer
+          vehicles={schemeData.vehicles}
+          onVehicleMove={handleVehicleMove}
+          onVehicleRotate={handleVehicleRotate}
+          onAddVehicle={addVehicle}
+          onRemoveVehicle={removeVehicle}
+          width={500}
+          height={500}
+        />
+      </MapContainer>
     </div>
   );
 };
