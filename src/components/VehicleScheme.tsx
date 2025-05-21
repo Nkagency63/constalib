@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { SchemeData, VehicleSchemeData } from './accident/types/types';
 import SchemeContainer from './accident/scheme/components/SchemeContainer';
@@ -56,7 +55,7 @@ const VehicleScheme = ({ initialData, onSchemeUpdate }: VehicleSchemeProps) => {
           // Update map center with current position
           setSchemeData((prev) => ({
             ...prev,
-            center: [latitude, longitude],
+            center: [latitude, longitude] as [number, number],
             zoom: 17 // Set a better zoom level for location viewing
           }));
           
@@ -76,7 +75,7 @@ const VehicleScheme = ({ initialData, onSchemeUpdate }: VehicleSchemeProps) => {
               if (onSchemeUpdate) {
                 const updatedScheme = {
                   ...schemeData,
-                  center: [latitude, longitude],
+                  center: [latitude, longitude] as [number, number],
                   zoom: 17,
                   // You might want to add address to your scheme data structure
                   // This is optional and depends on your application's needs
@@ -102,7 +101,7 @@ const VehicleScheme = ({ initialData, onSchemeUpdate }: VehicleSchemeProps) => {
           if (!initialData?.center) {
             setSchemeData(prev => ({
               ...prev,
-              center: [48.8566, 2.3522], // Paris coordinates as fallback
+              center: [48.8566, 2.3522] as [number, number], // Paris coordinates as fallback
               zoom: 13
             }));
           }
