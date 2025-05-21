@@ -45,7 +45,6 @@ export interface PathData {
   dashArray?: string;
   vehicleId: string;
   arrowEnd?: boolean;
-  isSelected?: boolean;
 }
 
 export interface AnnotationData {

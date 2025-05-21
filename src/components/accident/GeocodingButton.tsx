@@ -4,7 +4,6 @@ import { Search, Loader2 } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { toast } from 'sonner';
 import { GeolocationData } from './types';
-import { forwardGeocode } from '@/utils/geocoding';
 
 interface GeocodingButtonProps {
   location: string;
@@ -21,23 +20,33 @@ const GeocodingButton = ({ location, setGeolocation }: GeocodingButtonProps) => 
     }
 
     setIsLoading(true);
-    toast.info("Géolocalisation de l'adresse en cours...");
 
     try {
-      // Utiliser notre utilitaire amélioré pour le géocodage
-      const result = await forwardGeocode(location);
+      // Free geocoding using Nominatim OpenStreetMap API
+      const response = await fetch(
+        `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(location)}&format=json&limit=1`,
+        { headers: { 'Accept-Language': 'fr' } }
+      );
       
-      if (result) {
+      if (!response.ok) {
+        throw new Error(`Error: ${response.status}`);
+      }
+      
+      const data = await response.json();
+      
+      if (data && data.length > 0) {
+        const result = data[0];
+        const lat = parseFloat(result.lat);
+        const lng = parseFloat(result.lon);
+        
         setGeolocation({
-          lat: result.lat,
-          lng: result.lng,
+          lat,
+          lng,
           address: result.display_name,
           timestamp: Date.now()
         });
         
-        toast.success("Adresse géolocalisée avec succès!", {
-          description: result.display_name
-        });
+        toast.success("Adresse géolocalisée avec succès!");
       } else {
         toast.error("Aucun résultat trouvé pour cette adresse");
       }

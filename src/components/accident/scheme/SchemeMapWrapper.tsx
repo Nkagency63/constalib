@@ -5,8 +5,8 @@ import { TooltipProvider } from '@/components/ui/tooltip';
 import 'leaflet/dist/leaflet.css';
 import { Vehicle, Path, Annotation, GeolocationData } from '../types';
 import VehiclesLayer from './VehiclesLayer';
-import PathsLayer from './PathsLayer';
-import AnnotationsLayer from './AnnotationsLayer';
+import PathsLayer from '../PathsLayer';
+import AnnotationsLayer from '../AnnotationsLayer';
 import MapResizer from '../MapResizer';
 import MapInitializer from '../MapInitializer';
 import { v4 as uuidv4 } from 'uuid';
@@ -92,17 +92,9 @@ const SchemeMapWrapper: React.FC<SchemeMapWrapperProps> = ({
           }}
         >
           <Popup>
-            <div className="text-sm">
-              <p className="font-medium">Position détectée</p>
-              {geolocationData.address && (
-                <p className="mt-1">{geolocationData.address}</p>
-              )}
-              <p className="mt-1 text-xs text-gray-600">
-                Précision: ~{geolocationData.accuracy < 1000 ? 
-                  `${Math.round(geolocationData.accuracy)} m` : 
-                  `${(geolocationData.accuracy/1000).toFixed(1)} km`}
-              </p>
-            </div>
+            Précision: ~{geolocationData.accuracy < 1000 ? 
+              `${Math.round(geolocationData.accuracy)} m` : 
+              `${(geolocationData.accuracy/1000).toFixed(1)} km`}
           </Popup>
         </Circle>
       )}

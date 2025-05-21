@@ -1,11 +1,9 @@
 
 import { useState, useEffect } from 'react';
-import { SchemeData } from './accident/types/types';
+import { SchemeData, VehicleSchemeData } from './accident/types/types';
+import SchemeContainer from './accident/scheme/components/SchemeContainer';
 import { v4 as uuidv4 } from 'uuid';
 import { toast } from 'sonner';
-import './accident/scheme/scheme.css';
-import { useGeolocation } from './accident/hooks/useGeolocation';
-import VehicleSchemeMap from './accident/scheme/components/VehicleSchemeMap';
 
 interface VehicleSchemeProps {
   initialData?: SchemeData | null;
@@ -46,31 +44,8 @@ const VehicleScheme = ({ initialData, onSchemeUpdate }: VehicleSchemeProps) => {
     zoom: initialData?.zoom || 1
   });
 
-  // Utiliser le hook de géolocalisation
-  const { center, zoom } = useGeolocation({
-    initialCenter: initialData?.center as [number, number] || [48.8566, 2.3522],
-    initialZoom: initialData?.zoom || 17,
-    onLocationUpdate: (newCenter, newZoom, address) => {
-      setSchemeData((prev) => ({
-        ...prev,
-        center: newCenter,
-        zoom: newZoom
-      }));
-      
-      // Si onSchemeUpdate est fourni, on peut envoyer les données de géolocalisation
-      if (onSchemeUpdate) {
-        const updatedScheme = {
-          ...schemeData,
-          center: newCenter,
-          zoom: newZoom,
-        };
-        onSchemeUpdate(updatedScheme);
-      }
-    }
-  });
-
   useEffect(() => {
-    // Mettre à jour le schéma avec initialData si fourni et pas déjà défini
+    // Update scheme with initialData if provided and not already set
     if (initialData && 
         initialData.vehicles && 
         initialData.vehicles.length > 0 && 
@@ -80,15 +55,6 @@ const VehicleScheme = ({ initialData, onSchemeUpdate }: VehicleSchemeProps) => {
     }
   }, [initialData]);
 
-  // Mettre à jour le centre et le zoom de la carte lorsqu'ils changent
-  useEffect(() => {
-    setSchemeData(prev => ({
-      ...prev,
-      center,
-      zoom
-    }));
-  }, [center, zoom]);
-
   const handleVehicleMove = (id: string, x: number, y: number) => {
     const updatedVehicles = schemeData.vehicles.map(vehicle => {
       if (vehicle.id === id) {
@@ -96,7 +62,7 @@ const VehicleScheme = ({ initialData, onSchemeUpdate }: VehicleSchemeProps) => {
           ...vehicle, 
           x, 
           y, 
-          position: [x, y] as [number, number]  // Mettre à jour position pour la compatibilité avec la carte
+          position: [x, y] as [number, number]  // Update position for compatibility with map
         };
       }
       return vehicle;
@@ -127,10 +93,10 @@ const VehicleScheme = ({ initialData, onSchemeUpdate }: VehicleSchemeProps) => {
     }
     
     const colors = ['#3b82f6', '#ef4444', '#10b981', '#f59e0b'];
-    const newVehicle = {
+    const newVehicle: VehicleSchemeData = {
       id: uuidv4(),
       type: `${String.fromCharCode(65 + schemeData.vehicles.length)}`, // A, B, C, D, etc.
-      position: [200, 200] as [number, number], // Position par défaut
+      position: [200, 200], // Default position
       x: 200,
       y: 200,
       rotation: 0,
@@ -162,12 +128,14 @@ const VehicleScheme = ({ initialData, onSchemeUpdate }: VehicleSchemeProps) => {
 
   return (
     <div className="w-full h-full">
-      <VehicleSchemeMap 
-        schemeData={schemeData}
+      <SchemeContainer
+        vehicles={schemeData.vehicles}
         onVehicleMove={handleVehicleMove}
         onVehicleRotate={handleVehicleRotate}
         onAddVehicle={addVehicle}
         onRemoveVehicle={removeVehicle}
+        width={500}
+        height={500}
       />
     </div>
   );

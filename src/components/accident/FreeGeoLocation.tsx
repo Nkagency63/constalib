@@ -4,7 +4,6 @@ import { Button } from "@/components/ui/button";
 import { MapPin, Loader2, Search } from 'lucide-react';
 import { toast } from 'sonner';
 import { GeolocationData } from './types';
-import { getAddressFromCoordinates, forwardGeocode } from '@/utils/geocoding';
 
 interface FreeGeoLocationProps {
   setGeolocation: (data: GeolocationData) => void;
@@ -25,7 +24,6 @@ const FreeGeoLocation: React.FC<FreeGeoLocationProps> = ({
     }
 
     setIsLoading(true);
-    toast.info("Détection de votre position en cours...");
 
     const geoOptions = {
       enableHighAccuracy: true,
@@ -40,13 +38,19 @@ const FreeGeoLocation: React.FC<FreeGeoLocationProps> = ({
         const accuracy = position.coords.accuracy;
         const timestamp = position.timestamp;
         
-        console.log("Position géolocalisée:", { lat, lng, accuracy });
-        
         try {
-          toast.info("Récupération de l'adresse en cours...");
-          // Récupérer l'adresse à partir des coordonnées avec notre service amélioré
-          const address = await getAddressFromCoordinates(lat, lng);
-          console.log("Adresse récupérée:", address);
+          // Free geocoding using Nominatim OpenStreetMap API (no API key needed)
+          const response = await fetch(
+            `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json`,
+            { headers: { 'Accept-Language': 'fr' } }
+          );
+          
+          if (!response.ok) {
+            throw new Error(`Error: ${response.status}`);
+          }
+          
+          const data = await response.json();
+          const address = data.display_name || `${lat.toFixed(6)}, ${lng.toFixed(6)}`;
           
           setGeolocation({
             lat,
@@ -57,21 +61,21 @@ const FreeGeoLocation: React.FC<FreeGeoLocationProps> = ({
           });
           
           toast.success("Position localisée", {
-            description: address || `Coordonnées: ${lat.toFixed(6)}, ${lng.toFixed(6)}`
+            description: "Votre position actuelle a été détectée"
           });
         } catch (err) {
           console.error('Error in reverse geocoding:', err);
           
-          // Fallback en cas d'erreur
+          // Fallback to just coordinates if error occurs
           setGeolocation({
             lat,
             lng,
-            address: `Coordonnées: ${lat.toFixed(6)}, ${lng.toFixed(6)}`,
+            address: `${lat.toFixed(6)}, ${lng.toFixed(6)}`,
             accuracy,
             timestamp
           });
           
-          toast.error("Une erreur est survenue dans la récupération de l'adresse");
+          toast.error("Une erreur est survenue mais les coordonnées ont été enregistrées");
         } finally {
           setIsLoading(false);
         }
@@ -96,7 +100,7 @@ const FreeGeoLocation: React.FC<FreeGeoLocationProps> = ({
     );
   };
 
-  // Handle geocoding using our utility
+  // Handle geocoding using Nominatim OpenStreetMap API
   const handleGeocode = async () => {
     if (!address || address.trim() === '') {
       toast.error("Veuillez saisir une adresse à géolocaliser");
@@ -104,16 +108,28 @@ const FreeGeoLocation: React.FC<FreeGeoLocationProps> = ({
     }
 
     setIsLoading(true);
-    toast.info("Géolocalisation de l'adresse en cours...");
 
     try {
-      // Utiliser notre utilitaire amélioré pour le géocodage
-      const result = await forwardGeocode(address);
+      // Free geocoding using Nominatim OpenStreetMap API
+      const response = await fetch(
+        `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(address)}&format=json&limit=1`,
+        { headers: { 'Accept-Language': 'fr' } }
+      );
       
-      if (result) {
+      if (!response.ok) {
+        throw new Error(`Error: ${response.status}`);
+      }
+      
+      const data = await response.json();
+      
+      if (data && data.length > 0) {
+        const result = data[0];
+        const lat = parseFloat(result.lat);
+        const lng = parseFloat(result.lon);
+        
         setGeolocation({
-          lat: result.lat,
-          lng: result.lng,
+          lat,
+          lng,
           address: result.display_name,
           timestamp: Date.now()
         });

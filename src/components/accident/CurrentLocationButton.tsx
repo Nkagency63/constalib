@@ -4,7 +4,6 @@ import { MapPin, Loader2 } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { toast } from 'sonner';
 import { GeolocationData } from './types';
-import { getAddressFromCoordinates } from '@/utils/geocoding';
 
 interface CurrentLocationButtonProps {
   setGeolocation: (data: GeolocationData) => void;
@@ -20,7 +19,6 @@ const CurrentLocationButton = ({ setGeolocation }: CurrentLocationButtonProps) =
     }
 
     setIsLoading(true);
-    toast.info("Détection de votre position en cours...");
 
     const geoOptions = {
       enableHighAccuracy: true,
@@ -35,14 +33,19 @@ const CurrentLocationButton = ({ setGeolocation }: CurrentLocationButtonProps) =
         const accuracy = position.coords.accuracy;
         const timestamp = position.timestamp;
         
-        console.log("Position géolocalisée:", { lat, lng, accuracy });
-        
         try {
-          toast.info("Récupération de l'adresse en cours...");
+          // Free geocoding using Nominatim OpenStreetMap API (no API key required)
+          const response = await fetch(
+            `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json`,
+            { headers: { 'Accept-Language': 'fr' } }
+          );
           
-          // Récupérer l'adresse à partir des coordonnées avec notre service amélioré
-          const address = await getAddressFromCoordinates(lat, lng);
-          console.log("Adresse récupérée:", address);
+          if (!response.ok) {
+            throw new Error(`Error: ${response.status}`);
+          }
+          
+          const data = await response.json();
+          const address = data.display_name || `${lat.toFixed(6)}, ${lng.toFixed(6)}`;
           
           setGeolocation({
             lat,
@@ -53,21 +56,21 @@ const CurrentLocationButton = ({ setGeolocation }: CurrentLocationButtonProps) =
           });
           
           toast.success("Position localisée", {
-            description: address || `Coordonnées: ${lat.toFixed(6)}, ${lng.toFixed(6)}`
+            description: "Votre position actuelle a été détectée"
           });
         } catch (err) {
           console.error('Error in reverse geocoding:', err);
           
-          // Fallback en cas d'erreur
+          // Fallback to just coordinates if error occurs
           setGeolocation({
             lat,
             lng,
-            address: `Coordonnées: ${lat.toFixed(6)}, ${lng.toFixed(6)}`,
+            address: `${lat.toFixed(6)}, ${lng.toFixed(6)}`,
             accuracy,
             timestamp
           });
           
-          toast.error("Une erreur est survenue dans la récupération de l'adresse");
+          toast.error("Une erreur est survenue mais les coordonnées ont été enregistrées");
         } finally {
           setIsLoading(false);
         }

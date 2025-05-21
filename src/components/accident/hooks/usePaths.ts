@@ -1,7 +1,7 @@
 
 import { useState, useCallback } from 'react';
 import { v4 as uuidv4 } from 'uuid';
-import { Path } from '../types';
+import { Path } from '../types/scheme';
 
 export const usePaths = () => {
   const [paths, setPaths] = useState<Path[]>([]);
@@ -15,8 +15,7 @@ export const usePaths = () => {
       color,
       width: 3,
       dashed: false,
-      vehicleId: vehicleId || '',
-      isSelected: true, // Make sure isSelected is included when adding a new path
+      isSelected: true,
     };
 
     setPaths(prevPaths => [...prevPaths, newPath]);
