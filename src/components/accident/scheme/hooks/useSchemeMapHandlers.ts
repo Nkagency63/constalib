@@ -17,7 +17,7 @@ export const useSchemeMapHandlers = (
   selectedVehicle: string | null,
   isDrawing: boolean,
   saveToHistory: (state: any) => void,
-  addVehicle: (latlng: L.LatLng) => any[] | null,
+  addVehicle: (latlng: any) => any[] | null,
   selectVehicle: (id: string | null) => void,
   startPath: (point: [number, number], vehicleId?: string, color?: string | null) => void,
   continuePath: (point: [number, number]) => void,
@@ -60,11 +60,11 @@ export const useSchemeMapHandlers = (
       });
       setShowGuidesFirstTime(false);
     }
-  }, [formData, vehicles, setVehicles, saveToHistory, setIsMapReady, setMapInitialized, setShowGuidesFirstTime]);
+  }, [formData, vehicles, setVehicles, saveToHistory, setIsMapReady, setMapInitialized, setShowGuidesFirstTime, centerOnVehicles]);
 
   const { mapRef, drawingLayerRef, handleMapReady, centerOnVehicles } = useSchemeMap({
     readOnly,
-    handleMapClick: (e) => handleMapClick(e, {
+    handleMapClick: (e: any) => handleMapClick(e, {
       readOnly,
       currentTool,
       vehicles,
@@ -125,7 +125,7 @@ export const useSchemeMapHandlers = (
     } else {
       toast.warning("Maximum de 4 véhicules atteint");
     }
-  }, [mapRef, vehicles, addVehicle, paths, annotations, saveToHistory, centerOnVehicles]);
+  }, [mapRef, vehicles, addVehicle, paths, annotations, saveToHistory, centerOnVehicles, uiToast]);
 
   return {
     mapRef,
