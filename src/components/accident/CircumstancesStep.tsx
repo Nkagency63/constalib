@@ -65,7 +65,7 @@ const CircumstancesStep = ({
 
   return (
     <div className="space-y-6">
-      <Alert variant="info" className="bg-blue-50 border-blue-200">
+      <Alert className="bg-blue-50 border-blue-200">
         <AlertCircle className="h-4 w-4 text-blue-500" />
         <AlertDescription className="text-blue-700 text-sm">
           Cochez les circonstances qui s'appliquent à chaque véhicule. 

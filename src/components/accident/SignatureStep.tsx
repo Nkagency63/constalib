@@ -1,5 +1,5 @@
 
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -52,7 +52,7 @@ const SignatureStep = ({
     context.fillRect(0, 0, canvas.width, canvas.height);
   };
 
-  const startDrawing = ({ nativeEvent }: React.MouseEvent | React.TouchEvent) => {
+  const startDrawing = (nativeEvent: React.MouseEvent<HTMLCanvasElement> | React.TouchEvent<HTMLCanvasElement>) => {
     const canvas = canvasRef.current;
     if (!canvas || !contextRef.current) return;
 
@@ -63,7 +63,7 @@ const SignatureStep = ({
     contextRef.current.moveTo(offsetX, offsetY);
   };
 
-  const draw = ({ nativeEvent }: React.MouseEvent | React.TouchEvent) => {
+  const draw = (nativeEvent: React.MouseEvent<HTMLCanvasElement> | React.TouchEvent<HTMLCanvasElement>) => {
     if (!isDrawing || !contextRef.current) return;
     
     const { offsetX, offsetY } = getCoordinates(nativeEvent);
@@ -82,7 +82,7 @@ const SignatureStep = ({
     setSignature(dataURL, activeTab === "vehicle-a" ? "A" : "B");
   };
 
-  const getCoordinates = (event: React.MouseEvent | React.TouchEvent) => {
+  const getCoordinates = (event: React.MouseEvent<HTMLCanvasElement> | React.TouchEvent<HTMLCanvasElement>) => {
     const canvas = canvasRef.current;
     if (!canvas) return { offsetX: 0, offsetY: 0 };
 
@@ -192,8 +192,8 @@ interface SignaturePanelProps {
   signatureDate: string;
   canvasRef: React.RefObject<HTMLCanvasElement>;
   initializeCanvas: () => void;
-  startDrawing: (e: React.MouseEvent | React.TouchEvent) => void;
-  draw: (e: React.MouseEvent | React.TouchEvent) => void;
+  startDrawing: (e: React.MouseEvent<HTMLCanvasElement> | React.TouchEvent<HTMLCanvasElement>) => void;
+  draw: (e: React.MouseEvent<HTMLCanvasElement> | React.TouchEvent<HTMLCanvasElement>) => void;
   stopDrawing: () => void;
   clearSignature: () => void;
   formatDate: (date: string) => string;
@@ -211,7 +211,7 @@ const SignaturePanel = ({
   formatDate
 }: SignaturePanelProps) => {
   // Initialize canvas on component mount
-  React.useEffect(() => {
+  useEffect(() => {
     initializeCanvas();
   }, [initializeCanvas]);
 
