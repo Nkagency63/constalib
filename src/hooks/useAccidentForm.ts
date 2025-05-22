@@ -1,6 +1,5 @@
-
 import { useState } from 'react';
-import { FormData } from '@/components/accident/types';
+import { FormData, Witness } from '@/components/accident/types';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { toast } from 'sonner';
@@ -16,6 +15,9 @@ export const useAccidentForm = () => {
     time: '',
     location: '',
     description: '',
+    weatherConditions: 'normal',
+    injuredPersons: false,
+    witnesses: [],
     vehiclePhotos: [],
     damagePhotos: [],
     licensePlate: '',
@@ -23,6 +25,14 @@ export const useAccidentForm = () => {
     vehicleModel: '',
     vehicleYear: '',
     vehicleDescription: '',
+    ownerName: '',
+    ownerFirstName: '',
+    ownerAddress: '',
+    driverName: '',
+    driverFirstName: '',
+    driverLicenseNumber: '',
+    driverLicenseDate: '',
+    driverLicenseCountry: 'France',
     insurancePolicy: '',
     insuranceCompany: '',
     otherVehicle: {
@@ -32,14 +42,30 @@ export const useAccidentForm = () => {
       year: '',
       description: '',
       insurancePolicy: '',
-      insuranceCompany: ''
+      insuranceCompany: '',
+      ownerName: '',
+      ownerFirstName: '',
+      ownerAddress: '',
+      driverName: '',
+      driverFirstName: '',
+      driverLicenseNumber: '',
+      driverLicenseDate: '',
+      driverLicenseCountry: 'France',
     },
+    circumstancesA: [],
+    circumstancesB: [],
+    observations: '',
+    disagreement: false,
     geolocation: {
       lat: null,
       lng: null,
       address: ''
     },
     emergencyContacted: false,
+    signatureA: '',
+    signatureB: '',
+    signatureDateA: '',
+    signatureDateB: '',
     personalEmail: '',
     insuranceEmails: [],
     involvedPartyEmails: []
@@ -155,6 +181,92 @@ export const useAccidentForm = () => {
     }));
   };
 
+  const addWitness = () => {
+    const newWitness: Witness = {
+      id: `witness-${Date.now()}`,
+      name: '',
+      contact: ''
+    };
+    
+    setFormData(prev => ({
+      ...prev,
+      witnesses: [...prev.witnesses, newWitness]
+    }));
+  };
+
+  const updateWitness = (id: string, field: keyof Witness, value: string) => {
+    setFormData(prev => ({
+      ...prev,
+      witnesses: prev.witnesses.map(witness => 
+        witness.id === id ? { ...witness, [field]: value } : witness
+      )
+    }));
+  };
+
+  const removeWitness = (id: string) => {
+    setFormData(prev => ({
+      ...prev,
+      witnesses: prev.witnesses.filter(witness => witness.id !== id)
+    }));
+  };
+
+  const handleOwnerDriverChange = (e: React.ChangeEvent<HTMLInputElement>, isOtherVehicle = false) => {
+    const { name, value } = e.target;
+    
+    if (isOtherVehicle) {
+      setFormData(prev => ({
+        ...prev,
+        otherVehicle: {
+          ...prev.otherVehicle,
+          [name]: value
+        }
+      }));
+    } else {
+      setFormData(prev => ({
+        ...prev,
+        [name]: value
+      }));
+    }
+  };
+
+  const toggleCircumstance = (index: number, party: 'A' | 'B') => {
+    const field = party === 'A' ? 'circumstancesA' : 'circumstancesB';
+    
+    setFormData(prev => {
+      const currentCircumstances = prev[field];
+      
+      if (currentCircumstances.includes(index)) {
+        return {
+          ...prev,
+          [field]: currentCircumstances.filter(i => i !== index)
+        };
+      } else {
+        return {
+          ...prev,
+          [field]: [...currentCircumstances, index]
+        };
+      }
+    });
+  };
+
+  const setSignature = (signature: string, party: 'A' | 'B') => {
+    const now = new Date().toISOString();
+    
+    if (party === 'A') {
+      setFormData(prev => ({
+        ...prev,
+        signatureA: signature,
+        signatureDateA: now
+      }));
+    } else {
+      setFormData(prev => ({
+        ...prev,
+        signatureB: signature,
+        signatureDateB: now
+      }));
+    }
+  };
+
   const nextStep = () => {
     if (currentStepIndex < 7) { // Hardcoded 7 as the last index
       setCurrentStepIndex(prev => prev + 1);
@@ -189,6 +301,12 @@ export const useAccidentForm = () => {
     setInvolvedPartyEmails,
     setPersonalEmail,
     onEmergencyContacted,
+    addWitness,
+    updateWitness,
+    removeWitness,
+    handleOwnerDriverChange,
+    toggleCircumstance,
+    setSignature,
     nextStep,
     prevStep,
   };

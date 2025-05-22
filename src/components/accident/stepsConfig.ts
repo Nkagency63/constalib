@@ -5,7 +5,7 @@ export const accidentFormSteps: Step[] = [
   {
     id: 'basics',
     title: 'Informations de base',
-    description: 'Date et heure de l\'accident'
+    description: 'Date, heure et conditions'
   },
   {
     id: 'location',
@@ -16,6 +16,16 @@ export const accidentFormSteps: Step[] = [
     id: 'vehicles',
     title: 'Véhicules',
     description: 'Identification des véhicules impliqués'
+  },
+  {
+    id: 'owner-driver',
+    title: 'Conducteurs',
+    description: 'Informations sur les propriétaires et conducteurs'
+  },
+  {
+    id: 'circumstances',
+    title: 'Circonstances',
+    description: 'Circonstances de l\'accident'
   },
   {
     id: 'details',
@@ -31,6 +41,11 @@ export const accidentFormSteps: Step[] = [
     id: 'scheme',
     title: 'Schéma',
     description: 'Positionnement des véhicules'
+  },
+  {
+    id: 'signature',
+    title: 'Signature',
+    description: 'Signature des deux parties'
   },
   {
     id: 'email',

@@ -28,6 +28,13 @@ const AccidentForm = ({ onEmergencyRequest, onStepChange }: AccidentFormProps) =
     setInvolvedPartyEmails,
     setPersonalEmail,
     onEmergencyContacted,
+    // Nouvelles fonctions
+    addWitness,
+    updateWitness,
+    removeWitness,
+    handleOwnerDriverChange,
+    toggleCircumstance,
+    setSignature,
     nextStep,
     prevStep,
     setSubmitted
@@ -76,6 +83,13 @@ const AccidentForm = ({ onEmergencyRequest, onStepChange }: AccidentFormProps) =
           setInvolvedPartyEmails={setInvolvedPartyEmails}
           setPersonalEmail={setPersonalEmail}
           onEmergencyContacted={onEmergencyContacted}
+          // Nouvelles fonctions
+          addWitness={addWitness}
+          updateWitness={updateWitness}
+          removeWitness={removeWitness}
+          handleOwnerDriverChange={handleOwnerDriverChange}
+          toggleCircumstance={toggleCircumstance}
+          setSignature={setSignature}
         />
       </form>
       

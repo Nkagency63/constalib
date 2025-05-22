@@ -9,6 +9,9 @@ import VehicleIdentificationStep from './VehicleIdentificationStep';
 import LocationStep from './LocationStep';
 import MultiVehicleStep from './MultiVehicleStep';
 import EmailStep from './EmailStep';
+import CircumstancesStep from './CircumstancesStep';
+import SignatureStep from './SignatureStep';
+import OwnerDriverStep from './OwnerDriverStep';
 
 interface StepRendererProps {
   currentStepId: string;
@@ -23,6 +26,13 @@ interface StepRendererProps {
   setInvolvedPartyEmails: (emails: string[]) => void;
   setPersonalEmail: (email: string) => void;
   onEmergencyContacted?: () => void;
+  // Nouvelles fonctions
+  addWitness: () => void;
+  updateWitness: (id: string, field: 'name' | 'contact', value: string) => void;
+  removeWitness: (id: string) => void;
+  handleOwnerDriverChange: (e: React.ChangeEvent<HTMLInputElement>, isOtherVehicle?: boolean) => void;
+  toggleCircumstance: (index: number, party: 'A' | 'B') => void;
+  setSignature: (signature: string, party: 'A' | 'B') => void;
 }
 
 const StepRenderer = ({
@@ -37,15 +47,55 @@ const StepRenderer = ({
   setInsuranceEmails,
   setInvolvedPartyEmails,
   setPersonalEmail,
-  onEmergencyContacted
+  onEmergencyContacted,
+  // Nouvelles fonctions
+  addWitness,
+  updateWitness,
+  removeWitness,
+  handleOwnerDriverChange,
+  toggleCircumstance,
+  setSignature
 }: StepRendererProps) => {
+
+  // Fonction pour gérer les changements de conditions météo
+  const onWeatherChange = (value: string) => {
+    const syntheticEvent = {
+      target: {
+        name: 'weatherConditions',
+        value
+      }
+    } as React.ChangeEvent<HTMLInputElement>;
+    
+    handleInputChange(syntheticEvent);
+  };
+
+  // Fonction pour gérer les changements de blessés
+  const onInjuredPersonsChange = (value: boolean) => {
+    const syntheticEvent = {
+      target: {
+        name: 'injuredPersons',
+        value: value.toString()
+      }
+    } as React.ChangeEvent<HTMLInputElement>;
+    
+    handleInputChange(syntheticEvent);
+  };
+
   switch (currentStepId) {
     case 'basics':
       return (
         <BasicInfoStep 
           date={formData.date}
           time={formData.time}
+          weatherConditions={formData.weatherConditions}
+          injuredPersons={formData.injuredPersons}
+          witnesses={formData.witnesses}
           handleInputChange={handleInputChange}
+          onWeatherChange={onWeatherChange}
+          onInjuredPersonsChange={onInjuredPersonsChange}
+          addWitness={addWitness}
+          updateWitness={updateWitness}
+          removeWitness={removeWitness}
         />
       );
     
@@ -75,6 +125,26 @@ const StepRenderer = ({
           setOtherVehicleInfo={setOtherVehicleInfo}
         />
       );
+    
+    case 'owner-driver':
+      return (
+        <OwnerDriverStep
+          formData={formData}
+          handleOwnerDriverChange={handleOwnerDriverChange}
+        />
+      );
+      
+    case 'circumstances':
+      return (
+        <CircumstancesStep
+          circumstancesA={formData.circumstancesA}
+          circumstancesB={formData.circumstancesB}
+          observations={formData.observations}
+          disagreement={formData.disagreement}
+          toggleCircumstance={toggleCircumstance}
+          handleInputChange={handleInputChange}
+        />
+      );
       
     case 'details':
       return (
@@ -92,6 +162,17 @@ const StepRenderer = ({
     case 'scheme':
       return (
         <SchemeStep formData={formData} />
+      );
+      
+    case 'signature':
+      return (
+        <SignatureStep
+          signatureA={formData.signatureA}
+          signatureB={formData.signatureB}
+          signatureDateA={formData.signatureDateA}
+          signatureDateB={formData.signatureDateB}
+          setSignature={setSignature}
+        />
       );
       
     case 'email':
