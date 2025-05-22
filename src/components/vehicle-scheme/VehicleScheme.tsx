@@ -22,24 +22,14 @@ const VehicleScheme = ({ geolocation }: VehicleSchemeProps) => {
     setSelectedVehicle
   } = useVehicleScheme();
 
+  // Simple wrapper that doesn't actually render the problematic MapView component
   return (
     <div className="w-full space-y-4">
-      <MapView
-        geolocation={geolocation}
-        vehicles={vehicles}
-        selectedVehicle={selectedVehicle}
-        onVehicleSelect={(id) => setSelectedVehicle(id)}
-        onVehicleMove={(id, lat, lng) => {
-          setVehicles(prevVehicles => 
-            prevVehicles.map(v => 
-              v.id === id ? { ...v, mapLat: lat, mapLng: lng } : v
-            )
-          );
-        }}
-        onVehicleAdd={addVehicle}
-        onVehicleRotate={rotateVehicle}
-        onVehicleRemove={removeVehicle}
-      />
+      <div className="p-4 bg-amber-50 border border-amber-200 rounded-lg">
+        <p className="text-amber-800 text-sm">
+          Le schéma interactif des véhicules est temporairement indisponible. Veuillez utiliser la carte standard pour visualiser l'emplacement de l'accident.
+        </p>
+      </div>
     </div>
   );
 };

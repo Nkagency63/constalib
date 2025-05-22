@@ -1,5 +1,5 @@
 
-import VehicleScheme from '../vehicle-scheme/VehicleScheme';
+import LocationMap from './LocationMap';
 import { FormData } from './types';
 
 interface SchemeStepProps {
@@ -14,11 +14,15 @@ const SchemeStep = ({ formData }: SchemeStepProps) => {
       <div className="space-y-2">
         <h3 className="text-lg font-medium text-constalib-dark">Schéma de l'accident</h3>
         <p className="text-sm text-constalib-dark-gray">
-          Positionnez les véhicules sur la carte pour représenter visuellement l'accident.
+          Visualisez l'emplacement de l'accident sur la carte.
         </p>
       </div>
       
-      <VehicleScheme geolocation={geolocation} />
+      <LocationMap 
+        lat={geolocation?.lat || null} 
+        lng={geolocation?.lng || null} 
+        address={geolocation?.address || ""}
+      />
     </div>
   );
 };
