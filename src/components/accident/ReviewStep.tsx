@@ -9,6 +9,7 @@ import DescriptionCard from './review/DescriptionCard';
 import PhotosCard from './review/PhotosCard';
 import EmailsCard from './review/EmailsCard';
 import EmergencyCard from './review/EmergencyCard';
+import DriversInsuredCard from './review/DriversInsuredCard';
 import CerfaGenerationButton from './CerfaGenerationButton';
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Info } from "lucide-react";
@@ -19,6 +20,10 @@ interface ReviewStepProps {
 
 const ReviewStep = ({ formData }: ReviewStepProps) => {
   const hasEmailRecipients = formData.personalEmail || formData.insuranceEmails.length > 0 || formData.involvedPartyEmails.length > 0;
+  
+  // Vérifier si les informations du conducteur/assuré sont définies et ont au moins un champ rempli
+  const hasDriverAInfo = formData.driverA && Object.values(formData.driverA).some(val => val);
+  const hasDriverBInfo = formData.driverB && Object.values(formData.driverB).some(val => val);
   
   return (
     <div className="space-y-6">
@@ -56,6 +61,22 @@ const ReviewStep = ({ formData }: ReviewStepProps) => {
         />
         
         <OtherVehicleCard otherVehicle={formData.otherVehicle} />
+        
+        {hasDriverAInfo && formData.insuredA && (
+          <DriversInsuredCard 
+            vehicleId="A" 
+            driver={formData.driverA} 
+            insured={formData.insuredA} 
+          />
+        )}
+        
+        {hasDriverBInfo && formData.insuredB && (
+          <DriversInsuredCard 
+            vehicleId="B" 
+            driver={formData.driverB} 
+            insured={formData.insuredB} 
+          />
+        )}
         
         <DescriptionCard description={formData.description} />
         

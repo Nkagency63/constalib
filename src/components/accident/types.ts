@@ -23,6 +23,24 @@ export interface WitnessInfo {
   email: string;
 }
 
+export interface DriverInfo {
+  fullName: string;
+  address: string;
+  licenseNumber: string;
+  licenseDate: string;
+  phone: string;
+  email: string;
+}
+
+export interface InsuredInfo {
+  fullName: string;
+  address: string;
+  phone: string;
+  email: string;
+  policyNumber: string;
+  isDriver: boolean; // Pour indiquer si l'assuré est aussi le conducteur
+}
+
 export interface FormData {
   date: string;
   time: string;
@@ -69,6 +87,11 @@ export interface FormData {
   injuriesDescription?: string;
   hasWitnesses: boolean;
   witnesses: WitnessInfo[];
+  // Nouvelles propriétés pour conducteurs et assurés
+  driverA: DriverInfo;
+  driverB: DriverInfo;
+  insuredA: InsuredInfo;
+  insuredB: InsuredInfo;
 }
 
 export interface Vehicle {

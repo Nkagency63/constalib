@@ -4,13 +4,14 @@ import BasicInfoStep from './BasicInfoStep';
 import LocationStep from './LocationStep';
 import VehicleIdentificationStep from './VehicleIdentificationStep';
 import MultiVehicleStep from './MultiVehicleStep';
+import DriversInsuredStep from './DriversInsuredStep';
 import DetailsStep from './DetailsStep';
 import CircumstancesStep from './CircumstancesStep';
 import PhotosStep from './PhotosStep';
 import EmailStep from './EmailStep';
 import ReviewStep from './ReviewStep';
 import SchemeStep from './SchemeStep';
-import { FormData, WitnessInfo } from './types';
+import { FormData, WitnessInfo, DriverInfo, InsuredInfo } from './types';
 
 interface StepRendererProps {
   currentStepId: string;
@@ -33,6 +34,10 @@ interface StepRendererProps {
   updateWitness: (index: number, field: keyof WitnessInfo, value: string) => void;
   addWitness: () => void;
   removeWitness: (index: number) => void;
+  updateDriverA?: (field: keyof DriverInfo, value: string) => void;
+  updateDriverB?: (field: keyof DriverInfo, value: string) => void;
+  updateInsuredA?: (field: keyof InsuredInfo, value: string | boolean) => void;
+  updateInsuredB?: (field: keyof InsuredInfo, value: string | boolean) => void;
 }
 
 const StepRenderer = ({
@@ -55,7 +60,11 @@ const StepRenderer = ({
   setHasWitnesses,
   updateWitness,
   addWitness,
-  removeWitness
+  removeWitness,
+  updateDriverA,
+  updateDriverB,
+  updateInsuredA,
+  updateInsuredB
 }: StepRendererProps) => {
   switch (currentStepId) {
     case 'basics':
@@ -84,6 +93,21 @@ const StepRenderer = ({
           setOtherVehicleInfo={setOtherVehicleInfo}
           onEmergencyContacted={onEmergencyContacted}
         />
+      );
+    case 'drivers':
+      return (
+        updateDriverA && updateDriverB && updateInsuredA && updateInsuredB ? (
+          <DriversInsuredStep
+            driverA={formData.driverA}
+            driverB={formData.driverB}
+            insuredA={formData.insuredA}
+            insuredB={formData.insuredB}
+            updateDriverA={updateDriverA}
+            updateDriverB={updateDriverB}
+            updateInsuredA={updateInsuredA}
+            updateInsuredB={updateInsuredB}
+          />
+        ) : null
       );
     case 'details':
       return (

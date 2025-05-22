@@ -39,7 +39,11 @@ const AccidentForm = ({ onEmergencyRequest, onStepChange }: AccidentFormProps) =
     setHasWitnesses,
     updateWitness,
     addWitness,
-    removeWitness
+    removeWitness,
+    updateDriverA,
+    updateDriverB,
+    updateInsuredA,
+    updateInsuredB
   } = useAccidentForm();
 
   if (submitted) {
@@ -93,6 +97,10 @@ const AccidentForm = ({ onEmergencyRequest, onStepChange }: AccidentFormProps) =
           updateWitness={updateWitness}
           addWitness={addWitness}
           removeWitness={removeWitness}
+          updateDriverA={updateDriverA}
+          updateDriverB={updateDriverB}
+          updateInsuredA={updateInsuredA}
+          updateInsuredB={updateInsuredB}
         />
       </form>
       

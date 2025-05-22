@@ -11,6 +11,7 @@ import { useLocationForm } from './accident/useLocationForm';
 import { usePhotosForm } from './accident/usePhotosForm';
 import { useEmailForm } from './accident/useEmailForm';
 import { useEmergencyForm } from './accident/useEmergencyForm';
+import { useDriversInsuredForm } from './accident/useDriversInsuredForm';
 
 export const useAccidentForm = () => {
   // Toast notification hook
@@ -26,6 +27,7 @@ export const useAccidentForm = () => {
   const photosForm = usePhotosForm();
   const emailForm = useEmailForm();
   const emergencyForm = useEmergencyForm();
+  const driversInsuredForm = useDriversInsuredForm();
 
   // Combine all form data into a single FormData object
   const formData: FormData = useMemo(() => {
@@ -37,7 +39,8 @@ export const useAccidentForm = () => {
       ...injuriesForm.getInjuriesData(),
       ...photosForm.getPhotosData(),
       ...emailForm.getEmailData(),
-      ...emergencyForm.getEmergencyData()
+      ...emergencyForm.getEmergencyData(),
+      ...driversInsuredForm.getDriversInsuredData()
     } as FormData;
   }, [
     locationForm,
@@ -47,7 +50,8 @@ export const useAccidentForm = () => {
     injuriesForm,
     photosForm,
     emailForm,
-    emergencyForm
+    emergencyForm,
+    driversInsuredForm
   ]);
 
   return {
@@ -101,6 +105,12 @@ export const useAccidentForm = () => {
     
     // Emergency methods
     onEmergencyContacted: emergencyForm.onEmergencyContacted,
+    
+    // Drivers and Insured form methods
+    updateDriverA: driversInsuredForm.updateDriverA,
+    updateDriverB: driversInsuredForm.updateDriverB,
+    updateInsuredA: driversInsuredForm.updateInsuredA,
+    updateInsuredB: driversInsuredForm.updateInsuredB,
     
     // Toast notifications
     uiToast
