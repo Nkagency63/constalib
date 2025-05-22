@@ -1,5 +1,5 @@
 
-import VehicleScheme from '../VehicleScheme';
+import VehicleScheme from '../vehicle-scheme/VehicleScheme';
 import { FormData } from './types';
 
 interface SchemeStepProps {
