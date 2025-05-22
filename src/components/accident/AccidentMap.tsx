@@ -2,9 +2,6 @@
 import React from 'react';
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import { Icon } from 'leaflet';
-
-// Import Leaflet CSS from a CDN instead of from node_modules
-// This prevents the build error with leaflet/dist/leaflet.css
 import { MapPin } from 'lucide-react';
 
 // Create a custom accident icon

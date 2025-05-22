@@ -1,7 +1,6 @@
 
 import React from 'react';
 import { MapContainer as LeafletMapContainer, TileLayer } from 'react-leaflet';
-import 'leaflet/dist/leaflet.css';
 import VehiclesLayer from './VehiclesLayer';
 import PathsLayer from './PathsLayer';
 import AnnotationsLayer from './AnnotationsLayer';
