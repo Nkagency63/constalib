@@ -35,7 +35,7 @@ const SchemeStep = ({ formData }: SchemeStepProps) => {
         </TabsList>
         
         <TabsContent value="scheme" className="pt-4">
-          <VehicleScheme />
+          <VehicleScheme geolocation={geolocation} />
         </TabsContent>
         
         <TabsContent value="map" className="pt-4">

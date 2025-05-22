@@ -6,4 +6,6 @@ export interface Vehicle {
   rotation: number;
   color: string;
   label: string;
+  mapLat?: number;
+  mapLng?: number;
 }

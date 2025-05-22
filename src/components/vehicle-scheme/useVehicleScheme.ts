@@ -121,6 +121,8 @@ export const useVehicleScheme = () => {
     undo,
     redo,
     zoomIn,
-    zoomOut
+    zoomOut,
+    setVehicles,
+    setSelectedVehicle
   };
 };
