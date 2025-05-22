@@ -35,6 +35,29 @@ export const useSchemeMapHandlers = (
     ? [formData.geolocation.lat, formData.geolocation.lng]
     : [48.8566, 2.3522];
 
+  // Use useSchemeMap hook to get map functionality first, so centerOnVehicles is available
+  const { mapRef, drawingLayerRef, handleMapReady, centerOnVehicles } = useSchemeMap({
+    readOnly,
+    handleMapClick: (e: any) => handleMapClick(e, {
+      readOnly,
+      currentTool,
+      vehicles,
+      paths,
+      annotations,
+      selectedVehicle,
+      isDrawing,
+      centerOnVehicles,
+      saveToHistory,
+      addVehicle,
+      selectVehicle,
+      startPath,
+      continuePath,
+      addAnnotation
+    }),
+    onReady: () => handleOnMapReady()
+  });
+
+  // Define handleOnMapReady after centerOnVehicles is available
   const handleOnMapReady = useCallback(() => {
     console.log("Map is ready");
     setIsMapReady(true);
@@ -61,27 +84,6 @@ export const useSchemeMapHandlers = (
       setShowGuidesFirstTime(false);
     }
   }, [formData, vehicles, setVehicles, saveToHistory, setIsMapReady, setMapInitialized, setShowGuidesFirstTime, centerOnVehicles]);
-
-  const { mapRef, drawingLayerRef, handleMapReady, centerOnVehicles } = useSchemeMap({
-    readOnly,
-    handleMapClick: (e: any) => handleMapClick(e, {
-      readOnly,
-      currentTool,
-      vehicles,
-      paths,
-      annotations,
-      selectedVehicle,
-      isDrawing,
-      centerOnVehicles,
-      saveToHistory,
-      addVehicle,
-      selectVehicle,
-      startPath,
-      continuePath,
-      addAnnotation
-    }),
-    onReady: handleOnMapReady
-  });
 
   const handleToolbarAddVehicle = useCallback(() => {
     if (!mapRef.current) {
