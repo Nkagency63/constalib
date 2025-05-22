@@ -18,8 +18,10 @@ const AccidentForm = ({ onEmergencyRequest, onStepChange }: AccidentFormProps) =
     formData,
     currentStepIndex,
     submitted,
+    currentVehicleId,
     handleInputChange,
     handleOtherVehicleChange,
+    handleCircumstanceChange,
     handlePhotoUpload,
     setVehicleInfo,
     setOtherVehicleInfo,
@@ -27,17 +29,17 @@ const AccidentForm = ({ onEmergencyRequest, onStepChange }: AccidentFormProps) =
     setInsuranceEmails,
     setInvolvedPartyEmails,
     setPersonalEmail,
+    setCurrentVehicleId,
     onEmergencyContacted,
-    // Nouvelles fonctions
-    addWitness,
-    updateWitness,
-    removeWitness,
-    handleOwnerDriverChange,
-    toggleCircumstance,
-    setSignature,
     nextStep,
     prevStep,
-    setSubmitted
+    setSubmitted,
+    setHasInjuries,
+    setInjuriesDescription,
+    setHasWitnesses,
+    updateWitness,
+    addWitness,
+    removeWitness
   } = useAccidentForm();
 
   if (submitted) {
@@ -83,32 +85,33 @@ const AccidentForm = ({ onEmergencyRequest, onStepChange }: AccidentFormProps) =
           setInvolvedPartyEmails={setInvolvedPartyEmails}
           setPersonalEmail={setPersonalEmail}
           onEmergencyContacted={onEmergencyContacted}
-          // Nouvelles fonctions
-          addWitness={addWitness}
+          handleCircumstanceChange={handleCircumstanceChange}
+          setCurrentVehicleId={setCurrentVehicleId}
+          setHasInjuries={setHasInjuries}
+          setInjuriesDescription={setInjuriesDescription}
+          setHasWitnesses={setHasWitnesses}
           updateWitness={updateWitness}
+          addWitness={addWitness}
           removeWitness={removeWitness}
-          handleOwnerDriverChange={handleOwnerDriverChange}
-          toggleCircumstance={toggleCircumstance}
-          setSignature={setSignature}
         />
       </form>
       
-      <FormSubmissionHandler 
-        formData={formData} 
-        onSubmitSuccess={() => setSubmitted(true)}
-      >
-        {({ handleSubmit, isSubmitting }) => (
-          <StepNavigation 
-            prevStep={prevStep}
-            nextStep={nextStep}
-            handleSubmit={handleSubmit}
-            currentStepIndex={currentStepIndex}
-            totalSteps={accidentFormSteps.length}
-            isSubmitting={isSubmitting}
-            onEmergencyRequest={onEmergencyRequest}
-          />
-        )}
-      </FormSubmissionHandler>
+      {currentStep.id === "review" ? (
+        <FormSubmissionHandler 
+          formData={formData} 
+          onSubmitSuccess={() => setSubmitted(true)}
+        />
+      ) : (
+        <StepNavigation 
+          prevStep={prevStep}
+          nextStep={nextStep}
+          handleSubmit={async (e) => e.preventDefault()}
+          currentStepIndex={currentStepIndex}
+          totalSteps={accidentFormSteps.length}
+          isSubmitting={false}
+          onEmergencyRequest={onEmergencyRequest}
+        />
+      )}
     </div>
   );
 };

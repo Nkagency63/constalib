@@ -1,17 +1,16 @@
 
-import { FormData } from './types';
+import React from 'react';
 import BasicInfoStep from './BasicInfoStep';
-import DetailsStep from './DetailsStep';
-import PhotosStep from './PhotosStep';
-import SchemeStep from './SchemeStep';
-import ReviewStep from './ReviewStep';
-import VehicleIdentificationStep from './VehicleIdentificationStep';
 import LocationStep from './LocationStep';
+import VehicleIdentificationStep from './VehicleIdentificationStep';
 import MultiVehicleStep from './MultiVehicleStep';
-import EmailStep from './EmailStep';
+import DetailsStep from './DetailsStep';
 import CircumstancesStep from './CircumstancesStep';
-import SignatureStep from './SignatureStep';
-import OwnerDriverStep from './OwnerDriverStep';
+import PhotosStep from './PhotosStep';
+import EmailStep from './EmailStep';
+import ReviewStep from './ReviewStep';
+import SchemeStep from './SchemeStep';
+import { FormData, WitnessInfo } from './types';
 
 interface StepRendererProps {
   currentStepId: string;
@@ -25,14 +24,15 @@ interface StepRendererProps {
   setInsuranceEmails: (emails: string[]) => void;
   setInvolvedPartyEmails: (emails: string[]) => void;
   setPersonalEmail: (email: string) => void;
-  onEmergencyContacted?: () => void;
-  // Nouvelles fonctions
+  onEmergencyContacted: () => void;
+  handleCircumstanceChange: (vehicleId: 'A' | 'B', circumstanceId: string, isChecked: boolean) => void;
+  setCurrentVehicleId: (vehicleId: 'A' | 'B') => void;
+  setHasInjuries: (value: boolean) => void;
+  setInjuriesDescription: (value: string) => void;
+  setHasWitnesses: (value: boolean) => void;
+  updateWitness: (index: number, field: keyof WitnessInfo, value: string) => void;
   addWitness: () => void;
-  updateWitness: (id: string, field: 'name' | 'contact', value: string) => void;
-  removeWitness: (id: string) => void;
-  handleOwnerDriverChange: (e: React.ChangeEvent<HTMLInputElement>, isOtherVehicle?: boolean) => void;
-  toggleCircumstance: (index: number, party: 'A' | 'B') => void;
-  setSignature: (signature: string, party: 'A' | 'B') => void;
+  removeWitness: (index: number) => void;
 }
 
 const StepRenderer = ({
@@ -48,152 +48,96 @@ const StepRenderer = ({
   setInvolvedPartyEmails,
   setPersonalEmail,
   onEmergencyContacted,
-  // Nouvelles fonctions
-  addWitness,
+  handleCircumstanceChange,
+  setCurrentVehicleId,
+  setHasInjuries,
+  setInjuriesDescription,
+  setHasWitnesses,
   updateWitness,
-  removeWitness,
-  handleOwnerDriverChange,
-  toggleCircumstance,
-  setSignature
+  addWitness,
+  removeWitness
 }: StepRendererProps) => {
-
-  // Fonction pour gérer les changements de conditions météo
-  const onWeatherChange = (value: string) => {
-    const syntheticEvent = {
-      target: {
-        name: 'weatherConditions',
-        value
-      }
-    } as React.ChangeEvent<HTMLInputElement>;
-    
-    handleInputChange(syntheticEvent);
-  };
-
-  // Fonction pour gérer les changements de blessés
-  const onInjuredPersonsChange = (value: boolean) => {
-    const syntheticEvent = {
-      target: {
-        name: 'injuredPersons',
-        value: value.toString()
-      }
-    } as React.ChangeEvent<HTMLInputElement>;
-    
-    handleInputChange(syntheticEvent);
-  };
-
   switch (currentStepId) {
     case 'basics':
       return (
         <BasicInfoStep 
-          date={formData.date}
-          time={formData.time}
-          weatherConditions={formData.weatherConditions}
-          injuredPersons={formData.injuredPersons}
-          witnesses={formData.witnesses}
+          date={formData.date} 
+          time={formData.time} 
           handleInputChange={handleInputChange}
-          onWeatherChange={onWeatherChange}
-          onInjuredPersonsChange={onInjuredPersonsChange}
-          addWitness={addWitness}
-          updateWitness={updateWitness}
-          removeWitness={removeWitness}
         />
       );
-    
     case 'location':
       return (
-        <LocationStep
+        <LocationStep 
           location={formData.location}
           handleInputChange={handleInputChange}
           setGeolocation={setGeolocation}
         />
       );
-      
     case 'vehicles':
       return (
-        <MultiVehicleStep
-          licensePlate={formData.licensePlate}
-          vehicleBrand={formData.vehicleBrand}
-          vehicleModel={formData.vehicleModel}
-          vehicleYear={formData.vehicleYear}
-          vehicleDescription={formData.vehicleDescription}
-          insurancePolicy={formData.insurancePolicy}
-          insuranceCompany={formData.insuranceCompany}
-          otherVehicle={formData.otherVehicle}
+        <MultiVehicleStep 
+          formData={formData}
           handleInputChange={handleInputChange}
           handleOtherVehicleChange={handleOtherVehicleChange}
           setVehicleInfo={setVehicleInfo}
           setOtherVehicleInfo={setOtherVehicleInfo}
+          onEmergencyContacted={onEmergencyContacted}
         />
       );
-    
-    case 'owner-driver':
-      return (
-        <OwnerDriverStep
-          formData={formData}
-          handleOwnerDriverChange={handleOwnerDriverChange}
-        />
-      );
-      
-    case 'circumstances':
-      return (
-        <CircumstancesStep
-          circumstancesA={formData.circumstancesA}
-          circumstancesB={formData.circumstancesB}
-          observations={formData.observations}
-          disagreement={formData.disagreement}
-          toggleCircumstance={toggleCircumstance}
-          handleInputChange={handleInputChange}
-        />
-      );
-      
     case 'details':
       return (
         <DetailsStep
           description={formData.description}
+          hasInjuries={formData.hasInjuries}
+          injuriesDescription={formData.injuriesDescription}
+          hasWitnesses={formData.hasWitnesses}
+          witnesses={formData.witnesses}
           handleInputChange={handleInputChange}
+          setHasInjuries={setHasInjuries}
+          setInjuriesDescription={setInjuriesDescription}
+          setHasWitnesses={setHasWitnesses}
+          updateWitness={updateWitness}
+          addWitness={addWitness}
+          removeWitness={removeWitness}
         />
       );
-      
+    case 'circumstances':
+      return (
+        <CircumstancesStep
+          circumstances={[]}
+          vehicleACircumstances={formData.vehicleACircumstances}
+          vehicleBCircumstances={formData.vehicleBCircumstances}
+          handleCircumstanceChange={handleCircumstanceChange}
+          currentVehicleId={formData.currentVehicleId || 'A'}
+          setCurrentVehicleId={setCurrentVehicleId}
+        />
+      );
+    case 'scheme':
+      return <SchemeStep formData={formData} />;
     case 'photos':
       return (
-        <PhotosStep handlePhotoUpload={handlePhotoUpload} />
-      );
-      
-    case 'scheme':
-      return (
-        <SchemeStep formData={formData} />
-      );
-      
-    case 'signature':
-      return (
-        <SignatureStep
-          signatureA={formData.signatureA}
-          signatureB={formData.signatureB}
-          signatureDateA={formData.signatureDateA}
-          signatureDateB={formData.signatureDateB}
-          setSignature={setSignature}
+        <PhotosStep
+          vehiclePhotos={formData.vehiclePhotos}
+          damagePhotos={formData.damagePhotos}
+          handlePhotoUpload={handlePhotoUpload}
         />
       );
-      
     case 'email':
       return (
         <EmailStep
-          insuranceEmails={formData.insuranceEmails}
-          setInsuranceEmails={setInsuranceEmails}
-          involvedPartyEmails={formData.involvedPartyEmails}
-          setInvolvedPartyEmails={setInvolvedPartyEmails}
           personalEmail={formData.personalEmail}
+          insuranceEmails={formData.insuranceEmails}
+          involvedPartyEmails={formData.involvedPartyEmails}
           setPersonalEmail={setPersonalEmail}
+          setInsuranceEmails={setInsuranceEmails}
+          setInvolvedPartyEmails={setInvolvedPartyEmails}
         />
       );
-      
     case 'review':
-      return (
-        <ReviewStep formData={formData} />
-      );
-      
+      return <ReviewStep formData={formData} />;
     default:
-      return null;
+      return <div>Étape non trouvée</div>;
   }
 };
 

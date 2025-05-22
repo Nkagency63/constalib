@@ -6,6 +6,7 @@ export interface Step {
 }
 
 export interface VehicleData {
+  id?: 'A' | 'B';
   licensePlate: string;
   brand: string;
   model: string;
@@ -16,16 +17,17 @@ export interface VehicleData {
   insuranceCompany?: string;
 }
 
+export interface WitnessInfo {
+  fullName: string;
+  phone: string;
+  email: string;
+}
+
 export interface FormData {
   date: string;
   time: string;
   location: string;
   description: string;
-  // Section 1: Nouvelles informations de base
-  weatherConditions: string;
-  injuredPersons: boolean;
-  witnesses: Witness[];
-  // Photos
   vehiclePhotos: File[];
   damagePhotos: File[];
   // Premier véhicule (le vôtre)
@@ -37,15 +39,6 @@ export interface FormData {
   firstRegistration?: string;
   insurancePolicy?: string;
   insuranceCompany?: string;
-  // Informations sur le propriétaire et le conducteur
-  ownerName: string;
-  ownerFirstName: string;
-  ownerAddress: string;
-  driverName: string;
-  driverFirstName: string;
-  driverLicenseNumber: string;
-  driverLicenseDate: string;
-  driverLicenseCountry: string;
   // Second véhicule (l'autre impliqué)
   otherVehicle: {
     licensePlate: string;
@@ -56,40 +49,71 @@ export interface FormData {
     firstRegistration?: string;
     insurancePolicy?: string;
     insuranceCompany?: string;
-    // Informations sur le propriétaire et le conducteur
-    ownerName: string;
-    ownerFirstName: string;
-    ownerAddress: string;
-    driverName: string;
-    driverFirstName: string;
-    driverLicenseNumber: string;
-    driverLicenseDate: string;
-    driverLicenseCountry: string;
   };
-  // Circonstances
-  circumstancesA: number[];
-  circumstancesB: number[];
-  observations: string;
-  disagreement: boolean;
   geolocation: {
     lat: number | null;
     lng: number | null;
     address: string;
   };
   emergencyContacted: boolean;
-  // Signatures
-  signatureA: string;
-  signatureB: string;
-  signatureDateA: string;
-  signatureDateB: string;
+  // Nouvelles propriétés pour les circonstances
+  vehicleACircumstances: string[];
+  vehicleBCircumstances: string[];
   // Informations d'email
   personalEmail: string;
   insuranceEmails: string[];
   involvedPartyEmails: string[];
+  // Propriété pour suivre le véhicule actuellement sélectionné
+  currentVehicleId?: 'A' | 'B';
+  hasInjuries: boolean;
+  injuriesDescription?: string;
+  hasWitnesses: boolean;
+  witnesses: WitnessInfo[];
 }
 
-export interface Witness {
+export interface Vehicle {
   id: string;
-  name: string;
-  contact: string;
+  vehicleId: 'A' | 'B' | 'C' | 'D';
+  position: [number, number];
+  color: string;
+  brand?: string;
+  model?: string;
+  rotation: number;
+  isSelected: boolean;
+  vehicleType: 'car' | 'truck' | 'bike'; // nouveau type de véhicule
+}
+
+export interface Path {
+  id: string;
+  points: [number, number][];
+  color: string;
+  vehicleId?: string;
+  isSelected: boolean;
+}
+
+export interface Annotation {
+  id: string;
+  position: [number, number];
+  text: string;
+  type: 'obstacle' | 'sign' | 'note';
+}
+
+export interface SchemeData {
+  vehicles: Vehicle[];
+  paths: Path[];
+  annotations: Annotation[];
+  center: [number, number];
+  zoom: number;
+}
+
+export interface Circumstance {
+  id: string;
+  label: string;
+  description: string;
+}
+
+export interface CircumstanceCategory {
+  id: string;
+  title: string;
+  circumstances: Circumstance[];
 }

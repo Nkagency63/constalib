@@ -4,11 +4,12 @@ import { FormData } from './types';
 import { useToast } from '@/hooks/use-toast';
 import { toast } from 'sonner';
 import { saveVehicleData, uploadPhotos, saveAccidentReport, sendEmails } from '@/services/accidentReportService';
+import AccidentReportSubmitButton from './AccidentReportSubmitButton';
 
 interface FormSubmissionHandlerProps {
   formData: FormData;
-  children: (props: {
-    handleSubmit: (e: React.FormEvent) => Promise<void>;
+  children?: (props: {
+    handleSubmit: (e?: React.FormEvent) => Promise<void>;  // Make the event parameter optional
     isSubmitting: boolean;
   }) => React.ReactNode;
   onSubmitSuccess: () => void;
@@ -22,8 +23,8 @@ const FormSubmissionHandler = ({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast: uiToast } = useToast();
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSubmit = async (e?: React.FormEvent) => {  // Make the event parameter optional
+    if (e) e.preventDefault();  // Only call preventDefault if e exists
     setIsSubmitting(true);
     
     try {
@@ -98,8 +99,18 @@ const FormSubmissionHandler = ({
     }
   };
 
+  // If children prop is provided, use it for custom rendering
+  if (children) {
+    return <>{children({ handleSubmit, isSubmitting })}</>;
+  }
+
+  // Default submit button
   return (
-    <>{children({ handleSubmit, isSubmitting })}</>
+    <AccidentReportSubmitButton
+      formData={formData}
+      submitReport={handleSubmit}
+      isSubmitting={isSubmitting}
+    />
   );
 };
 

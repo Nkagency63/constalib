@@ -1,4 +1,3 @@
-
 import { FormData } from '@/components/accident/types';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -142,4 +141,35 @@ export const saveAccidentReport = async (formData: FormData, vehicleId: string |
   }
   
   return data;
+};
+
+// Nouvelle fonction pour enregistrer un rapport officiel via la fonction Edge
+export const registerOfficialReport = async (
+  reportData: any,
+  vehicleA: any,
+  vehicleB: any,
+  circumstances: any,
+  geolocation: any
+) => {
+  try {
+    const { data, error } = await supabase.functions.invoke('register-accident-report', {
+      body: {
+        reportData,
+        vehicleA,
+        vehicleB,
+        circumstances,
+        geolocation
+      }
+    });
+
+    if (error) {
+      console.error("Erreur lors de l'enregistrement officiel:", error);
+      throw new Error(error.message || "Erreur lors de l'enregistrement officiel");
+    }
+
+    return data;
+  } catch (error: any) {
+    console.error("Erreur lors de l'appel à la fonction Edge:", error);
+    throw new Error(error.message || "Erreur lors de l'enregistrement officiel");
+  }
 };

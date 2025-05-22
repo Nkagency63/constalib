@@ -2,10 +2,12 @@
 import PhotoCapture from '../PhotoCapture';
 
 interface PhotosStepProps {
+  vehiclePhotos: File[];
+  damagePhotos: File[];
   handlePhotoUpload: (type: 'vehiclePhotos' | 'damagePhotos', file: File) => void;
 }
 
-const PhotosStep = ({ handlePhotoUpload }: PhotosStepProps) => {
+const PhotosStep = ({ vehiclePhotos, damagePhotos, handlePhotoUpload }: PhotosStepProps) => {
   return (
     <div className="space-y-8">
       <div className="space-y-4">

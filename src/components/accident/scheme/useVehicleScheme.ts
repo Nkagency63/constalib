@@ -1,6 +1,14 @@
 
-import { useState, useRef, useEffect } from 'react';
-import { Vehicle } from './types';
+import { useState, useEffect } from 'react';
+
+interface Vehicle {
+  id: string;
+  x: number;
+  y: number;
+  rotation: number;
+  color: string;
+  label: string;
+}
 
 export const useVehicleScheme = () => {
   const [vehicles, setVehicles] = useState<Vehicle[]>([]);
@@ -9,18 +17,14 @@ export const useVehicleScheme = () => {
   const [isDragging, setIsDragging] = useState(false);
   const [history, setHistory] = useState<Vehicle[][]>([[]]);
   const [historyIndex, setHistoryIndex] = useState(0);
-  const canvasRef = useRef<HTMLDivElement>(null);
 
-  // Add snapshot to history when vehicles change
   useEffect(() => {
     if (vehicles.length === 0 && history[0].length === 0) return;
     
     if (historyIndex < history.length - 1) {
-      // If we're in the middle of the history, truncate
       setHistory(prevHistory => prevHistory.slice(0, historyIndex + 1));
     }
     
-    // Add current state to history
     setHistory(prevHistory => [...prevHistory, [...vehicles]]);
     setHistoryIndex(prevIndex => prevIndex + 1);
   }, [vehicles]);
@@ -39,16 +43,14 @@ export const useVehicleScheme = () => {
     setVehicles(prevVehicles => [...prevVehicles, newVehicle]);
   };
 
-  const handleMouseDown = (vehicleId: string, e: React.MouseEvent) => {
-    e.preventDefault();
+  const handleMouseDown = (vehicleId: string) => {
     setSelectedVehicle(vehicleId);
     setIsDragging(true);
   };
 
-  const handleMouseMove = (e: React.MouseEvent) => {
-    if (!isDragging || !selectedVehicle || !canvasRef.current) return;
+  const handleMouseMove = (e: React.MouseEvent, canvasRect: DOMRect) => {
+    if (!isDragging || !selectedVehicle) return;
     
-    const canvasRect = canvasRef.current.getBoundingClientRect();
     const x = (e.clientX - canvasRect.left) / zoom;
     const y = (e.clientY - canvasRect.top) / zoom;
     
@@ -109,7 +111,6 @@ export const useVehicleScheme = () => {
     selectedVehicle,
     zoom,
     isDragging,
-    canvasRef,
     historyIndex,
     history,
     addVehicle,
@@ -122,7 +123,5 @@ export const useVehicleScheme = () => {
     redo,
     zoomIn,
     zoomOut,
-    setVehicles,
-    setSelectedVehicle
   };
 };
