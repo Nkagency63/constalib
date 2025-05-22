@@ -6,7 +6,7 @@ import 'leaflet/dist/leaflet.css';
 import { Vehicle } from './types';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Map, Flag, CarTaxiFront } from 'lucide-react';
+import { Map, RotateCw, RotateCcw, Trash2, Car } from 'lucide-react';
 import MapTools from './MapTools';
 
 // Fix for default marker icons in Leaflet
@@ -81,6 +81,7 @@ interface MapViewProps {
   onVehicleMove: (id: string, lat: number, lng: number) => void;
   onVehicleRotate: (id: string, angle: number) => void;
   onVehicleRemove: (id: string) => void;
+  onVehicleAdd: () => void;
 }
 
 const MapView = ({
@@ -90,7 +91,8 @@ const MapView = ({
   onVehicleSelect,
   onVehicleMove,
   onVehicleRotate,
-  onVehicleRemove
+  onVehicleRemove,
+  onVehicleAdd
 }: MapViewProps) => {
   const [mapTools, setMapTools] = useState<'arrow' | 'impact' | 'sign' | null>(null);
   const [defaultCenter] = useState({
@@ -126,12 +128,24 @@ const MapView = ({
   ];
   
   return (
-    <div className="space-y-2">
-      <div className="flex gap-2 justify-between items-center">
-        <MapTools 
-          selectedTool={mapTools}
-          onToolSelect={setMapTools}
-        />
+    <div className="space-y-4">
+      <div className="flex justify-between items-center">
+        <div className="flex items-center space-x-2">
+          <Button 
+            variant="outline" 
+            size="sm" 
+            onClick={onVehicleAdd}
+            className="flex items-center"
+          >
+            <Car className="h-4 w-4 mr-2" />
+            Ajouter véhicule
+          </Button>
+          
+          <MapTools 
+            selectedTool={mapTools}
+            onToolSelect={setMapTools}
+          />
+        </div>
         
         {selectedVehicle && (
           <div className="flex gap-2 justify-end">
@@ -139,34 +153,39 @@ const MapView = ({
               variant="outline"
               size="sm"
               onClick={() => onVehicleRotate(selectedVehicle, -45)}
+              className="flex items-center"
             >
-              Rotation -45°
+              <RotateCcw className="h-4 w-4 mr-1" />
+              -45°
             </Button>
             <Button
               variant="outline"
               size="sm"
               onClick={() => onVehicleRotate(selectedVehicle, 45)}
+              className="flex items-center"
             >
-              Rotation +45°
+              <RotateCw className="h-4 w-4 mr-1" />
+              +45°
             </Button>
             <Button
               variant="outline"
               size="sm"
               onClick={() => onVehicleRemove(selectedVehicle)}
-              className="text-red-500"
+              className="text-red-500 flex items-center"
             >
+              <Trash2 className="h-4 w-4 mr-1" />
               Supprimer
             </Button>
           </div>
         )}
       </div>
       
-      <div className="h-[400px] rounded-lg overflow-hidden border border-gray-300 bg-white">
+      <div className="h-[500px] rounded-lg overflow-hidden border border-gray-300 bg-white">
         <MapContainer 
           center={center} 
           zoom={15} 
           style={{ height: '100%', width: '100%' }} 
-          scrollWheelZoom={false}
+          scrollWheelZoom={true}
         >
           <TileLayer
             attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
