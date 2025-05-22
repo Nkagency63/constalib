@@ -28,7 +28,7 @@ const VehicleScheme = ({ geolocation }: VehicleSchemeProps) => {
         geolocation={geolocation}
         vehicles={vehicles}
         selectedVehicle={selectedVehicle}
-        onVehicleSelect={setSelectedVehicle}
+        onVehicleSelect={(id) => setSelectedVehicle(id)}
         onVehicleMove={(id, lat, lng) => {
           setVehicles(prevVehicles => 
             prevVehicles.map(v => 

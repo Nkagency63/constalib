@@ -15,10 +15,7 @@ import markerIconRetina from 'leaflet/dist/images/marker-icon-2x.png';
 import markerShadow from 'leaflet/dist/images/marker-shadow.png';
 
 // Fix Leaflet's default icon path issues
-// TypeScript safe implementation
-const DefaultIcon = L.Icon.Default;
-// @ts-ignore - This is a known workaround for Leaflet's icon issues
-delete DefaultIcon.prototype._getIconUrl;
+delete L.Icon.Default.prototype._getIconUrl;
 
 L.Icon.Default.mergeOptions({
   iconRetinaUrl: markerIconRetina,
