@@ -37,7 +37,8 @@ const VehicleScheme = ({ geolocation }: VehicleSchemeProps) => {
     redo,
     zoomIn,
     zoomOut,
-    setVehicles
+    setVehicles,
+    setSelectedVehicle
   } = useVehicleScheme();
 
   return (
@@ -96,7 +97,7 @@ const VehicleScheme = ({ geolocation }: VehicleSchemeProps) => {
             geolocation={geolocation}
             vehicles={vehicles}
             selectedVehicle={selectedVehicle}
-            onVehicleSelect={(id) => setSelectedVehicle(id)}
+            onVehicleSelect={setSelectedVehicle}
             onVehicleMove={(id, lat, lng) => {
               setVehicles(prevVehicles => 
                 prevVehicles.map(v => 

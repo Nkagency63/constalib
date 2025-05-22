@@ -1,11 +1,10 @@
-
 import React, { useEffect, useRef, useState } from 'react';
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import { Vehicle } from './types';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Map, NavigationControl } from 'lucide-react';
+import { Map } from 'lucide-react';
 
 // Utiliser une clé d'API publique de Mapbox (limité en usage)
 // Dans un environnement de production, cette clé devrait être stockée dans les variables d'environnement
@@ -62,7 +61,7 @@ const MapView = ({
       pitch: 0
     });
     
-    // Ajouter les contrôles de navigation
+    // Ajouter les contrôles de navigation (using the correct mapboxgl NavigationControl)
     map.current.addControl(new mapboxgl.NavigationControl(), 'top-right');
     
     // Cleanup
