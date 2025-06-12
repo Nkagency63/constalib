@@ -35,16 +35,17 @@ const Footer = () => {
             <div>
               <h3 className="text-constalib-dark font-semibold mb-4">Légal</h3>
               <ul className="space-y-2 text-constalib-dark-gray">
-                <li><a href="#" className="hover:text-constalib-blue">Mentions légales</a></li>
-                <li><a href="#" className="hover:text-constalib-blue">Confidentialité</a></li>
-                <li><a href="#" className="hover:text-constalib-blue">CGU</a></li>
+                <li><Link to="/privacy" className="hover:text-constalib-blue">Politique de confidentialité</Link></li>
+                <li><Link to="/privacy" className="hover:text-constalib-blue">Mentions légales</Link></li>
+                <li><Link to="/privacy" className="hover:text-constalib-blue">CGU</Link></li>
               </ul>
             </div>
           </div>
         </div>
         
         <div className="mt-12 pt-8 border-t border-constalib-light-gray text-center text-constalib-dark-gray text-sm">
-          &copy; {new Date().getFullYear()} Constalib.fr. Tous droits réservés.
+          &copy; {new Date().getFullYear()} Constalib.fr. Tous droits réservés. | 
+          <Link to="/privacy" className="ml-1 hover:text-constalib-blue">RGPD & Confidentialité</Link>
         </div>
       </div>
     </footer>
