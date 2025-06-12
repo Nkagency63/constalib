@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import Header from '@/components/Header';
 import { Toaster } from "@/components/ui/toaster";
@@ -8,6 +7,9 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { MapPin, Phone, Clock, Star, Navigation, Search } from 'lucide-react';
 import { toast } from "sonner";
 import { supabase } from '@/integrations/supabase/client';
+import AdBanner from '@/components/ads/AdBanner';
+import AdSection from '@/components/ads/AdSection';
+import { mockAds } from '@/data/adsData';
 
 interface Carrossier {
   id: number;
@@ -232,6 +234,16 @@ const CarrossiersPage = () => {
             Vous bénéficiez d'un service préférentiel en tant qu'utilisateur Constalib.
           </p>
           
+          {/* Bannière publicitaire */}
+          <AdBanner
+            title="Carrosserie Premium Partner"
+            description="Réseau national de carrossiers agréés. Garantie pièces et main d'œuvre 2 ans."
+            imageUrl="/lovable-uploads/076c70e7-8ab0-4280-a52d-8f4a2285ec80.png"
+            ctaText="Découvrir le réseau"
+            link="https://example.com/premium-partner"
+            variant="premium"
+          />
+          
           <div className="bg-white rounded-lg shadow-sm p-6 mb-10">
             <div className="flex flex-col md:flex-row gap-4">
               <div className="flex-1">
@@ -272,6 +284,13 @@ const CarrossiersPage = () => {
               </div>
             )}
           </div>
+          
+          {/* Section publicitaire assureurs */}
+          <AdSection 
+            title="Nos partenaires assureurs"
+            ads={mockAds.assureurs}
+            maxAds={2}
+          />
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {filteredCarrossiers.length > 0 ? (
@@ -332,6 +351,15 @@ const CarrossiersPage = () => {
                 <p className="text-constalib-dark-gray">Aucun carrossier trouvé. Veuillez modifier votre recherche.</p>
               </div>
             )}
+          </div>
+          
+          {/* Section publicitaire location de voiture */}
+          <div className="mt-12">
+            <AdSection 
+              title="Besoin d'un véhicule de remplacement ?"
+              ads={mockAds.location}
+              maxAds={2}
+            />
           </div>
         </div>
       </main>
