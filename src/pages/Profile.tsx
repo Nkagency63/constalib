@@ -1,15 +1,22 @@
-
-import { useState } from 'react';
-import { User, Mail, Phone, Shield, Car, Edit2, Save } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { User, Mail, Phone, Shield, Car, Edit2, Save, MapPin } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '@/hooks/useAuth';
+import { useToast } from '@/hooks/use-toast';
 import Header from '@/components/Header';
 import Button from '@/components/Button';
 import PhotoCapture from '@/components/PhotoCapture';
+import ProtectedRoute from '@/components/ProtectedRoute';
 
 interface ProfileForm {
   firstName: string;
   lastName: string;
   email: string;
   phone: string;
+  addressStreet: string;
+  addressCity: string;
+  addressPostalCode: string;
+  addressCountry: string;
   licensePlate: string;
   vehicleBrand: string;
   vehicleModel: string;
@@ -17,12 +24,19 @@ interface ProfileForm {
   insuranceNumber: string;
 }
 
-const Profile = () => {
+const ProfileContent = () => {
+  const { profile, updateProfile, user } = useAuth();
+  const { toast } = useToast();
+  
   const [profileData, setProfileData] = useState<ProfileForm>({
     firstName: '',
     lastName: '',
     email: '',
     phone: '',
+    addressStreet: '',
+    addressCity: '',
+    addressPostalCode: '',
+    addressCountry: 'France',
     licensePlate: '',
     vehicleBrand: '',
     vehicleModel: '',
@@ -31,9 +45,27 @@ const Profile = () => {
   });
   
   const [activeTab, setActiveTab] = useState('personal');
-  const [editMode, setEditMode] = useState(true);
+  const [editMode, setEditMode] = useState(false);
   const [profilePicture, setProfilePicture] = useState<File | null>(null);
   const [profilePictureUrl, setProfilePictureUrl] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+
+  // Charger les données du profil
+  useEffect(() => {
+    if (profile) {
+      setProfileData(prev => ({
+        ...prev,
+        firstName: profile.first_name || '',
+        lastName: profile.last_name || '',
+        email: profile.email || user?.email || '',
+        phone: profile.phone || '',
+        addressStreet: profile.address_street || '',
+        addressCity: profile.address_city || '',
+        addressPostalCode: profile.address_postal_code || '',
+        addressCountry: profile.address_country || 'France',
+      }));
+    }
+  }, [profile, user]);
   
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -45,10 +77,37 @@ const Profile = () => {
     setProfilePictureUrl(URL.createObjectURL(file));
   };
   
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log('Profile data submitted:', profileData);
-    setEditMode(false);
+    setLoading(true);
+    
+    try {
+      await updateProfile({
+        first_name: profileData.firstName,
+        last_name: profileData.lastName,
+        email: profileData.email,
+        phone: profileData.phone,
+        address_street: profileData.addressStreet,
+        address_city: profileData.addressCity,
+        address_postal_code: profileData.addressPostalCode,
+        address_country: profileData.addressCountry,
+      });
+
+      toast({
+        title: "Profil mis à jour",
+        description: "Vos informations ont été sauvegardées avec succès.",
+      });
+      
+      setEditMode(false);
+    } catch (error: any) {
+      toast({
+        title: "Erreur",
+        description: error.message || "Une erreur est survenue lors de la sauvegarde.",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
   };
   
   const toggleEditMode = () => {
@@ -93,7 +152,7 @@ const Profile = () => {
                 <h2 className="text-2xl font-semibold text-constalib-dark">
                   {profileData.firstName || profileData.lastName 
                     ? `${profileData.firstName} ${profileData.lastName}` 
-                    : 'Nouveau Profil'}
+                    : 'Mon Profil'}
                 </h2>
                 {(profileData.email || profileData.phone) && (
                   <div className="mt-2 text-constalib-dark-gray space-y-1">
@@ -118,6 +177,7 @@ const Profile = () => {
                   variant="ghost"
                   onClick={toggleEditMode}
                   className="flex items-center"
+                  disabled={loading}
                 >
                   {editMode ? (
                     <>
@@ -229,6 +289,81 @@ const Profile = () => {
                         placeholder="06 12 34 56 78"
                       />
                     </div>
+
+                    <div className="mt-8">
+                      <div className="flex items-center mb-4">
+                        <div className="w-10 h-10 rounded-full bg-constalib-light-blue flex items-center justify-center mr-4">
+                          <MapPin className="w-5 h-5 text-constalib-blue" />
+                        </div>
+                        <h3 className="text-lg font-medium text-constalib-dark">Adresse</h3>
+                      </div>
+                      
+                      <div className="space-y-4">
+                        <div>
+                          <label htmlFor="addressStreet" className="block text-sm font-medium text-constalib-dark mb-2">
+                            Rue
+                          </label>
+                          <input
+                            type="text"
+                            id="addressStreet"
+                            name="addressStreet"
+                            value={profileData.addressStreet}
+                            onChange={handleInputChange}
+                            disabled={!editMode}
+                            className="w-full px-4 py-2 border border-constalib-gray rounded-lg focus:ring-2 focus:ring-constalib-blue focus:border-constalib-blue disabled:bg-constalib-light-gray/50 disabled:cursor-not-allowed"
+                            placeholder="123 Rue de la Paix"
+                          />
+                        </div>
+                        
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                          <div>
+                            <label htmlFor="addressPostalCode" className="block text-sm font-medium text-constalib-dark mb-2">
+                              Code postal
+                            </label>
+                            <input
+                              type="text"
+                              id="addressPostalCode"
+                              name="addressPostalCode"
+                              value={profileData.addressPostalCode}
+                              onChange={handleInputChange}
+                              disabled={!editMode}
+                              className="w-full px-4 py-2 border border-constalib-gray rounded-lg focus:ring-2 focus:ring-constalib-blue focus:border-constalib-blue disabled:bg-constalib-light-gray/50 disabled:cursor-not-allowed"
+                              placeholder="75001"
+                            />
+                          </div>
+                          <div>
+                            <label htmlFor="addressCity" className="block text-sm font-medium text-constalib-dark mb-2">
+                              Ville
+                            </label>
+                            <input
+                              type="text"
+                              id="addressCity"
+                              name="addressCity"
+                              value={profileData.addressCity}
+                              onChange={handleInputChange}
+                              disabled={!editMode}
+                              className="w-full px-4 py-2 border border-constalib-gray rounded-lg focus:ring-2 focus:ring-constalib-blue focus:border-constalib-blue disabled:bg-constalib-light-gray/50 disabled:cursor-not-allowed"
+                              placeholder="Paris"
+                            />
+                          </div>
+                          <div>
+                            <label htmlFor="addressCountry" className="block text-sm font-medium text-constalib-dark mb-2">
+                              Pays
+                            </label>
+                            <input
+                              type="text"
+                              id="addressCountry"
+                              name="addressCountry"
+                              value={profileData.addressCountry}
+                              onChange={handleInputChange}
+                              disabled={!editMode}
+                              className="w-full px-4 py-2 border border-constalib-gray rounded-lg focus:ring-2 focus:ring-constalib-blue focus:border-constalib-blue disabled:bg-constalib-light-gray/50 disabled:cursor-not-allowed"
+                              placeholder="France"
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    </div>
                   </div>
                 ) : (
                   <div className="space-y-6">
@@ -333,8 +468,8 @@ const Profile = () => {
                 
                 {editMode && (
                   <div className="mt-8 flex justify-end">
-                    <Button type="submit">
-                      Enregistrer
+                    <Button type="submit" disabled={loading}>
+                      {loading ? 'Enregistrement...' : 'Enregistrer'}
                     </Button>
                   </div>
                 )}
@@ -344,6 +479,14 @@ const Profile = () => {
         </div>
       </main>
     </div>
+  );
+};
+
+const Profile = () => {
+  return (
+    <ProtectedRoute>
+      <ProfileContent />
+    </ProtectedRoute>
   );
 };
 

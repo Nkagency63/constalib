@@ -1,15 +1,28 @@
 
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { CircleUser, Menu, Bell, X, FileText, Calendar } from 'lucide-react';
+import { CircleUser, Menu, Bell, X, FileText, Calendar, LogOut, LogIn } from 'lucide-react';
+import { useAuth } from '@/hooks/useAuth';
 import { Button } from './ui/button';
 import { useIsMobile } from '@/hooks/use-mobile';
 import Logo from './Logo';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "./ui/dropdown-menu";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger, SheetClose } from "@/components/ui/sheet";
+
 const Header = () => {
+  const { user, profile, signOut } = useAuth();
   const isMobile = useIsMobile();
-  return <header className="bg-constalib-blue border-b border-constalib-light-blue py-3 md:py-4 fixed w-full top-0 z-50">
+
+  const handleSignOut = async () => {
+    try {
+      await signOut();
+    } catch (error) {
+      console.error('Error signing out:', error);
+    }
+  };
+
+  return (
+    <header className="bg-constalib-blue border-b border-constalib-light-blue py-3 md:py-4 fixed w-full top-0 z-50">
       <div className="container mx-auto px-4 flex justify-between items-center">
         {/* Logo and brand */}
         <Link to="/" className="flex items-center gap-2">
@@ -25,12 +38,16 @@ const Header = () => {
           <Link to="/accident" className="text-white hover:text-constalib-light-blue transition-colors">
             Déclarer un accident
           </Link>
-          <Link to="/documents" className="text-white hover:text-constalib-light-blue transition-colors">
-            Mes Documents
-          </Link>
-          <Link to="/appointments" className="text-white hover:text-constalib-light-blue transition-colors">
-            Mes Rendez-vous
-          </Link>
+          {user && (
+            <>
+              <Link to="/documents" className="text-white hover:text-constalib-light-blue transition-colors">
+                Mes Documents
+              </Link>
+              <Link to="/appointments" className="text-white hover:text-constalib-light-blue transition-colors">
+                Mes Rendez-vous
+              </Link>
+            </>
+          )}
           <Link to="#contact" className="text-white hover:text-constalib-light-blue transition-colors">
             Contact
           </Link>
@@ -38,40 +55,56 @@ const Header = () => {
 
         {/* User actions */}
         <div className="flex items-center gap-2">
-          <Button variant="ghost" size="icon" className="text-white hidden md:flex">
-            <Bell className="h-5 w-5" />
-          </Button>
-          
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
+          {user ? (
+            <>
               <Button variant="ghost" size="icon" className="text-white hidden md:flex">
-                <CircleUser className="h-5 w-5" />
+                <Bell className="h-5 w-5" />
               </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem>
-                <Link to="/profile" className="flex items-center w-full">
-                  Mon profil
-                </Link>
-              </DropdownMenuItem>
-              <DropdownMenuItem>
-                <Link to="/documents" className="flex items-center w-full">
-                  Mes Documents
-                </Link>
-              </DropdownMenuItem>
-              <DropdownMenuItem>
-                <Link to="/appointments" className="flex items-center w-full">
-                  Mes Rendez-vous
-                </Link>
-              </DropdownMenuItem>
-              <DropdownMenuItem>
-                <Link to="/accident" className="flex items-center w-full">
-                  Déclarer un accident
-                </Link>
-              </DropdownMenuItem>
-              <DropdownMenuItem>Déconnexion</DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+              
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" size="icon" className="text-white hidden md:flex">
+                    <CircleUser className="h-5 w-5" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem>
+                    <Link to="/profile" className="flex items-center w-full">
+                      <CircleUser className="w-4 h-4 mr-2" />
+                      Mon profil
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem>
+                    <Link to="/documents" className="flex items-center w-full">
+                      <FileText className="w-4 h-4 mr-2" />
+                      Mes Documents
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem>
+                    <Link to="/appointments" className="flex items-center w-full">
+                      <Calendar className="w-4 h-4 mr-2" />
+                      Mes Rendez-vous
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem>
+                    <Link to="/accident" className="flex items-center w-full">
+                      Déclarer un accident
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={handleSignOut}>
+                    <LogOut className="w-4 h-4 mr-2" />
+                    Déconnexion
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </>
+          ) : (
+            <Link to="/auth">
+              <Button variant="ghost" size="icon" className="text-white hidden md:flex">
+                <LogIn className="h-5 w-5" />
+              </Button>
+            </Link>
+          )}
           
           {/* Mobile menu button */}
           <Sheet>
@@ -88,6 +121,15 @@ const Header = () => {
                 </SheetTitle>
               </SheetHeader>
               <div className="flex flex-col p-6">
+                {user && profile && (
+                  <div className="mb-6 p-4 bg-constalib-light-blue rounded-lg">
+                    <p className="font-medium text-constalib-dark">
+                      {profile.first_name} {profile.last_name}
+                    </p>
+                    <p className="text-sm text-constalib-dark-gray">{profile.email}</p>
+                  </div>
+                )}
+                
                 <nav className="flex flex-col gap-4">
                   <SheetClose asChild>
                     <Link to="/" className="text-constalib-dark hover:text-constalib-blue transition-colors py-2 border-b border-constalib-light-gray">
@@ -99,23 +141,27 @@ const Header = () => {
                       Déclarer un accident
                     </Link>
                   </SheetClose>
-                  <SheetClose asChild>
-                    <Link to="/documents" className="text-constalib-dark hover:text-constalib-blue transition-colors py-2 border-b border-constalib-light-gray">
-                      Mes Documents
-                      <FileText className="h-4 w-4 inline ml-2" />
-                    </Link>
-                  </SheetClose>
-                  <SheetClose asChild>
-                    <Link to="/appointments" className="text-constalib-dark hover:text-constalib-blue transition-colors py-2 border-b border-constalib-light-gray">
-                      Mes Rendez-vous
-                      <Calendar className="h-4 w-4 inline ml-2" />
-                    </Link>
-                  </SheetClose>
-                  <SheetClose asChild>
-                    <Link to="/profile" className="text-constalib-dark hover:text-constalib-blue transition-colors py-2 border-b border-constalib-light-gray">
-                      Mon profil
-                    </Link>
-                  </SheetClose>
+                  {user && (
+                    <>
+                      <SheetClose asChild>
+                        <Link to="/documents" className="text-constalib-dark hover:text-constalib-blue transition-colors py-2 border-b border-constalib-light-gray">
+                          Mes Documents
+                          <FileText className="h-4 w-4 inline ml-2" />
+                        </Link>
+                      </SheetClose>
+                      <SheetClose asChild>
+                        <Link to="/appointments" className="text-constalib-dark hover:text-constalib-blue transition-colors py-2 border-b border-constalib-light-gray">
+                          Mes Rendez-vous
+                          <Calendar className="h-4 w-4 inline ml-2" />
+                        </Link>
+                      </SheetClose>
+                      <SheetClose asChild>
+                        <Link to="/profile" className="text-constalib-dark hover:text-constalib-blue transition-colors py-2 border-b border-constalib-light-gray">
+                          Mon profil
+                        </Link>
+                      </SheetClose>
+                    </>
+                  )}
                   <SheetClose asChild>
                     <a href="#contact" className="text-constalib-dark hover:text-constalib-blue transition-colors py-2 border-b border-constalib-light-gray">
                       Contact
@@ -123,15 +169,29 @@ const Header = () => {
                   </SheetClose>
                 </nav>
                 <div className="mt-8">
-                  <Button className="w-full">
-                    Déclarer un accident
-                  </Button>
+                  {user ? (
+                    <Button className="w-full" onClick={handleSignOut}>
+                      <LogOut className="w-4 h-4 mr-2" />
+                      Déconnexion
+                    </Button>
+                  ) : (
+                    <SheetClose asChild>
+                      <Link to="/auth">
+                        <Button className="w-full">
+                          <LogIn className="w-4 h-4 mr-2" />
+                          Se connecter
+                        </Button>
+                      </Link>
+                    </SheetClose>
+                  )}
                 </div>
               </div>
             </SheetContent>
           </Sheet>
         </div>
       </div>
-    </header>;
+    </header>
+  );
 };
+
 export default Header;

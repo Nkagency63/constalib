@@ -1,4 +1,6 @@
 
+import { Link } from 'react-router-dom';
+import { useAuth } from '@/hooks/useAuth';
 import Header from '@/components/Header';
 import Hero from '@/components/Hero';
 import Footer from '@/components/Footer';
@@ -10,8 +12,11 @@ import DownloadPdfSection from '@/components/home/DownloadPdfSection';
 import AdBanner from '@/components/ads/AdBanner';
 import AdSection from '@/components/ads/AdSection';
 import { mockAds, bannerAds } from '@/data/adsData';
+import Button from '@/components/Button';
 
 const Index = () => {
+  const { user } = useAuth();
+
   return (
     <div className="min-h-screen flex flex-col">
       <Header />
@@ -19,6 +24,25 @@ const Index = () => {
       <main className="flex-grow">
         {/* Hero section */}
         <Hero />
+        
+        {/* Auth CTA for non-authenticated users */}
+        {!user && (
+          <div className="bg-constalib-light-blue py-8">
+            <div className="container mx-auto px-4 text-center">
+              <h2 className="text-2xl font-bold text-constalib-dark mb-4">
+                Créez votre compte gratuit
+              </h2>
+              <p className="text-constalib-dark-gray mb-6">
+                Enregistrez vos informations et gérez vos déclarations d'accident en toute simplicité
+              </p>
+              <Link to="/auth">
+                <Button>
+                  S'inscrire gratuitement
+                </Button>
+              </Link>
+            </div>
+          </div>
+        )}
         
         {/* Banner publicitaire premium */}
         <div className="container mx-auto px-4">
