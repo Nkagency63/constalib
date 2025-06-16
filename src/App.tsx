@@ -1,6 +1,7 @@
 
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { AuthProvider } from '@/hooks/useAuth';
+import ProtectedRoute from '@/components/ProtectedRoute';
 import Index from './pages/Index';
 import About from './pages/About';
 import Accident from './pages/Accident';
@@ -23,10 +24,26 @@ function App() {
           <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/about" element={<About />} />
-            <Route path="/accident" element={<Accident />} />
-            <Route path="/profile" element={<Profile />} />
-            <Route path="/documents" element={<Documents />} />
-            <Route path="/appointments" element={<Appointments />} />
+            <Route path="/accident" element={
+              <ProtectedRoute>
+                <Accident />
+              </ProtectedRoute>
+            } />
+            <Route path="/profile" element={
+              <ProtectedRoute>
+                <Profile />
+              </ProtectedRoute>
+            } />
+            <Route path="/documents" element={
+              <ProtectedRoute>
+                <Documents />
+              </ProtectedRoute>
+            } />
+            <Route path="/appointments" element={
+              <ProtectedRoute>
+                <Appointments />
+              </ProtectedRoute>
+            } />
             <Route path="/carrossiers" element={<Carrossiers />} />
             <Route path="/privacy" element={<Privacy />} />
             <Route path="/auth" element={<Auth />} />

@@ -1,34 +1,21 @@
+
 import { useState, useEffect } from 'react';
-import { User, Mail, Phone, Shield, Car, Edit2, Save, MapPin } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { User, Mail, Phone, MapPin, Car, Shield, Save } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
 import Header from '@/components/Header';
-import Button from '@/components/Button';
-import PhotoCapture from '@/components/PhotoCapture';
-import ProtectedRoute from '@/components/ProtectedRoute';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
-interface ProfileForm {
-  firstName: string;
-  lastName: string;
-  email: string;
-  phone: string;
-  addressStreet: string;
-  addressCity: string;
-  addressPostalCode: string;
-  addressCountry: string;
-  licensePlate: string;
-  vehicleBrand: string;
-  vehicleModel: string;
-  insuranceCompany: string;
-  insuranceNumber: string;
-}
-
-const ProfileContent = () => {
-  const { profile, updateProfile, user } = useAuth();
+const Profile = () => {
+  const { user, profile, updateProfile } = useAuth();
   const { toast } = useToast();
+  const [loading, setLoading] = useState(false);
   
-  const [profileData, setProfileData] = useState<ProfileForm>({
+  const [profileData, setProfileData] = useState({
     firstName: '',
     lastName: '',
     email: '',
@@ -36,25 +23,21 @@ const ProfileContent = () => {
     addressStreet: '',
     addressCity: '',
     addressPostalCode: '',
-    addressCountry: 'France',
-    licensePlate: '',
-    vehicleBrand: '',
-    vehicleModel: '',
-    insuranceCompany: '',
-    insuranceNumber: '',
+    addressCountry: 'France'
   });
-  
-  const [activeTab, setActiveTab] = useState('personal');
-  const [editMode, setEditMode] = useState(false);
-  const [profilePicture, setProfilePicture] = useState<File | null>(null);
-  const [profilePictureUrl, setProfilePictureUrl] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false);
 
-  // Charger les données du profil
+  const [vehicleData, setVehicleData] = useState({
+    licensePlate: '',
+    brand: '',
+    model: '',
+    year: '',
+    insuranceCompany: '',
+    policyNumber: ''
+  });
+
   useEffect(() => {
     if (profile) {
-      setProfileData(prev => ({
-        ...prev,
+      setProfileData({
         firstName: profile.first_name || '',
         lastName: profile.last_name || '',
         email: profile.email || user?.email || '',
@@ -62,25 +45,25 @@ const ProfileContent = () => {
         addressStreet: profile.address_street || '',
         addressCity: profile.address_city || '',
         addressPostalCode: profile.address_postal_code || '',
-        addressCountry: profile.address_country || 'France',
-      }));
+        addressCountry: profile.address_country || 'France'
+      });
     }
   }, [profile, user]);
-  
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+
+  const handleProfileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setProfileData(prev => ({ ...prev, [name]: value }));
   };
-  
-  const handlePhotoCapture = (file: File) => {
-    setProfilePicture(file);
-    setProfilePictureUrl(URL.createObjectURL(file));
+
+  const handleVehicleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setVehicleData(prev => ({ ...prev, [name]: value }));
   };
-  
-  const handleSubmit = async (e: React.FormEvent) => {
+
+  const handleProfileSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    
+
     try {
       await updateProfile({
         first_name: profileData.firstName,
@@ -90,154 +73,72 @@ const ProfileContent = () => {
         address_street: profileData.addressStreet,
         address_city: profileData.addressCity,
         address_postal_code: profileData.addressPostalCode,
-        address_country: profileData.addressCountry,
+        address_country: profileData.addressCountry
       });
 
       toast({
         title: "Profil mis à jour",
-        description: "Vos informations ont été sauvegardées avec succès.",
+        description: "Vos informations personnelles ont été mises à jour avec succès.",
       });
-      
-      setEditMode(false);
     } catch (error: any) {
       toast({
         title: "Erreur",
-        description: error.message || "Une erreur est survenue lors de la sauvegarde.",
+        description: error.message || "Une erreur est survenue lors de la mise à jour.",
         variant: "destructive",
       });
     } finally {
       setLoading(false);
     }
   };
-  
-  const toggleEditMode = () => {
-    setEditMode(!editMode);
-  };
-  
+
+  if (!user) {
+    return null;
+  }
+
   return (
     <div className="min-h-screen bg-constalib-light-gray/30">
       <Header />
       
       <main className="container mx-auto px-4 py-24 md:py-32">
         <div className="max-w-4xl mx-auto">
-          <h1 className="text-3xl font-bold text-constalib-dark mb-8">Mon Profil</h1>
-          
-          <div className="bg-white rounded-xl shadow-sm overflow-hidden">
-            {/* Profile header */}
-            <div className="bg-gradient-to-r from-constalib-blue/10 to-constalib-light-blue p-6 md:p-8 flex flex-col md:flex-row items-center gap-6">
-              <div className="relative">
-                {profilePictureUrl ? (
-                  <img 
-                    src={profilePictureUrl} 
-                    alt="Profile" 
-                    className="w-24 h-24 md:w-32 md:h-32 rounded-full object-cover border-4 border-white"
-                  />
-                ) : (
-                  <div className="w-24 h-24 md:w-32 md:h-32 rounded-full bg-constalib-light-blue flex items-center justify-center border-4 border-white">
-                    <User className="w-12 h-12 md:w-16 md:h-16 text-constalib-blue/40" />
-                  </div>
-                )}
-                
-                {editMode && (
-                  <div className="absolute bottom-0 right-0">
-                    <PhotoCapture 
-                      onPhotoCapture={handlePhotoCapture} 
-                      label=""
-                    />
-                  </div>
-                )}
-              </div>
-              
-              <div className="text-center md:text-left">
-                <h2 className="text-2xl font-semibold text-constalib-dark">
-                  {profileData.firstName || profileData.lastName 
-                    ? `${profileData.firstName} ${profileData.lastName}` 
-                    : 'Mon Profil'}
-                </h2>
-                {(profileData.email || profileData.phone) && (
-                  <div className="mt-2 text-constalib-dark-gray space-y-1">
-                    {profileData.email && (
-                      <div className="flex items-center justify-center md:justify-start">
-                        <Mail className="w-4 h-4 mr-2" />
-                        <span>{profileData.email}</span>
-                      </div>
-                    )}
-                    {profileData.phone && (
-                      <div className="flex items-center justify-center md:justify-start">
-                        <Phone className="w-4 h-4 mr-2" />
-                        <span>{profileData.phone}</span>
-                      </div>
-                    )}
-                  </div>
-                )}
-              </div>
-              
-              <div className="ml-auto">
-                <Button
-                  variant="ghost"
-                  onClick={toggleEditMode}
-                  className="flex items-center"
-                  disabled={loading}
-                >
-                  {editMode ? (
-                    <>
-                      <Save className="w-4 h-4 mr-2" />
-                      Terminer
-                    </>
-                  ) : (
-                    <>
-                      <Edit2 className="w-4 h-4 mr-2" />
-                      Modifier
-                    </>
-                  )}
-                </Button>
-              </div>
-            </div>
-            
-            {/* Tabs */}
-            <div className="border-b border-constalib-light-gray">
-              <div className="flex">
-                <button
-                  className={`px-6 py-4 font-medium text-sm transition-colors ${
-                    activeTab === 'personal'
-                      ? 'text-constalib-blue border-b-2 border-constalib-blue'
-                      : 'text-constalib-dark-gray hover:text-constalib-dark'
-                  }`}
-                  onClick={() => setActiveTab('personal')}
-                >
-                  Informations personnelles
-                </button>
-                <button
-                  className={`px-6 py-4 font-medium text-sm transition-colors ${
-                    activeTab === 'vehicle'
-                      ? 'text-constalib-blue border-b-2 border-constalib-blue'
-                      : 'text-constalib-dark-gray hover:text-constalib-dark'
-                  }`}
-                  onClick={() => setActiveTab('vehicle')}
-                >
-                  Véhicule & Assurance
-                </button>
-              </div>
-            </div>
-            
-            {/* Tab content */}
-            <div className="p-6 md:p-8">
-              <form onSubmit={handleSubmit}>
-                {activeTab === 'personal' ? (
-                  <div className="space-y-6">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="mb-8">
+            <h1 className="text-3xl font-bold text-constalib-dark mb-2">Mon Profil</h1>
+            <p className="text-constalib-dark-gray">
+              Gérez vos informations personnelles et vos véhicules
+            </p>
+          </div>
+
+          <Tabs defaultValue="personal" className="space-y-6">
+            <TabsList className="grid w-full grid-cols-3">
+              <TabsTrigger value="personal">Informations personnelles</TabsTrigger>
+              <TabsTrigger value="address">Adresse</TabsTrigger>
+              <TabsTrigger value="vehicle">Véhicule & Assurance</TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="personal">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <User className="w-5 h-5" />
+                    Informations personnelles
+                  </CardTitle>
+                  <CardDescription>
+                    Mettez à jour vos informations de contact
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <form onSubmit={handleProfileSubmit} className="space-y-4">
+                    <div className="grid grid-cols-2 gap-4">
                       <div>
                         <label htmlFor="firstName" className="block text-sm font-medium text-constalib-dark mb-2">
                           Prénom
                         </label>
-                        <input
+                        <Input
                           type="text"
                           id="firstName"
                           name="firstName"
                           value={profileData.firstName}
-                          onChange={handleInputChange}
-                          disabled={!editMode}
-                          className="w-full px-4 py-2 border border-constalib-gray rounded-lg focus:ring-2 focus:ring-constalib-blue focus:border-constalib-blue disabled:bg-constalib-light-gray/50 disabled:cursor-not-allowed"
+                          onChange={handleProfileChange}
                           placeholder="Votre prénom"
                         />
                       </div>
@@ -245,248 +146,246 @@ const ProfileContent = () => {
                         <label htmlFor="lastName" className="block text-sm font-medium text-constalib-dark mb-2">
                           Nom
                         </label>
-                        <input
+                        <Input
                           type="text"
                           id="lastName"
                           name="lastName"
                           value={profileData.lastName}
-                          onChange={handleInputChange}
-                          disabled={!editMode}
-                          className="w-full px-4 py-2 border border-constalib-gray rounded-lg focus:ring-2 focus:ring-constalib-blue focus:border-constalib-blue disabled:bg-constalib-light-gray/50 disabled:cursor-not-allowed"
+                          onChange={handleProfileChange}
                           placeholder="Votre nom"
                         />
                       </div>
                     </div>
-                    
+
                     <div>
                       <label htmlFor="email" className="block text-sm font-medium text-constalib-dark mb-2">
                         Email
                       </label>
-                      <input
-                        type="email"
-                        id="email"
-                        name="email"
-                        value={profileData.email}
-                        onChange={handleInputChange}
-                        disabled={!editMode}
-                        className="w-full px-4 py-2 border border-constalib-gray rounded-lg focus:ring-2 focus:ring-constalib-blue focus:border-constalib-blue disabled:bg-constalib-light-gray/50 disabled:cursor-not-allowed"
-                        placeholder="votre.email@exemple.com"
-                      />
+                      <div className="relative">
+                        <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-constalib-gray" />
+                        <Input
+                          type="email"
+                          id="email"
+                          name="email"
+                          value={profileData.email}
+                          onChange={handleProfileChange}
+                          className="pl-11"
+                          placeholder="votre.email@exemple.com"
+                        />
+                      </div>
                     </div>
-                    
+
                     <div>
                       <label htmlFor="phone" className="block text-sm font-medium text-constalib-dark mb-2">
                         Téléphone
                       </label>
-                      <input
-                        type="tel"
-                        id="phone"
-                        name="phone"
-                        value={profileData.phone}
-                        onChange={handleInputChange}
-                        disabled={!editMode}
-                        className="w-full px-4 py-2 border border-constalib-gray rounded-lg focus:ring-2 focus:ring-constalib-blue focus:border-constalib-blue disabled:bg-constalib-light-gray/50 disabled:cursor-not-allowed"
-                        placeholder="06 12 34 56 78"
+                      <div className="relative">
+                        <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-constalib-gray" />
+                        <Input
+                          type="tel"
+                          id="phone"
+                          name="phone"
+                          value={profileData.phone}
+                          onChange={handleProfileChange}
+                          className="pl-11"
+                          placeholder="06 12 34 56 78"
+                        />
+                      </div>
+                    </div>
+
+                    <Button type="submit" disabled={loading} className="w-full">
+                      {loading ? 'Mise à jour...' : 'Sauvegarder'}
+                      <Save className="w-4 h-4 ml-2" />
+                    </Button>
+                  </form>
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            <TabsContent value="address">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <MapPin className="w-5 h-5" />
+                    Adresse
+                  </CardTitle>
+                  <CardDescription>
+                    Votre adresse de résidence
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <form onSubmit={handleProfileSubmit} className="space-y-4">
+                    <div>
+                      <label htmlFor="addressStreet" className="block text-sm font-medium text-constalib-dark mb-2">
+                        Adresse
+                      </label>
+                      <Input
+                        type="text"
+                        id="addressStreet"
+                        name="addressStreet"
+                        value={profileData.addressStreet}
+                        onChange={handleProfileChange}
+                        placeholder="123 Rue de la Paix"
                       />
                     </div>
 
-                    <div className="mt-8">
-                      <div className="flex items-center mb-4">
-                        <div className="w-10 h-10 rounded-full bg-constalib-light-blue flex items-center justify-center mr-4">
-                          <MapPin className="w-5 h-5 text-constalib-blue" />
-                        </div>
-                        <h3 className="text-lg font-medium text-constalib-dark">Adresse</h3>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <label htmlFor="addressPostalCode" className="block text-sm font-medium text-constalib-dark mb-2">
+                          Code postal
+                        </label>
+                        <Input
+                          type="text"
+                          id="addressPostalCode"
+                          name="addressPostalCode"
+                          value={profileData.addressPostalCode}
+                          onChange={handleProfileChange}
+                          placeholder="75001"
+                        />
                       </div>
-                      
-                      <div className="space-y-4">
-                        <div>
-                          <label htmlFor="addressStreet" className="block text-sm font-medium text-constalib-dark mb-2">
-                            Rue
-                          </label>
-                          <input
-                            type="text"
-                            id="addressStreet"
-                            name="addressStreet"
-                            value={profileData.addressStreet}
-                            onChange={handleInputChange}
-                            disabled={!editMode}
-                            className="w-full px-4 py-2 border border-constalib-gray rounded-lg focus:ring-2 focus:ring-constalib-blue focus:border-constalib-blue disabled:bg-constalib-light-gray/50 disabled:cursor-not-allowed"
-                            placeholder="123 Rue de la Paix"
-                          />
-                        </div>
-                        
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                          <div>
-                            <label htmlFor="addressPostalCode" className="block text-sm font-medium text-constalib-dark mb-2">
-                              Code postal
-                            </label>
-                            <input
-                              type="text"
-                              id="addressPostalCode"
-                              name="addressPostalCode"
-                              value={profileData.addressPostalCode}
-                              onChange={handleInputChange}
-                              disabled={!editMode}
-                              className="w-full px-4 py-2 border border-constalib-gray rounded-lg focus:ring-2 focus:ring-constalib-blue focus:border-constalib-blue disabled:bg-constalib-light-gray/50 disabled:cursor-not-allowed"
-                              placeholder="75001"
-                            />
-                          </div>
-                          <div>
-                            <label htmlFor="addressCity" className="block text-sm font-medium text-constalib-dark mb-2">
-                              Ville
-                            </label>
-                            <input
-                              type="text"
-                              id="addressCity"
-                              name="addressCity"
-                              value={profileData.addressCity}
-                              onChange={handleInputChange}
-                              disabled={!editMode}
-                              className="w-full px-4 py-2 border border-constalib-gray rounded-lg focus:ring-2 focus:ring-constalib-blue focus:border-constalib-blue disabled:bg-constalib-light-gray/50 disabled:cursor-not-allowed"
-                              placeholder="Paris"
-                            />
-                          </div>
-                          <div>
-                            <label htmlFor="addressCountry" className="block text-sm font-medium text-constalib-dark mb-2">
-                              Pays
-                            </label>
-                            <input
-                              type="text"
-                              id="addressCountry"
-                              name="addressCountry"
-                              value={profileData.addressCountry}
-                              onChange={handleInputChange}
-                              disabled={!editMode}
-                              className="w-full px-4 py-2 border border-constalib-gray rounded-lg focus:ring-2 focus:ring-constalib-blue focus:border-constalib-blue disabled:bg-constalib-light-gray/50 disabled:cursor-not-allowed"
-                              placeholder="France"
-                            />
-                          </div>
-                        </div>
+                      <div>
+                        <label htmlFor="addressCity" className="block text-sm font-medium text-constalib-dark mb-2">
+                          Ville
+                        </label>
+                        <Input
+                          type="text"
+                          id="addressCity"
+                          name="addressCity"
+                          value={profileData.addressCity}
+                          onChange={handleProfileChange}
+                          placeholder="Paris"
+                        />
                       </div>
                     </div>
-                  </div>
-                ) : (
-                  <div className="space-y-6">
-                    <div className="flex items-center">
-                      <div className="w-10 h-10 rounded-full bg-constalib-light-blue flex items-center justify-center mr-4">
-                        <Car className="w-5 h-5 text-constalib-blue" />
-                      </div>
-                      <h3 className="text-lg font-medium text-constalib-dark">Informations du véhicule</h3>
-                    </div>
-                    
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+
+                    <Button type="submit" disabled={loading} className="w-full">
+                      {loading ? 'Mise à jour...' : 'Sauvegarder'}
+                      <Save className="w-4 h-4 ml-2" />
+                    </Button>
+                  </form>
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            <TabsContent value="vehicle">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Car className="w-5 h-5" />
+                    Véhicule & Assurance
+                  </CardTitle>
+                  <CardDescription>
+                    Informations sur votre véhicule et votre assurance
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <form className="space-y-4">
+                    <div className="grid grid-cols-2 gap-4">
                       <div>
                         <label htmlFor="licensePlate" className="block text-sm font-medium text-constalib-dark mb-2">
-                          Immatriculation
+                          Plaque d'immatriculation
                         </label>
-                        <input
+                        <Input
                           type="text"
                           id="licensePlate"
                           name="licensePlate"
-                          value={profileData.licensePlate}
-                          onChange={handleInputChange}
-                          disabled={!editMode}
-                          className="w-full px-4 py-2 border border-constalib-gray rounded-lg focus:ring-2 focus:ring-constalib-blue focus:border-constalib-blue disabled:bg-constalib-light-gray/50 disabled:cursor-not-allowed"
+                          value={vehicleData.licensePlate}
+                          onChange={handleVehicleChange}
                           placeholder="AB-123-CD"
                         />
                       </div>
                       <div>
-                        <label htmlFor="vehicleBrand" className="block text-sm font-medium text-constalib-dark mb-2">
+                        <label htmlFor="brand" className="block text-sm font-medium text-constalib-dark mb-2">
                           Marque
                         </label>
-                        <input
+                        <Input
                           type="text"
-                          id="vehicleBrand"
-                          name="vehicleBrand"
-                          value={profileData.vehicleBrand}
-                          onChange={handleInputChange}
-                          disabled={!editMode}
-                          className="w-full px-4 py-2 border border-constalib-gray rounded-lg focus:ring-2 focus:ring-constalib-blue focus:border-constalib-blue disabled:bg-constalib-light-gray/50 disabled:cursor-not-allowed"
-                          placeholder="Renault, Peugeot, etc."
-                        />
-                      </div>
-                      <div>
-                        <label htmlFor="vehicleModel" className="block text-sm font-medium text-constalib-dark mb-2">
-                          Modèle
-                        </label>
-                        <input
-                          type="text"
-                          id="vehicleModel"
-                          name="vehicleModel"
-                          value={profileData.vehicleModel}
-                          onChange={handleInputChange}
-                          disabled={!editMode}
-                          className="w-full px-4 py-2 border border-constalib-gray rounded-lg focus:ring-2 focus:ring-constalib-blue focus:border-constalib-blue disabled:bg-constalib-light-gray/50 disabled:cursor-not-allowed"
-                          placeholder="Clio, 308, etc."
+                          id="brand"
+                          name="brand"
+                          value={vehicleData.brand}
+                          onChange={handleVehicleChange}
+                          placeholder="Peugeot"
                         />
                       </div>
                     </div>
-                    
-                    <div className="mt-8">
-                      <div className="flex items-center">
-                        <div className="w-10 h-10 rounded-full bg-constalib-light-blue flex items-center justify-center mr-4">
-                          <Shield className="w-5 h-5 text-constalib-blue" />
-                        </div>
-                        <h3 className="text-lg font-medium text-constalib-dark">Informations d'assurance</h3>
+
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <label htmlFor="model" className="block text-sm font-medium text-constalib-dark mb-2">
+                          Modèle
+                        </label>
+                        <Input
+                          type="text"
+                          id="model"
+                          name="model"
+                          value={vehicleData.model}
+                          onChange={handleVehicleChange}
+                          placeholder="308"
+                        />
                       </div>
+                      <div>
+                        <label htmlFor="year" className="block text-sm font-medium text-constalib-dark mb-2">
+                          Année
+                        </label>
+                        <Input
+                          type="text"
+                          id="year"
+                          name="year"
+                          value={vehicleData.year}
+                          onChange={handleVehicleChange}
+                          placeholder="2020"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="border-t pt-4">
+                      <h3 className="flex items-center gap-2 text-lg font-semibold text-constalib-dark mb-4">
+                        <Shield className="w-5 h-5" />
+                        Assurance
+                      </h3>
                       
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+                      <div className="grid grid-cols-2 gap-4">
                         <div>
                           <label htmlFor="insuranceCompany" className="block text-sm font-medium text-constalib-dark mb-2">
                             Compagnie d'assurance
                           </label>
-                          <input
+                          <Input
                             type="text"
                             id="insuranceCompany"
                             name="insuranceCompany"
-                            value={profileData.insuranceCompany}
-                            onChange={handleInputChange}
-                            disabled={!editMode}
-                            className="w-full px-4 py-2 border border-constalib-gray rounded-lg focus:ring-2 focus:ring-constalib-blue focus:border-constalib-blue disabled:bg-constalib-light-gray/50 disabled:cursor-not-allowed"
-                            placeholder="Nom de votre assureur"
+                            value={vehicleData.insuranceCompany}
+                            onChange={handleVehicleChange}
+                            placeholder="AXA"
                           />
                         </div>
                         <div>
-                          <label htmlFor="insuranceNumber" className="block text-sm font-medium text-constalib-dark mb-2">
-                            Numéro de contrat
+                          <label htmlFor="policyNumber" className="block text-sm font-medium text-constalib-dark mb-2">
+                            Numéro de police
                           </label>
-                          <input
+                          <Input
                             type="text"
-                            id="insuranceNumber"
-                            name="insuranceNumber"
-                            value={profileData.insuranceNumber}
-                            onChange={handleInputChange}
-                            disabled={!editMode}
-                            className="w-full px-4 py-2 border border-constalib-gray rounded-lg focus:ring-2 focus:ring-constalib-blue focus:border-constalib-blue disabled:bg-constalib-light-gray/50 disabled:cursor-not-allowed"
-                            placeholder="Numéro de votre contrat"
+                            id="policyNumber"
+                            name="policyNumber"
+                            value={vehicleData.policyNumber}
+                            onChange={handleVehicleChange}
+                            placeholder="123456789"
                           />
                         </div>
                       </div>
                     </div>
-                  </div>
-                )}
-                
-                {editMode && (
-                  <div className="mt-8 flex justify-end">
-                    <Button type="submit" disabled={loading}>
-                      {loading ? 'Enregistrement...' : 'Enregistrer'}
+
+                    <Button type="button" className="w-full">
+                      Sauvegarder les informations véhicule
+                      <Save className="w-4 h-4 ml-2" />
                     </Button>
-                  </div>
-                )}
-              </form>
-            </div>
-          </div>
+                  </form>
+                </CardContent>
+              </Card>
+            </TabsContent>
+          </Tabs>
         </div>
       </main>
     </div>
-  );
-};
-
-const Profile = () => {
-  return (
-    <ProtectedRoute>
-      <ProfileContent />
-    </ProtectedRoute>
   );
 };
 

@@ -46,7 +46,9 @@ const Auth = () => {
     setLoading(true);
 
     try {
-      const { error } = await supabase.auth.signUp({
+      console.log('Attempting sign up for:', formData.email);
+      
+      const { data, error } = await supabase.auth.signUp({
         email: formData.email,
         password: formData.password,
         options: {
@@ -61,6 +63,8 @@ const Auth = () => {
           }
         }
       });
+
+      console.log('Sign up response:', { data, error });
 
       if (error) {
         if (error.message.includes('User already registered')) {
@@ -79,14 +83,21 @@ const Auth = () => {
         return;
       }
 
-      toast({
-        title: "Inscription réussie !",
-        description: "Vérifiez votre email pour confirmer votre compte.",
-      });
-      
-      // Rediriger vers la page d'accueil après inscription
-      navigate('/');
+      if (data.user && !data.session) {
+        toast({
+          title: "Inscription réussie !",
+          description: "Vérifiez votre email pour confirmer votre compte.",
+        });
+      } else {
+        toast({
+          title: "Inscription réussie !",
+          description: "Votre compte a été créé avec succès.",
+        });
+        // Rediriger vers la page d'accueil après inscription
+        navigate('/');
+      }
     } catch (error: any) {
+      console.error('Sign up error:', error);
       toast({
         title: "Erreur d'inscription",
         description: error.message || "Une erreur est survenue",
@@ -102,10 +113,14 @@ const Auth = () => {
     setLoading(true);
 
     try {
-      const { error } = await supabase.auth.signInWithPassword({
+      console.log('Attempting sign in for:', formData.email);
+      
+      const { data, error } = await supabase.auth.signInWithPassword({
         email: formData.email,
         password: formData.password,
       });
+
+      console.log('Sign in response:', { data, error });
 
       if (error) {
         if (error.message.includes('Invalid login credentials')) {
@@ -131,6 +146,7 @@ const Auth = () => {
       
       navigate('/');
     } catch (error: any) {
+      console.error('Sign in error:', error);
       toast({
         title: "Erreur de connexion",
         description: error.message || "Une erreur est survenue",
