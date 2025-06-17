@@ -1,3 +1,4 @@
+
 import { Link } from 'react-router-dom';
 import { Button } from './ui/button';
 import Logo from './Logo';
@@ -47,14 +48,16 @@ const Hero = () => {
           <Logo size="2xl" variant="full" />
         </div>
         <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold text-constalib-dark mb-4 md:mb-6">
-          Simplifiez vos déclarations d'accidents
+          Déclaration d'accident automobile en ligne - Constat amiable numérique
         </h1>
-        <p className="text-base md:text-lg lg:text-xl text-constalib-dark-gray mb-6 md:mb-8 px-2">Constalib vous permet de déclarer facilement un accident et de transmettre les informations à votre assureur en quelques minutes seulement.</p>
+        <p className="text-base md:text-lg lg:text-xl text-constalib-dark-gray mb-6 md:mb-8 px-2">
+          Constalib vous permet de déclarer facilement votre accident de voiture et de transmettre automatiquement le constat amiable à votre assurance auto en quelques minutes. Service gratuit et sécurisé.
+        </p>
         
         {/* Groupe de boutons principal */}
         <div className="flex flex-col sm:flex-row gap-3 md:gap-4 justify-center mb-4">
           <Link to="/accident" className="w-full sm:w-auto">
-            <Button size="lg" className="w-full">Déclarer un accident en ligne</Button>
+            <Button size="lg" className="w-full">Déclarer un accident automobile</Button>
           </Link>
           <Button 
             variant="secondary" 
@@ -63,7 +66,7 @@ const Hero = () => {
             onClick={handleDownloadConstat}
           >
             <Download className="w-5 h-5" />
-            Télécharger un constat vierge (PDF)
+            Télécharger constat amiable PDF
           </Button>
         </div>
         
@@ -71,7 +74,7 @@ const Hero = () => {
         <div className="mt-3 flex flex-col sm:flex-row gap-3 justify-center">
           <Link to="/about" className="w-full sm:w-auto inline-block">
             <Button variant="outline" size="lg" className="w-full">
-              En savoir plus
+              En savoir plus sur la déclaration d'accident
             </Button>
           </Link>
           <Button 
@@ -81,8 +84,16 @@ const Hero = () => {
             onClick={handleDownloadApp}
           >
             <Smartphone className="w-5 h-5" />
-            Télécharger l'application mobile
+            App mobile constat amiable
           </Button>
+        </div>
+        
+        {/* Mots-clés SEO cachés mais structurés */}
+        <div className="mt-8 text-xs text-constalib-dark-gray/60 max-w-2xl mx-auto">
+          <p>
+            Mots-clés : accident voiture, constat amiable, déclaration sinistre auto, assurance véhicule, 
+            carrossier partenaire, réparation automobile, sinistre route, assurance auto France
+          </p>
         </div>
       </div>
     </div>
