@@ -8,21 +8,21 @@ const CtaSection = () => {
       <div className="container mx-auto px-4">
         <div className="max-w-3xl mx-auto text-center">
           <h2 className="text-3xl md:text-4xl font-bold mb-6 text-constalib-dark">
-            Prêt à simplifier vos déclarations d'accident automobile ?
+            Prêt à Créer Votre <span className="text-constalib-blue">Constat Amiable</span> en Ligne ?
           </h2>
           <p className="text-constalib-dark-gray text-lg mb-8">
-            Créez votre profil conducteur dès maintenant et gagnez du temps lors de vos futures déclarations de sinistre auto. 
-            Service gratuit pour tous les assurés en France.
+            Déclarez votre accident automobile rapidement avec notre service de constat amiable numérique gratuit. 
+            Créez votre profil conducteur pour sauvegarder vos informations et accélérer vos futures déclarations d'accident.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link to="/profile">
+            <Link to="/accident">
               <Button size="lg">
-                Créer mon profil conducteur
+                Créer mon Constat Amiable Gratuit
               </Button>
             </Link>
-            <Link to="/accident">
+            <Link to="/profile">
               <Button variant="outline" size="lg">
-                Déclarer accident sans inscription
+                Créer mon Profil Conducteur
               </Button>
             </Link>
           </div>
@@ -30,10 +30,13 @@ const CtaSection = () => {
           {/* Informations SEO supplémentaires */}
           <div className="mt-12 text-sm text-constalib-dark-gray/80">
             <p className="mb-2">
-              <strong>Constat amiable numérique agréé</strong> par les principales compagnies d'assurance auto françaises
+              <strong>Constat amiable numérique officiel</strong> reconnu par toutes les compagnies d'assurance auto françaises
+            </p>
+            <p className="mb-2">
+              Compatible avec AXA, Maif, Macif, Groupama, Allianz, MMA, GMF et toutes les assurances véhicule
             </p>
             <p>
-              Compatible avec AXA, Maif, Macif, Groupama, Allianz, MMA, GMF et toutes les assurances véhicule
+              <em>Service de constat amiable en ligne 100% gratuit • Transmission automatique • Conforme RGPD</em>
             </p>
           </div>
         </div>

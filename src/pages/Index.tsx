@@ -9,6 +9,7 @@ import HowItWorksSection from '@/components/home/HowItWorksSection';
 import ServicesSection from '@/components/home/ServicesSection';
 import CtaSection from '@/components/home/CtaSection';
 import DownloadPdfSection from '@/components/home/DownloadPdfSection';
+import ConstatAmiableSection from '@/components/home/ConstatAmiableSection';
 import AdBanner from '@/components/ads/AdBanner';
 import AdSection from '@/components/ads/AdSection';
 import { mockAds, bannerAds } from '@/data/adsData';
@@ -30,19 +31,22 @@ const Index = () => {
           <div className="bg-constalib-light-blue py-8">
             <div className="container mx-auto px-4 text-center">
               <h2 className="text-2xl font-bold text-constalib-dark mb-4">
-                Créez votre compte gratuit
+                Créez votre compte gratuit pour sauvegarder vos constats amiables
               </h2>
               <p className="text-constalib-dark-gray mb-6">
-                Enregistrez vos informations et gérez vos déclarations d'accident en toute simplicité
+                Enregistrez vos informations et gérez vos déclarations d'accident automobile en toute simplicité
               </p>
               <Link to="/auth">
                 <Button>
-                  S'inscrire gratuitement
+                  S'inscrire gratuitement au service constat amiable
                 </Button>
               </Link>
             </div>
           </div>
         )}
+        
+        {/* Section dédiée Constat Amiable */}
+        <ConstatAmiableSection />
         
         {/* Banner publicitaire premium */}
         <div className="container mx-auto px-4">
