@@ -46,7 +46,7 @@ const Hero = () => {
         </div>
         
         <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold text-constalib-dark mb-4 md:mb-6">
-          <span className="text-constalib-blue">Constat Amiable</span> en Ligne Gratuit - Service Officiel France
+          <span className="text-constalib-blue">Constat Amiable</span> en Ligne Gratuit
         </h1>
         
         <h2 className="text-xl md:text-2xl font-semibold text-constalib-dark-gray mb-6">
@@ -54,8 +54,8 @@ const Hero = () => {
         </h2>
         
         <p className="text-base md:text-lg lg:text-xl text-constalib-dark-gray mb-6 md:mb-8 px-2">
-          <strong>Constat amiable numérique agréé</strong> par les assureurs français. Déclarez votre accident de voiture en ligne, 
-          générez automatiquement votre constat amiable PDF et transmettez-le directement à votre compagnie d'assurance auto. 
+          <strong>Constat amiable numérique</strong> pour déclarer votre accident de voiture en ligne. 
+          Générez automatiquement votre constat amiable PDF et transmettez-le directement à votre compagnie d'assurance auto. 
           <em>Service 100% gratuit et sécurisé</em>.
         </p>
         
@@ -114,7 +114,7 @@ const Hero = () => {
           <p className="leading-relaxed">
             <strong>Mots-clés :</strong> constat amiable, constat amiable en ligne, constat amiable numérique, constat amiable PDF, 
             formulaire constat amiable, constat amiable gratuit, déclaration accident voiture, e-constat, constat amiable automobile, 
-            assurance auto, sinistre auto, accident route France, constat amiable officiel, transmission assurance automatique
+            assurance auto, sinistre auto, accident route France, constat amiable en ligne, transmission assurance automatique
           </p>
         </div>
       </div>

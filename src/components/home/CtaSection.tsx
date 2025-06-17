@@ -30,10 +30,10 @@ const CtaSection = () => {
           {/* Informations SEO supplémentaires */}
           <div className="mt-12 text-sm text-constalib-dark-gray/80">
             <p className="mb-2">
-              <strong>Constat amiable numérique officiel</strong> reconnu par toutes les compagnies d'assurance auto françaises
+              <strong>Constat amiable numérique</strong> reconnu par de nombreuses compagnies d'assurance auto françaises
             </p>
             <p className="mb-2">
-              Compatible avec AXA, Maif, Macif, Groupama, Allianz, MMA, GMF et toutes les assurances véhicule
+              Compatible avec AXA, Maif, Macif, Groupama, Allianz, MMA, GMF et de nombreuses assurances véhicule
             </p>
             <p>
               <em>Service de constat amiable en ligne 100% gratuit • Transmission automatique • Conforme RGPD</em>

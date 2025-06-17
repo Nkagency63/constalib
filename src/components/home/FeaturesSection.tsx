@@ -73,14 +73,14 @@ const FeaturesSection = () => {
         <div className="mt-16 text-center">
           <div className="bg-white rounded-lg p-6 shadow-sm">
             <h3 className="text-xl font-semibold text-constalib-dark mb-4">
-              Service de Constat Amiable Numérique Officiel en France
+              Service de Constat Amiable Numérique en France
             </h3>
             <p className="text-constalib-dark-gray text-sm leading-relaxed">
               Notre plateforme de <strong>constat amiable en ligne</strong> permet aux conducteurs français de créer 
               rapidement leur <strong>constat amiable numérique</strong>, de le transmettre à leur compagnie d'assurance 
               automobile, et de trouver des carrossiers partenaires agréés pour la réparation de leur véhicule. 
               Service de <strong>constat amiable gratuit</strong> conforme aux exigences légales françaises et accepté 
-              par tous les assureurs auto (AXA, Maif, Macif, Groupama, Allianz, MMA, GMF).
+              par de nombreux assureurs auto (AXA, Maif, Macif, Groupama, Allianz, MMA, GMF).
             </p>
           </div>
         </div>
