@@ -1,4 +1,3 @@
-
 import { Link } from 'react-router-dom';
 import { Button } from './ui/button';
 import Logo from './Logo';
@@ -7,21 +6,17 @@ import { downloadPDF } from '@/utils/downloadUtils';
 import { toast } from "sonner";
 import { useState } from 'react';
 import { Capacitor } from '@capacitor/core';
-
 const Hero = () => {
   const [isUploading, setIsUploading] = useState(false);
-  
   const handleDownloadConstat = () => {
     const storagePath = "storage:constat-amiable-vierge.pdf/constat-amiable-vierge.pdf";
     toast.info("Téléchargement du constat amiable en cours...");
     downloadPDF(storagePath, 'constat-amiable-vierge.pdf');
   };
-
   const handleDownloadApp = () => {
     const platform = Capacitor.getPlatform();
     const iosAppUrl = "https://apps.apple.com/fr/app/constalib/id123456789";
     const androidAppUrl = "https://play.google.com/store/apps/details?id=app.lovable.ea057c0030534d378eb5ed039b59cdbb";
-
     if (platform === 'ios') {
       window.location.href = iosAppUrl;
     } else if (platform === 'android') {
@@ -37,7 +32,6 @@ const Hero = () => {
       }
     }
   };
-
   return <div className="bg-gradient-to-b from-constalib-light-blue/30 to-white py-16 md:py-24 lg:py-32 mb-8 md:mb-16 mt-16 md:mt-20">
     <div className="container px-4 mx-auto">
       <div className="max-w-4xl mx-auto text-center">
@@ -56,7 +50,8 @@ const Hero = () => {
         <p className="text-base md:text-lg lg:text-xl text-constalib-dark-gray mb-6 md:mb-8 px-2">
           <strong>Constat amiable numérique</strong> pour déclarer votre accident de voiture en ligne. 
           Générez automatiquement votre constat amiable PDF et transmettez-le directement à votre compagnie d'assurance auto. 
-          <em>Service 100% gratuit et sécurisé</em>.
+          <em>
+Service 100% gratuit et sécurisé</em>.
         </p>
         
         {/* Groupe de boutons principal */}
@@ -64,12 +59,7 @@ const Hero = () => {
           <Link to="/accident" className="w-full sm:w-auto">
             <Button size="lg" className="w-full">Créer mon Constat Amiable en Ligne</Button>
           </Link>
-          <Button 
-            variant="secondary" 
-            size="lg" 
-            className="w-full sm:w-auto inline-flex items-center gap-2" 
-            onClick={handleDownloadConstat}
-          >
+          <Button variant="secondary" size="lg" className="w-full sm:w-auto inline-flex items-center gap-2" onClick={handleDownloadConstat}>
             <Download className="w-5 h-5" />
             Télécharger Formulaire Constat Amiable PDF
           </Button>
@@ -82,12 +72,7 @@ const Hero = () => {
               Comment Remplir un Constat Amiable
             </Button>
           </Link>
-          <Button 
-            variant="outline" 
-            size="lg" 
-            className="w-full sm:w-auto inline-flex items-center gap-2"
-            onClick={handleDownloadApp}
-          >
+          <Button variant="outline" size="lg" className="w-full sm:w-auto inline-flex items-center gap-2" onClick={handleDownloadApp}>
             <Smartphone className="w-5 h-5" />
             App Mobile Constat Amiable
           </Button>
@@ -121,5 +106,4 @@ const Hero = () => {
     </div>
   </div>;
 };
-
 export default Hero;
