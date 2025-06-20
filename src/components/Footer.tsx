@@ -18,6 +18,8 @@ const Footer = () => {
               <h3 className="text-constalib-dark font-semibold mb-4">Application</h3>
               <ul className="space-y-2 text-constalib-dark-gray">
                 <li><Link to="/" className="hover:text-constalib-blue">Accueil</Link></li>
+                <li><Link to="/about" className="hover:text-constalib-blue">À propos</Link></li>
+                <li><Link to="/blog" className="hover:text-constalib-blue">Blog</Link></li>
                 <li><Link to="/accident" className="hover:text-constalib-blue">Déclarer un accident</Link></li>
                 <li><Link to="/profile" className="hover:text-constalib-blue">Mon profil</Link></li>
               </ul>
@@ -28,6 +30,7 @@ const Footer = () => {
               <ul className="space-y-2 text-constalib-dark-gray">
                 <li><Link to="/documents" className="hover:text-constalib-blue">Mes Documents</Link></li>
                 <li><Link to="/appointments" className="hover:text-constalib-blue">Mes Rendez-vous</Link></li>
+                <li><Link to="/carrossiers" className="hover:text-constalib-blue">Carrossiers</Link></li>
                 <li><a href="#" className="hover:text-constalib-blue">Support</a></li>
               </ul>
             </div>

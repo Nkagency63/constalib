@@ -36,6 +36,12 @@ const Header = () => {
               À propos
             </Link>
             <Link 
+              to="/blog" 
+              className="text-constalib-dark hover:text-constalib-blue transition-colors"
+            >
+              Blog
+            </Link>
+            <Link 
               to="/carrossiers" 
               className="text-constalib-dark hover:text-constalib-blue transition-colors"
             >
@@ -112,6 +118,13 @@ const Header = () => {
                 onClick={closeMenu}
               >
                 À propos
+              </Link>
+              <Link 
+                to="/blog" 
+                className="text-constalib-dark hover:text-constalib-blue transition-colors"
+                onClick={closeMenu}
+              >
+                Blog
               </Link>
               <Link 
                 to="/carrossiers" 

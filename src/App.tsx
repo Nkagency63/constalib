@@ -4,6 +4,8 @@ import { AuthProvider } from '@/hooks/useAuth';
 import ProtectedRoute from '@/components/ProtectedRoute';
 import Index from './pages/Index';
 import About from './pages/About';
+import Blog from './pages/Blog';
+import BlogPost from './pages/BlogPost';
 import Accident from './pages/Accident';
 import Profile from './pages/Profile';
 import Documents from './pages/Documents';
@@ -24,6 +26,8 @@ function App() {
           <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/about" element={<About />} />
+            <Route path="/blog" element={<Blog />} />
+            <Route path="/blog/:slug" element={<BlogPost />} />
             <Route path="/accident" element={
               <ProtectedRoute>
                 <Accident />
